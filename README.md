@@ -4,7 +4,7 @@
 
 ## Installation
 
-Download the release rip and install on your WordPress. 
+Download the release zip and install on your WordPress. 
 
 
 ## Local Development
