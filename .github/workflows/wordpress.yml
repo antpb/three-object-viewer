@@ -1,0 +1,56 @@
+name: WordPress Tests
+
+on: [push]
+
+env:
+  WP_TESTS_DIR: /github/home/wp-tests/wordpress-tests-lib
+  WP_CORE_DIR: /github/home/wp-tests/wordpress
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: [ 7.2,7.3,7.4 ]
+        wordpress-version: [ latest ]
+    container:
+      image: junaidbhura/wp-tests:php-${{ matrix.php-version }}
+    services:
+      mysql:
+        image: mysql:5.7.27
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+        env:
+          MYSQL_ROOT_PASSWORD: root
+
+    steps:
+      # Setup
+      - name: Checkout repository
+        uses: actions/checkout@v1
+
+      ## Install
+      - name: Get Composer Cache Directory
+        id: get-composer-cache-dir # Instead of composer-cache
+        run: |
+          echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v2
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: Install dependencies
+        if: steps.composer-cache.outputs.cache-hit != 'true'
+        run: composer install --prefer-dist --no-progress
+
+      ## Install test suite
+      - name: Install WordPress test suite
+        run: bash bin/install-wp-tests.sh wordpress_test root root mysql ${{ matrix.wordpress-version }}
+
+      ## Run integration tests
+      - name: Tests
+        run: composer test:wordpress

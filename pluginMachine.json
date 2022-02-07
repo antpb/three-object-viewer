@@ -1,0 +1,22 @@
+{
+    "slug": "three-object-viewer",
+    "pluginId": 166,
+    "buildId": 172,
+    "entryPoints": {
+        "adminPages": [
+            "three-model-viewer-settings"
+        ],
+        "blocks": [
+            "three-object-block"
+        ]
+    },
+    "buildIncludes": [
+        "three-object-viewer.php",
+        "readme.txt",
+        "php",
+        "vendor",
+        "build",
+        "blocks/three-object-block/init.php",
+        "admin/three-model-viewer-settings/init.php"
+    ]
+}
