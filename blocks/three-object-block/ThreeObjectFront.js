@@ -10,7 +10,6 @@ import TeleportTravel from "./TeleportTravel";
 
 function Test(props) {
   if(props.url){
-    console.log(props);
     const [url, set] = useState(props.url);
     useEffect(() => {
       setTimeout(() => set(props.url), 2000)
