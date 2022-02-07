@@ -47,7 +47,8 @@
     "category": "media",
     "apiVersion": 2,
     "supports": {
-        "html": false
+        "html": false,
+        "multiple": false
     },
     "editorScript": "file:../../build/block-three-object-block.js",
 	"editorStyle": "file:../../build/block-three-object-block.css",
