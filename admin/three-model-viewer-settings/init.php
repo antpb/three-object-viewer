@@ -54,15 +54,15 @@ add_action('admin_enqueue_scripts', function ($hook) {
 });
 
 //Register Model Viewer Settings menu page
-add_action('admin_menu', function () {
-    add_menu_page(
-        __('Model Viewer Settings', 'three-object-viewer'),
-        __('Model Viewer Settings', 'three-object-viewer'),
-        'manage_options',
-        'three-model-viewer-settings',
-        function () {
-            //React root
-            echo '<div id="three-model-viewer-settings"></div>';
-        }
-    );
-});
+// add_action('admin_menu', function () {
+//     add_menu_page(
+//         __('Model Viewer Settings', 'three-object-viewer'),
+//         __('Model Viewer Settings', 'three-object-viewer'),
+//         'manage_options',
+//         'three-model-viewer-settings',
+//         function () {
+//             //React root
+//             echo '<div id="three-model-viewer-settings"></div>';
+//         }
+//     );
+// });
