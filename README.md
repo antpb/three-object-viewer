@@ -4,6 +4,11 @@
 
 ## Installation
 
+Download the release rip and install on your WordPress. 
+
+
+## Local Development
+
 - Git clone:
     - `git clone git@github.com:antpb/three-object-viewer.git`
 - Install javascript dependencies
