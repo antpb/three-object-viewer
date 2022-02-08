@@ -2,7 +2,7 @@
 /**
 * Plugin Name: Three Object Viewer
 * Plugin URI: https://antpb.com
-* Description: Three object viewer
+* Description: A plugin for viewing 3D files in a browser or in VR / AR.
 * Version: 0.0.1
 * Requires at least: 5.7
 * Requires PHP:      7.1.0
