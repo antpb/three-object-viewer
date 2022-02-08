@@ -5,8 +5,8 @@ namespace threeObjectViewer;
 class Plugin
 {
 
-    public function Listen(): string
-    {
-        return  'Hey, Listen!';
-    }
+	public function listen(): string
+	{
+		return  'Hey, Listen!';
+	}
 }

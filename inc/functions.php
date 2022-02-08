@@ -42,7 +42,8 @@ add_filter('upload_mimes', 'add_file_types_to_uploads', 1, 1);
 
 function add_file_types_to_uploads($file_types){
   $new_filetypes = array();
-//   $new_filetypes['glb'] = 'model/gltf-binary';
+  // Potentially need to restore as model/gltf-binary in the future.  
+  // $new_filetypes['glb'] = 'model/gltf-binary';
   $new_filetypes['glb'] = 'application/octet-stream';
   $new_filetypes['vrm'] = 'application/octet-stream';
   $file_types = array_merge($file_types, $new_filetypes );
@@ -66,8 +67,6 @@ add_filter('wp_check_filetype_and_ext', function ($data, $file, $filename, $mime
       $data['proper_filename'] = $proper_filename;
   }
   return $data;
-
-
 }, 10, 4);
 
 add_action( "wp_enqueue_scripts", __NAMESPACE__ . '\frontend_assets' );
