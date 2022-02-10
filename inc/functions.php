@@ -74,6 +74,7 @@ function threeobjectviewer_checkfiletypes($data, $file, $filename, $mimes) {
     return $data;
 }
 
+add_action('wp_enqueue_scripts', __NAMESPACE__ . '\threeobjectviewer_frontend_assets');
 
 /**
  * Enqueue block frontend JavaScript
