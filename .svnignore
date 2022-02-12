@@ -35,6 +35,11 @@ tests
 webpack.config.js
 pluginMachine.json
 babel.config.json
+phpunit-unit.xml
+phpunit-integration.xml
+phpcs.xml.dist
+yarn.lock
+yarn-error.log
 jest.config.js
 package.json
 package-lock.json
