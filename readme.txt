@@ -2,7 +2,7 @@
 Requires at least: 5.7
 Tested up to: 5.9
 Requires PHP: 7.2
-Stable tag: 0.1.0
+Stable tag: 0.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Author: antpb
@@ -10,7 +10,19 @@ Author: antpb
 A WordPress plugin for drag and drop 3D content creation compatible with most XR devices.
 
 == Description ==
-A WordPress plugin for drag and drop 3D content creation compatible with most XR devices.
+Welcome to the metaverse, WordPress!
+The Three Object Viewer plugin is a drag and drop way to publish virtual worlds or 3D content using your WordPress site. The plugin supports AR VR and 2D in a browser window and runs React Three Fiber under the hood with support for the three-omi audio emitter extension.
+
+## Drag and drop WebXR
+The three object viewer plugin makes it possible to drag and drop 3D (glb) files into your WordPress block editor content. Wherever you can put a block, you can put a virtual world.
+Your website can truly become a virtual world when your visitors click the “Enter in VR” button. When a user enters the scene, they will have the ability to teleport throughout the environment. More exciting VR features to come!
+
+## Implements Open Metaverse Interoperability Extensions
+This plugin supports the three-omi package built by contributors of the Open Metaverse Interoperability group. As new extensions are added, this plugin will be updated to support those features. Some potential components in the future include physics and collision events.
+
+## Currently Supported Three OMI Extensions
+
+Audio – Play both spatial and global audio in your scenes by creating a scene here in the build.xpportal.io Spoke editor. From there you can export a glb file that supports the Three OMI Audio Emitter Extension.
 
 
 == Installation ==
