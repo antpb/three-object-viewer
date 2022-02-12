@@ -1,7 +1,7 @@
 <?php
 /**
 * Plugin Name: Three Object Viewer
-* Plugin URI: https://antpb.com/three-object-viewer
+* Plugin URI: https://3ov.xyz/
 * Description: A plugin for viewing 3D files with support for WebXR and Open Metaverse Interoperability GLTF Extensions.
 * Version: 0.1.0
 * Requires at least: 5.7
