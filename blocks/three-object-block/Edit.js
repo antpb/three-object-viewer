@@ -11,7 +11,7 @@ import {
 import { Panel, PanelBody, PanelRow, RangeControl, ToggleControl, SelectControl } from '@wordpress/components';
 import { more } from '@wordpress/icons';
 
-import ThreeObjectEdit from './ThreeObjectEdit';
+import ThreeObjectEdit from './components/ThreeObjectEdit';
 
 export default function Edit({ attributes, setAttributes, isSelected }) {
 

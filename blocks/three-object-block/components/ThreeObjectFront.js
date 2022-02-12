@@ -8,7 +8,7 @@ import { GLTFAudioEmitterExtension } from "three-omi";
 import { VRCanvas, ARCanvas, DefaultXRControllers, Hands } from '@react-three/xr'
 import TeleportTravel from "./TeleportTravel";  
 
-function Test(props) {
+function SavedObject(props) {
   if(props.url){
     const [url, set] = useState(props.url);
     useEffect(() => {
@@ -52,7 +52,7 @@ export default function ThreeObjectFront(props) {
         </TeleportTravel>
         <Hands />
         <DefaultXRControllers />
-        <OrthographicCamera near={0} makeDefault position={[0, 0, 10]} zoom={props.zoom} />
+        <OrthographicCamera near={0.1} makeDefault position={[0, 0, 10]} zoom={props.zoom} />
         <ambientLight intensity={0.5} />
           <directionalLight
               intensity={0.6}
@@ -62,7 +62,7 @@ export default function ThreeObjectFront(props) {
               castShadow
           />
         <Suspense fallback={null}>
-          <Test positionY={props.positionY} rotationY={props.rotationY} url={props.threeUrl} color={props.backgroundColor} hasZoom={props.hasZoom} scale={props.scale} hasTip={props.hasTip}/>
+          <SavedObject positionY={props.positionY} rotationY={props.rotationY} url={props.threeUrl} color={props.backgroundColor} hasZoom={props.hasZoom} scale={props.scale} hasTip={props.hasTip}/>
         </Suspense>
         <OrbitControls enableZoom={props.hasZoom === "1" ? true : false}/>
       </VRCanvas>
@@ -74,7 +74,7 @@ export default function ThreeObjectFront(props) {
     return (
       <>
         <ARCanvas shadowMap style={{ backgroundColor: props.backgroundColor, margin: "0 Auto", height: "500px", width: "90%"  }}>
-          <OrthographicCamera near={0} makeDefault position={[0, 0, 10]} zoom={props.zoom} />
+          <OrthographicCamera near={0.1} makeDefault position={[0, 0, 10]} zoom={props.zoom} />
           <ambientLight intensity={0.5} />
             <directionalLight
                 intensity={0.6}
@@ -84,7 +84,7 @@ export default function ThreeObjectFront(props) {
                 castShadow
             />
           <Suspense fallback={null}>
-            <Test positionY={props.positionY} rotationY={props.rotationY} url={props.threeUrl} color={props.backgroundColor} hasZoom={props.hasZoom} scale={props.scale} hasTip={props.hasTip}/>
+            <SavedObject positionY={props.positionY} rotationY={props.rotationY} url={props.threeUrl} color={props.backgroundColor} hasZoom={props.hasZoom} scale={props.scale} hasTip={props.hasTip}/>
           </Suspense>
           <OrbitControls enableZoom={props.hasZoom === "1" ? true : false}/>
         </ARCanvas>
@@ -96,7 +96,7 @@ export default function ThreeObjectFront(props) {
     return (
       <>
         <Canvas shadowMap style={{ backgroundColor: props.backgroundColor, margin: "0 Auto", height: "500px", width: "90%"  }}>
-          <OrthographicCamera near={0} makeDefault position={[0, 0, 10]} zoom={props.zoom} />
+          <OrthographicCamera near={0.1} makeDefault position={[0, 0, 10]} zoom={props.zoom} />
           <ambientLight intensity={0.5} />
             <directionalLight
                 intensity={0.6}
@@ -106,7 +106,7 @@ export default function ThreeObjectFront(props) {
                 castShadow
             />
           <Suspense fallback={null}>
-            <Test positionY={props.positionY} rotationY={props.rotationY} url={props.threeUrl} color={props.backgroundColor} hasZoom={props.hasZoom} scale={props.scale} hasTip={props.hasTip}/>
+            <SavedObject positionY={props.positionY} rotationY={props.rotationY} url={props.threeUrl} color={props.backgroundColor} hasZoom={props.hasZoom} scale={props.scale} hasTip={props.hasTip}/>
           </Suspense>
           <OrbitControls enableZoom={props.hasZoom === "1" ? true : false}/>
         </Canvas>

@@ -1,6 +1,6 @@
 const { Component, render } = wp.element;
 
-import ThreeObjectFront from "./ThreeObjectFront";  
+import ThreeObjectFront from "./components/ThreeObjectFront";  
 
 const threeApp = document.querySelector(
   ".three-object-three-app"
