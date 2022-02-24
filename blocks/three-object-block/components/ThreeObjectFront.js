@@ -30,11 +30,13 @@ function SavedObject(props) {
     
     const animationList = props.animations ? props.animations.split(',') : "";
     useEffect(() => {
-    animationList.forEach((name) => {
-      if(Object.keys(actions).includes(name)){
-        actions[name].play();
+      if(animationList){
+        animationList.forEach((name) => {
+            if(Object.keys(actions).includes(name)){
+                actions[name].play();
+            }
+        });
       }
-    });
     }, []);
     
     scene.position.set(0, props.positionY, 0);
