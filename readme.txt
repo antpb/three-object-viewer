@@ -2,7 +2,7 @@
 Requires at least: 5.7
 Tested up to: 5.9
 Requires PHP: 7.2
-Stable tag: 0.2.0
+Stable tag: 0.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Author: antpb
@@ -43,6 +43,14 @@ It can also be installed manually using a zip file.
 
 
 == Changelog ==
+
+= 0.3.0 =
+
+*  Adds animation support in the Three Object Block.
+
+= 0.2.0 =
+
+*  WordPress.org Release Version
 
 = 0.1.0 =
 
