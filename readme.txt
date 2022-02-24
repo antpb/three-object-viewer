@@ -2,7 +2,7 @@
 Requires at least: 5.7
 Tested up to: 5.9
 Requires PHP: 7.2
-Stable tag: 0.4.0
+Stable tag: 0.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Author: antpb
@@ -43,6 +43,10 @@ It can also be installed manually using a zip file.
 
 
 == Changelog ==
+
+= 0.5.0 =
+
+*  Fix animation build.
 
 = 0.4.0 =
 
