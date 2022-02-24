@@ -2,10 +2,10 @@ import * as THREE from 'three';
 import React, { Suspense, useRef, useState, useEffect } from 'react';
 import { Canvas, useLoader, useFrame, useThree } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { OrthographicCamera, OrbitControls } from '@react-three/drei';
+import { OrthographicCamera, OrbitControls, useAnimations } from '@react-three/drei';
 import { GLTFAudioEmitterExtension } from "three-omi";
 
-function Test(props) {
+function ThreeObject(props) {
     if(props.url){
         const [url, set] = useState(props.url);
         useEffect(() => {
@@ -16,11 +16,24 @@ function Test(props) {
             camera.add(listener);
         });
 
-        const { scene } = useLoader(GLTFLoader, url, (loader) => {
+        const { scene, animations } = useLoader(GLTFLoader, url, (loader) => {
             loader.register(
                 (parser) => new GLTFAudioEmitterExtension(parser, listener)
             );
         });
+        const { actions } = useAnimations(animations, scene);    
+        const animationList = props.animations ? props.animations.split(',') : "";
+        useEffect(() => {
+            // actions["Armature|Take 001|BaseLayer"].play();
+            if(animationList){
+                animationList.forEach((name) => {
+                    if(Object.keys(actions).includes(name)){
+                        actions[name].play();
+                    }
+                });
+            }
+        }, []);
+        
         scene.position.set(props.positionX, props.positionY, 0);
         scene.rotation.set(0, props.rotationY, 0)
         scene.scale.set(props.scale, props.scale, props.scale)
@@ -42,7 +55,7 @@ export default function ThreeObjectEdit(props) {
             castShadow
         />
         <Suspense fallback={null}>
-            <Test url={props.url} positionX={props.positionX} positionY={props.positionY} rotationY={props.rotationY} scale={props.scale}/>
+            <ThreeObject url={props.url} positionX={props.positionX} positionY={props.positionY} rotationY={props.rotationY} scale={props.scale} animations={props.animations}/>
         </Suspense>
         <OrbitControls enableZoom={props.hasZoom}/>
     </Canvas>

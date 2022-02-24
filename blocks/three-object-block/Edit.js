@@ -8,7 +8,7 @@ import {
 	InspectorControls,
 	MediaUpload
 } from '@wordpress/block-editor';
-import { Panel, PanelBody, PanelRow, RangeControl, ToggleControl, SelectControl } from '@wordpress/components';
+import { Panel, PanelBody, PanelRow, RangeControl, ToggleControl, SelectControl, TextControl } from '@wordpress/components';
 import { more } from '@wordpress/icons';
 
 import ThreeObjectEdit from './components/ThreeObjectEdit';
@@ -17,6 +17,9 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 
 	const onChangeBGColor = ( hexColor ) => {
 		setAttributes( { bg_color: hexColor } );
+	};
+	const onChangeAnimations = ( animations ) => {
+		setAttributes( { animations: animations } );
 	};
 	const onImageSelect = (imageObject) => {
 		setAttributes({ threeObjectUrl: null })
@@ -116,6 +119,14 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 							onChange={ ( target ) => setDeviceTarget( target ) }
 					/>
 				</PanelRow>
+				<PanelRow>
+					<TextControl
+							label="Loop Animations"
+							help="Separate each animation name you wish to loop with a comma"
+							value={ attributes.animations }
+							onChange={ ( value ) => onChangeAnimations( value ) }
+					/>
+				</PanelRow>
 				<PanelRow>						
 						<span>Set a background color:</span>
 					</PanelRow>
@@ -208,6 +219,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 					hasTip={attributes.hasTip}
 					positionX={attributes.positionX}
 					positionY={attributes.positionY}
+					animations={attributes.animations}
 					rotationY={attributes.rotationY}/>
 				: 
 				( <div className="glb-preview-container">
@@ -244,6 +256,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 				hasTip={attributes.hasTip}
 			  positionX={attributes.positionX}
 			  positionY={attributes.positionY}
+				animations={attributes.animations}
 			  rotationY={attributes.rotationY}/>	 
 			  : 
 			( <div className="glb-preview-container">

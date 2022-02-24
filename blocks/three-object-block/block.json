@@ -42,6 +42,10 @@
         "deviceTarget": {
             "type": "string",
             "default": "2d"
+        },
+        "animations": {
+            "type": "string",
+            "default": ""
         }
     },
     "category": "media",
