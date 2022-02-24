@@ -3,12 +3,13 @@ import * as THREE from 'three'
 import React, { Suspense, useRef, useState, useEffect } from 'react'
 import { Canvas, useLoader, useFrame, useThree } from '@react-three/fiber'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
-import { OrthographicCamera, OrbitControls } from '@react-three/drei'
+import { OrthographicCamera, OrbitControls, useAnimations } from '@react-three/drei'
 import { GLTFAudioEmitterExtension } from "three-omi";
 import { VRCanvas, ARCanvas, DefaultXRControllers, Hands } from '@react-three/xr'
 import TeleportTravel from "./TeleportTravel";  
 
 function SavedObject(props) {
+
   if(props.url){
     const [url, set] = useState(props.url);
     useEffect(() => {
@@ -19,15 +20,27 @@ function SavedObject(props) {
         camera.add(listener);
     });
 
-    const { scene } = useLoader(GLTFLoader, url, (loader) => {
+    const { scene, animations } = useLoader(GLTFLoader, url, (loader) => {
         loader.register(
             (parser) => new GLTFAudioEmitterExtension(parser, listener)
         );
     });
+
+    const { actions } = useAnimations(animations, scene);
+    
+    const animationList = props.animations ? props.animations.split(',') : "";
+    useEffect(() => {
+    animationList.forEach((name) => {
+      if(Object.keys(actions).includes(name)){
+        actions[name].play();
+      }
+    });
+    }, []);
+    
     scene.position.set(0, props.positionY, 0);
     scene.rotation.set(0, props.rotationY, 0)
     scene.scale.set(props.scale, props.scale, props.scale)
-return <primitive object={scene} />
+return     <primitive object={scene} />
   } else {
     return null
   }
@@ -40,7 +53,7 @@ function Floor(props) {
     </mesh>
   );
 }
-  
+ 
 export default function ThreeObjectFront(props) {
 
   if (props.deviceTarget === "vr"){
@@ -62,7 +75,7 @@ export default function ThreeObjectFront(props) {
               castShadow
           />
         <Suspense fallback={null}>
-          <SavedObject positionY={props.positionY} rotationY={props.rotationY} url={props.threeUrl} color={props.backgroundColor} hasZoom={props.hasZoom} scale={props.scale} hasTip={props.hasTip}/>
+          <SavedObject positionY={props.positionY} rotationY={props.rotationY} url={props.threeUrl} color={props.backgroundColor} hasZoom={props.hasZoom} scale={props.scale} hasTip={props.hasTip} animations={props.animations} />
         </Suspense>
         <OrbitControls enableZoom={props.hasZoom === "1" ? true : false}/>
       </VRCanvas>
@@ -84,7 +97,7 @@ export default function ThreeObjectFront(props) {
                 castShadow
             />
           <Suspense fallback={null}>
-            <SavedObject positionY={props.positionY} rotationY={props.rotationY} url={props.threeUrl} color={props.backgroundColor} hasZoom={props.hasZoom} scale={props.scale} hasTip={props.hasTip}/>
+            <SavedObject positionY={props.positionY} rotationY={props.rotationY} url={props.threeUrl} color={props.backgroundColor} hasZoom={props.hasZoom} scale={props.scale} hasTip={props.hasTip} animations={props.animations} />
           </Suspense>
           <OrbitControls enableZoom={props.hasZoom === "1" ? true : false}/>
         </ARCanvas>
@@ -106,7 +119,7 @@ export default function ThreeObjectFront(props) {
                 castShadow
             />
           <Suspense fallback={null}>
-            <SavedObject positionY={props.positionY} rotationY={props.rotationY} url={props.threeUrl} color={props.backgroundColor} hasZoom={props.hasZoom} scale={props.scale} hasTip={props.hasTip}/>
+            <SavedObject positionY={props.positionY} rotationY={props.rotationY} url={props.threeUrl} color={props.backgroundColor} hasZoom={props.hasZoom} scale={props.scale} hasTip={props.hasTip} animations={props.animations} />
           </Suspense>
           <OrbitControls enableZoom={props.hasZoom === "1" ? true : false}/>
         </Canvas>

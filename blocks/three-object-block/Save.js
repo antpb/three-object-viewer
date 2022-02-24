@@ -16,6 +16,7 @@ export default function save({ attributes }) {
         <p className="three-object-position-y">{attributes.positionY}</p>
         <p className="three-object-rotation-y">{attributes.rotationY}</p>
         <p className="three-object-scale">{attributes.scale}</p>
+        <p className="three-object-animations">{attributes.animations}</p>
       </div>
     </>
   </div>);
