@@ -29,6 +29,6 @@
         "@wordpress/i18n": "^4",
         "react-three-fiber": "^6.0.13",
         "three": "^0.137.2",
-        "three-omi": "^0.1.4"
+        "three-omi": "^0.1.5"
     }
 }

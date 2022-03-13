@@ -3,15 +3,15 @@ name: JavaScripts
 on: [push]
 
 jobs:
-  buildAndTest:
-    name: Test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
-        with:
-          node-version: "12"
-      - name: Install dependencies
-        run: yarn
-      - name: Test
-        run: yarn test --ci
+    buildAndTest:
+        name: Test
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v1
+            - uses: actions/setup-node@v1
+              with:
+                  node-version: '12'
+            - name: Install dependencies
+              run: yarn
+            - name: Test
+              run: yarn test --ci

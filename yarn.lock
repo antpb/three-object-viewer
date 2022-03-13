@@ -11017,10 +11017,10 @@ three-mesh-bvh@^0.5.4:
   resolved "https://registry.yarnpkg.com/three-mesh-bvh/-/three-mesh-bvh-0.5.4.tgz#f4c8d751f420c60c35f880393bb00553ce1b298c"
   integrity sha512-Hq3zpjqBxx2sp/K2Fw7cZ1yEoIVbMc4hOv3VRtmCjHapDKkZpDh8w3OcktbCwn+vBNPt9Ii8D0nDTeqt+73Dwg==
 
-three-omi@^0.1.4:
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/three-omi/-/three-omi-0.1.4.tgz#aa48f2e1b8f16093e3e4488af726f5ded5c915ee"
-  integrity sha512-ImkuX2jKKLnk+2/GWAi30udpJwTO7wvxErh1m5of8RcvDHjEmWPMb0j/iMsOfx7stct6oRtjXKB0v9iBajyfsA==
+three-omi@^0.1.5:
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/three-omi/-/three-omi-0.1.5.tgz#51a96d9f998ec770fc0ff58a9ce7bd297e71daef"
+  integrity sha512-0kDTKeEaowN9u0C0wHxbpmDHLJDmsqavbynjIi2ITPoIo/R2znbqxKdd64IfHf9Xv7HgxLnBfL0OM8PDTLu79A==
 
 three-stdlib@^2.7.2:
   version "2.8.5"
