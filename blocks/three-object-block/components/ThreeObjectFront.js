@@ -217,11 +217,11 @@ export default function ThreeObjectFront( props ) {
 			</>
 		);
 	}
-	if ( props.deviceTarget === '2dfps' ) {
+	if ( props.deviceTarget === 'playerController' ) {
 		return (
 			<>
 				<Canvas
-					camera={ { fov: 80, zoom: props.zoom, position: [ 0, 0, 0 ] } }
+					camera={ { fov: 80, zoom: props.zoom, position: [ 0, 0, 20 ] } }
 					shadowMap
 					style={ {
 						backgroundColor: props.backgroundColor,

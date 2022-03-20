@@ -59,6 +59,7 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 	const setDeviceTarget = ( target ) => {
 		setAttributes( { deviceTarget: target } );
 	};
+	const [ enteredURL, setEnteredURL ] = useState( "" );
 
 	const { mediaUpload } = wp.editor;
 
@@ -69,7 +70,6 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 
 	const MyDropZone = () => {
 		const [ hasDropped, setHasDropped ] = useState( false );
-
 		return (
 			<div>
 				{ hasDropped ? 'Dropped!' : 'Drop a glb here or' }
@@ -87,6 +87,15 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 			</div>
 		);
 	};
+	
+  function handleClick(objectURL){
+		if(objectURL){
+			console.log("success good job", objectURL);
+			onImageSelect(objectURL);
+		}
+		console.log("fail", objectURL);
+	}
+  
 
 	return (
 		<div { ...useBlockProps() }>
@@ -138,7 +147,7 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 									{ label: 'VR', value: 'vr' },
 									{ label: 'AR', value: 'ar' },
 									{ label: '2D', value: '2d' },
-									{ label: '2DFPS', value: '2dfps' },
+									{ label: 'Player Controller', value: 'playerController' },
 								] }
 								onChange={ ( target ) =>
 									setDeviceTarget( target )
@@ -266,7 +275,16 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 								<span>
 									Select a glb file to render in the canvas:
 								</span>
-							</div>
+								<div className="three-object-block-url-input"> 
+									<input onChange={(e) => console.log(e.target.value) && setEnteredURL(e.target.value)}></input> 
+									<button 
+										className="three-object-viewer-button" 
+										onClick={	handleClick(enteredURL) }
+									>
+										Use URL
+									</button>
+								</div>
+								{/* <div className="three-object-block-url-input"> <input onChange={(e) => setEnteredURL(e.value)}></input> <button className="three-object-viewer-button" onClick={	console.log(enteredURL) && setAttributes( { threeObjectUrl: enteredURL } )}>Use URL</button></div> */}
 							<MediaUpload
 								onSelect={ ( imageObject ) =>
 									onImageSelect( imageObject )
@@ -275,13 +293,14 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 								allowedTypes={ ALLOWED_MEDIA_TYPES }
 								value={ attributes.threeObjectUrl }
 								render={ ( { open } ) => (
-									<button onClick={ open }>
+									<button className="three-object-viewer-button" onClick={ open }>
 										{ attributes.threeObjectUrl
 											? 'Replace Object'
-											: 'Select Object' }
+											: 'Select From Media Library' }
 									</button>
 								) }
 							/>
+						</div>
 						</div>
 					) }
 				</>
@@ -308,6 +327,15 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 								<span>
 									Select a glb file to render in the canvas:
 								</span>
+								<div className="three-object-block-url-input"> 
+								<input onChange={(e) => console.log(e.target.value) && setEnteredURL(e.target.value)}></input> 
+									<button 
+										className="three-object-viewer-button" 
+										onClick={	handleClick(enteredURL) }
+									>
+										Use URL
+									</button>
+								</div>
 							</div>
 							<MediaUpload
 								onSelect={ ( imageObject ) =>
@@ -317,8 +345,8 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 								allowedTypes={ ALLOWED_MEDIA_TYPES }
 								value={ attributes.threeObjectUrl }
 								render={ ( { open } ) => (
-									<button onClick={ open }>
-										Select Object
+									<button className="three-object-viewer-button" onClick={ open }>
+										Select From Media Library
 									</button>
 								) }
 							/>

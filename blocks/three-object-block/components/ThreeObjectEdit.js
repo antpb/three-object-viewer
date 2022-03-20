@@ -25,9 +25,9 @@ function ThreeObject( props ) {
 		);
 	} );
 	const { actions } = useAnimations( animations, scene );
+	console.log(animations);
 	const animationList = props.animations ? props.animations.split( ',' ) : '';
 	useEffect( () => {
-		// actions["Armature|Take 001|BaseLayer"].play();
 		if ( animationList ) {
 			animationList.forEach( ( name ) => {
 				if ( Object.keys( actions ).includes( name ) ) {
