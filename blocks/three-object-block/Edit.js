@@ -28,6 +28,15 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 	const onChangeAnimations = ( animations ) => {
 		setAttributes( { animations: animations } );
 	};
+
+	const onChangeMovementAnimation = ( animations ) => {
+		setAttributes( { animations: animations } );
+	};
+
+	const onChangeLookAtBone = ( animations ) => {
+		setAttributes( { animations: animations } );
+	};
+
 	const onImageSelect = ( imageObject ) => {
 		setAttributes( { threeObjectUrl: null } );
 		setAttributes( { threeObjectUrl: imageObject.url } );
@@ -59,6 +68,7 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 	const setDeviceTarget = ( target ) => {
 		setAttributes( { deviceTarget: target } );
 	};
+
 	const [ enteredURL, setEnteredURL ] = useState( "" );
 
 	const { mediaUpload } = wp.editor;
@@ -137,7 +147,7 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 						initialOpen={ true }
 					>
 						<PanelRow>
-							<span>Device Target:</span>
+							<span>Object Display Type:</span>
 						</PanelRow>
 						<PanelRow>
 							<SelectControl
@@ -148,9 +158,30 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 									{ label: 'AR', value: 'ar' },
 									{ label: '2D', value: '2d' },
 									{ label: 'Player Controller', value: 'playerController' },
+									{ label: 'AR Pet', value: 'arPet' },
 								] }
 								onChange={ ( target ) =>
 									setDeviceTarget( target )
+								}
+							/>
+						</PanelRow>
+						<PanelRow>
+							<TextControl
+								label="Movement Animation"
+								help="This defines the animation that plays when your pet object catches up to your camera location."
+								value={ attributes.movementAnimation }
+								onChange={ ( value ) =>
+									onChangeMovementAnimation( value )
+								}
+							/>
+						</PanelRow>
+						<PanelRow>
+							<TextControl
+								label="Look At Bone"
+								help="If your pet has an armature, you can define the bone that should rotate to look at the camera."
+								value={ attributes.lookAtBone }
+								onChange={ ( value ) =>
+									onChangeLookAtBone( value )
 								}
 							/>
 						</PanelRow>
