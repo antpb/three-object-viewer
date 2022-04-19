@@ -4,6 +4,7 @@ import { Canvas, useLoader, useFrame, useThree } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import {
 	OrthographicCamera,
+	PerspectiveCamera,
 	OrbitControls,
 	useAnimations,
 } from '@react-three/drei';
@@ -56,6 +57,10 @@ export default function ThreeObjectEdit( props ) {
 					width: '90%',
 				} }
 			>
+				{ props.deviceTarget === "2d" ?
+				<OrthographicCamera near={0} makeDefault position={[0, 0, 10]} zoom={props.zoom} /> :
+				<PerspectiveCamera fov={80} position={[0,0,20]} makeDefault zoom={props.zoom} />				
+				}
 				<ambientLight intensity={ 0.5 } />
 				<directionalLight
 					intensity={ 0.6 }

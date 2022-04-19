@@ -37,7 +37,7 @@ if ( threeApp ) {
 	const rotationY = threeApp.querySelector( 'p.three-object-rotation-y' )
 		? threeApp.querySelector( 'p.three-object-rotation-y' ).innerText
 		: 0;
-	const animations = threeApp.querySelector( 'p.three-object-animations' )
+		const animations = threeApp.querySelector( 'p.three-object-animations' )
 		? threeApp.querySelector( 'p.three-object-animations' ).innerText
 		: '';
 

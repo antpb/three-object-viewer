@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { useFrame } from 'react-three-fiber';
+import { useFrame } from '@react-three/fiber';
 import { PointerLockControls } from '@react-three/drei';
 import previewOptions from '@wordpress/block-editor/build/components/preview-options';
 

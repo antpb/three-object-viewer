@@ -4,8 +4,9 @@ import { Canvas, useLoader, useFrame, useThree } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import {
 	OrthographicCamera,
+	PerspectiveCamera,
 	OrbitControls,
-	useAnimations,
+	useAnimations
 } from '@react-three/drei';
 import { GLTFAudioEmitterExtension } from 'three-omi';
 import {
@@ -22,8 +23,10 @@ function SavedObject( props ) {
 	useEffect( () => {
 		setTimeout( () => set( props.url ), 2000 );
 	}, [] );
+
 	const [ listener ] = useState( () => new THREE.AudioListener() );
-	useThree( ( { camera } ) => {
+
+	useThree( ( { camera, raycaster, mouse } ) => {
 		camera.add( listener );
 	} );
 
@@ -32,10 +35,11 @@ function SavedObject( props ) {
 			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
 		);
 	} );
-
+	const locket = scene.getObjectByName('locket');
+	console.log(locket);
 	const { actions } = useAnimations( animations, scene );
-
 	const animationList = props.animations ? props.animations.split( ',' ) : '';
+
 	useEffect( () => {
 		if ( animationList ) {
 			animationList.forEach( ( name ) => {
@@ -49,8 +53,88 @@ function SavedObject( props ) {
 	scene.position.set( 0, props.positionY, 0 );
 	scene.rotation.set( 0, props.rotationY, 0 );
 	scene.scale.set( props.scale, props.scale, props.scale );
-	return <primitive object={ scene } />;
+	return <primitive object={ scene } onClick={(e) => {
+		if (e.intersections[0].object.name === "forward"){
+			console.log("hey! Forward!");
+			if(locket.material.map.offset.x >= 1){
+				locket.material.map.offset.set(0, 0);
+			} else {
+				locket.material.map.offset.set(locket.material.map.offset.x + 0.33333333333333333, 0);
+			}
+			console.log("offset", locket.material.map.offset);
+			scene.getObjectByProperty('type', 'Audio').play();
+			locket.material.needsUpdate = true;
+		}
+
+		if (e.intersections[0].object.name === "back") {
+			scene.getObjectByProperty('type', 'Audio').play();
+			console.log("hey! Forward!");
+			locket.material.map.offset.set(locket.material.map.offset.x - 0.33333333333333333, 0);
+			locket.material.needsUpdate = true;
+		}
+
+	}
+	}/>;
 }
+
+function SavedObjectInteractive( props ) {
+	const [ url, set ] = useState( props.url );
+	useEffect( () => {
+		setTimeout( () => set( props.url ), 2000 );
+	}, [] );
+
+	const [ listener ] = useState( () => new THREE.AudioListener() );
+
+	useThree( ( { camera, raycaster, mouse } ) => {
+		camera.add( listener );
+	} );
+
+	const { scene, animations } = useLoader( GLTFLoader, url, ( loader ) => {
+		loader.register(
+			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
+		);
+	} );
+	const locket = scene.getObjectByName('locket');
+	console.log(locket);
+	const { actions } = useAnimations( animations, scene );
+	const animationList = props.animations ? props.animations.split( ',' ) : '';
+
+	useEffect( () => {
+		if ( animationList ) {
+			animationList.forEach( ( name ) => {
+				if ( Object.keys( actions ).includes( name ) ) {
+					actions[ name ].play();
+				}
+			} );
+		}
+	}, [] );
+
+	scene.position.set( 0, props.positionY, 0 );
+	scene.rotation.set( 0, props.rotationY, 0 );
+	scene.scale.set( props.scale, props.scale, props.scale );
+	return <primitive object={ scene } onPointerDown={(e) => {
+	
+		if (e.intersections[0].object.name === "forward"){
+			console.log("hey! Forward!");
+			locket.material.map.offset.set(locket.material.map.offset.x + 0.33333333333333333, 0);
+			locket.geometry.uvsNeedUpdate = true;
+			locket.material.needsUpdate = true;
+			locket.material.needsUpdate = true;
+		}
+
+		if (e.intersections[0].object.name === "back") {
+			console.log("hey! Forward!");
+			locket.material.map.offset.set(locket.material.map.offset.x - 0.33333333333333333, 0);
+			locket.geometry.uvsNeedUpdate = true;
+			locket.material.needsUpdate = true;
+			locket.material.needsUpdate = true;
+		}
+
+	}
+	}/>;
+}
+
+
 function Floor( props ) {
 	return (
 		<mesh rotation={ [ -Math.PI / 2, 0, 0 ] } { ...props }>
@@ -65,6 +149,7 @@ function Floor( props ) {
 }
 
 export default function ThreeObjectFront( props ) {
+
 	if ( props.deviceTarget === 'vr' ) {
 		return (
 			<>
@@ -83,12 +168,6 @@ export default function ThreeObjectFront( props ) {
 					</TeleportTravel>
 					<Hands />
 					<DefaultXRControllers />
-					<OrthographicCamera
-						near={ 0.1 }
-						makeDefault
-						position={ [ 0, 0, 10 ] }
-						zoom={ props.zoom }
-					/>
 					<ambientLight intensity={ 0.5 } />
 					<directionalLight
 						intensity={ 0.6 }
@@ -127,7 +206,7 @@ export default function ThreeObjectFront( props ) {
 		return (
 			<>
 				<ARCanvas
-        	camera={ { fov: 80, zoom: props.zoom, position: [ 0, 0, 0 ] } }
+        	// camera={ { fov: 80, zoom: props.zoom, position: [ 0, 0, 0 ] } }
 					shadowMap
 					style={ {
 						backgroundColor: props.backgroundColor,
@@ -136,6 +215,7 @@ export default function ThreeObjectFront( props ) {
 						width: '90%',
 					} }
 				>
+					<PerspectiveCamera fov={80} position={[0,0,20]} makeDefault zoom={props.zoom} />				
 					<ambientLight intensity={ 0.5 } />
 					<directionalLight
 						intensity={ 0.6 }
@@ -176,6 +256,7 @@ export default function ThreeObjectFront( props ) {
 				<Canvas
           camera={ { fov: 80, zoom: props.zoom, position: [ 0, 0, 20 ] } }
 					shadowMap
+					onMouseMove={handleMouseMove}
 					style={ {
 						backgroundColor: props.backgroundColor,
 						margin: '0 Auto',
@@ -183,6 +264,7 @@ export default function ThreeObjectFront( props ) {
 						width: '90%',
 					} }
 				>
+	        <OrthographicCamera near={0} makeDefault position={[0, 0, 10]} zoom={props.zoom} />
 					<ambientLight intensity={ 0.5 } />
 					<directionalLight
 						intensity={ 0.6 }
