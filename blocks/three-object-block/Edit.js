@@ -147,7 +147,6 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 									{ label: 'VR', value: 'vr' },
 									{ label: 'AR', value: 'ar' },
 									{ label: '2D', value: '2d' },
-									{ label: 'Player Controller', value: 'playerController' },
 								] }
 								onChange={ ( target ) =>
 									setDeviceTarget( target )
@@ -169,6 +168,7 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 						</PanelRow>
 						<PanelRow>
 							<ColorPalette
+								value={ attributes.bg_color }
 								label="Background Color"
 								onChange={ onChangeBGColor }
 							/>
@@ -276,7 +276,7 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 									Select a glb file to render in the canvas:
 								</span>
 								<div className="three-object-block-url-input"> 
-									<input onChange={(e) => console.log(e.target.value) && setEnteredURL(e.target.value)}></input> 
+									<input onChange={(e) => setEnteredURL(e.target.value)}></input> 
 									<button 
 										className="three-object-viewer-button" 
 										onClick={	handleClick(enteredURL) }

@@ -44,6 +44,13 @@ It can also be installed manually using a zip file.
 
 == Changelog ==
 
+= 0.6.0 =
+
+*  Update react three fiber.
+*  Update three omi to factor in autoplaying prop name change.
+*  Fixes camera issues and sets better defaults.
+*  Fixes color pallete default value.
+
 = 0.5.0 =
 
 *  Fix animation build.
