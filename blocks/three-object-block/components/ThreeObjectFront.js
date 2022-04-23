@@ -72,7 +72,6 @@ function SavedObject( props ) {
 			locket.material.map.offset.set(locket.material.map.offset.x - 0.33333333333333333, 0);
 			locket.material.needsUpdate = true;
 		}
-
 	}
 	}/>;
 }
@@ -256,7 +255,7 @@ export default function ThreeObjectFront( props ) {
 				<Canvas
           camera={ { fov: 80, zoom: props.zoom, position: [ 0, 0, 20 ] } }
 					shadowMap
-					onMouseMove={handleMouseMove}
+					// onMouseMove={handleMouseMove}
 					style={ {
 						backgroundColor: props.backgroundColor,
 						margin: '0 Auto',
