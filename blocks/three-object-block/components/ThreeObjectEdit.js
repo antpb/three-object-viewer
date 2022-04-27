@@ -4,6 +4,7 @@ import { Canvas, useLoader, useFrame, useThree } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import {
 	OrthographicCamera,
+	PerspectiveCamera,
 	OrbitControls,
 	useAnimations,
 } from '@react-three/drei';

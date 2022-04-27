@@ -167,7 +167,7 @@ export default function ThreeObjectFront( props ) {
 		return (
 			<>
 				<Canvas
-          camera={ { fov: 80, zoom: props.zoom, position: [ 0, 0, 20 ] } }
+          camera={ { fov: 80 } }
 					shadowMap
 					style={ {
 						backgroundColor: props.backgroundColor,
@@ -176,6 +176,7 @@ export default function ThreeObjectFront( props ) {
 						width: '90%',
 					} }
 				>
+					<OrthographicCamera near={0} makeDefault position={[0, 0, 20]} zoom={props.zoom} /> :
 					<ambientLight intensity={ 0.5 } />
 					<directionalLight
 						intensity={ 0.6 }
