@@ -26,7 +26,7 @@ function SavedObject( props ) {
 
 	const [ listener ] = useState( () => new THREE.AudioListener() );
 
-	useThree( ( { camera, raycaster, mouse } ) => {
+	useThree( ( { camera } ) => {
 		camera.add( listener );
 	} );
 
@@ -35,8 +35,10 @@ function SavedObject( props ) {
 			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
 		);
 	} );
+
 	const locket = scene.getObjectByName('locket');
 	console.log(locket);
+
 	const { actions } = useAnimations( animations, scene );
 	const animationList = props.animations ? props.animations.split( ',' ) : '';
 
@@ -53,6 +55,7 @@ function SavedObject( props ) {
 	scene.position.set( 0, props.positionY, 0 );
 	scene.rotation.set( 0, props.rotationY, 0 );
 	scene.scale.set( props.scale, props.scale, props.scale );
+	
 	return <primitive object={ scene } onClick={(e) => {
 		if (e.intersections[0].object.name === "forward"){
 			console.log("hey! Forward!");
@@ -75,6 +78,7 @@ function SavedObject( props ) {
 	}
 	}/>;
 }
+
 
 function Floor( props ) {
 	return (
