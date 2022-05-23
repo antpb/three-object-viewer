@@ -22,6 +22,7 @@ function SavedObject( props ) {
 		setTimeout( () => set( props.url ), 2000 );
 	}, [] );
 	const [ listener ] = useState( () => new THREE.AudioListener() );
+
 	useThree( ( { camera } ) => {
 		camera.add( listener );
 	} );

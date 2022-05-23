@@ -16,6 +16,7 @@ function ThreeObject( props ) {
 		setTimeout( () => set( props.url ), 2000 );
 	}, [] );
 	const [ listener ] = useState( () => new THREE.AudioListener() );
+
 	useThree( ( { camera } ) => {
 		camera.add( listener );
 	} );
@@ -25,7 +26,9 @@ function ThreeObject( props ) {
 			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
 		);
 	} );
+
 	const { actions } = useAnimations( animations, scene );
+
 	const animationList = props.animations ? props.animations.split( ',' ) : '';
 	useEffect( () => {
 		if ( animationList ) {
@@ -37,7 +40,7 @@ function ThreeObject( props ) {
 		}
 	}, [] );
 
-	scene.position.set( props.positionX, props.positionY, 0 );
+	scene.position.set( 0, props.positionY, 0 );
 	scene.rotation.set( 0, props.rotationY, 0 );
 	scene.scale.set( props.scale, props.scale, props.scale );
 	return <primitive object={ scene } />;

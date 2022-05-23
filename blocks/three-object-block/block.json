@@ -46,6 +46,14 @@
         "animations": {
             "type": "string",
             "default": ""
+        },
+        "movementAnimation": {
+            "type": "string",
+            "default": ""
+        },
+        "lookAtBone": {
+            "type": "string",
+            "default": ""
         }
     },
     "category": "media",
