@@ -1588,7 +1588,7 @@
     suspend-react "^0.0.8"
     zustand "^3.7.1"
 
-"@react-three/xr@^3.3.0":
+"@react-three/xr@^3.5.0":
   version "3.5.0"
   resolved "https://registry.yarnpkg.com/@react-three/xr/-/xr-3.5.0.tgz#90e41eed9b6fc492f9fb3c656ce658741d38b61a"
   integrity sha512-Kb+dTjyOYwCw7CErZi2UYvhvTy41144HHpHpl/vvaa2B1xQKVK5vvbXJqUDzyrAcCZj5RUUx5e6W/u6NMa7miQ==
