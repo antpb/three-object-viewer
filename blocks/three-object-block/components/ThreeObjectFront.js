@@ -15,6 +15,7 @@ import {
 	Hands,
 } from '@react-three/xr';
 import TeleportTravel from './TeleportTravel';
+import Controls from './Controls';
 
 function SavedObject( props ) {
 	const [ url, set ] = useState( props.url );
@@ -212,4 +213,49 @@ export default function ThreeObjectFront( props ) {
 			</>
 		);
 	}
+	if ( props.deviceTarget === 'playerController' ) {
+		return (
+			<>
+				<Canvas
+					camera={ { fov: 80, zoom: props.zoom, position: [ 0, 0, 20 ] } }
+					shadowMap
+					style={ {
+						backgroundColor: props.backgroundColor,
+						margin: '0 Auto',
+						height: '500px',
+						width: '90%',
+					} }
+				>
+					<ambientLight intensity={ 0.5 } />
+					<directionalLight
+						intensity={ 0.6 }
+						position={ [ 0, 2, 2 ] }
+						shadow-mapSize-width={ 2048 }
+						shadow-mapSize-height={ 2048 }
+						castShadow
+					/>
+					<Suspense fallback={ null }>
+						<Controls />
+						{ props.threeUrl && (
+							<SavedObject
+								positionY={ props.positionY }
+								rotationY={ props.rotationY }
+								url={ props.threeUrl }
+								color={ props.backgroundColor }
+								hasZoom={ props.hasZoom }
+								scale={ props.scale }
+								hasTip={ props.hasTip }
+								animations={ props.animations }
+							/>
+						) }
+					</Suspense>
+				</Canvas>
+				{ props.hasTip === '1' ? (
+					<p className="three-object-block-tip">Click and drag ^</p>
+				) : (
+					<p></p>
+				) }
+			</>
+		);
+	}	
 }

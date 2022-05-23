@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { useFrame } from 'react-three-fiber';
+import { useFrame } from '@react-three/fiber';
 import { PointerLockControls } from '@react-three/drei';
 import previewOptions from '@wordpress/block-editor/build/components/preview-options';
 
@@ -12,7 +12,7 @@ const Controls = () => {
 	const [ moveRight, setMoveRight ] = useState( false );
 
 	useFrame( () => {
-		const velocity = 0.05;
+		const velocity = 0.1;
 		if ( moveForward ) {
 			controlsRef.current.moveForward( velocity );
 		} else if ( moveLeft ) {
