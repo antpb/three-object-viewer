@@ -157,8 +157,6 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 									{ label: 'VR', value: 'vr' },
 									{ label: 'AR', value: 'ar' },
 									{ label: '2D', value: '2d' },
-									{ label: 'Player Controller', value: 'playerController' },
-									{ label: 'AR Pet', value: 'arPet' },
 								] }
 								onChange={ ( target ) =>
 									setDeviceTarget( target )
