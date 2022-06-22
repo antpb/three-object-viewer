@@ -50,7 +50,7 @@ export default function ThreeObjectEdit( props ) {
 	return (
 		<>
 			<Canvas
-				camera={ { fov: 80, zoom: props.zoom, position: [ 0, 0, 40 ] } }
+				camera={ { fov: 40, zoom: props.zoom, position: [ 0, 0, 150 ] } }
 				shadowMap
 				style={ {
 					backgroundColor: props.backgroundColor,
@@ -59,9 +59,8 @@ export default function ThreeObjectEdit( props ) {
 					width: '90%',
 				} }
 			>
-				{ props.deviceTarget === "2d" ?
-					<OrthographicCamera near={0} makeDefault position={[0, 0, 20]} zoom={props.zoom} /> :
-					<PerspectiveCamera fov={80} position={[0,0,20]} makeDefault zoom={props.zoom} />
+				{ props.deviceTarget === "2d" &&
+					<OrthographicCamera near={0} makeDefault position={[0, 0, 20]} zoom={props.zoom} />
 				}
 				<ambientLight intensity={ 0.5 } />
 				<directionalLight

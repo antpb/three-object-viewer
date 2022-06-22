@@ -29,14 +29,6 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 		setAttributes( { animations: animations } );
 	};
 
-	const onChangeMovementAnimation = ( animations ) => {
-		setAttributes( { animations: animations } );
-	};
-
-	const onChangeLookAtBone = ( animations ) => {
-		setAttributes( { animations: animations } );
-	};
-
 	const onImageSelect = ( imageObject ) => {
 		setAttributes( { threeObjectUrl: null } );
 		setAttributes( { threeObjectUrl: imageObject.url } );
@@ -165,26 +157,6 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 						</PanelRow>
 						<PanelRow>
 							<TextControl
-								label="Movement Animation"
-								help="This defines the animation that plays when your pet object catches up to your camera location."
-								value={ attributes.movementAnimation }
-								onChange={ ( value ) =>
-									onChangeMovementAnimation( value )
-								}
-							/>
-						</PanelRow>
-						<PanelRow>
-							<TextControl
-								label="Look At Bone"
-								help="If your pet has an armature, you can define the bone that should rotate to look at the camera."
-								value={ attributes.lookAtBone }
-								onChange={ ( value ) =>
-									onChangeLookAtBone( value )
-								}
-							/>
-						</PanelRow>
-						<PanelRow>
-							<TextControl
 								label="Loop Animations"
 								help="Separate each animation name you wish to loop with a comma"
 								value={ attributes.animations }
@@ -249,15 +221,6 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 								onChange={ onChangeScale }
 							/>
 						</PanelRow>
-						{ /* <PanelRow> */ }
-						{ /* <RangeControl 
-							label="positionX"
-							value={ attributes.positionX }
-							min={ -10 }
-							max={ 10 }
-							step={.01}
-							onChange={ onChangePositionX }/>
-					</PanelRow> */ }
 						<PanelRow>
 							<RangeControl
 								label="positionY"
@@ -314,7 +277,6 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 										Use URL
 									</button>
 								</div>
-								{/* <div className="three-object-block-url-input"> <input onChange={(e) => setEnteredURL(e.value)}></input> <button className="three-object-viewer-button" onClick={	console.log(enteredURL) && setAttributes( { threeObjectUrl: enteredURL } )}>Use URL</button></div> */}
 							<MediaUpload
 								onSelect={ ( imageObject ) =>
 									onImageSelect( imageObject )
