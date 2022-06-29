@@ -1,18 +1,18 @@
 {
     "name": "antpb/three-object-viewer",
-    "description": "3d-object-viewer",
+    "description": "threeObjectViewer",
     "require": {
         "php": "^7.2|^8.0"
     },
     "type": "wordpress-plugin",
     "autoload": {
         "psr-4": {
-            "3d-object-viewer\\": "./php"
+            "threeObjectViewer\\": "./php"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "3d-object-viewer\\Tests\\": "./tests"
+            "threeObjectViewer\\Tests\\": "./tests"
         }
     },
     "require-dev": {
