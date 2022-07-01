@@ -50,7 +50,7 @@ export default function ThreeObjectEdit( props ) {
 	return (
 		<>
 			<Canvas
-				camera={ { fov: 40, zoom: props.zoom, position: [ 0, 0, 150 ] } }
+				camera={ { fov: 40, zoom: props.zoom, position: [ 0, 0, 20 ] } }
 				shadowMap
 				style={ {
 					backgroundColor: props.backgroundColor,
@@ -59,9 +59,7 @@ export default function ThreeObjectEdit( props ) {
 					width: '90%',
 				} }
 			>
-				{ props.deviceTarget === "2d" &&
-					<OrthographicCamera near={0} makeDefault position={[0, 0, 20]} zoom={props.zoom} />
-				}
+				<PerspectiveCamera fov={40} position={[0,0,20]} makeDefault zoom={props.zoom} />
 				<ambientLight intensity={ 0.5 } />
 				<directionalLight
 					intensity={ 0.6 }
@@ -70,19 +68,19 @@ export default function ThreeObjectEdit( props ) {
 					shadow-mapSize-height={ 2048 }
 					castShadow
 				/>
-				<Suspense fallback={ null }>
 					{ props.url && (
-						<ThreeObject
-							url={ props.url }
-							positionX={ props.positionX }
-							positionY={ props.positionY }
-							rotationY={ props.rotationY }
-							scale={ props.scale }
-							zoom={props.zoom}
-							animations={ props.animations }
-						/>
+                        <Suspense fallback={ null }>
+                            <ThreeObject
+                                url={ props.url }
+                                positionX={ props.positionX }
+                                positionY={ props.positionY }
+                                rotationY={ props.rotationY }
+                                scale={ props.scale }
+                                zoom={props.zoom}
+                                animations={ props.animations }
+                            />
+                        </Suspense>
 					) }
-				</Suspense>
 				<OrbitControls enableZoom={ props.hasZoom } />
 			</Canvas>
 			{ props.hasTip && (

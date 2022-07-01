@@ -69,7 +69,7 @@ export default function ThreeObjectFront( props ) {
 		return (
 			<>
 				<VRCanvas
-          camera={ { fov: 80, zoom: props.zoom, position: [ 0, 0, 20 ] } }
+          			camera={ { fov: 40, zoom: props.zoom, position: [ 0, 0, 20 ] } }
 					shadowMap
 					style={ {
 						backgroundColor: props.backgroundColor,
@@ -78,9 +78,6 @@ export default function ThreeObjectFront( props ) {
 						width: '90%',
 					} }
 				>
-					<TeleportTravel useNormal={ true }>
-						<Floor rotation={ [ -Math.PI / 2, 0, 0 ] } />
-					</TeleportTravel>
 					<Hands />
 					<DefaultXRControllers />
 					<ambientLight intensity={ 0.5 } />
@@ -90,21 +87,23 @@ export default function ThreeObjectFront( props ) {
 						shadow-mapSize-width={ 2048 }
 						shadow-mapSize-height={ 2048 }
 						castShadow
-					/>
-					<Suspense fallback={ null }>
-						{ props.threeUrl && (
-							<SavedObject
-								positionY={ props.positionY }
-								rotationY={ props.rotationY }
-								url={ props.threeUrl }
-								color={ props.backgroundColor }
-								hasZoom={ props.hasZoom }
-								scale={ props.scale }
-								hasTip={ props.hasTip }
-								animations={ props.animations }
-							/>
-						) }
-					</Suspense>
+					/>					
+					<TeleportTravel useNormal={ true }>
+						<Suspense fallback={ null }>
+							{ props.threeUrl && (
+								<SavedObject
+									positionY={ props.positionY }
+									rotationY={ props.rotationY }
+									url={ props.threeUrl }
+									color={ props.backgroundColor }
+									hasZoom={ props.hasZoom }
+									scale={ props.scale }
+									hasTip={ props.hasTip }
+									animations={ props.animations }
+								/>
+							) }
+						</Suspense>
+					</TeleportTravel>
 					<OrbitControls
 						enableZoom={ props.hasZoom === '1' ? true : false }
 					/>
@@ -121,7 +120,7 @@ export default function ThreeObjectFront( props ) {
 		return (
 			<>
 				<ARCanvas
-          camera={ { fov: 80, zoom: props.zoom, position: [ 0, 0, 20 ] } }
+          camera={ { fov: 40, zoom: props.zoom, position: [ 0, 0, 20 ] } }
 					shadowMap
 					style={ {
 						backgroundColor: props.backgroundColor,
@@ -168,7 +167,7 @@ export default function ThreeObjectFront( props ) {
 		return (
 			<>
 				<Canvas
-          camera={ { fov: 80 } }
+          camera={ { fov: 40, position: [0, 0, 20], zoom: props.zoom} }
 					shadowMap
 					style={ {
 						backgroundColor: props.backgroundColor,
@@ -177,7 +176,6 @@ export default function ThreeObjectFront( props ) {
 						width: '90%',
 					} }
 				>
-					<OrthographicCamera near={0} makeDefault position={[0, 0, 20]} zoom={props.zoom} /> :
 					<ambientLight intensity={ 0.5 } />
 					<directionalLight
 						intensity={ 0.6 }

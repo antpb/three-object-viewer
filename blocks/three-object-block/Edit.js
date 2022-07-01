@@ -225,8 +225,8 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 							<RangeControl
 								label="positionY"
 								value={ attributes.positionY }
-								min={ -5 }
-								max={ 5 }
+								min={ -100 }
+								max={ 100 }
 								step={ 0.01 }
 								onChange={ onChangePositionY }
 							/>
