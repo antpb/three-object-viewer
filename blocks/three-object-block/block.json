@@ -9,7 +9,7 @@
         },
         "zoom": {
             "type": "integer",
-            "default": 90
+            "default": 1
         },
         "scale": {
             "type": "integer",

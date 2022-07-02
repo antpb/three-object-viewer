@@ -8,6 +8,7 @@ import {
 	OrbitControls,
 	useAnimations,
 } from '@react-three/drei';
+import { VRM, VRMUtils, VRMSchema } from '@pixiv/three-vrm'
 import { GLTFAudioEmitterExtension } from 'three-omi';
 
 function ThreeObject( props ) {
@@ -21,15 +22,16 @@ function ThreeObject( props ) {
 		camera.add( listener );
 	} );
 
-	const { scene, animations } = useLoader( GLTFLoader, url, ( loader ) => {
+	const gltf = useLoader( GLTFLoader, url, ( loader ) => {
 		loader.register(
 			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
 		);
 	} );
 
-	const { actions } = useAnimations( animations, scene );
+	const { actions } = useAnimations( gltf.animations, gltf.scene );
 
 	const animationList = props.animations ? props.animations.split( ',' ) : '';
+
 	useEffect( () => {
 		if ( animationList ) {
 			animationList.forEach( ( name ) => {
@@ -40,10 +42,20 @@ function ThreeObject( props ) {
 		}
 	}, [] );
 
-	scene.position.set( 0, props.positionY, 0 );
-	scene.rotation.set( 0, props.rotationY, 0 );
-	scene.scale.set( props.scale, props.scale, props.scale );
-	return <primitive object={ scene } />;
+    useEffect(() => {
+        if(gltf?.userData?.gltfExtensions?.VRM){
+            VRMUtils.removeUnnecessaryJoints(gltf.scene)
+            VRM.from(gltf).then((vrm) => {
+            const boneNode = vrm.humanoid.getBoneNode(VRMSchema.HumanoidBoneName.Hips)
+            boneNode.rotateY(Math.PI)
+            })
+        }
+    }, [gltf]);
+
+    gltf.scene.position.set( 0, props.positionY, 0 );
+    gltf.scene.rotation.set( 0, props.rotationY, 0 );
+    gltf.scene.scale.set( props.scale, props.scale, props.scale );
+	return <primitive object={ gltf.scene } />;
 }
 
 export default function ThreeObjectEdit( props ) {

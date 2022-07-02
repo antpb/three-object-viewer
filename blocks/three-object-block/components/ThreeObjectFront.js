@@ -14,6 +14,7 @@ import {
 	DefaultXRControllers,
 	Hands,
 } from '@react-three/xr';
+import { VRM, VRMUtils, VRMSchema } from '@pixiv/three-vrm'
 import TeleportTravel from './TeleportTravel';
 
 function SavedObject( props ) {
@@ -27,13 +28,13 @@ function SavedObject( props ) {
 		camera.add( listener );
 	} );
 
-	const { scene, animations } = useLoader( GLTFLoader, url, ( loader ) => {
+	const gltf = useLoader( GLTFLoader, url, ( loader ) => {
 		loader.register(
 			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
 		);
 	} );
 
-	const { actions } = useAnimations( animations, scene );
+	const { actions } = useAnimations( gltf.animations, gltf.scene );
 
 	const animationList = props.animations ? props.animations.split( ',' ) : '';
 	useEffect( () => {
@@ -45,11 +46,20 @@ function SavedObject( props ) {
 			} );
 		}
 	}, [] );
+    useEffect(() => {
+        if(gltf?.userData?.gltfExtensions?.VRM){
+            VRMUtils.removeUnnecessaryJoints(gltf.scene)
+            VRM.from(gltf).then((vrm) => {
+            const boneNode = vrm.humanoid.getBoneNode(VRMSchema.HumanoidBoneName.Hips)
+            boneNode.rotateY(Math.PI)
+            })
+        }
+    }, [gltf]);
 
-	scene.position.set( 0, props.positionY, 0 );
-	scene.rotation.set( 0, props.rotationY, 0 );
-	scene.scale.set( props.scale, props.scale, props.scale );
-	return <primitive object={ scene } />;
+    gltf.scene.position.set( 0, props.positionY, 0 );
+    gltf.scene.rotation.set( 0, props.rotationY, 0 );
+    gltf.scene.scale.set( props.scale, props.scale, props.scale );
+	return <primitive object={ gltf.scene } />;
 }
 function Floor( props ) {
 	return (

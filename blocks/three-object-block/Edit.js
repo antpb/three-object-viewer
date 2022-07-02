@@ -268,7 +268,7 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 								<span>
 									Select a glb file to render in the canvas:
 								</span>
-								<div className="three-object-block-url-input"> 
+								{/* <div className="three-object-block-url-input"> 
 									<input onChange={(e) => setEnteredURL(e.target.value)}></input> 
 									<button 
 										className="three-object-viewer-button" 
@@ -276,7 +276,7 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 									>
 										Use URL
 									</button>
-								</div>
+								</div> */}
 							<MediaUpload
 								onSelect={ ( imageObject ) =>
 									onImageSelect( imageObject )
@@ -319,7 +319,7 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 								<span>
 									Select a glb file to render in the canvas:
 								</span>
-								<div className="three-object-block-url-input"> 
+								{/* <div className="three-object-block-url-input"> 
 								<input onChange={(e) => console.log(e.target.value) && setEnteredURL(e.target.value)}></input> 
 									<button 
 										className="three-object-viewer-button" 
@@ -327,7 +327,7 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 									>
 										Use URL
 									</button>
-								</div>
+								</div> */}
 							</div>
 							<MediaUpload
 								onSelect={ ( imageObject ) =>
