@@ -20,7 +20,7 @@
         "@wordpress/scripts": "^16"
     },
     "dependencies": {
-        "@pixiv/three-vrm": "^0.6.11",
+        "@pixiv/three-vrm": "1.0.0-beta.17",
         "@react-three/drei": "^8.7.4",
         "@react-three/fiber": "^8.0.11",
         "@react-three/xr": "^3.5.0",

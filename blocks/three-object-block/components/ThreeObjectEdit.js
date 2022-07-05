@@ -8,8 +8,9 @@ import {
 	OrbitControls,
 	useAnimations,
 } from '@react-three/drei';
-import { VRM, VRMUtils, VRMSchema } from '@pixiv/three-vrm'
+import { VRM, VRMUtils, VRMSchema, VRMLoaderPlugin  } from '@pixiv/three-vrm'
 import { GLTFAudioEmitterExtension } from 'three-omi';
+
 
 function ThreeObject( props ) {
 	const [ url, set ] = useState( props.url );
@@ -26,6 +27,12 @@ function ThreeObject( props ) {
 		loader.register(
 			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
 		);
+        loader.register( ( parser ) => {
+
+            return new VRMLoaderPlugin( parser );
+        
+        } );
+            
 	} );
 
 	const { actions } = useAnimations( gltf.animations, gltf.scene );
@@ -42,16 +49,30 @@ function ThreeObject( props ) {
 		}
 	}, [] );
 
-    useEffect(() => {
-        if(gltf?.userData?.gltfExtensions?.VRM){
-            VRMUtils.removeUnnecessaryJoints(gltf.scene)
-            VRM.from(gltf).then((vrm) => {
-            const boneNode = vrm.humanoid.getBoneNode(VRMSchema.HumanoidBoneName.Hips)
-            boneNode.rotateY(Math.PI)
-            })
-        }
-    }, [gltf]);
+    // useEffect(() => {
+    //     if(gltf?.userData?.gltfExtensions?.VRM){
+    //         const vrm = gltf.userData.vrm;
+    //         gltf.scene.add( vrm.scene );
 
+    //         VRMUtils.removeUnnecessaryJoints(gltf.scene)
+    //         VRM.from(gltf).then((vrm) => {
+    //         const boneNode = vrm.humanoid.getBoneNode(VRMSchema.HumanoidBoneName.Hips)
+    //         boneNode.rotateY(Math.PI)
+    //         })
+    //     }
+    // }, [gltf]);
+
+    if(gltf?.userData?.gltfExtensions?.VRM){
+        const vrm = gltf.userData.vrm;
+        // const boneNode = vrm.humanoid.getBoneNode(VRMSchema.HumanoidBoneName.Hips)
+        // boneNode.rotateY(Math.PI)
+        vrm.scene.position.set( 0, props.positionY, 0 );
+        VRMUtils.rotateVRM0( vrm );
+        const rotationVRM = vrm.scene.rotation.y + parseFloat(props.rotationY);
+        vrm.scene.rotation.set( 0, rotationVRM, 0 );
+        vrm.scene.scale.set( props.scale, props.scale, props.scale );
+        return <primitive object={ vrm.scene } />;    
+    }
     gltf.scene.position.set( 0, props.positionY, 0 );
     gltf.scene.rotation.set( 0, props.rotationY, 0 );
     gltf.scene.scale.set( props.scale, props.scale, props.scale );
@@ -64,6 +85,7 @@ export default function ThreeObjectEdit( props ) {
 			<Canvas
 				camera={ { fov: 40, zoom: props.zoom, position: [ 0, 0, 20 ] } }
 				shadowMap
+                dpr={[1, 2]}
 				style={ {
 					backgroundColor: props.backgroundColor,
 					margin: '0 Auto',
