@@ -25,7 +25,7 @@ export default function TeleportTravel( props ) {
 	const {
 		centerOnTeleport,
 		Indicator = TeleportIndicator,
-		useNormal = true,
+		useNormal = false,
 	} = props;
 	const [ isHovered, setIsHovered ] = useState( false );
 	const target = useRef();
