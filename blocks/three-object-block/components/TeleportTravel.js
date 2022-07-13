@@ -81,9 +81,6 @@ export default function TeleportTravel( props ) {
 	const click = useCallback( () => {
 		if ( isHovered ) {
 			player.position.copy( targetLoc.current.position );
-			if ( useNormal ) {
-				player.rotation.copy( targetLoc.current.rotation );
-			}
 		}
 	}, [ centerOnTeleport, isHovered, useNormal ] );
 

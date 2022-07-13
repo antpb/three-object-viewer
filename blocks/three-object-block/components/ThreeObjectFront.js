@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import React, { Suspense, useRef, useState, useEffect } from 'react';
 import { Canvas, useLoader, useFrame, useThree } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { Physics, RigidBody } from "@react-three/rapier";
+
 import {
 	OrthographicCamera,
 	OrbitControls,
@@ -67,7 +69,7 @@ function SavedObject( props ) {
 
 function Floor( props ) {
 	return (
-		<mesh rotation={ [ -Math.PI / 2, 0, 0 ] } { ...props }>
+		<mesh position={ [ 0, -2, 0 ] } rotation={ [ -Math.PI / 2, 0, 0 ] } { ...props }>
 			<planeBufferGeometry args={ [ 1000, 1000 ] } attach="geometry" />
 			<meshBasicMaterial
 				opacity={ 0 }
@@ -101,23 +103,32 @@ export default function ThreeObjectFront( props ) {
 						shadow-mapSize-width={ 2048 }
 						shadow-mapSize-height={ 2048 }
 						castShadow
-					/>					
-					<TeleportTravel useNormal={ true }>
-						<Suspense fallback={ null }>
+					/>			
+					<Suspense fallback={ null }>
+					<Physics>			
 							{ props.threeUrl && (
-								<SavedObject
-									positionY={ props.positionY }
-									rotationY={ props.rotationY }
-									url={ props.threeUrl }
-									color={ props.backgroundColor }
-									hasZoom={ props.hasZoom }
-									scale={ props.scale }
-									hasTip={ props.hasTip }
-									animations={ props.animations }
-								/>
+								<>						
+									<TeleportTravel useNormal={ false }>
+										<RigidBody>
+											<SavedObject
+											positionY={ props.positionY }
+											rotationY={ props.rotationY }
+											url={ props.threeUrl }
+											color={ props.backgroundColor }
+											hasZoom={ props.hasZoom }
+											scale={ props.scale }
+											hasTip={ props.hasTip }
+											animations={ props.animations }
+											/>
+										</RigidBody>
+									</TeleportTravel>
+									<RigidBody>
+											<Floor rotation={[-Math.PI / 2, 0, 0]} />
+									</RigidBody>
+								</>
 							) }
-						</Suspense>
-					</TeleportTravel>
+					</Physics>
+					</Suspense>
 					<OrbitControls
 						enableZoom={ props.hasZoom === '1' ? true : false }
 					/>
@@ -134,7 +145,7 @@ export default function ThreeObjectFront( props ) {
 		return (
 			<>
 				<ARCanvas
-          camera={ { fov: 40, zoom: props.zoom, position: [ 0, 0, 20 ] } }
+          			camera={ { fov: 40, zoom: props.zoom, position: [ 0, 0, 20 ] } }
 					shadowMap
 					style={ {
 						backgroundColor: props.backgroundColor,
