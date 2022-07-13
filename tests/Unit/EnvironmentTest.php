@@ -3,7 +3,7 @@
 
 namespace threeObjectViewer\Tests\Unit;
 
-use 3d-object-viewer\Plugin;
+use threeObjectViewer\Plugin;
 use Brain\Monkey\Functions;
 
 /**
@@ -29,7 +29,7 @@ class EnvironmentTest extends TestCase
 	 */
 	public function testAutoloaderWorks()
 	{
-		$this->assertSame('Hi Roy', (new Plugin())->sayHi());
+		$this->assertSame('Hey, Listen!', (new Plugin())->listen());
 	}
 
 	/**
