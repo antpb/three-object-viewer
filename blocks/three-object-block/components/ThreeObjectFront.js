@@ -108,7 +108,7 @@ export default function ThreeObjectFront( props ) {
 					<Physics>			
 							{ props.threeUrl && (
 								<>						
-									<TeleportTravel useNormal={ true }>
+									<TeleportTravel useNormal={ false }>
 										<RigidBody>
 											<SavedObject
 											positionY={ props.positionY }
@@ -145,7 +145,7 @@ export default function ThreeObjectFront( props ) {
 		return (
 			<>
 				<ARCanvas
-          camera={ { fov: 40, zoom: props.zoom, position: [ 0, 0, 20 ] } }
+          			camera={ { fov: 40, zoom: props.zoom, position: [ 0, 0, 20 ] } }
 					shadowMap
 					style={ {
 						backgroundColor: props.backgroundColor,
