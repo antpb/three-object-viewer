@@ -18,6 +18,7 @@ import {
 } from '@react-three/xr';
 import { VRM, VRMUtils, VRMSchema, VRMLoaderPlugin  } from '@pixiv/three-vrm'
 import TeleportTravel from './TeleportTravel';
+import defaultVRM from '../../../inc/avatars/mummy.vrm';
 
 function SavedObject( props ) {
 	const [ url, set ] = useState( props.url );
@@ -38,8 +39,10 @@ function SavedObject( props ) {
             return new VRMLoaderPlugin( parser );
         } );
 	} );
+	const fallbackURL = threeObjectPlugin + defaultVRM;
+	const playerURL = props.playerData.vrm ? props.playerData.vrm : fallbackURL
 
-	const someSceneState = useLoader( GLTFLoader, props.playerData.vrm, ( loader ) => {
+	const someSceneState = useLoader( GLTFLoader, playerURL, ( loader ) => {
 		loader.register(
 			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
 		);
@@ -62,19 +65,12 @@ function SavedObject( props ) {
 	}, [] );
 	if(someSceneState?.userData?.gltfExtensions?.VRM){
 		const playerController = someSceneState.userData.vrm;
-		console.log(props.playerData);
-		// useThree( ( { camera } ) => {
-		// 	playerController.scene.position.set( camera.position.x, camera.position.y, camera.position.z );
-		// } );
 		const { camera } = useThree();
-
 		useFrame(() => {
 			const offset = camera.position.z - 3;
 			playerController.scene.position.set( camera.position.x, camera.position.y, offset );
 			playerController.scene.rotation.set( camera.rotation.x, camera.rotation.y, camera.rotation.z );
 		});
-		
-	
 		VRMUtils.rotateVRM0( playerController );
 		const rotationVRM = playerController.scene.rotation.y;
 		playerController.scene.rotation.set( 0, rotationVRM, 0 );
@@ -96,7 +92,7 @@ function SavedObject( props ) {
     gltf.scene.position.set( 0, props.positionY, 0 );
     gltf.scene.rotation.set( 0, props.rotationY, 0 );
     gltf.scene.scale.set( props.scale, props.scale, props.scale );
-	return <><primitive object={ gltf.scene } /><primitive object={ playerController.scene } /></>;    
+	return <><primitive object={ gltf.scene } /></>;    
 }
 
 function Floor( props ) {

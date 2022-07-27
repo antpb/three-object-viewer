@@ -91,7 +91,9 @@ function threeobjectviewer_frontend_assets() {
         'banner' => $current_user->custom_banner,
         'vrm' => $vrm,
      );
- 
+
+    $three_object_plugin = plugins_url() . '/three-object-viewer/build/';
+
     // $user_data_passed = array(
     //     'userId' => 'something',
     //     'userName' => 'someone',
@@ -100,6 +102,7 @@ function threeobjectviewer_frontend_assets() {
 
     wp_register_script( 'threeobjectloader-frontend', plugin_dir_url( __FILE__ ) . '../build/assets/js/blocks.frontend.js', ['wp-element', 'wp-data', 'wp-hooks'], '', true );
     wp_localize_script( 'threeobjectloader-frontend', 'userData', $user_data_passed );
+    wp_localize_script( 'threeobjectloader-frontend', 'threeObjectPlugin', $three_object_plugin );
 
 	wp_enqueue_script( 
 		"threeobjectloader-frontend"

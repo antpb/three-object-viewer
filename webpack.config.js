@@ -36,7 +36,15 @@ module.exports = {
 				test: /\.css$/,
 				use: [ 'style-loader', 'css-loader' ],
 			},
-		],
+			{
+				test: /\.vrm$/,
+				use: [
+					{
+						loader: 'file-loader',
+					},
+				],
+			},
+			],
 	},
 	entry,
 	output: {
