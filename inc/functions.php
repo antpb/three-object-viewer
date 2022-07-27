@@ -83,11 +83,25 @@ function threeobjectviewer_frontend_assets() {
 
 	$frontend_js_path = "/assets/js/blocks.frontend.js";
 
+    $current_user = wp_get_current_user();
+    $vrm = wp_get_attachment_url($current_user->avatar);
+    $user_data_passed = array(
+        'userId' => $current_user->user_login,
+        'inWorldName' => $current_user->in_world_name,
+        'banner' => $current_user->custom_banner,
+        'vrm' => $vrm,
+     );
+ 
+    // $user_data_passed = array(
+    //     'userId' => 'something',
+    //     'userName' => 'someone',
+    //     'vrm' => 'somefile.vrm',
+    //  );
+
+    wp_register_script( 'threeobjectloader-frontend', plugin_dir_url( __FILE__ ) . '../build/assets/js/blocks.frontend.js', ['wp-element', 'wp-data', 'wp-hooks'], '', true );
+    wp_localize_script( 'threeobjectloader-frontend', 'userData', $user_data_passed );
+
 	wp_enqueue_script( 
-		"threeobjectloader-frontend",
-		plugin_dir_url( __FILE__ ) . '../build/assets/js/blocks.frontend.js',
-		['wp-element'],
-		'',
-		true
+		"threeobjectloader-frontend"
 	);
 }

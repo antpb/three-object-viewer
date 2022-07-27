@@ -4,6 +4,7 @@ import ThreeObjectFront from './components/ThreeObjectFront';
 
 const threeApp = document.querySelectorAll( '.three-object-three-app' );
 
+
 threeApp.forEach( ( threeApp ) => {
 	if ( threeApp ) {
 		const threeUrl = threeApp.querySelector( 'p.three-object-block-url' )
@@ -54,6 +55,7 @@ threeApp.forEach( ( threeApp ) => {
 				rotationY={ rotationY }
 				animations={ animations }
 				backgroundColor={ backgroundColor }
+				userData={userData}
 			/>,
 			threeApp
 		);
