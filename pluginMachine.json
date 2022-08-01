@@ -4,7 +4,7 @@
     "buildId": 172,
     "entryPoints": {
         "adminPages": [
-            "three-model-viewer-settings"
+            "three-object-viewer-settings"
         ],
         "blocks": [
             "three-object-block"
@@ -17,6 +17,6 @@
         "vendor",
         "build",
         "blocks/three-object-block/init.php",
-        "admin/three-model-viewer-settings/init.php"
+        "admin/three-object-viewer-settings/init.php"
     ]
 }
