@@ -7,7 +7,9 @@
             "three-object-viewer-settings"
         ],
         "blocks": [
-            "three-object-block"
+            "three-object-block",
+            "environment",
+            "model-block"
         ]
     },
     "buildIncludes": [
@@ -17,6 +19,8 @@
         "vendor",
         "build",
         "blocks/three-object-block/init.php",
+        "blocks/environment/init.php",
+        "blocks/model-block/init.php",
         "admin/three-object-viewer-settings/init.php"
     ]
 }

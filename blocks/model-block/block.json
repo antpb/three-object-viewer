@@ -1,0 +1,40 @@
+{
+    "name": "three-object-viewer/model-block",
+    "title": "Model Block",
+    "description": "A 3D model for your VersePress environment",
+    "attributes": {
+        "scale": {
+            "type": "array",
+            "default": [ "1", "1", "1" ]
+        },
+        "position": {
+            "type": "array",
+            "default": [ "0", "0", "0" ]
+        },
+        "rotation": {
+            "type": "array",
+            "default": [ "0", "0", "0" ]
+        },
+        "threeObjectUrl": {
+            "type": "string",
+            "default": null
+        },
+        "animations": {
+            "type": "string",
+            "default": ""
+        },
+        "collidable": {
+            "type": "boolean",
+            "default": false
+        }
+    },
+    "category": "media",
+    "apiVersion": 2,
+    "supports": {
+        "html": false,
+        "multiple": false
+    },
+    "editorScript": "file:../../build/block-model-block.js",
+	"editorStyle": "file:../../build/block-model-block.css",
+	"style": "file:../../build/block-model-block.css"
+}

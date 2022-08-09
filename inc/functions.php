@@ -107,4 +107,13 @@ function threeobjectviewer_frontend_assets() {
 	wp_enqueue_script( 
 		"threeobjectloader-frontend"
 	);
+
+    wp_register_script( 'versepress-frontend', plugin_dir_url( __FILE__ ) . '../build/assets/js/blocks.frontend-versepress.js', ['wp-element', 'wp-data', 'wp-hooks'], '', true );
+    wp_localize_script( 'versepress-frontend', 'userData', $user_data_passed );
+    wp_localize_script( 'versepress-frontend', 'threeObjectPlugin', $three_object_plugin );
+
+	wp_enqueue_script( 
+		"versepress-frontend"
+	);
+
 }

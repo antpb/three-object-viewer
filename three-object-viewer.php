@@ -17,6 +17,12 @@
 // Include three-object-block
 include_once dirname( __FILE__ ) . '/blocks/three-object-block/init.php';
 
+// Include environment
+include_once dirname( __FILE__ ) . '/blocks/environment/init.php';
+
+// Include environment
+include_once dirname( __FILE__ ) . '/blocks/model-block/init.php';
+
 /**
 * Include the autoloader
 */

@@ -25,6 +25,9 @@ if ( entryPoints.hasOwnProperty( 'adminPages' ) ) {
 entry[ `./assets/js/blocks.frontend` ] =
 	'./blocks/three-object-block/frontend.js';
 
+entry[ `./assets/js/blocks.frontend-versepress` ] =
+'./blocks/environment/frontend.js';
+
 module.exports = {
 	mode: isProduction ? 'production' : 'development',
 	...defaultConfig,

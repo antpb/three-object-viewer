@@ -1,0 +1,60 @@
+{
+    "name": "three-object-viewer/environment",
+    "title": "Environment Block",
+    "description": "A 3D environment component for VersePress",
+    "attributes": {
+        "bg_color": {
+            "type": "string",
+            "default": "#FFFFFF"
+        },
+        "zoom": {
+            "type": "integer",
+            "default": 1
+        },
+        "scale": {
+            "type": "integer",
+            "default": 1
+        },
+        "positionX": {
+            "type": "integer",
+            "default": 0
+        },
+        "positionY": {
+            "type": "integer",
+            "default": 0
+        },
+        "rotationY": {
+            "type": "integer",
+            "default": 0
+        },
+        "threeObjectUrl": {
+            "type": "string",
+            "default": null
+        },
+        "hasZoom": {
+            "type": "bool",
+            "default": false
+        },
+        "hasTip": {
+            "type": "bool",
+            "default": true
+        },
+        "deviceTarget": {
+            "type": "string",
+            "default": "2d"
+        },
+        "animations": {
+            "type": "string",
+            "default": ""
+        }
+    },
+    "category": "media",
+    "apiVersion": 2,
+    "supports": {
+        "html": false,
+        "multiple": true
+    },
+    "editorScript": "file:../../build/block-environment.js",
+	"editorStyle": "file:../../build/block-environment.css",
+	"style": "file:../../build/block-environment.css"
+}
