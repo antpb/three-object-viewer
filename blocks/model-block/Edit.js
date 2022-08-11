@@ -144,6 +144,20 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 						initialOpen={ true }
 					>
 						<PanelRow>
+							<ToggleControl
+								label="Collidable"
+								help={
+									attributes.collidable
+										? 'Item is currently collidable.'
+										: 'Item is not collidable. Users will walk through it.'
+								}
+								checked={ attributes.collidable }
+								onChange={ ( e ) => {
+									onChangeCollidable( e );
+								} }
+							/>
+						</PanelRow>
+						<PanelRow>
 							<TextControl
 								label="Loop Animations"
 								help="Separate each animation name you wish to loop with a comma"
@@ -253,20 +267,6 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 								onChange={ ( value ) =>
 									onChangeScaleZ( value )
 								}
-							/>
-						</PanelRow>
-						<PanelRow>
-							<ToggleControl
-								label="Collidable"
-								help={
-									attributes.collidable
-										? 'Item is currently collidable.'
-										: 'Item is not collidable. Users will walk through it.'
-								}
-								checked={ attributes.collidable }
-								onChange={ ( e ) => {
-									onChangeCollidable( e );
-								} }
 							/>
 						</PanelRow>
 					</PanelBody>

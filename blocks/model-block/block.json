@@ -5,15 +5,15 @@
     "attributes": {
         "scaleX": {
             "type": "int",
-            "default":0
+            "default":1
         },
         "scaleY": {
             "type": "int",
-            "default":0
+            "default":1
         },
         "scaleZ": {
             "type": "int",
-            "default":0
+            "default":1
         },
         "positionX": {
             "type": "int",

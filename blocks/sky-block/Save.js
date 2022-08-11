@@ -5,7 +5,7 @@ export default function save( { attributes } ) {
 	return (
 		<div { ...useBlockProps.save() }>
 			<>
-				<div className="environment-sky-block">
+				<div className="three-object-three-app-sky-block">
 					<p className="sky-block-url">
 						{ attributes.skyUrl }
 					</p>

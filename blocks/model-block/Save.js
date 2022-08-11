@@ -5,32 +5,20 @@ export default function save( { attributes } ) {
 	return (
 		<div { ...useBlockProps.save() }>
 			<>
-				<div className="three-object-three-app">
-					<p className="three-object-block-device-target">
-						{ attributes.deviceTarget }
-					</p>
-					<p className="three-object-block-url">
+				<div className="three-object-three-app-model-block">
+					<p className="model-block-url">
 						{ attributes.threeObjectUrl }
 					</p>
-					<p className="three-object-scale">{ attributes.scale }</p>
-					<p className="three-object-background-color">
-						{ attributes.bg_color }
-					</p>
-					<p className="three-object-zoom">{ attributes.zoom }</p>
-					<p className="three-object-has-zoom">
-						{ attributes.hasZoom ? 1 : 0 }
-					</p>
-					<p className="three-object-has-tip">
-						{ attributes.hasTip ? 1 : 0 }
-					</p>
-					<p className="three-object-position-y">
-						{ attributes.positionY }
-					</p>
-					<p className="three-object-rotation-y">
-						{ attributes.rotationY }
-					</p>
-					<p className="three-object-scale">{ attributes.scale }</p>
-					<p className="three-object-animations">
+					<p className="model-block-scale-x">{ attributes.scaleX }</p>
+					<p className="model-block-scale-y">{ attributes.scaleY }</p>
+					<p className="model-block-scale-z">{ attributes.scaleZ }</p>
+					<p className="model-block-position-x">{ attributes.positionX }</p>
+					<p className="model-block-position-y">{ attributes.positionY }</p>
+					<p className="model-block-position-z">{ attributes.positionZ }</p>
+					<p className="model-block-rotation-x">{ attributes.rotationX }</p>
+					<p className="model-block-rotation-y">{ attributes.rotationY }</p>
+					<p className="model-block-rotation-z">{ attributes.rotationZ }</p>
+					<p className="model-block-animations">
 						{ attributes.animations }
 					</p>
 				</div>

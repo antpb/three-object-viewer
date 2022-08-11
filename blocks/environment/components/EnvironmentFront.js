@@ -108,7 +108,7 @@ function Floor( props ) {
 	);
 }
 
-export default function ThreeObjectFront( props ) {
+export default function EnvironmentFront( props ) {
 	if ( props.deviceTarget === 'vr' ) {
 		return (
 			<>
