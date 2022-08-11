@@ -23,16 +23,34 @@ import ModelEdit from './components/ModelEdit';
 
 export default function Edit( { attributes, setAttributes, isSelected } ) {
 
-	const onChangeScale = ( scale ) => {
-		setAttributes( { scale: scale } );
+	const onChangePositionX = ( positionX ) => {
+		setAttributes( { positionX: positionX } );
+	};
+	const onChangePositionY = ( positionY ) => {
+		setAttributes( { positionY: positionY } );
+	};
+	const onChangePositionZ = ( positionZ ) => {
+		setAttributes( { positionZ: positionZ } );
 	};
 
-	const onChangePosition = ( position ) => {
-		setAttributes( { position: position } );
+	const onChangeRotationX = ( rotationX ) => {
+		setAttributes( { rotationX: rotationX } );
+	};
+	const onChangeRotationY = ( rotationY ) => {
+		setAttributes( { rotationY: rotationY } );
+	};
+	const onChangeRotationZ = ( rotationZ ) => {
+		setAttributes( { rotationZ: rotationZ } );
 	};
 
-	const onChangeRotation = ( rotation ) => {
-		setAttributes( { rotation: rotation } );
+	const onChangeScaleX = ( scaleX ) => {
+		setAttributes( { scaleX: scaleX } );
+	};
+	const onChangeScaleY = ( scaleY ) => {
+		setAttributes( { scaleY: scaleY } );
+	};
+	const onChangeScaleZ = ( scaleZ ) => {
+		setAttributes( { scaleZ: scaleZ } );
 	};
 
 	const onChangeAnimations = ( animations ) => {
@@ -44,8 +62,8 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 		setAttributes( { threeObjectUrl: imageObject.url } );
 	};
 
-	const onChangeCollidable = ( zoomSetting ) => {
-		setAttributes( { hasZoom: zoomSetting } );
+	const onChangeCollidable = ( collidableSetting ) => {
+		setAttributes( { collidable: collidableSetting } );
 	};
 
 	const [ enteredURL, setEnteredURL ] = useState( "" );
@@ -135,33 +153,105 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 								}
 							/>
 						</PanelRow>
-						<PanelRow>
-							<TextControl
-								label="Scale"
-								help="scale"
-								value={ attributes.scale }
-								onChange={ ( value ) =>
-									onChangeScale( value )
-								}
-							/>
+						<PanelRow>                            
+							<legend className="blocks-base-control__label">
+                                { __( 'Position', 'three-object-viewer' ) }
+                            </legend>
 						</PanelRow>
 						<PanelRow>
 							<TextControl
-								label="Position"
-								help="position"
-								value={ attributes.position }
+								className="position-inputs"
+								label="X"
+								// help="position x"
+								value={ attributes.positionX }
 								onChange={ ( value ) =>
-									onChangePosition( value )
+									onChangePositionX( value )
+								}
+							/>
+							<TextControl
+								className="position-inputs"
+								label="Y"
+								// help="position y"
+								value={ attributes.positionY }
+								onChange={ ( value ) =>
+									onChangePositionY( value )
+								}
+							/>
+							<TextControl
+								className="position-inputs"
+								label="Z"
+								// help="position z"
+								value={ attributes.positionZ }
+								onChange={ ( value ) =>
+									onChangePositionZ( value )
 								}
 							/>
 						</PanelRow>
+						<PanelRow>                            
+							<legend className="blocks-base-control__label">
+                                { __( 'Rotation', 'three-object-viewer' ) }
+                            </legend>
+						</PanelRow>
 						<PanelRow>
 							<TextControl
-								label="Rotation"
-								help="rotation"
-								value={ attributes.position }
+								className="position-inputs"
+								label="X"
+								// help="position x"
+								value={ attributes.rotationX }
 								onChange={ ( value ) =>
-									onChangeRotation( value )
+									onChangeRotationX( value )
+								}
+							/>
+							<TextControl
+								className="position-inputs"
+								label="Y"
+								// help="position y"
+								value={ attributes.rotationY }
+								onChange={ ( value ) =>
+									onChangeRotationY( value )
+								}
+							/>
+							<TextControl
+								className="position-inputs"
+								label="Z"
+								// help="position z"
+								value={ attributes.rotationZ }
+								onChange={ ( value ) =>
+									onChangeRotationZ( value )
+								}
+							/>
+						</PanelRow>
+						<PanelRow>                            
+							<legend className="blocks-base-control__label">
+                                { __( 'Scale', 'three-object-viewer' ) }
+                            </legend>
+						</PanelRow>
+						<PanelRow>
+							<TextControl
+								className="position-inputs"
+								label="X"
+								// help="position x"
+								value={ attributes.scaleX }
+								onChange={ ( value ) =>
+									onChangeScaleX( value )
+								}
+							/>
+							<TextControl
+								className="position-inputs"
+								label="Y"
+								// help="position y"
+								value={ attributes.scaleY }
+								onChange={ ( value ) =>
+									onChangeScaleY( value )
+								}
+							/>
+							<TextControl
+								className="position-inputs"
+								label="Z"
+								// help="position z"
+								value={ attributes.scaleZ }
+								onChange={ ( value ) =>
+									onChangeScaleZ( value )
 								}
 							/>
 						</PanelRow>

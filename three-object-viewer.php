@@ -20,8 +20,12 @@ include_once dirname( __FILE__ ) . '/blocks/three-object-block/init.php';
 // Include environment
 include_once dirname( __FILE__ ) . '/blocks/environment/init.php';
 
-// Include environment
+// Include model
 include_once dirname( __FILE__ ) . '/blocks/model-block/init.php';
+
+// Include sky
+include_once dirname( __FILE__ ) . '/blocks/sky-block/init.php';
+
 
 /**
 * Include the autoloader

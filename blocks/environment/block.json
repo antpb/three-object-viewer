@@ -3,14 +3,6 @@
     "title": "Environment Block",
     "description": "A 3D environment component for VersePress",
     "attributes": {
-        "bg_color": {
-            "type": "string",
-            "default": "#FFFFFF"
-        },
-        "zoom": {
-            "type": "integer",
-            "default": 1
-        },
         "scale": {
             "type": "integer",
             "default": 1
@@ -31,14 +23,6 @@
             "type": "string",
             "default": null
         },
-        "hasZoom": {
-            "type": "bool",
-            "default": false
-        },
-        "hasTip": {
-            "type": "bool",
-            "default": true
-        },
         "deviceTarget": {
             "type": "string",
             "default": "2d"
@@ -48,7 +32,7 @@
             "default": ""
         }
     },
-    "category": "media",
+    "category": "3D",
     "apiVersion": 2,
     "supports": {
         "html": false,

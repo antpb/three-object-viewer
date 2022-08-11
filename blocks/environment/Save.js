@@ -1,5 +1,5 @@
 import { __ } from '@wordpress/i18n';
-import { useBlockProps } from '@wordpress/block-editor';
+import { useBlockProps, InnerBlocks } from '@wordpress/block-editor';
 
 export default function save( { attributes } ) {
 	return (
@@ -33,6 +33,7 @@ export default function save( { attributes } ) {
 					<p className="three-object-animations">
 						{ attributes.animations }
 					</p>
+          <InnerBlocks.Content/>
 				</div>
 			</>
 		</div>

@@ -3,12 +3,11 @@ import React, { Suspense, useRef, useState, useEffect } from 'react';
 import { Canvas, useLoader, useFrame, useThree } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import {
-	OrthographicCamera,
 	PerspectiveCamera,
 	OrbitControls,
 	useAnimations,
 } from '@react-three/drei';
-import { VRM, VRMUtils, VRMSchema, VRMLoaderPlugin  } from '@pixiv/three-vrm'
+import { VRMUtils, VRMLoaderPlugin  } from '@pixiv/three-vrm'
 import { GLTFAudioEmitterExtension } from 'three-omi';
 
 
@@ -71,13 +70,12 @@ export default function ThreeObjectEdit( props ) {
 				camera={ { fov: 40, zoom: props.zoom, position: [ 0, 0, 20 ] } }
 				shadowMap
 				style={ {
-					backgroundColor: props.backgroundColor,
 					margin: '0 Auto',
 					height: '500px',
 					width: '90%',
 				} }
 			>
-				<PerspectiveCamera fov={40} position={[0,0,20]} makeDefault zoom={props.zoom} />
+				<PerspectiveCamera fov={40} position={[0,0,20]} makeDefault zoom={1} />
 				<ambientLight intensity={ 0.5 } />
 				<directionalLight
 					intensity={ 0.6 }
@@ -90,20 +88,15 @@ export default function ThreeObjectEdit( props ) {
 						<Suspense fallback={ null }>
 								<ThreeObject
 									url={ props.url }
-									positionX={ props.positionX }
 									positionY={ props.positionY }
 									rotationY={ props.rotationY }
 									scale={ props.scale }
-									zoom={props.zoom}
 									animations={ props.animations }
 								/>
 						</Suspense>
 					) }
-				<OrbitControls enableZoom={ props.hasZoom } />
+				<OrbitControls enableZoom={ true } />
 			</Canvas>
-			{ props.hasTip && (
-				<p className="three-object-block-tip">Click and drag ^</p>
-			) }
 		</>
 	);
 }

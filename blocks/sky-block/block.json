@@ -1,0 +1,20 @@
+{
+    "name": "three-object-viewer/sky-block",
+    "title": "Sky Block",
+    "description": "A sky your environment",
+    "attributes": {
+        "skyUrl": {
+            "type": "string",
+            "default": null
+        }
+    },
+    "category": "3D",
+    "apiVersion": 2,
+    "supports": {
+        "html": false,
+        "multiple": false
+    },
+    "editorScript": "file:../../build/block-sky-block.js",
+	"editorStyle": "file:../../build/block-sky-block.css",
+	"style": "file:../../build/block-sky-block.css"
+}

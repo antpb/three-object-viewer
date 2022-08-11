@@ -7,6 +7,7 @@ import {
 	ColorPalette,
 	InspectorControls,
 	MediaUpload,
+	InnerBlocks
 } from '@wordpress/block-editor';
 import {
 	Panel,
@@ -22,9 +23,8 @@ import { more } from '@wordpress/icons';
 import ThreeObjectEdit from './components/ThreeObjectEdit';
 
 export default function Edit( { attributes, setAttributes, isSelected } ) {
-	const onChangeBGColor = ( hexColor ) => {
-		setAttributes( { bg_color: hexColor } );
-	};
+	const ALLOWED_BLOCKS = ['three-object-viewer/model-block', 'three-object-viewer/sky-block', 'three-object-viewer/npc-block', ];
+
 	const onChangeAnimations = ( animations ) => {
 		setAttributes( { animations: animations } );
 	};
@@ -33,10 +33,6 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 		setAttributes( { threeObjectUrl: null } );
 		setAttributes( { threeObjectUrl: imageObject.url } );
 	};
-	const onChangeZoom = ( zoomValue ) => {
-		setAttributes( { zoom: zoomValue } );
-	};
-
 	const onChangePositionY = ( posy ) => {
 		setAttributes( { positionY: posy } );
 	};
@@ -47,14 +43,6 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 
 	const onChangerotationY = ( rotz ) => {
 		setAttributes( { rotationY: rotz } );
-	};
-
-	const onChangeZoomSetting = ( zoomSetting ) => {
-		setAttributes( { hasZoom: zoomSetting } );
-	};
-
-	const onChangeTipSetting = ( tipSetting ) => {
-		setAttributes( { hasTip: tipSetting } );
 	};
 
 	const setDeviceTarget = ( target ) => {
@@ -110,8 +98,7 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 					>
 						<PanelRow>
 							<span>
-								select a glb file from your media library to
-								render an object in the canvas:
+								Select a glb file from your media library. This will be treated as a collidable mesh that visitors can walk on:
 							</span>
 						</PanelRow>
 						<PanelRow>
@@ -163,53 +150,6 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 								onChange={ ( value ) =>
 									onChangeAnimations( value )
 								}
-							/>
-						</PanelRow>
-						<PanelRow>
-							<span>Set a background color:</span>
-						</PanelRow>
-						<PanelRow>
-							<ColorPalette
-								value={ attributes.bg_color }
-								label="Background Color"
-								onChange={ onChangeBGColor }
-							/>
-						</PanelRow>
-						<PanelRow>
-							<ToggleControl
-								label="Scroll Camera Zoom"
-								help={
-									attributes.hasZoom
-										? 'Zoom Enabled.'
-										: 'Zoom Disabled'
-								}
-								checked={ attributes.hasZoom }
-								onChange={ ( e ) => {
-									onChangeZoomSetting( e );
-								} }
-							/>
-						</PanelRow>
-						<PanelRow>
-							<ToggleControl
-								label="Tip Menu (click and drag text)"
-								help={
-									attributes.hasTip
-										? 'Tip Enabled.'
-										: 'Tip Disabled'
-								}
-								checked={ attributes.hasTip }
-								onChange={ ( e ) => {
-									onChangeTipSetting( e );
-								} }
-							/>
-						</PanelRow>
-						<PanelRow>
-							<RangeControl
-								label="Zoom"
-								value={ attributes.zoom }
-								min={ 1 }
-								max={ 2000 }
-								onChange={ onChangeZoom }
 							/>
 						</PanelRow>
 						<PanelRow>
@@ -295,6 +235,7 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 						</div>
 						</div>
 					) }
+					<InnerBlocks allowedBlocks={ ALLOWED_BLOCKS } />
 				</>
 			) : (
 				<>
@@ -344,6 +285,7 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 							/>
 						</div>
 					) }
+					<InnerBlocks allowedBlocks={ ALLOWED_BLOCKS } />
 				</>
 			) }
 		</div>
