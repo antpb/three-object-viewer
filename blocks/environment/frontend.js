@@ -6,10 +6,6 @@ const threeApp = document.querySelectorAll( '.three-object-three-app-environment
 const modelsToAdd = document.querySelectorAll( '.three-object-three-app-model-block' );
 const sky = document.querySelectorAll( '.three-object-three-app-sky-block' );
 
-console.log(threeApp);
-console.log(modelsToAdd);
-console.log(sky);
-
 threeApp.forEach( ( threeApp ) => {
 	if ( threeApp ) {
 		const threeUrl = threeApp.querySelector( 'p.three-object-block-url' )
@@ -61,6 +57,7 @@ threeApp.forEach( ( threeApp ) => {
 				animations={ animations }
 				backgroundColor={ backgroundColor }
 				userData={userData}
+				modelsToAdd={ modelsToAdd }
 			/>,
 			threeApp
 		);

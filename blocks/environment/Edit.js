@@ -77,15 +77,6 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 			</div>
 		);
 	};
-	
-  function handleClick(objectURL){
-		if(objectURL){
-			console.log("success good job", objectURL);
-			onImageSelect(objectURL);
-		}
-		console.log("fail", objectURL);
-	}
-  
 
 	return (
 		<div { ...useBlockProps() }>
