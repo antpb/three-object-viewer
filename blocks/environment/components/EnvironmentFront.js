@@ -290,8 +290,8 @@ export default function EnvironmentFront( props ) {
 											? item.querySelector( 'p.image-block-aspect-height' ).innerText
 											: '';
 
-											const aspectWidth = item.querySelector( 'p.image-block-aspect-height' )
-											? item.querySelector( 'p.image-block-aspect-height' ).innerText
+											const aspectWidth = item.querySelector( 'p.image-block-aspect-width' )
+											? item.querySelector( 'p.image-block-aspect-width' ).innerText
 											: '';
 												
 											return(<ThreeImage 
