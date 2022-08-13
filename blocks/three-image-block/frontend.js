@@ -1,11 +1,9 @@
 const { Component, render } = wp.element;
 
-import EnvironmentFront from './components/EnvironmentFront';
+import ThreeObjectFront from './components/ThreeObjectFront';
 
-const threeApp = document.querySelectorAll( '.three-object-three-app-environment' );
-const modelsToAdd = document.querySelectorAll( '.three-object-three-app-model-block' );
-const sky = document.querySelectorAll( '.three-object-three-app-sky-block' );
-const imagesToAdd = document.querySelectorAll( '.three-object-three-app-image-block' );
+const threeApp = document.querySelectorAll( '.three-object-three-app' );
+
 
 threeApp.forEach( ( threeApp ) => {
 	if ( threeApp ) {
@@ -46,7 +44,7 @@ threeApp.forEach( ( threeApp ) => {
 			: '';
 
 		render(
-			<EnvironmentFront
+			<ThreeObjectFront
 				threeUrl={ threeUrl }
 				deviceTarget={ deviceTarget }
 				zoom={ zoom }
@@ -58,9 +56,6 @@ threeApp.forEach( ( threeApp ) => {
 				animations={ animations }
 				backgroundColor={ backgroundColor }
 				userData={userData}
-				modelsToAdd={ modelsToAdd }
-				imagesToAdd={ imagesToAdd }
-				sky={ sky }
 			/>,
 			threeApp
 		);

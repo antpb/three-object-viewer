@@ -10,7 +10,6 @@ import {
 import { VRMUtils, VRMLoaderPlugin  } from '@pixiv/three-vrm'
 import { GLTFAudioEmitterExtension } from 'three-omi';
 
-
 function ThreeObject( props ) {
 	const [ url, set ] = useState( props.url );
 	useEffect( () => {

@@ -19,9 +19,12 @@ import {
 import { VRM, VRMUtils, VRMSchema, VRMLoaderPlugin  } from '@pixiv/three-vrm'
 import TeleportTravel from './TeleportTravel';
 import defaultVRM from '../../../inc/avatars/mummy.vrm';
+import Controls from './Controls';
+import { useAspect } from '@react-three/drei'
 
 function SavedObject( props ) {
 	const [ url, set ] = useState( props.url );
+	const [cameraPosition, setCameraPosition] = useState();
 	useEffect( () => {
 		setTimeout( () => set( props.url ), 2000 );
 	}, [] );
@@ -32,17 +35,6 @@ function SavedObject( props ) {
 	} );
 
 	const gltf = useLoader( GLTFLoader, url, ( loader ) => {
-		loader.register(
-			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
-		);
-		loader.register( ( parser ) => {
-            return new VRMLoaderPlugin( parser );
-        } );
-	} );
-	const fallbackURL = threeObjectPlugin + defaultVRM;
-	const playerURL = props.playerData.vrm ? props.playerData.vrm : fallbackURL
-
-	const someSceneState = useLoader( GLTFLoader, playerURL, ( loader ) => {
 		loader.register(
 			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
 		);
@@ -63,12 +55,27 @@ function SavedObject( props ) {
 			} );
 		}
 	}, [] );
+
+	// Player controller.
+	const fallbackURL = threeObjectPlugin + defaultVRM;
+	const playerURL = props.playerData.vrm ? props.playerData.vrm : fallbackURL
+
+	const someSceneState = useLoader( GLTFLoader, playerURL, ( loader ) => {
+		loader.register(
+			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
+		);
+		loader.register( ( parser ) => {
+            return new VRMLoaderPlugin( parser );
+        } );
+	} );
+
 	if(someSceneState?.userData?.gltfExtensions?.VRM){
 		const playerController = someSceneState.userData.vrm;
 		const { camera } = useThree();
 		useFrame(() => {
-			const offset = camera.position.z - 3;
-			playerController.scene.position.set( camera.position.x, camera.position.y, offset );
+			const offsetZ = camera.position.z - 0.4;
+			const offsetY = camera.position.y - 10;
+			playerController.scene.position.set( camera.position.x, offsetY, offsetZ );
 			playerController.scene.rotation.set( camera.rotation.x, camera.rotation.y, camera.rotation.z );
 		});
 		VRMUtils.rotateVRM0( playerController );
@@ -80,6 +87,8 @@ function SavedObject( props ) {
 		gltf.scene.scale.set( props.scale, props.scale, props.scale );	
 		return <><primitive object={ gltf.scene } /><primitive object={ playerController.scene } /></>;    
 	}
+	// End controller.
+
     if(gltf?.userData?.gltfExtensions?.VRM){
 			const vrm = gltf.userData.vrm;
 			vrm.scene.position.set( 0, props.positionY, 0 );
@@ -96,7 +105,6 @@ function SavedObject( props ) {
 }
 
 function ModelObject( model ) {
-	console.log("ohcomeon");
 	const [ url, set ] = useState( model.url );
 	useEffect( () => {
 		setTimeout( () => set( model.url ), 2000 );
@@ -140,11 +148,41 @@ function ModelObject( model ) {
     }
     gltf.scene.position.set( model.positionX, model.positionY, model.positionZ );
     gltf.scene.rotation.set( 0, 0, 0 );
-    gltf.scene.scale.set( 1, 1, 1 );
+    gltf.scene.scale.set(model.scaleX , model.scaleY, model.scaleZ );
+	// console.log(model.rotationX, model.rotationY, model.rotationZ);
+    gltf.scene.rotation.set(model.rotationX , model.rotationY, model.rotationZ );
     // gltf.scene.scale.set( props.scale, props.scale, props.scale );
 	return <><primitive object={ gltf.scene } /></>;    
 }
 
+
+function Sky( sky ) {
+	// console.log(sky.src);
+	const skyUrl = sky.src[0].querySelector( 'p.sky-block-url' )
+	? sky.src[0].querySelector( 'p.sky-block-url' ).innerText
+	: '';
+
+	const texture_1 = useLoader(THREE.TextureLoader, skyUrl);
+
+	return (
+	<mesh visible position={[0, 0, 0]} scale={[200,200,200]} rotation={[0, 0, 0]} >
+		<sphereBufferGeometry args={[5, 200, 200]} />
+		<meshStandardMaterial side={THREE.DoubleSide} map={texture_1} />
+	</mesh>
+	);
+}
+
+function ThreeImage( threeImage ) {
+	console.log(threeImage.aspectWidth, threeImage.aspectHeight);
+	const texture_2 = useLoader(THREE.TextureLoader, threeImage.url);	
+
+	return (
+		<mesh visible position={[threeImage.positionX, threeImage.positionY, threeImage.positionZ]} rotation={[threeImage.rotationX, threeImage.rotationY, threeImage.rotationZ]} >
+			<planeBufferGeometry args={useAspect(threeImage.aspectWidth, threeImage.aspectHeight)} />
+			<meshStandardMaterial side={THREE.DoubleSide} map={texture_2} />
+		</mesh>
+	);
+}
 
 function Floor( props ) {
 	return (
@@ -164,7 +202,7 @@ export default function EnvironmentFront( props ) {
 		return (
 			<>
 				<VRCanvas
-					camera={ { fov: 40, zoom: 1, position: [ 0, 0, 20 ] } }
+					camera={ { fov: 40, zoom: 1, far: 2000, position: [ 0, 0, 20 ] } }
 					shadowMap
 					style={ {
 						backgroundColor: props.backgroundColor,
@@ -184,6 +222,7 @@ export default function EnvironmentFront( props ) {
 						castShadow
 					/>			
 					<Suspense fallback={ null }>
+					<Controls />
 					<Physics>			
 							{ props.threeUrl && (
 								<>						
@@ -201,7 +240,75 @@ export default function EnvironmentFront( props ) {
 											playerData={ props.userData }
 											/>
 										</RigidBody>
+										{ props.threeUrl && (
+											<>
+												<Sky src={ props.sky }/>
+											</>
+										)}
+										{ Object.values(props.imagesToAdd).map((item, index)=>{
+											const imagePosX = item.querySelector( 'p.image-block-positionX' )
+											? item.querySelector( 'p.image-block-positionX' ).innerText
+											: '';
+									
+											const imagePosY = item.querySelector( 'p.image-block-positionY' )
+											? item.querySelector( 'p.image-block-positionY' ).innerText
+											: '';
+										
+											const imagePosZ = item.querySelector( 'p.image-block-positionZ' )
+											? item.querySelector( 'p.image-block-positionZ' ).innerText
+											: '';
 
+											const imageScaleX = item.querySelector( 'p.image-block-scaleX' )
+											? item.querySelector( 'p.image-block-scaleX' ).innerText
+											: '';
+
+											const imageScaleY = item.querySelector( 'p.image-block-scaleY' )
+											? item.querySelector( 'p.image-block-scaleY' ).innerText
+											: '';
+
+											const imageScaleZ = item.querySelector( 'p.image-block-scaleZ' )
+											? item.querySelector( 'p.image-block-scaleZ' ).innerText
+											: '';
+
+											const imageRotationX = item.querySelector( 'p.image-block-rotationX' )
+											? item.querySelector( 'p.image-block-rotationX' ).innerText
+											: '';
+
+											const imageRotationY = item.querySelector( 'p.image-block-rotationY' )
+											? item.querySelector( 'p.image-block-rotationY' ).innerText
+											: '';
+
+											const imageRotationZ = item.querySelector( 'p.image-block-rotationZ' )
+											? item.querySelector( 'p.image-block-rotationZ' ).innerText
+											: '';
+
+											const imageUrl = item.querySelector( 'p.image-block-url' )
+											? item.querySelector( 'p.image-block-url' ).innerText
+											: '';
+
+											const aspectHeight = item.querySelector( 'p.image-block-aspect-height' )
+											? item.querySelector( 'p.image-block-aspect-height' ).innerText
+											: '';
+
+											const aspectWidth = item.querySelector( 'p.image-block-aspect-height' )
+											? item.querySelector( 'p.image-block-aspect-height' ).innerText
+											: '';
+												
+											return(<ThreeImage 
+												url={imageUrl} 
+												positionX={imagePosX} 
+												positionY={imagePosY} 
+												positionZ={imagePosZ} 
+												scaleX={imageScaleX} 
+												scaleY={imageScaleY} 
+												scaleZ={imageScaleZ} 
+												rotationX={imageRotationX} 
+												rotationY={imageRotationY} 
+												rotationZ={imageRotationZ}
+												aspectHeight={aspectHeight}
+												aspectWidth={aspectWidth} 
+												/>);											
+											})}
 											{ Object.values(props.modelsToAdd).map((model, index)=>{
 												const modelPosX = model.querySelector( 'p.model-block-position-x' )
 												? model.querySelector( 'p.model-block-position-x' ).innerText
@@ -214,17 +321,47 @@ export default function EnvironmentFront( props ) {
 												const modelPosZ = model.querySelector( 'p.model-block-position-z' )
 												? model.querySelector( 'p.model-block-position-z' ).innerText
 												: '';
-										
+
+												const modelScaleX = model.querySelector( 'p.model-block-scale-x' )
+												? model.querySelector( 'p.model-block-scale-x' ).innerText
+												: '';
+
+												const modelScaleY = model.querySelector( 'p.model-block-scale-y' )
+												? model.querySelector( 'p.model-block-scale-y' ).innerText
+												: '';
+
+												const modelScaleZ = model.querySelector( 'p.model-block-scale-z' )
+												? model.querySelector( 'p.model-block-scale-z' ).innerText
+												: '';
+
+												const modelRotationX = model.querySelector( 'p.model-block-rotation-x' )
+												? model.querySelector( 'p.model-block-rotation-x' ).innerText
+												: '';
+
+												const modelRotationY = model.querySelector( 'p.model-block-rotation-y' )
+												? model.querySelector( 'p.model-block-rotation-y' ).innerText
+												: '';
+
+												const modelRotationZ = model.querySelector( 'p.model-block-rotation-z' )
+												? model.querySelector( 'p.model-block-rotation-z' ).innerText
+												: '';
+
 												const url = model.querySelector( 'p.model-block-url' )
 												? model.querySelector( 'p.model-block-url' ).innerText
 												: '';
-										
-												console.log("positionx", modelPosX);
-												console.log("positiony", modelPosY);
-												console.log("positionz", modelPosZ);
-												console.log("url", url);
-										
-											return(<ModelObject url={url} positionX={modelPosX} positionY={modelPosY} positionZ={modelPosZ} />);											
+																				
+											return(<ModelObject 
+												url={url} 
+												positionX={modelPosX} 
+												positionY={modelPosY} 
+												positionZ={modelPosZ} 
+												scaleX={modelScaleX} 
+												scaleY={modelScaleY} 
+												scaleZ={modelScaleZ} 
+												rotationX={modelRotationX} 
+												rotationY={modelRotationY} 
+												rotationZ={modelRotationZ} 
+												/>);											
 										})}
 									</TeleportTravel>
 									<RigidBody>
@@ -234,15 +371,10 @@ export default function EnvironmentFront( props ) {
 							) }
 					</Physics>
 					</Suspense>
-					<OrbitControls
+					{/* <OrbitControls
 						enableZoom={ true }
-					/>
+					/> */}
 				</VRCanvas>
-				{ props.hasTip === '1' ? (
-					<p className="three-object-block-tip">Click and drag ^</p>
-				) : (
-					<p></p>
-				) }
 			</>
 		);
 	}

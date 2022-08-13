@@ -10,7 +10,8 @@
             "three-object-block",
             "environment",
             "model-block",
-            "sky-block"
+            "sky-block",
+            "three-image-block"
         ]
     },
     "buildIncludes": [
@@ -23,6 +24,7 @@
         "blocks/environment/init.php",
         "blocks/model-block/init.php",
         "blocks/sky-block/init.php",
+        "blocks/three-image-block/init.php",
         "admin/three-object-viewer-settings/init.php"
     ]
 }

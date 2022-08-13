@@ -26,6 +26,9 @@ include_once dirname( __FILE__ ) . '/blocks/model-block/init.php';
 // Include sky
 include_once dirname( __FILE__ ) . '/blocks/sky-block/init.php';
 
+// Include image
+include_once dirname( __FILE__ ) . '/blocks/three-image-block/init.php';
+
 
 /**
 * Include the autoloader
