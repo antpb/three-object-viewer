@@ -5,41 +5,41 @@ export default function save( { attributes } ) {
 	return (
 		<div { ...useBlockProps.save() }>
 			<>
-				<div className="three-object-three-app-image-block">
-					<p className="image-block-url">
-						{ attributes.imageUrl }
+				<div className="three-object-three-app-video-block">
+					<p className="video-block-url">
+						{ attributes.videoUrl }
 					</p>
-					<p className="image-block-scaleX">
+					<p className="video-block-scaleX">
 						{ attributes.scaleX }
 					</p>
-					<p className="image-block-scaleY">
+					<p className="video-block-scaleY">
 						{ attributes.scaleY }
 					</p>
-					<p className="image-block-scaleZ">
+					<p className="video-block-scaleZ">
 						{ attributes.scaleZ }
 					</p>
-					<p className="image-block-positionX">
+					<p className="video-block-positionX">
 						{ attributes.positionX }
 					</p>
-					<p className="image-block-positionY">
+					<p className="video-block-positionY">
 						{ attributes.positionY }
 					</p>
-					<p className="image-block-positionZ">
+					<p className="video-block-positionZ">
 						{ attributes.positionZ }
 					</p>
-					<p className="image-block-rotationX">
+					<p className="video-block-rotationX">
 						{ attributes.rotationX }
 					</p>
-					<p className="image-block-rotationY">
+					<p className="video-block-rotationY">
 						{ attributes.rotationY }
 					</p>
-					<p className="image-block-rotationZ">
+					<p className="video-block-rotationZ">
 						{ attributes.rotationZ }
 					</p>
-					<p className="image-block-aspect-height">
+					<p className="video-block-aspect-height">
 						{ attributes.aspectHeight }
 					</p>
-					<p className="image-block-aspect-width">
+					<p className="video-block-aspect-width">
 						{ attributes.aspectWidth }
 					</p>
 

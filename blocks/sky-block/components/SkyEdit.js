@@ -13,7 +13,6 @@ import { GLTFAudioEmitterExtension } from 'three-omi';
 
 	// Geometry
 function Sphere(props) {
-	console.log(props);
 	const texture_1 = useLoader(THREE.TextureLoader, props.url);
 
 	return (

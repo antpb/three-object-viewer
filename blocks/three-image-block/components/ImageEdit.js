@@ -14,7 +14,6 @@ import { useAspect } from '@react-three/drei'
 
 	// Geometry
 function Plane(props) {
-	console.log(props);
 	const texture_1 = useLoader(THREE.TextureLoader, props.url);
 
 	return (

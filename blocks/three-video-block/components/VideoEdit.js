@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import React, { Suspense, useRef, useState, useEffect } from 'react';
+import React, { Suspense, useRef, useState, useEffect, useMemo } from 'react';
 import { Canvas, useLoader, useFrame, useThree } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import {
@@ -10,17 +10,22 @@ import {
 } from '@react-three/drei';
 import { VRM, VRMUtils, VRMSchema, VRMLoaderPlugin  } from '@pixiv/three-vrm'
 import { GLTFAudioEmitterExtension } from 'three-omi';
-import { useAspect } from '@react-three/drei'
+import { useAspect } from '@react-three/drei';  
 
-	// Geometry
+// Geometry
 function Plane(props) {
 	console.log(props);
-	const texture_1 = useLoader(THREE.TextureLoader, props.url);
+	const clicked = true;
+	const [video] = useState(() => Object.assign(document.createElement('video'), { src: props.url, crossOrigin: 'Anonymous', loop: true, muted: true }));
+
+	useEffect(() => void (clicked && video.play()), [video, clicked]);
 
 	return (
-	<mesh visible position={[0, 0, 0]} rotation={[0, 0, 0]} >
+	<mesh scale={[1,1,1]} position={[0, 0, 0]} rotation={[0, 0, 0]} >
+		<meshBasicMaterial toneMapped={false}>
+			<videoTexture attach="map" args={[video]} encoding={THREE.sRGBEncoding} />
+		</meshBasicMaterial>
 		<planeBufferGeometry args={useAspect(props.aspectWidth, props.aspectHeight)} />
-		<videoTexture map={texture_1} />
 	</mesh>
 	);
 }

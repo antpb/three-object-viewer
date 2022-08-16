@@ -6,6 +6,7 @@ const threeApp = document.querySelectorAll( '.three-object-three-app-environment
 const modelsToAdd = document.querySelectorAll( '.three-object-three-app-model-block' );
 const sky = document.querySelectorAll( '.three-object-three-app-sky-block' );
 const imagesToAdd = document.querySelectorAll( '.three-object-three-app-image-block' );
+const videosToAdd = document.querySelectorAll( '.three-object-three-app-video-block' );
 
 threeApp.forEach( ( threeApp ) => {
 	if ( threeApp ) {
@@ -60,6 +61,7 @@ threeApp.forEach( ( threeApp ) => {
 				userData={userData}
 				modelsToAdd={ modelsToAdd }
 				imagesToAdd={ imagesToAdd }
+				videosToAdd={ videosToAdd }
 				sky={ sky }
 			/>,
 			threeApp

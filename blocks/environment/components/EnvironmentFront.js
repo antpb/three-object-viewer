@@ -173,7 +173,7 @@ function Sky( sky ) {
 }
 
 function ThreeImage( threeImage ) {
-	console.log(threeImage.aspectWidth, threeImage.aspectHeight);
+	// console.log(threeImage.aspectWidth, threeImage.aspectHeight);
 	const texture_2 = useLoader(THREE.TextureLoader, threeImage.url);	
 
 	return (
@@ -183,6 +183,24 @@ function ThreeImage( threeImage ) {
 		</mesh>
 	);
 }
+
+function ThreeVideo(threeVideo) {
+	console.log(threeVideo);
+	const clicked = true;
+	const [video] = useState(() => Object.assign(document.createElement('video'), { src: threeVideo.url, crossOrigin: 'Anonymous', loop: true, muted: true }));
+
+	useEffect(() => void (clicked && video.play()), [video, clicked]);
+
+	return (
+	<mesh scale={[1,1,1]} position={[0, 0, 0]} rotation={[0, 0, 0]} >
+		<meshBasicMaterial toneMapped={false}>
+			<videoTexture attach="map" args={[video]} encoding={THREE.sRGBEncoding} />
+		</meshBasicMaterial>
+		<planeBufferGeometry args={useAspect(threeVideo.aspectWidth, threeVideo.aspectHeight)} />
+	</mesh>
+	);
+}
+
 
 function Floor( props ) {
 	return (
@@ -309,6 +327,73 @@ export default function EnvironmentFront( props ) {
 												aspectWidth={aspectWidth} 
 												/>);											
 											})}
+											{ Object.values(props.videosToAdd).map((item, index)=>{
+												const videoPosX = item.querySelector( 'p.video-block-positionX' )
+												? item.querySelector( 'p.video-block-positionX' ).innerText
+												: '';
+
+												const videoPosY = item.querySelector( 'p.video-block-positionY' )
+												? item.querySelector( 'p.video-block-positionY' ).innerText
+												: '';
+
+												const videoPosZ = item.querySelector( 'p.video-block-positionZ' )
+												? item.querySelector( 'p.video-block-positionZ' ).innerText
+												: '';
+
+												const videoScaleX = item.querySelector( 'p.video-block-scaleX' )
+												? item.querySelector( 'p.video-block-scaleX' ).innerText
+												: '';
+
+												const videoScaleY = item.querySelector( 'p.video-block-scaleY' )
+												? item.querySelector( 'p.video-block-scaleY' ).innerText
+												: '';
+
+												const videoScaleZ = item.querySelector( 'p.video-block-scaleZ' )
+												? item.querySelector( 'p.video-block-scaleZ' ).innerText
+												: '';
+
+												const videoRotationX = item.querySelector( 'p.video-block-rotationX' )
+												? item.querySelector( 'p.video-block-rotationX' ).innerText
+												: '';
+
+												const videoRotationY = item.querySelector( 'p.video-block-rotationY' )
+												? item.querySelector( 'p.video-block-rotationY' ).innerText
+												: '';
+
+												const videoRotationZ = item.querySelector( 'p.video-block-rotationZ' )
+												? item.querySelector( 'p.video-block-rotationZ' ).innerText
+												: '';
+
+												const videoUrl = item.querySelector( 'p.video-block-url' )
+												? item.querySelector( 'p.video-block-url' ).innerText
+												: '';
+												console.log("no url?", videoUrl);
+												console.log(item);
+
+												const aspectHeight = item.querySelector( 'p.video-block-aspect-height' )
+												? item.querySelector( 'p.video-block-aspect-height' ).innerText
+												: '';
+
+												const aspectWidth = item.querySelector( 'p.video-block-aspect-width' )
+												? item.querySelector( 'p.video-block-aspect-width' ).innerText
+												: '';
+												
+												return(<ThreeVideo 
+													url={videoUrl} 
+													// positionX={videoPosX} 
+													// positionY={videoPosY} 
+													// positionZ={videoPosZ} 
+													// scaleX={videoScaleX} 
+													// scaleY={videoScaleY} 
+													// scaleZ={videoScaleZ} 
+													// rotationX={videoRotationX} 
+													// rotationY={videoRotationY} 
+													// rotationZ={videoRotationZ}
+													aspectHeight={aspectHeight}
+													aspectWidth={aspectWidth} 
+													/>);											
+												})}
+
 											{ Object.values(props.modelsToAdd).map((model, index)=>{
 												const modelPosX = model.querySelector( 'p.model-block-position-x' )
 												? model.querySelector( 'p.model-block-position-x' ).innerText
