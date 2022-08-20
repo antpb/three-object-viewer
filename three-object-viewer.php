@@ -32,6 +32,9 @@ include_once dirname( __FILE__ ) . '/blocks/three-image-block/init.php';
 // Include image
 include_once dirname( __FILE__ ) . '/blocks/three-video-block/init.php';
 
+// Include audio
+include_once dirname( __FILE__ ) . '/blocks/three-audio-block/init.php';
+
 /**
 * Include the autoloader
 */

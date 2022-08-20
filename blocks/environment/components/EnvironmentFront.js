@@ -57,36 +57,36 @@ function SavedObject( props ) {
 	}, [] );
 
 	// Player controller.
-	const fallbackURL = threeObjectPlugin + defaultVRM;
-	const playerURL = props.playerData.vrm ? props.playerData.vrm : fallbackURL
+	// const fallbackURL = threeObjectPlugin + defaultVRM;
+	// const playerURL = props.playerData.vrm ? props.playerData.vrm : fallbackURL
 
-	const someSceneState = useLoader( GLTFLoader, playerURL, ( loader ) => {
-		loader.register(
-			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
-		);
-		loader.register( ( parser ) => {
-            return new VRMLoaderPlugin( parser );
-        } );
-	} );
+	// const someSceneState = useLoader( GLTFLoader, playerURL, ( loader ) => {
+	// 	loader.register(
+	// 		( parser ) => new GLTFAudioEmitterExtension( parser, listener )
+	// 	);
+	// 	loader.register( ( parser ) => {
+    //         return new VRMLoaderPlugin( parser );
+    //     } );
+	// } );
 
-	if(someSceneState?.userData?.gltfExtensions?.VRM){
-		const playerController = someSceneState.userData.vrm;
-		const { camera } = useThree();
-		useFrame(() => {
-			const offsetZ = camera.position.z - 0.4;
-			const offsetY = camera.position.y - 10;
-			playerController.scene.position.set( camera.position.x, offsetY, offsetZ );
-			playerController.scene.rotation.set( camera.rotation.x, camera.rotation.y, camera.rotation.z );
-		});
-		VRMUtils.rotateVRM0( playerController );
-		const rotationVRM = playerController.scene.rotation.y;
-		playerController.scene.rotation.set( 0, rotationVRM, 0 );
-		playerController.scene.scale.set( 1, 1, 1 );
-		gltf.scene.position.set( 0, props.positionY, 0 );
-		gltf.scene.rotation.set( 0, props.rotationY, 0 );
-		gltf.scene.scale.set( props.scale, props.scale, props.scale );	
-		return <><primitive object={ gltf.scene } /><primitive object={ playerController.scene } /></>;    
-	}
+	// if(someSceneState?.userData?.gltfExtensions?.VRM){
+	// 	const playerController = someSceneState.userData.vrm;
+	// 	const { camera } = useThree();
+	// 	useFrame(() => {
+	// 		const offsetZ = camera.position.z - 0.4;
+	// 		const offsetY = camera.position.y - 10;
+	// 		playerController.scene.position.set( camera.position.x, offsetY, offsetZ );
+	// 		playerController.scene.rotation.set( camera.rotation.x, camera.rotation.y, camera.rotation.z );
+	// 	});
+	// 	VRMUtils.rotateVRM0( playerController );
+	// 	const rotationVRM = playerController.scene.rotation.y;
+	// 	playerController.scene.rotation.set( 0, rotationVRM, 0 );
+	// 	playerController.scene.scale.set( 1, 1, 1 );
+	// 	gltf.scene.position.set( 0, props.positionY, 0 );
+	// 	gltf.scene.rotation.set( 0, props.rotationY, 0 );
+	// 	gltf.scene.scale.set( props.scale, props.scale, props.scale );	
+	// 	return <><primitive object={ gltf.scene } /><primitive object={ playerController.scene } /></>;    
+	// }
 	// End controller.
 
     if(gltf?.userData?.gltfExtensions?.VRM){

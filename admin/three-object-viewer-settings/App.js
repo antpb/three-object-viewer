@@ -8,7 +8,7 @@ import {
 	useAnimations,
 } from '@react-three/drei';
 import * as THREE from 'three';
-import defaultAikonaut from '../../inc/avatars/aikonaut.vrm';
+import defaultAikonaut from '../../inc/avatars/mummy.vrm';
 
 function SavedObject( props ) {
 	const [ url, set ] = useState( props.url );

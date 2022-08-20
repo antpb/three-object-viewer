@@ -1,0 +1,50 @@
+import { __ } from '@wordpress/i18n';
+import { useBlockProps } from '@wordpress/block-editor';
+
+export default function save( { attributes } ) {
+	return (
+		<div { ...useBlockProps.save() }>
+			<>
+				<div className="three-object-three-app-video-block">
+					<p className="video-block-url">
+						{ attributes.audioUrl }
+					</p>
+					<p className="video-block-scaleX">
+						{ attributes.scaleX }
+					</p>
+					<p className="video-block-scaleY">
+						{ attributes.scaleY }
+					</p>
+					<p className="video-block-scaleZ">
+						{ attributes.scaleZ }
+					</p>
+					<p className="video-block-positionX">
+						{ attributes.positionX }
+					</p>
+					<p className="video-block-positionY">
+						{ attributes.positionY }
+					</p>
+					<p className="video-block-positionZ">
+						{ attributes.positionZ }
+					</p>
+					<p className="video-block-rotationX">
+						{ attributes.rotationX }
+					</p>
+					<p className="video-block-rotationY">
+						{ attributes.rotationY }
+					</p>
+					<p className="video-block-rotationZ">
+						{ attributes.rotationZ }
+					</p>
+					<p className="video-block-aspect-height">
+						{ attributes.aspectHeight }
+					</p>
+					<p className="video-block-aspect-width">
+						{ attributes.aspectWidth }
+					</p>
+
+				</div>
+			</>
+		</div>
+	);
+}

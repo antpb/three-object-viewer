@@ -25,8 +25,8 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 
 	const onImageSelect = ( imageObject ) => {
 		console.log(imageObject);
-		setAttributes( { videoUrl: null } );
-		setAttributes( { videoUrl: imageObject.url, aspectHeight: imageObject.height, aspectWidth: imageObject.width } );
+		setAttributes( { audioUrl: null } );
+		setAttributes( { audioUrl: imageObject.url, aspectHeight: imageObject.height, aspectWidth: imageObject.width } );
 	};
 	const onChangePositionX = ( positionX ) => {
 		setAttributes( { positionX: positionX } );
@@ -120,10 +120,10 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 								type="image"
 								label="Image File"
 								allowedTypes={ ALLOWED_MEDIA_TYPES }
-								value={ attributes.videoUrl }
+								value={ attributes.audioUrl }
 								render={ ( { open } ) => (
 									<button onClick={ open }>
-										{ attributes.videoUrl
+										{ attributes.audioUrl
 											? 'Replace Image'
 											: 'Select Image' }
 									</button>
@@ -246,10 +246,10 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 			</InspectorControls>
 			{ isSelected ? (
 				<>
-					{ attributes.videoUrl ? (
+					{ attributes.audioUrl ? (
 						<>
 							<VideoEdit 
-								src={attributes.videoUrl}
+								src={attributes.audioUrl}
 								aspectHeight={attributes.aspectHeight}
 								aspectWidth={attributes.aspectWidth}
 							/>	
@@ -267,10 +267,10 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 								}
 								type="video"
 								allowedTypes={ ALLOWED_MEDIA_TYPES }
-								value={ attributes.videoUrl }
+								value={ attributes.audioUrl }
 								render={ ( { open } ) => (
 									<button className="three-object-viewer-button" onClick={ open }>
-										{ attributes.videoUrl
+										{ attributes.audioUrl
 											? 'Replace Object'
 											: 'Select From Media Library' }
 									</button>
@@ -282,10 +282,10 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 				</>
 			) : (
 				<>
-					{ attributes.videoUrl ? (
+					{ attributes.audioUrl ? (
 					<>
 						<VideoEdit 
-							src={attributes.videoUrl}
+							src={attributes.audioUrl}
 							aspectHeight={attributes.aspectHeight}
 							aspectWidth={attributes.aspectWidth}
 						/>	
@@ -312,7 +312,7 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 								}
 								type="image"
 								allowedTypes={ ALLOWED_MEDIA_TYPES }
-								value={ attributes.videoUrl }
+								value={ attributes.audioUrl }
 								render={ ( { open } ) => (
 									<button className="three-object-viewer-button" onClick={ open }>
 										Select From Media Library

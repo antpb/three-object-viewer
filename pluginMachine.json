@@ -12,7 +12,8 @@
             "model-block",
             "sky-block",
             "three-image-block",
-            "three-video-block"
+            "three-video-block",
+            "three-audio-block"
         ]
     },
     "buildIncludes": [
