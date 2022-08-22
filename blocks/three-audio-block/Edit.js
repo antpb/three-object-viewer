@@ -48,16 +48,6 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 		setAttributes( { rotationZ: rotationZ } );
 	};
 
-	const onChangeScaleX = ( scaleX ) => {
-		setAttributes( { scaleX: scaleX } );
-	};
-	const onChangeScaleY = ( scaleY ) => {
-		setAttributes( { scaleY: scaleY } );
-	};
-	const onChangeScaleZ = ( scaleZ ) => {
-		setAttributes( { scaleZ: scaleZ } );
-	};
-
 	const onChangeAutoPlay = ( autoPlaySetting ) => {
 		setAttributes( { autoPlay: autoPlaySetting } );
 	};

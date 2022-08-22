@@ -59,6 +59,7 @@ threeApp.forEach( ( threeApp ) => {
 				animations={ animations }
 				backgroundColor={ backgroundColor }
 				userData={userData}
+				postSlug={postSlug}
 				modelsToAdd={ modelsToAdd }
 				imagesToAdd={ imagesToAdd }
 				videosToAdd={ videosToAdd }

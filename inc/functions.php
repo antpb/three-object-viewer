@@ -91,7 +91,9 @@ function threeobjectviewer_frontend_assets() {
         'banner' => $current_user->custom_banner,
         'vrm' => $vrm,
      );
-
+     global $post;
+     $post_slug = $post->post_name;
+     
     $three_object_plugin = plugins_url() . '/three-object-viewer/build/';
 
     // $user_data_passed = array(
@@ -110,6 +112,7 @@ function threeobjectviewer_frontend_assets() {
 
     wp_register_script( 'versepress-frontend', plugin_dir_url( __FILE__ ) . '../build/assets/js/blocks.frontend-versepress.js', ['wp-element', 'wp-data', 'wp-hooks'], '', true );
     wp_localize_script( 'versepress-frontend', 'userData', $user_data_passed );
+    wp_localize_script( 'versepress-frontend', 'postSlug', $post_slug );
     wp_localize_script( 'versepress-frontend', 'threeObjectPlugin', $three_object_plugin );
 
 	wp_enqueue_script( 

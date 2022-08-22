@@ -20,6 +20,7 @@ import { VRM, VRMUtils, VRMSchema, VRMLoaderPlugin  } from '@pixiv/three-vrm'
 import TeleportTravel from './TeleportTravel';
 import defaultVRM from '../../../inc/avatars/mummy.vrm';
 import Controls from './Controls';
+import Networking from './Networking';
 import { useAspect } from '@react-three/drei'
 
 function SavedObject( props ) {
@@ -217,6 +218,7 @@ function Floor( props ) {
 
 export default function EnvironmentFront( props ) {	
 	if ( props.deviceTarget === 'vr' ) {
+		console.log(props.postSlug);
 		return (
 			<>
 				<VRCanvas
@@ -241,6 +243,9 @@ export default function EnvironmentFront( props ) {
 					/>			
 					<Suspense fallback={ null }>
 					<Controls />
+					<Networking
+					postSlug={props.postSlug}
+					/>
 					<Physics>			
 							{ props.threeUrl && (
 								<>						
@@ -463,51 +468,51 @@ export default function EnvironmentFront( props ) {
 			</>
 		);
 	}
-	if ( props.deviceTarget === '2d' ) {
-		return (
-			<>
-				<Canvas
-          camera={ { fov: 40, position: [0, 0, 20], zoom: props.zoom} }
-					shadowMap
-					style={ {
-						backgroundColor: props.backgroundColor,
-						margin: '0 Auto',
-						height: '500px',
-						width: '90%',
-					} }
-				>
-					<ambientLight intensity={ 0.5 } />
-					<directionalLight
-						intensity={ 0.6 }
-						position={ [ 0, 2, 2 ] }
-						shadow-mapSize-width={ 2048 }
-						shadow-mapSize-height={ 2048 }
-						castShadow
-					/>
-					<Suspense fallback={ null }>
-						{ props.threeUrl && (
-							<SavedObject
-								positionY={ props.positionY }
-								rotationY={ props.rotationY }
-								url={ props.threeUrl }
-								color={ props.backgroundColor }
-								hasZoom={ props.hasZoom }
-								scale={ props.scale }
-								hasTip={ props.hasTip }
-								animations={ props.animations }
-							/>
-						) }
-					</Suspense>
-					<OrbitControls
-						enableZoom={ props.hasZoom === '1' ? true : false }
-					/>
-				</Canvas>
-				{ props.hasTip === '1' ? (
-					<p className="three-object-block-tip">Click and drag ^</p>
-				) : (
-					<p></p>
-				) }
-			</>
-		);
-	}
+	// if ( props.deviceTarget === '2d' ) {
+	// 	return (
+	// 		<>
+	// 			<Canvas
+    //       camera={ { fov: 40, position: [0, 0, 20], zoom: props.zoom} }
+	// 				shadowMap
+	// 				style={ {
+	// 					backgroundColor: props.backgroundColor,
+	// 					margin: '0 Auto',
+	// 					height: '500px',
+	// 					width: '90%',
+	// 				} }
+	// 			>
+	// 				<ambientLight intensity={ 0.5 } />
+	// 				<directionalLight
+	// 					intensity={ 0.6 }
+	// 					position={ [ 0, 2, 2 ] }
+	// 					shadow-mapSize-width={ 2048 }
+	// 					shadow-mapSize-height={ 2048 }
+	// 					castShadow
+	// 				/>
+	// 				<Suspense fallback={ null }>
+	// 					{ props.threeUrl && (
+	// 						<SavedObject
+	// 							positionY={ props.positionY }
+	// 							rotationY={ props.rotationY }
+	// 							url={ props.threeUrl }
+	// 							color={ props.backgroundColor }
+	// 							hasZoom={ props.hasZoom }
+	// 							scale={ props.scale }
+	// 							hasTip={ props.hasTip }
+	// 							animations={ props.animations }
+	// 						/>
+	// 					) }
+	// 				</Suspense>
+	// 				<OrbitControls
+	// 					enableZoom={ props.hasZoom === '1' ? true : false }
+	// 				/>
+	// 			</Canvas>
+	// 			{ props.hasTip === '1' ? (
+	// 				<p className="three-object-block-tip">Click and drag ^</p>
+	// 			) : (
+	// 				<p></p>
+	// 			) }
+	// 		</>
+	// 	);
+	// }
 }

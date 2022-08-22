@@ -25,7 +25,7 @@
         },
         "deviceTarget": {
             "type": "string",
-            "default": "2d"
+            "default": "vr"
         },
         "animations": {
             "type": "string",

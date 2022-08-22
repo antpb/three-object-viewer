@@ -17,7 +17,16 @@
     "devDependencies": {
         "@babel/core": "^7",
         "@testing-library/react": "^12",
-        "@wordpress/scripts": "^16"
+        "@wordpress/scripts": "^16",
+        "airtap": "^4.0.4",
+        "browserify": "^17.0.0",
+        "esbuild": "^0.15.5",
+        "lint-staged": "^13.0.3",
+        "prettier": "^2.7.1",
+        "prettier-standard": "^16.4.1",
+        "standard": "^17.0.0",
+        "tape": "^5.6.0",
+        "tinyify": "^3.1.0"
     },
     "dependencies": {
         "@pixiv/three-vrm": "1.0.0-beta.17",
@@ -30,7 +39,13 @@
         "@wordpress/components": "^14",
         "@wordpress/element": "^3",
         "@wordpress/i18n": "^4",
+        "array-buffer-to-hex": "^1.0.0",
+        "base64-arraybuffer": "^1.0.2",
+        "convert-hex": "^0.1.0",
+        "events": "^3.3.0",
+        "get-browser-rtc": "^1.1.0",
         "three": "^0.137.2",
-        "three-omi": "^0.1.5"
+        "three-omi": "^0.1.5",
+        "tiny-simple-peer": "^10.1.1"
     }
 }
