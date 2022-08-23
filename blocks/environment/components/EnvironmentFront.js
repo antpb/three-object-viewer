@@ -25,18 +25,15 @@ import { useAspect } from '@react-three/drei'
 
 function Participant( participant ) {
 	const [participantPosition, setParticipantPosition] = useState([]);
-	console.log("welcome,", participant.name);
 	participant.p2pcf.on('msg', (peer, data) => {
-		let newPosition = new TextDecoder('utf-8').decode(data);
-        // console.log("some position data", new TextDecoder('utf-8').decode(data));
-		const arrayPosition = JSON.parse( newPosition );
-        console.log("some position data", arrayPosition);
-
-		setParticipantPosition(arrayPosition);
+		let finalData = new TextDecoder('utf-8').decode(data);
+		const participantData = JSON.parse( finalData );
+		console.log(participantData[peer.client_id][0]["position"]);
+		setParticipantPosition(participantData[peer.client_id][0]["position"]);
     })
 
 	return (
-		<mesh name={participant} scale={ [ 1,1,1 ] } position={ [0,0,0] } rotation={ [ -Math.PI / 2, 0, 0 ] }>
+		<mesh name={participant} scale={ [ 1,1,1 ] } position={ participantPosition } rotation={ [ -Math.PI / 2, 0, 0 ] }>
 			<boxBufferGeometry args={ [ 1, 1 ] } attach="geometry" />
 			<meshBasicMaterial
 				attach="material"
@@ -268,9 +265,16 @@ export default function EnvironmentFront( props ) {
 	if ( props.deviceTarget === 'vr' ) {
 		return (
 			<>
+		        <div id="session-id"></div>
+				<p>Peers</p>
+				<div id="peers"></div>
+				<p>Messages</p>
+				<div id="messages"></div>
+				<div class="button" id="send-button">Send Button</div>
+				<div class="button" id="video-button">Video Button</div>
 				<Networking
-					postSlug={props.postSlug}
-					userData={props.userData}
+						postSlug={props.postSlug}
+						userData={props.userData}
 				/>
 				<VRCanvas
 					camera={ { fov: 40, zoom: 1, far: 2000, position: [ 0, 0, 20 ] } }

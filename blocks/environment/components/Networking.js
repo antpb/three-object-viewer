@@ -67,7 +67,8 @@ const Networking = (props) => {
     })
           
     p2pcf.on('msg', (peer, data) => {
-        console.log(new TextDecoder('utf-8').decode(data));
+        // let finalData = new TextDecoder('utf-8').decode(data);
+        // console.log(JSON.parse(finalData));
     addMessage(
         peer.id.substring(0, 5) + ': ' + new TextDecoder('utf-8').decode(data)
     )
@@ -108,13 +109,6 @@ const Networking = (props) => {
       
 	return (
     <>
-        <div id="session-id"></div>
-        <p>Peers</p>
-        <div id="peers"></div>
-        <p>Messages</p>
-        <div id="messages"></div>
-        <div class="button" id="send-button">Send Button</div>
-        <div class="button" id="video-button">Video Button</div>
     </>
     );
 };

@@ -18,25 +18,29 @@ const Controls = (props) => {
 			controlsRef.current.moveForward( velocity );
 			if(p2pcf){
 				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
-				p2pcf.broadcast(new TextEncoder().encode(JSON.stringify(position)))
+				let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]}]}`;
+				p2pcf.broadcast(new TextEncoder().encode(message));
 			}
 		} else if ( moveLeft ) {
 			controlsRef.current.moveRight( -velocity );
 			if(p2pcf){
 				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
-				p2pcf.broadcast(new TextEncoder().encode(JSON.stringify(position)))
+				let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]}]}`;
+				p2pcf.broadcast(new TextEncoder().encode(message));
 			}
 		} else if ( moveBackward ) {
 			controlsRef.current.moveForward( -velocity );
 			if(p2pcf){
 				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
-				p2pcf.broadcast(new TextEncoder().encode(JSON.stringify(position)))
+				let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]}]}`;
+				p2pcf.broadcast(new TextEncoder().encode(message));
 			}
 		} else if ( moveRight ) {
 			controlsRef.current.moveRight( velocity );
 			if(p2pcf){
 				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
-				p2pcf.broadcast(new TextEncoder().encode(JSON.stringify(position)))
+				let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]}]}`;
+				p2pcf.broadcast(new TextEncoder().encode(message));
 			}
 		}
 	} );
