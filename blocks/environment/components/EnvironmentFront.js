@@ -23,9 +23,43 @@ import Controls from './Controls';
 import Networking from './Networking';
 import { useAspect } from '@react-three/drei'
 
+function Participant( participant ) {
+	const [participantPosition, setParticipantPosition] = useState([]);
+	console.log("welcome,", participant.name);
+	participant.p2pcf.on('msg', (peer, data) => {
+		let newPosition = new TextDecoder('utf-8').decode(data);
+        // console.log("some position data", new TextDecoder('utf-8').decode(data));
+		const arrayPosition = JSON.parse( newPosition );
+        console.log("some position data", arrayPosition);
+
+		setParticipantPosition(arrayPosition);
+    })
+
+	return (
+		<mesh name={participant} scale={ [ 1,1,1 ] } position={ [0,0,0] } rotation={ [ -Math.PI / 2, 0, 0 ] }>
+			<boxBufferGeometry args={ [ 1, 1 ] } attach="geometry" />
+			<meshBasicMaterial
+				attach="material"
+			/>
+		</mesh>
+	);
+}
+
 function SavedObject( props ) {
+	const [ participants, setParticipant ] = useState([]);
+	const meshRef = useRef();
+
+	console.log(participants);
+
+	const p2pcf = window.p2pcf;
+	if(p2pcf){
+		p2pcf.on('peerconnect', peer => {
+			setParticipant(current => [...current, peer.client_id]);	
+		})
+	}
+
+
 	const [ url, set ] = useState( props.url );
-	const [cameraPosition, setCameraPosition] = useState();
 	useEffect( () => {
 		setTimeout( () => set( props.url ), 2000 );
 	}, [] );
@@ -102,7 +136,19 @@ function SavedObject( props ) {
     gltf.scene.position.set( 0, props.positionY, 0 );
     gltf.scene.rotation.set( 0, props.rotationY, 0 );
     gltf.scene.scale.set( props.scale, props.scale, props.scale );
-	return <><primitive object={ gltf.scene } /></>;    
+		return(<>
+			<primitive object={ gltf.scene } />
+			{ participants && participants.map((item, index)=>{
+				console.log("stuff", item);
+				return (
+					<>
+						<Participant
+							name={item}
+							p2pcf={p2pcf}
+						/>
+					</>
+				)})}
+		</>);
 }
 
 function ModelObject( model ) {
@@ -153,7 +199,9 @@ function ModelObject( model ) {
 	// console.log(model.rotationX, model.rotationY, model.rotationZ);
     gltf.scene.rotation.set(model.rotationX , model.rotationY, model.rotationZ );
     // gltf.scene.scale.set( props.scale, props.scale, props.scale );
-	return <><primitive object={ gltf.scene } /></>;    
+	return <>
+		<primitive object={ gltf.scene } />
+	</>;    
 }
 
 
@@ -218,9 +266,12 @@ function Floor( props ) {
 
 export default function EnvironmentFront( props ) {	
 	if ( props.deviceTarget === 'vr' ) {
-		console.log(props.postSlug);
 		return (
 			<>
+				<Networking
+					postSlug={props.postSlug}
+					userData={props.userData}
+				/>
 				<VRCanvas
 					camera={ { fov: 40, zoom: 1, far: 2000, position: [ 0, 0, 20 ] } }
 					shadowMap
@@ -242,9 +293,7 @@ export default function EnvironmentFront( props ) {
 						castShadow
 					/>			
 					<Suspense fallback={ null }>
-					<Controls />
-					<Networking
-					postSlug={props.postSlug}
+					<Controls 
 					/>
 					<Physics>			
 							{ props.threeUrl && (

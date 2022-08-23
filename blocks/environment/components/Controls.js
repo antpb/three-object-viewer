@@ -3,7 +3,8 @@ import { useFrame } from '@react-three/fiber';
 import { PointerLockControls } from '@react-three/drei';
 import previewOptions from '@wordpress/block-editor/build/components/preview-options';
 
-const Controls = () => {
+const Controls = (props) => {
+	const p2pcf = window.p2pcf;
 	const controlsRef = useRef();
 	const isLocked = useRef( false );
 	const [ moveForward, setMoveForward ] = useState( false );
@@ -15,12 +16,28 @@ const Controls = () => {
 		const velocity = 0.5;
 		if ( moveForward ) {
 			controlsRef.current.moveForward( velocity );
+			if(p2pcf){
+				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
+				p2pcf.broadcast(new TextEncoder().encode(JSON.stringify(position)))
+			}
 		} else if ( moveLeft ) {
 			controlsRef.current.moveRight( -velocity );
+			if(p2pcf){
+				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
+				p2pcf.broadcast(new TextEncoder().encode(JSON.stringify(position)))
+			}
 		} else if ( moveBackward ) {
 			controlsRef.current.moveForward( -velocity );
+			if(p2pcf){
+				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
+				p2pcf.broadcast(new TextEncoder().encode(JSON.stringify(position)))
+			}
 		} else if ( moveRight ) {
 			controlsRef.current.moveRight( velocity );
+			if(p2pcf){
+				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
+				p2pcf.broadcast(new TextEncoder().encode(JSON.stringify(position)))
+			}
 		}
 	} );
 
