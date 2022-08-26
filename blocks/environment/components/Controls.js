@@ -13,7 +13,7 @@ const Controls = (props) => {
 	const [ moveRight, setMoveRight ] = useState( false );
 
 	useFrame( () => {
-		const velocity = 0.5;
+		const velocity = 0.4;
 		if ( moveForward ) {
 			controlsRef.current.moveForward( velocity );
 			if(p2pcf){

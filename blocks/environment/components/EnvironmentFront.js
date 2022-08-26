@@ -23,24 +23,46 @@ import Controls from './Controls';
 import { useAspect } from '@react-three/drei'
 
 function Participant( participant ) {
-	const theScene = useThree();
-	participant.p2pcf.on('msg', (peer, data) => {
-		let finalData = new TextDecoder('utf-8').decode(data);
-		const participantData = JSON.parse( finalData );
-		const participantObject = theScene.scene.getObjectByName(peer.client_id);
-		if(participantObject){
-			participantObject.position.set(participantData[peer.client_id][0]["position"][0], participantData[peer.client_id][0]["position"][1], participantData[peer.client_id][0]["position"][2] );
-			participantObject.rotation.set(participantData[peer.client_id][1]["rotation"][0], participantData[peer.client_id][1]["rotation"][1], participantData[peer.client_id][1]["rotation"][2] );
-		}
-    });
-	return (
-		<mesh name={participant.name} scale={ [ 1, 1, 1 ] } position={ [ 0, 0, 0 ] } rotation={ [ -Math.PI / 2, 0, 0 ] }>
-			<boxBufferGeometry args={ [ 1, 1 ] } attach="geometry" />
-			<meshBasicMaterial
-				attach="material"
-			/>
-		</mesh>
-	);
+
+
+	// Player controller.
+	const fallbackURL = threeObjectPlugin + defaultVRM;
+	const playerURL = userData.vrm ? userData.vrm : fallbackURL
+
+	const someSceneState = useLoader( GLTFLoader, playerURL, ( loader ) => {
+		loader.register( ( parser ) => {
+            return new VRMLoaderPlugin( parser );
+        } );
+	} );
+
+	if(someSceneState?.userData?.gltfExtensions?.VRM){
+		const playerController = someSceneState.userData.vrm;
+		VRMUtils.rotateVRM0( playerController );
+		const rotationVRM = playerController.scene.rotation.y;
+		playerController.scene.rotation.set( 0, rotationVRM, 0 );
+		playerController.scene.scale.set( 1, 1, 1 );
+		const theScene = useThree();
+		participant.p2pcf.on('msg', (peer, data) => {
+			let finalData = new TextDecoder('utf-8').decode(data);
+			const participantData = JSON.parse( finalData );
+			const participantObject = theScene.scene.getObjectByName(peer.client_id);
+			if(participantObject){
+				participantObject.position.set(participantData[peer.client_id][0]["position"][0], participantData[peer.client_id][0]["position"][1], participantData[peer.client_id][0]["position"][2] );
+				participantObject.rotation.set(participantData[peer.client_id][1]["rotation"][0], participantData[peer.client_id][1]["rotation"][1], participantData[peer.client_id][1]["rotation"][2] );
+			}
+		});
+		return (
+			<>
+				{playerController && <primitive name={participant.name} object={ playerController.scene } />}
+				{/* <mesh name={participant.name} scale={ [ 1, 1, 1 ] } position={ [ 0, 0, 0 ] } rotation={ [ -Math.PI / 2, 0, 0 ] }>
+					<boxBufferGeometry args={ [ 1, 1 ] } attach="geometry" />
+					<meshBasicMaterial
+						attach="material"
+					/>
+				</mesh> */}
+			</>
+		);
+	}
 }
 
 function SavedObject( props ) {
