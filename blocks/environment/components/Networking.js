@@ -71,8 +71,6 @@ const Networking = (props) => {
     })
           
     p2pcf.on('msg', (peer, data) => {
-        // let finalData = new TextDecoder('utf-8').decode(data);
-        // console.log(JSON.parse(finalData));
     addMessage(
         peer.id.substring(0, 5) + ': ' + new TextDecoder('utf-8').decode(data)
     )

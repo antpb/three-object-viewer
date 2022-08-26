@@ -5,14 +5,11 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Physics, RigidBody } from "@react-three/rapier";
 
 import {
-	OrthographicCamera,
-	OrbitControls,
 	useAnimations,
 } from '@react-three/drei';
 import { GLTFAudioEmitterExtension } from 'three-omi';
 import {
 	VRCanvas,
-	ARCanvas,
 	DefaultXRControllers,
 	Hands,
 } from '@react-three/xr';
@@ -23,9 +20,7 @@ import Controls from './Controls';
 import { useAspect } from '@react-three/drei'
 
 function Participant( participant ) {
-
-
-	// Player controller.
+	// Participant VRM.
 	const fallbackURL = threeObjectPlugin + defaultVRM;
 	const playerURL = userData.vrm ? userData.vrm : fallbackURL
 
@@ -54,12 +49,6 @@ function Participant( participant ) {
 		return (
 			<>
 				{playerController && <primitive name={participant.name} object={ playerController.scene } />}
-				{/* <mesh name={participant.name} scale={ [ 1, 1, 1 ] } position={ [ 0, 0, 0 ] } rotation={ [ -Math.PI / 2, 0, 0 ] }>
-					<boxBufferGeometry args={ [ 1, 1 ] } attach="geometry" />
-					<meshBasicMaterial
-						attach="material"
-					/>
-				</mesh> */}
 			</>
 		);
 	}
@@ -77,7 +66,6 @@ function SavedObject( props ) {
 			setParticipant(current => [...current, peer.client_id]);	
 		})
 	}
-
 
 	const [ url, set ] = useState( props.url );
 	useEffect( () => {
@@ -159,7 +147,6 @@ function SavedObject( props ) {
 		return(<>
 			<primitive object={ gltf.scene } />
 			{ participants && participants.map((item, index)=>{
-				// console.log("stuff", item);
 				return (
 					<>
 						<Participant
@@ -533,51 +520,4 @@ export default function EnvironmentFront( props ) {
 			</>
 		);
 	}
-	// if ( props.deviceTarget === '2d' ) {
-	// 	return (
-	// 		<>
-	// 			<Canvas
-    //       camera={ { fov: 40, position: [0, 0, 20], zoom: props.zoom} }
-	// 				shadowMap
-	// 				style={ {
-	// 					backgroundColor: props.backgroundColor,
-	// 					margin: '0 Auto',
-	// 					height: '500px',
-	// 					width: '90%',
-	// 				} }
-	// 			>
-	// 				<ambientLight intensity={ 0.5 } />
-	// 				<directionalLight
-	// 					intensity={ 0.6 }
-	// 					position={ [ 0, 2, 2 ] }
-	// 					shadow-mapSize-width={ 2048 }
-	// 					shadow-mapSize-height={ 2048 }
-	// 					castShadow
-	// 				/>
-	// 				<Suspense fallback={ null }>
-	// 					{ props.threeUrl && (
-	// 						<SavedObject
-	// 							positionY={ props.positionY }
-	// 							rotationY={ props.rotationY }
-	// 							url={ props.threeUrl }
-	// 							color={ props.backgroundColor }
-	// 							hasZoom={ props.hasZoom }
-	// 							scale={ props.scale }
-	// 							hasTip={ props.hasTip }
-	// 							animations={ props.animations }
-	// 						/>
-	// 					) }
-	// 				</Suspense>
-	// 				<OrbitControls
-	// 					enableZoom={ props.hasZoom === '1' ? true : false }
-	// 				/>
-	// 			</Canvas>
-	// 			{ props.hasTip === '1' ? (
-	// 				<p className="three-object-block-tip">Click and drag ^</p>
-	// 			) : (
-	// 				<p></p>
-	// 			) }
-	// 		</>
-	// 	);
-	// }
 }
