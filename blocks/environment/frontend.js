@@ -1,6 +1,7 @@
 const { Component, render } = wp.element;
 
 import EnvironmentFront from './components/EnvironmentFront';
+import Networking from './components/Networking';
 
 const threeApp = document.querySelectorAll( '.three-object-three-app-environment' );
 const modelsToAdd = document.querySelectorAll( '.three-object-three-app-model-block' );
@@ -47,24 +48,36 @@ threeApp.forEach( ( threeApp ) => {
 			: '';
 
 		render(
-			<EnvironmentFront
-				threeUrl={ threeUrl }
-				deviceTarget={ deviceTarget }
-				zoom={ zoom }
-				scale={ scale }
-				hasTip={ hasTip }
-				hasZoom={ hasZoom }
-				positionY={ positionY }
-				rotationY={ rotationY }
-				animations={ animations }
-				backgroundColor={ backgroundColor }
-				userData={userData}
-				postSlug={postSlug}
-				modelsToAdd={ modelsToAdd }
-				imagesToAdd={ imagesToAdd }
-				videosToAdd={ videosToAdd }
-				sky={ sky }
-			/>,
+			<>
+				<div id="session-id"></div>
+				<p>Peers</p>
+				<div id="peers"></div>
+				<p>Messages</p>
+				<div id="messages"></div>
+				<div class="button" id="send-button">Send Button</div>
+				<div class="button" id="video-button">Video Button</div>
+				<Networking
+						postSlug={postSlug}
+						userData={userData}
+				/>
+				<EnvironmentFront
+					threeUrl={ threeUrl }
+					deviceTarget={ deviceTarget }
+					zoom={ zoom }
+					scale={ scale }
+					hasTip={ hasTip }
+					hasZoom={ hasZoom }
+					positionY={ positionY }
+					rotationY={ rotationY }
+					animations={ animations }
+					backgroundColor={ backgroundColor }
+					userData={userData}
+					postSlug={postSlug}
+					modelsToAdd={ modelsToAdd }
+					imagesToAdd={ imagesToAdd }
+					videosToAdd={ videosToAdd }
+					sky={ sky }
+				/></>,
 			threeApp
 		);
 	}

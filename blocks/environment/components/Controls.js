@@ -18,28 +18,32 @@ const Controls = (props) => {
 			controlsRef.current.moveForward( velocity );
 			if(p2pcf){
 				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
-				let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]}]}`;
+				let rotation = [controlsRef.current.camera.rotation.x, controlsRef.current.camera.rotation.y, controlsRef.current.camera.rotation.z ];
+				let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]},{ "rotation" : [`+ rotation +`]}]}`;
 				p2pcf.broadcast(new TextEncoder().encode(message));
 			}
 		} else if ( moveLeft ) {
 			controlsRef.current.moveRight( -velocity );
 			if(p2pcf){
 				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
-				let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]}]}`;
+				let rotation = [controlsRef.current.camera.rotation.x, controlsRef.current.camera.rotation.y, controlsRef.current.camera.rotation.z ];
+				let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]},{ "rotation" : [`+ rotation +`]}]}`;
 				p2pcf.broadcast(new TextEncoder().encode(message));
 			}
 		} else if ( moveBackward ) {
 			controlsRef.current.moveForward( -velocity );
 			if(p2pcf){
 				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
-				let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]}]}`;
+				let rotation = [controlsRef.current.camera.rotation.x, controlsRef.current.camera.rotation.y, controlsRef.current.camera.rotation.z ];
+				let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]},{ "rotation" : [`+ rotation +`]}]}`;
 				p2pcf.broadcast(new TextEncoder().encode(message));
 			}
 		} else if ( moveRight ) {
 			controlsRef.current.moveRight( velocity );
 			if(p2pcf){
 				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
-				let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]}]}`;
+				let rotation = [controlsRef.current.camera.rotation.x, controlsRef.current.camera.rotation.y, controlsRef.current.camera.rotation.z ];
+				let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]},{ "rotation" : [`+ rotation +`]}]}`;
 				p2pcf.broadcast(new TextEncoder().encode(message));
 			}
 		}
@@ -122,6 +126,15 @@ const Controls = (props) => {
 					} );
 				}
 			} }
+			onChange={ () => {
+				if(p2pcf && controlsRef){
+					let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
+					let rotation = [controlsRef.current.camera.rotation.x, controlsRef.current.camera.rotation.y, controlsRef.current.camera.rotation.z ];
+					let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]},{ "rotation" : [`+ rotation +`]}]}`;
+					p2pcf.broadcast(new TextEncoder().encode(message));
+					console.log(rotation);
+				}		
+			}}
 			ref={ controlsRef }
 		/>
 	);

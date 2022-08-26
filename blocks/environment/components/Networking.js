@@ -11,9 +11,13 @@ const Networking = (props) => {
     const p2pcf = new P2PCF(
         'user-' + userProfileName,
         document.location.hash.substring(1),
-        { workerUrl: "https://p2pcf.sxpdigital.workers.dev/" }
-    )
-    window.p2pcf = p2pcf
+        { 
+            workerUrl: "https://p2pcf.sxpdigital.workers.dev/",
+            slowPollingRateMs: 5000,
+            fastPollingRateMs: 1500
+        }
+    );
+    window.p2pcf = p2pcf;
     console.log("client id:", p2pcf.clientId);
 
     const removePeerUi = clientId => {

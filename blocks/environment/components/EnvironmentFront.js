@@ -20,20 +20,21 @@ import { VRM, VRMUtils, VRMSchema, VRMLoaderPlugin  } from '@pixiv/three-vrm'
 import TeleportTravel from './TeleportTravel';
 import defaultVRM from '../../../inc/avatars/mummy.vrm';
 import Controls from './Controls';
-import Networking from './Networking';
 import { useAspect } from '@react-three/drei'
 
 function Participant( participant ) {
-	const [participantPosition, setParticipantPosition] = useState([]);
+	const theScene = useThree();
 	participant.p2pcf.on('msg', (peer, data) => {
 		let finalData = new TextDecoder('utf-8').decode(data);
 		const participantData = JSON.parse( finalData );
-		console.log(participantData[peer.client_id][0]["position"]);
-		setParticipantPosition(participantData[peer.client_id][0]["position"]);
-    })
-
+		const participantObject = theScene.scene.getObjectByName(peer.client_id);
+		if(participantObject){
+			participantObject.position.set(participantData[peer.client_id][0]["position"][0], participantData[peer.client_id][0]["position"][1], participantData[peer.client_id][0]["position"][2] );
+			participantObject.rotation.set(participantData[peer.client_id][1]["rotation"][0], participantData[peer.client_id][1]["rotation"][1], participantData[peer.client_id][1]["rotation"][2] );
+		}
+    });
 	return (
-		<mesh name={participant} scale={ [ 1,1,1 ] } position={ participantPosition } rotation={ [ -Math.PI / 2, 0, 0 ] }>
+		<mesh name={participant.name} scale={ [ 1, 1, 1 ] } position={ [ 0, 0, 0 ] } rotation={ [ -Math.PI / 2, 0, 0 ] }>
 			<boxBufferGeometry args={ [ 1, 1 ] } attach="geometry" />
 			<meshBasicMaterial
 				attach="material"
@@ -136,7 +137,7 @@ function SavedObject( props ) {
 		return(<>
 			<primitive object={ gltf.scene } />
 			{ participants && participants.map((item, index)=>{
-				console.log("stuff", item);
+				// console.log("stuff", item);
 				return (
 					<>
 						<Participant
@@ -265,17 +266,6 @@ export default function EnvironmentFront( props ) {
 	if ( props.deviceTarget === 'vr' ) {
 		return (
 			<>
-		        <div id="session-id"></div>
-				<p>Peers</p>
-				<div id="peers"></div>
-				<p>Messages</p>
-				<div id="messages"></div>
-				<div class="button" id="send-button">Send Button</div>
-				<div class="button" id="video-button">Video Button</div>
-				<Networking
-						postSlug={props.postSlug}
-						userData={props.userData}
-				/>
 				<VRCanvas
 					camera={ { fov: 40, zoom: 1, far: 2000, position: [ 0, 0, 20 ] } }
 					shadowMap
