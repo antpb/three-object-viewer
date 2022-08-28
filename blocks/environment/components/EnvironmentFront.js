@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import React, { Suspense, useRef, useState, useEffect } from 'react';
 import { Canvas, useLoader, useFrame, useThree } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { Physics, RigidBody } from "@react-three/rapier";
+import { Physics, RigidBody, MeshCollider, Debug } from "@react-three/rapier";
 
 import {
 	useAnimations,
@@ -15,8 +15,8 @@ import {
 } from '@react-three/xr';
 import { VRM, VRMUtils, VRMSchema, VRMLoaderPlugin  } from '@pixiv/three-vrm'
 import TeleportTravel from './TeleportTravel';
+import Player from './Player';
 import defaultVRM from '../../../inc/avatars/mummy.vrm';
-import Controls from './Controls';
 import { useAspect } from '@react-three/drei'
 
 function Participant( participant ) {
@@ -46,6 +46,17 @@ function Participant( participant ) {
 				participantObject.rotation.set(participantData[peer.client_id][1]["rotation"][0], participantData[peer.client_id][1]["rotation"][1], participantData[peer.client_id][1]["rotation"][2] );
 			}
 		});
+
+		participant.p2pcf.on('peerclose', peer => {
+			const participantObject = theScene.scene.getObjectByName(peer.client_id);
+			// theScene.scene.remove(participantObject.name);
+			theScene.scene.remove(...participantObject.children);
+			// console.log(participantObject);
+			console.log('Peer close', peer.id, peer);
+			// removePeerUi(peer.id)
+		})
+			  
+	
 		return (
 			<>
 				{playerController && <primitive name={participant.name} object={ playerController.scene } />}
@@ -58,7 +69,7 @@ function SavedObject( props ) {
 	const [ participants, setParticipant ] = useState([]);
 	const meshRef = useRef();
 
-	console.log(participants);
+	// console.log(participants);
 
 	const p2pcf = window.p2pcf;
 	if(p2pcf){
@@ -145,7 +156,9 @@ function SavedObject( props ) {
     gltf.scene.rotation.set( 0, props.rotationY, 0 );
     gltf.scene.scale.set( props.scale, props.scale, props.scale );
 		return(<>
-			<primitive object={ gltf.scene } />
+			{/* <RigidBody position={[0, props.positionY, 0]} type="kinematicPosition" colliders={"trimesh"}> */}
+					<primitive object={ gltf.scene } />
+			{/* </RigidBody> */}
 			{ participants && participants.map((item, index)=>{
 				return (
 					<>
@@ -241,7 +254,7 @@ function ThreeImage( threeImage ) {
 }
 
 function ThreeVideo(threeVideo) {
-	console.log(threeVideo);
+	// console.log(threeVideo);
 	const clicked = true;
 	const [video] = useState(() => Object.assign(document.createElement('video'), { src: threeVideo.url, crossOrigin: 'Anonymous', loop: true, muted: true }));
 
@@ -260,8 +273,8 @@ function ThreeVideo(threeVideo) {
 
 function Floor( props ) {
 	return (
-		<mesh position={ [ 0, -2, 0 ] } rotation={ [ -Math.PI / 2, 0, 0 ] } { ...props }>
-			<planeBufferGeometry args={ [ 1000, 1000 ] } attach="geometry" />
+		<mesh position={ [ 0, 0, 0 ] } rotation={ [ -Math.PI / 2, 0, 0 ] } { ...props }>
+			<boxBufferGeometry args={ [ 10000, 10000, 1 ] } attach="geometry" />
 			<meshBasicMaterial
 				opacity={ 0 }
 				transparent={ true }
@@ -296,25 +309,24 @@ export default function EnvironmentFront( props ) {
 						castShadow
 					/>			
 					<Suspense fallback={ null }>
-					<Controls 
-					/>
-					<Physics>			
+					<Physics>
+						<RigidBody></RigidBody>
+						<Debug />			
 							{ props.threeUrl && (
 								<>						
 									<TeleportTravel useNormal={ false }>
-										<RigidBody type="kinematicPosition">
-											<SavedObject
-											positionY={ props.positionY }
-											rotationY={ props.rotationY }
-											url={ props.threeUrl }
-											color={ props.backgroundColor }
-											hasZoom={ props.hasZoom }
-											scale={ props.scale }
-											hasTip={ props.hasTip }
-											animations={ props.animations }
-											playerData={ props.userData }
-											/>
-										</RigidBody>
+										<Player/>
+										<SavedObject
+										positionY={ props.positionY }
+										rotationY={ props.rotationY }
+										url={ props.threeUrl }
+										color={ props.backgroundColor }
+										hasZoom={ props.hasZoom }
+										scale={ props.scale }
+										hasTip={ props.hasTip }
+										animations={ props.animations }
+										playerData={ props.userData }
+										/>
 										{ props.threeUrl && (
 											<>
 												<Sky src={ props.sky }/>
@@ -505,10 +517,13 @@ export default function EnvironmentFront( props ) {
 												rotationZ={modelRotationZ} 
 												/>);											
 										})}
+										<RigidBody 
+											position={[0, -2, 0]}
+											type="fixed"
+										>
+												<Floor rotation={[-Math.PI / 2, 0, 0]} />
+										</RigidBody>
 									</TeleportTravel>
-									<RigidBody>
-											<Floor rotation={[-Math.PI / 2, 0, 0]} />
-									</RigidBody>
 								</>
 							) }
 					</Physics>

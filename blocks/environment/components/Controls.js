@@ -1,7 +1,10 @@
 import React, { useRef, useState } from 'react';
+import { Raycaster, Vector3 } from 'three';
+
 import { useFrame } from '@react-three/fiber';
-import { PointerLockControls } from '@react-three/drei';
+import { PointerLockControls, OrbitControls } from '@react-three/drei';
 import previewOptions from '@wordpress/block-editor/build/components/preview-options';
+import { RigidBody, MeshCollider, useRapier, BallCollider, useRigidBody, RigidBodyApi, useCollider } from '@react-three/rapier';
 
 const Controls = (props) => {
 	const p2pcf = window.p2pcf;
@@ -11,10 +14,22 @@ const Controls = (props) => {
 	const [ moveBackward, setMoveBackward ] = useState( false );
 	const [ moveLeft, setMoveLeft ] = useState( false );
 	const [ moveRight, setMoveRight ] = useState( false );
+	const [ jump, setJump ] = useState( false );
+	const currentRigidbody = useRigidBody();
+	const {world} = useRapier();
+
+
+	// const rigidBody = useRapier();
+	// const { world } = useRapier();
 
 	useFrame( () => {
+		const playerThing = world.getRigidBody(props.something.current.handle);
+		playerThing.setRotation({ x: controlsRef.current.camera.rotation.x, y:controlsRef.current.camera.rotation.y, z: controlsRef.current.camera.rotation, w: 0 })
+
 		const velocity = 0.4;
 		if ( moveForward ) {
+			playerThing.lockRotations(true);
+			playerThing.applyImpulse({x:0, y:0, z:0.1}, true);
 			controlsRef.current.moveForward( velocity );
 			if(p2pcf){
 				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
@@ -23,6 +38,8 @@ const Controls = (props) => {
 				p2pcf.broadcast(new TextEncoder().encode(message));
 			}
 		} else if ( moveLeft ) {
+			playerThing.lockRotations(true);
+			playerThing.applyImpulse({x:0.1, y:0, z:0}, true);
 			controlsRef.current.moveRight( -velocity );
 			if(p2pcf){
 				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
@@ -31,6 +48,8 @@ const Controls = (props) => {
 				p2pcf.broadcast(new TextEncoder().encode(message));
 			}
 		} else if ( moveBackward ) {
+			playerThing.lockRotations(true);
+			playerThing.applyImpulse({x:0, y:0, z:-0.1}, true);
 			controlsRef.current.moveForward( -velocity );
 			if(p2pcf){
 				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
@@ -39,17 +58,21 @@ const Controls = (props) => {
 				p2pcf.broadcast(new TextEncoder().encode(message));
 			}
 		} else if ( moveRight ) {
+			playerThing.lockRotations(true);
+			playerThing.applyImpulse({x:-0.1, y:0, z:-0}, true);
 			controlsRef.current.moveRight( velocity );
+			// rigidBody.applyImpulse(controlsRef.current.vec);
 			if(p2pcf){
 				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
 				let rotation = [controlsRef.current.camera.rotation.x, controlsRef.current.camera.rotation.y, controlsRef.current.camera.rotation.z ];
 				let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]},{ "rotation" : [`+ rotation +`]}]}`;
 				p2pcf.broadcast(new TextEncoder().encode(message));
 			}
+		} else if ( jump ) {
 		}
 	} );
 
-	const onKeyDown = function ( event ) {
+	const onKeyDown = function ( event, props ) {
 		switch ( event.code ) {
 			case 'ArrowUp':
 			case 'KeyW':
@@ -71,12 +94,12 @@ const Controls = (props) => {
 				setMoveRight( true );
 				break;
 			case "Space":
-                window.addEventListener('keydown', (e) => {  
-                    if (e.keyCode === 32 && e.target === document.body) {  
-                        e.preventDefault();  
-                    }  
-                });
-                console.log("boing");
+				window.addEventListener('keydown', (e) => {
+					if (e.keyCode === 32 && e.target === document.body) {
+						e.preventDefault();
+					}  
+				});	
+				setJump(true);
                 break;
 			default:
 				return;
@@ -100,6 +123,10 @@ const Controls = (props) => {
 				setMoveBackward( false );
 				break;
 
+			case "Space":
+				setJump(false);
+				break;
+	
 			case 'ArrowRight':
 			case 'KeyD':
 				setMoveRight( false );
@@ -132,7 +159,6 @@ const Controls = (props) => {
 					let rotation = [controlsRef.current.camera.rotation.x, controlsRef.current.camera.rotation.y, controlsRef.current.camera.rotation.z ];
 					let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]},{ "rotation" : [`+ rotation +`]}]}`;
 					p2pcf.broadcast(new TextEncoder().encode(message));
-					console.log(rotation);
 				}		
 			}}
 			ref={ controlsRef }
