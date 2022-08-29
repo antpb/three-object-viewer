@@ -1808,10 +1808,10 @@
     suspend-react "^0.0.8"
     zustand "^3.7.1"
 
-"@react-three/rapier@^0.4.1":
-  version "0.4.3"
-  resolved "https://registry.yarnpkg.com/@react-three/rapier/-/rapier-0.4.3.tgz#e25f5c3fda91709be5fbd3459636fbf56b140e94"
-  integrity sha512-TMieNRHNvWp1CY2v9vIWftsyi5TJsCqvN3dRGqOBajqc2n5Y8spa1Kg8Y9Zx5lbc33/uH2rX1uTaI0QwU/E3OQ==
+"@react-three/rapier@0.4.1":
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/@react-three/rapier/-/rapier-0.4.1.tgz#66382f28b3ebd9b25cbaa21de37315428f5d98c5"
+  integrity sha512-1bL7RRMRI7COiqHjf1g1XD4FKSovRPm9YwbCqTBRIQLfeOhJATVRwSMwEQotN466ZGOzEeZ+FTtITU05AE2+3Q==
   dependencies:
     "@dimforge/rapier3d-compat" "0.8.1"
     use-asset "^1.0.4"

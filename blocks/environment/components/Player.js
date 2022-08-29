@@ -13,7 +13,7 @@ export default function Player( props ) {
 
 	const { camera, scene } = useThree();
 	const participantObject = scene.getObjectByName("playerOne");
-	console.log(participantObject);
+	// console.log(participantObject)
 	const [ rapierId, setRapierId ] = useState("");
 	const [ contactPoint, setContactPoint ] = useState("");
 	const rigidRef = useRef();
@@ -22,7 +22,7 @@ export default function Player( props ) {
 		// console.log(rigidBodyEvents);
 		if(participantObject){
 			// console.log(participantObject.parent.position.x, participantObject.parent.position.y, participantObject.parent.position.z);
-			camera.position.set(participantObject.parent.position.x, participantObject.parent.position.y + 1, participantObject.parent.position.z - 3);
+			// camera.position.set(participantObject.parent.position.x, participantObject.parent.position.y + 1, participantObject.parent.position.z - 3);
 		}
 	} );
 
@@ -50,7 +50,7 @@ export default function Player( props ) {
 					<>
 						<RigidBody 
 							colliders={false}
-							linearDamping={1000}
+							linearDamping={100}
 							friction={1}
 							ref={rigidRef}
 							mass={1}
@@ -59,12 +59,11 @@ export default function Player( props ) {
 								// console.log("data1", target.colliderSet.map.data[1]);
 								// console.log("target", target);
 								// console.log("handle", target.handle);
-								console.log("should only be once");
 								setRapierId(target.colliderSet.map.data[1]);
 								setContactPoint(manifold.solverContactPoint(0));
 							}}
 							onCollisionExit={ () => {
-								console.log('Collision at world position');
+								// console.log('Collision at world position');
 							}}
 						>
 							<BallCollider

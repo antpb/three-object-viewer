@@ -156,9 +156,9 @@ function SavedObject( props ) {
     gltf.scene.rotation.set( 0, props.rotationY, 0 );
     gltf.scene.scale.set( props.scale, props.scale, props.scale );
 		return(<>
-			{/* <RigidBody position={[0, props.positionY, 0]} type="kinematicPosition" colliders={"trimesh"}> */}
+			<RigidBody position={[0, props.positionY, 0]} type="fixed" colliders={"trimesh"}>
 					<primitive object={ gltf.scene } />
-			{/* </RigidBody> */}
+			</RigidBody>
 			{ participants && participants.map((item, index)=>{
 				return (
 					<>
@@ -518,7 +518,7 @@ export default function EnvironmentFront( props ) {
 												/>);											
 										})}
 										<RigidBody 
-											position={[0, -2, 0]}
+											position={[0, -3, 0]}
 											type="fixed"
 										>
 												<Floor rotation={[-Math.PI / 2, 0, 0]} />
