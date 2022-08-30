@@ -22,7 +22,7 @@ export default function Player( props ) {
 		// console.log(rigidBodyEvents);
 		if(participantObject){
 			// console.log(participantObject.parent.position.x, participantObject.parent.position.y, participantObject.parent.position.z);
-			// camera.position.set(participantObject.parent.position.x, participantObject.parent.position.y + 1, participantObject.parent.position.z - 3);
+			camera.position.setY( participantObject.parent.position.y + 1);
 		}
 	} );
 
@@ -57,7 +57,7 @@ export default function Player( props ) {
 							type={"dynamic"}
 							onCollisionEnter={ ({manifold, target}) => {
 								// console.log("data1", target.colliderSet.map.data[1]);
-								// console.log("target", target);
+								console.log("target", target);
 								// console.log("handle", target.handle);
 								setRapierId(target.colliderSet.map.data[1]);
 								setContactPoint(manifold.solverContactPoint(0));

@@ -39,12 +39,13 @@ const Controls = (props) => {
 			// playerThing.applyImpulse({x:0, y:0, z:0.1}, true);
 			controlsRef.current.moveForward( velocity );
 			let hit = world.raw().queryPipeline.castRay(world.raw().colliders, ray, maxToi, solid, 0xfffffffff);
-		
+			playerThing.lockRotations(true, true);
+			playerThing.setRotation({x: 0, y: 1, z: 0, w: 0}, true);
+
 			if (hit) {
 				let hitPoint = ray.pointAt(hit.toi); // Same as: `ray.origin + ray.dir * toi`
 				console.log("hit!", hitPoint);
 				playerThing.setTranslation({x: controlsRef.current.camera.position.x, y: hitPoint.y, z: controlsRef.current.camera.position.z - 3 });
-
 			}
 			if(p2pcf){
 				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
@@ -54,6 +55,8 @@ const Controls = (props) => {
 			}
 		} else if ( moveLeft ) {
 			playerThing.lockRotations(true);
+			playerThing.setRotation({x: 0, y: -0.707107, z: 0, w: 0.707107}, true);
+
 			controlsRef.current.moveRight( -velocity );
 			let hit = world.raw().queryPipeline.castRay(world.raw().colliders, ray, maxToi, solid, 0xfffffffff);
 		
@@ -71,6 +74,8 @@ const Controls = (props) => {
 			}
 		} else if ( moveBackward ) {
 			playerThing.lockRotations(true);
+			playerThing.setRotation({x: 0, y: 0, z: 0, w: -1}, true);
+
 			controlsRef.current.moveForward( -velocity );
 			let hit = world.raw().queryPipeline.castRay(world.raw().colliders, ray, maxToi, solid, 0xfffffffff);
 		
@@ -88,6 +93,8 @@ const Controls = (props) => {
 			}
 		} else if ( moveRight ) {
 			playerThing.lockRotations(true);
+			playerThing.setRotation({x: 0, y: 0.707107, z: 0, w: 0.707107}, true);
+
 			controlsRef.current.moveRight( velocity );
 			let hit = world.raw().queryPipeline.castRay(world.raw().colliders, ray, maxToi, solid, 0xfffffffff);
 		
