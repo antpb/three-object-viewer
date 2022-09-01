@@ -47,11 +47,12 @@ function threeobjectviewer_add_file_types_to_uploads($file_types){
   // $new_filetypes['glb'] = 'model/gltf-binary';
   $new_filetypes['glb'] = 'application/octet-stream';
   $new_filetypes['vrm'] = 'application/octet-stream';
+  $new_filetypes['usdz'] = 'model/vnd.usdz+zip';
   $file_types = array_merge($file_types, $new_filetypes );
   return $file_types;
 }
 
-add_filter('wp_check_filetype_and_ext', __NAMESPACE__ . '\threeobjectviewer_checkfiletypes', 10, 4);
+add_filter('wp_check_filetype_and_ext', 'threeobjectviewer_checkfiletypes', 10, 4);
 /**
  * Check the filetypes
  */
@@ -61,12 +62,16 @@ function threeobjectviewer_checkfiletypes($data, $file, $filename, $mimes) {
         $ext = $wp_filetype['ext'];
         $type = $wp_filetype['type'];
         $proper_filename = $filename;
-        if ($type && 0 === strpos($type, 'model/') && $ext !== 'glb') {
-            $ext = $type = false;
-        }
-        if ($type && 0 === strpos($type, 'model/') && $ext !== 'vrm') {
-            $ext = $type = false;
-        }
+        // if ($type && 0 === strpos($type, 'model/') && $ext !== 'glb') {
+        //     $ext = $type = false;
+        // }
+        // if ($type && 0 === strpos($type, 'model/') && $ext !== 'vrm') {
+        //     $ext = $type = false;
+        // }
+        // if ($type && 0 === strpos($type, 'model/') && $ext !== 'usdz') {
+        //     $ext = $type = false;
+        // }
+    
         $data['ext'] = $ext;
         $data['type'] = $type;
         $data['proper_filename'] = $proper_filename;

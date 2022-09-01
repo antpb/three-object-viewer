@@ -30,7 +30,7 @@
         "@wordpress/components": "^14",
         "@wordpress/element": "^3",
         "@wordpress/i18n": "^4",
-        "three": "^0.137.2",
+        "three": "0.144.0",
         "three-omi": "^0.1.5"
     }
 }
