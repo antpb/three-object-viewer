@@ -1,7 +1,7 @@
 {
     "name": "@antpb/three-object-viewer",
     "private": true,
-    "version": "0.6.0",
+    "version": "0.6.2",
     "license": "GPL-2.0-or-later",
     "main": "build/index.js",
     "scripts": {
@@ -30,7 +30,7 @@
         "@wordpress/components": "^14",
         "@wordpress/element": "^3",
         "@wordpress/i18n": "^4",
-        "three": "^0.137.2",
+        "three": "0.144.0",
         "three-omi": "^0.1.5"
     }
 }
