@@ -46,7 +46,9 @@ It can also be installed manually using a zip file.
 
 = 0.6.2 =
 
-*  Update rigibody types for vr objects. Sorry for the bouncy files! :)
+*  Adds USDZ support to block (note, usdz files must not contain usdc files)
+*  Updates Three.js to 144
+*  Allows uploads of usdz files
 
 = 0.6.1 =
 
