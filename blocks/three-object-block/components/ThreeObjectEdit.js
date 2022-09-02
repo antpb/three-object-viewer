@@ -30,7 +30,7 @@ function ThreeObject( props ) {
 
 		const usdz = useLoader( USDZLoader, url);
 
-        return <primitive object={ usdz } />;
+        return <primitive scale={[ props.scale, props.scale, props.scale ]} position={[ 0, props.positionY, 0 ]} rotation={[ 0, props.rotationY, 0 ]} object={ usdz } />;
 	}
 
 	const gltf = useLoader( GLTFLoader, url, ( loader ) => {
