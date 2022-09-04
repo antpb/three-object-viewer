@@ -1,7 +1,7 @@
 {
     "name": "@antpb/three-object-viewer",
     "private": true,
-    "version": "0.6.0",
+    "version": "0.6.2",
     "license": "GPL-2.0-or-later",
     "main": "build/index.js",
     "scripts": {
@@ -44,8 +44,8 @@
         "convert-hex": "^0.1.0",
         "events": "^3.3.0",
         "get-browser-rtc": "^1.1.0",
-        "three": "^0.137.2",
         "three-omi": "^0.1.5",
-        "tiny-simple-peer": "^10.1.1"
+        "tiny-simple-peer": "^10.1.1",
+        "three": "0.144.0"
     }
 }
