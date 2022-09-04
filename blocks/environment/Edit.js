@@ -23,7 +23,7 @@ import { more } from '@wordpress/icons';
 import ThreeObjectEdit from './components/ThreeObjectEdit';
 
 export default function Edit( { attributes, setAttributes, isSelected } ) {
-	const ALLOWED_BLOCKS = ['three-object-viewer/model-block', 'three-object-viewer/sky-block', 'three-object-viewer/npc-block', 'three-object-viewer/three-image-block', 'three-object-viewer/three-video-block', 'three-object-viewer/three-audio-block' ];
+	const ALLOWED_BLOCKS = ['three-object-viewer/three-portal-block', 'three-object-viewer/model-block', 'three-object-viewer/sky-block', 'three-object-viewer/npc-block', 'three-object-viewer/three-image-block', 'three-object-viewer/three-video-block', 'three-object-viewer/three-audio-block' ];
 	const onChangeAnimations = ( animations ) => {
 		setAttributes( { animations: animations } );
 	};

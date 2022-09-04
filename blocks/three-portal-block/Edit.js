@@ -19,15 +19,10 @@ import {
 } from '@wordpress/components';
 import { more } from '@wordpress/icons';
 
-import VideoEdit from './components/VideoEdit';
+import ModelEdit from './components/ModelEdit';
 
 export default function Edit( { attributes, setAttributes, isSelected } ) {
 
-	const onImageSelect = ( imageObject ) => {
-		console.log(imageObject);
-		setAttributes( { videoUrl: null } );
-		setAttributes( { videoUrl: imageObject.url, aspectHeight: imageObject.height, aspectWidth: imageObject.width } );
-	};
 	const onChangePositionX = ( positionX ) => {
 		setAttributes( { positionX: positionX } );
 	};
@@ -58,22 +53,37 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 		setAttributes( { scaleZ: scaleZ } );
 	};
 
-	const onChangeAutoPlay = ( autoPlaySetting ) => {
-		setAttributes( { autoPlay: autoPlaySetting } );
+	const onChangeAnimations = ( animations ) => {
+		setAttributes( { animations: animations } );
 	};
 
+	const onChangeDestinationUrl = ( destination ) => {
+		setAttributes( { destinationUrl: destination } );
+	};
+
+	const onImageSelect = ( imageObject ) => {
+		setAttributes( { threeObjectUrl: null } );
+		setAttributes( { threeObjectUrl: imageObject.url } );
+	};
+
+	const onChangeCollidable = ( collidableSetting ) => {
+		setAttributes( { collidable: collidableSetting } );
+	};
+
+	const [ enteredURL, setEnteredURL ] = useState( "" );
 
 	const { mediaUpload } = wp.editor;
 
 	const ALLOWED_MEDIA_TYPES = [
-		'video'
+		'model/gltf-binary',
+		'application/octet-stream',
 	];
 
 	const MyDropZone = () => {
 		const [ hasDropped, setHasDropped ] = useState( false );
 		return (
 			<div>
-				{ hasDropped ? 'Dropped!' : 'Drop an image here or' }
+				{ hasDropped ? 'Dropped!' : 'Drop a glb here or' }
 				<DropZone
 					onFilesDrop={ ( files ) =>
 						mediaUpload( {
@@ -95,21 +105,22 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 			onImageSelect(objectURL);
 		}
 		console.log("fail", objectURL);
-	} 
-
+	}
   
+
 	return (
 		<div { ...useBlockProps() }>
 			<InspectorControls key="setting">
 				<Panel header="Settings">
 					<PanelBody
-						title="Image Object"
+						title="GLB Object"
 						icon={ more }
 						initialOpen={ true }
 					>
 						<PanelRow>
 							<span>
-								Select an image to render in your environment:
+								select a glb file from your media library to
+								render an object in the canvas:
 							</span>
 						</PanelRow>
 						<PanelRow>
@@ -118,31 +129,62 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 									onImageSelect( imageObject )
 								}
 								type="image"
-								label="Image File"
+								label="GLB File"
 								allowedTypes={ ALLOWED_MEDIA_TYPES }
-								value={ attributes.videoUrl }
+								value={ attributes.threeObjectUrl }
 								render={ ( { open } ) => (
 									<button onClick={ open }>
-										{ attributes.videoUrl
-											? 'Replace Image'
-											: 'Select Image' }
+										{ attributes.threeObjectUrl
+											? 'Replace Object'
+											: 'Select Object' }
 									</button>
 								) }
 							/>
 						</PanelRow>
+					</PanelBody>
+					<PanelBody
+						title="Model Attributes"
+						icon={ more }
+						initialOpen={ true }
+					>
+						<PanelRow>
+							<TextControl
+								label="Destination URL"
+								help="Separate each animation name you wish to loop with a comma"
+								value={ attributes.destinationUrl }
+								onChange={ ( value ) =>
+									onChangeDestinationUrl( value )
+								}
+							/>
+						</PanelRow>
 						<PanelRow>
 							<ToggleControl
-								label="AutoPlay"
+								label="Collidable"
 								help={
-									attributes.autoPlay
-										? 'Item will autoplay.'
-										: 'Item will not autoplay.'
+									attributes.collidable
+										? 'Item is currently collidable.'
+										: 'Item is not collidable. Users will walk through it.'
 								}
-								checked={ attributes.autoPlay }
+								checked={ attributes.collidable }
 								onChange={ ( e ) => {
-									onChangeAutoPlay( e );
+									onChangeCollidable( e );
 								} }
 							/>
+						</PanelRow>
+						<PanelRow>
+							<TextControl
+								label="Loop Animations"
+								help="Separate each animation name you wish to loop with a comma"
+								value={ attributes.animations }
+								onChange={ ( value ) =>
+									onChangeAnimations( value )
+								}
+							/>
+						</PanelRow>
+						<PanelRow>                            
+							<legend className="blocks-base-control__label">
+                                { __( 'Position', 'three-object-viewer' ) }
+                            </legend>
 						</PanelRow>
 						<PanelRow>
 							<TextControl
@@ -246,31 +288,42 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 			</InspectorControls>
 			{ isSelected ? (
 				<>
-					{ attributes.videoUrl ? (
-						<>
-							<VideoEdit 
-								src={attributes.videoUrl}
-								aspectHeight={attributes.aspectHeight}
-								aspectWidth={attributes.aspectWidth}
-							/>	
-						</>) : (
+					{ attributes.threeObjectUrl ? (
+						<ModelEdit
+							url={ attributes.threeObjectUrl }
+							scale={ attributes.scale }
+							animations={ attributes.animations }
+							position={ attributes.position }
+							rotation={ attributes.rotation }
+							collidable={ attributes.collidable }
+						/>
+					) : (
 						<div className="glb-preview-container">
 							<MyDropZone />
 
 							<div>
 								<span>
-									Select an image:
+									Select a glb file to render in the canvas:
 								</span>
+								{/* <div className="three-object-block-url-input"> 
+									<input onChange={(e) => setEnteredURL(e.target.value)}></input> 
+									<button 
+										className="three-object-viewer-button" 
+										onClick={	handleClick(enteredURL) }
+									>
+										Use URL
+									</button>
+								</div> */}
 							<MediaUpload
 								onSelect={ ( imageObject ) =>
 									onImageSelect( imageObject )
 								}
-								type="video"
+								type="image"
 								allowedTypes={ ALLOWED_MEDIA_TYPES }
-								value={ attributes.videoUrl }
+								value={ attributes.threeObjectUrl }
 								render={ ( { open } ) => (
 									<button className="three-object-viewer-button" onClick={ open }>
-										{ attributes.videoUrl
+										{ attributes.threeObjectUrl
 											? 'Replace Object'
 											: 'Select From Media Library' }
 									</button>
@@ -282,19 +335,21 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 				</>
 			) : (
 				<>
-					{ attributes.videoUrl ? (
-					<>
-						<VideoEdit 
-							src={attributes.videoUrl}
-							aspectHeight={attributes.aspectHeight}
-							aspectWidth={attributes.aspectWidth}
-						/>	
-					</>) : (
-					<div className="glb-preview-container">
+					{ attributes.threeObjectUrl ? (
+						<ModelEdit
+						url={ attributes.threeObjectUrl }
+						scale={ attributes.scale }
+						animations={ attributes.animations }
+						position={ attributes.position }
+						rotation={ attributes.rotation }
+						collidable={ attributes.collidable }
+					/>
+				) : (
+						<div className="glb-preview-container">
 							<MyDropZone />
 							<div>
 								<span>
-									Select an image to render in your environment:
+									Select a glb file to render in the canvas:
 								</span>
 								{/* <div className="three-object-block-url-input"> 
 								<input onChange={(e) => console.log(e.target.value) && setEnteredURL(e.target.value)}></input> 
@@ -312,7 +367,7 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 								}
 								type="image"
 								allowedTypes={ ALLOWED_MEDIA_TYPES }
-								value={ attributes.videoUrl }
+								value={ attributes.threeObjectUrl }
 								render={ ( { open } ) => (
 									<button className="three-object-viewer-button" onClick={ open }>
 										Select From Media Library

@@ -224,6 +224,58 @@ function ModelObject( model ) {
 	</>;    
 }
 
+function Portal( model ) {
+	const [ url, set ] = useState( model.url );
+	useEffect( () => {
+		setTimeout( () => set( model.url ), 2000 );
+	}, [] );
+	const [ listener ] = useState( () => new THREE.AudioListener() );
+
+	useThree( ( { camera } ) => {
+		camera.add( listener );
+	} );
+
+	const gltf = useLoader( GLTFLoader, url, ( loader ) => {
+		loader.register(
+			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
+		);
+		loader.register( ( parser ) => {
+            return new VRMLoaderPlugin( parser );
+        } );
+	} );
+
+	const { actions } = useAnimations( gltf.animations, gltf.scene );
+
+	const animationList = model.animations ? model.animations.split( ',' ) : '';
+	useEffect( () => {
+		if ( animationList ) {
+			animationList.forEach( ( name ) => {
+				if ( Object.keys( actions ).includes( name ) ) {
+					actions[ name ].play();
+				}
+			} );
+		}
+	}, [] );
+    if(gltf?.userData?.gltfExtensions?.VRM){
+			const vrm = gltf.userData.vrm;
+			vrm.scene.position.set( model.positionX, model.positionY, model.positionZ );
+			VRMUtils.rotateVRM0( vrm );
+			const rotationVRM = vrm.scene.rotation.y + parseFloat(0);
+			vrm.scene.rotation.set( 0, rotationVRM, 0 );
+			vrm.scene.scale.set( 1, 1, 1 );
+			// vrm.scene.scale.set( props.scale, props.scale, props.scale );
+			return <primitive object={ vrm.scene } />;    
+    }
+    gltf.scene.position.set( model.positionX, model.positionY, model.positionZ );
+    gltf.scene.rotation.set( 0, 0, 0 );
+    gltf.scene.scale.set(model.scaleX , model.scaleY, model.scaleZ );
+	// console.log(model.rotationX, model.rotationY, model.rotationZ);
+    gltf.scene.rotation.set(model.rotationX , model.rotationY, model.rotationZ );
+    // gltf.scene.scale.set( props.scale, props.scale, props.scale );
+	return <>
+		<primitive object={ gltf.scene } />
+	</>;    
+}
 
 function Sky( sky ) {
 	// console.log(sky.src);
@@ -261,7 +313,7 @@ function ThreeVideo(threeVideo) {
 	useEffect(() => void (clicked && video.play()), [video, clicked]);
 
 	return (
-	<mesh scale={[1,1,1]} position={[0, 0, 0]} rotation={[0, 0, 0]} >
+	<mesh scale={[threeVideo.scaleX, threeVideo.scaleY, threeVideo.scaleZ]} position={[threeVideo.positionX, threeVideo.positionY, threeVideo.positionZ]} rotation={[threeVideo.rotationX, threeVideo.rotationY, threeVideo.rotationZ]} >
 		<meshBasicMaterial toneMapped={false}>
 			<videoTexture attach="map" args={[video]} encoding={THREE.sRGBEncoding} />
 		</meshBasicMaterial>
@@ -269,7 +321,6 @@ function ThreeVideo(threeVideo) {
 	</mesh>
 	);
 }
-
 
 function Floor( props ) {
 	return (
@@ -311,7 +362,7 @@ export default function EnvironmentFront( props ) {
 					<Suspense fallback={ null }>
 					<Physics>
 						<RigidBody></RigidBody>
-						<Debug />			
+						{/* <Debug />			 */}
 							{ props.threeUrl && (
 								<>						
 									<TeleportTravel useNormal={ false }>
@@ -433,10 +484,10 @@ export default function EnvironmentFront( props ) {
 												? item.querySelector( 'p.video-block-rotationZ' ).innerText
 												: '';
 
-												const videoUrl = item.querySelector( 'p.video-block-url' )
-												? item.querySelector( 'p.video-block-url' ).innerText
+												const videoUrl = item.querySelector( 'div.video-block-url' )
+												? item.querySelector( 'div.video-block-url' ).innerText
 												: '';
-												console.log("no url?", videoUrl);
+												console.log("no url?", item.querySelector( 'div.video-block-url' ));
 												console.log(item);
 
 												const aspectHeight = item.querySelector( 'p.video-block-aspect-height' )
@@ -449,21 +500,21 @@ export default function EnvironmentFront( props ) {
 												
 												return(<ThreeVideo 
 													url={videoUrl} 
-													// positionX={videoPosX} 
-													// positionY={videoPosY} 
-													// positionZ={videoPosZ} 
-													// scaleX={videoScaleX} 
-													// scaleY={videoScaleY} 
-													// scaleZ={videoScaleZ} 
-													// rotationX={videoRotationX} 
-													// rotationY={videoRotationY} 
-													// rotationZ={videoRotationZ}
+													positionX={videoPosX} 
+													positionY={videoPosY} 
+													positionZ={videoPosZ} 
+													scaleX={videoScaleX} 
+													scaleY={videoScaleY} 
+													scaleZ={videoScaleZ} 
+													rotationX={videoRotationX} 
+													rotationY={videoRotationY} 
+													rotationZ={videoRotationZ}
 													aspectHeight={aspectHeight}
 													aspectWidth={aspectWidth} 
 													/>);											
 												})}
 
-											{ Object.values(props.modelsToAdd).map((model, index)=>{
+{ Object.values(props.modelsToAdd).map((model, index)=>{
 												const modelPosX = model.querySelector( 'p.model-block-position-x' )
 												? model.querySelector( 'p.model-block-position-x' ).innerText
 												: '';
@@ -506,6 +557,67 @@ export default function EnvironmentFront( props ) {
 																				
 											return(<ModelObject 
 												url={url} 
+												positionX={modelPosX} 
+												positionY={modelPosY} 
+												positionZ={modelPosZ} 
+												scaleX={modelScaleX} 
+												scaleY={modelScaleY} 
+												scaleZ={modelScaleZ} 
+												rotationX={modelRotationX} 
+												rotationY={modelRotationY} 
+												rotationZ={modelRotationZ} 
+												/>);											
+										})}
+											{ Object.values(props.portalsToAdd).map((model, index)=>{
+												const modelPosX = model.querySelector( 'p.three-portal-block-position-x' )
+												? model.querySelector( 'p.three-portal-block-position-x' ).innerText
+												: '';
+										
+												const modelPosY = model.querySelector( 'p.three-portal-block-position-y' )
+												? model.querySelector( 'p.three-portal-block-position-y' ).innerText
+												: '';
+											
+												const modelPosZ = model.querySelector( 'p.three-portal-block-position-z' )
+												? model.querySelector( 'p.three-portal-block-position-z' ).innerText
+												: '';
+
+												const modelScaleX = model.querySelector( 'p.three-portal-block-scale-x' )
+												? model.querySelector( 'p.three-portal-block-scale-x' ).innerText
+												: '';
+
+												const modelScaleY = model.querySelector( 'p.three-portal-block-scale-y' )
+												? model.querySelector( 'p.three-portal-block-scale-y' ).innerText
+												: '';
+
+												const modelScaleZ = model.querySelector( 'p.three-portal-block-scale-z' )
+												? model.querySelector( 'p.three-portal-block-scale-z' ).innerText
+												: '';
+
+												const modelRotationX = model.querySelector( 'p.three-portal-block-rotation-x' )
+												? model.querySelector( 'p.three-portal-block-rotation-x' ).innerText
+												: '';
+
+												const modelRotationY = model.querySelector( 'p.three-portal-block-rotation-y' )
+												? model.querySelector( 'p.three-portal-block-rotation-y' ).innerText
+												: '';
+
+												const modelRotationZ = model.querySelector( 'p.three-portal-block-rotation-z' )
+												? model.querySelector( 'p.three-portal-block-rotation-z' ).innerText
+												: '';
+
+												const url = model.querySelector( 'p.three-portal-block-url' )
+												? model.querySelector( 'p.three-portal-block-url' ).innerText
+												: '';
+
+												const destinationUrl = model.querySelector( 'p.three-portal-block-destination-url' )
+												? model.querySelector( 'p.three-portal-block-destination-url' ).innerText
+												: '';
+
+												console.log("where are we going?", destinationUrl);
+																				
+											return(<Portal 
+												url={url} 
+												destinationUrl={destinationUrl} 
 												positionX={modelPosX} 
 												positionY={modelPosY} 
 												positionZ={modelPosZ} 

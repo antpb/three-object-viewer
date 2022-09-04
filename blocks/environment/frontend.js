@@ -5,6 +5,7 @@ import Networking from './components/Networking';
 
 const threeApp = document.querySelectorAll( '.three-object-three-app-environment' );
 const modelsToAdd = document.querySelectorAll( '.three-object-three-app-model-block' );
+const portalsToAdd = document.querySelectorAll( '.three-object-three-app-three-portal-block' );
 const sky = document.querySelectorAll( '.three-object-three-app-sky-block' );
 const imagesToAdd = document.querySelectorAll( '.three-object-three-app-image-block' );
 const videosToAdd = document.querySelectorAll( '.three-object-three-app-video-block' );
@@ -74,6 +75,7 @@ threeApp.forEach( ( threeApp ) => {
 					userData={userData}
 					postSlug={postSlug}
 					modelsToAdd={ modelsToAdd }
+					portalsToAdd={ portalsToAdd }
 					imagesToAdd={ imagesToAdd }
 					videosToAdd={ videosToAdd }
 					sky={ sky }

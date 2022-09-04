@@ -6,9 +6,9 @@ export default function save( { attributes } ) {
 		<div { ...useBlockProps.save() }>
 			<>
 				<div className="three-object-three-app-video-block">
-					<p className="video-block-url">
+					<div className="video-block-url">
 						{ attributes.videoUrl }
-					</p>
+					</div>
 					<p className="video-block-scaleX">
 						{ attributes.scaleX }
 					</p>

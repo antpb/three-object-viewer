@@ -5,41 +5,41 @@ export default function save( { attributes } ) {
 	return (
 		<div { ...useBlockProps.save() }>
 			<>
-				<div className="three-object-three-app-video-block">
-					<p className="video-block-url">
+				<div className="three-object-three-app-audio-block">
+					<p className="audio-block-url">
 						{ attributes.audioUrl }
 					</p>
-					<p className="video-block-scaleX">
+					<p className="audio-block-scaleX">
 						{ attributes.scaleX }
 					</p>
-					<p className="video-block-scaleY">
+					<p className="audio-block-scaleY">
 						{ attributes.scaleY }
 					</p>
-					<p className="video-block-scaleZ">
+					<p className="audio-block-scaleZ">
 						{ attributes.scaleZ }
 					</p>
-					<p className="video-block-positionX">
+					<p className="audio-block-positionX">
 						{ attributes.positionX }
 					</p>
-					<p className="video-block-positionY">
+					<p className="audio-block-positionY">
 						{ attributes.positionY }
 					</p>
-					<p className="video-block-positionZ">
+					<p className="audio-block-positionZ">
 						{ attributes.positionZ }
 					</p>
-					<p className="video-block-rotationX">
+					<p className="audio-block-rotationX">
 						{ attributes.rotationX }
 					</p>
-					<p className="video-block-rotationY">
+					<p className="audio-block-rotationY">
 						{ attributes.rotationY }
 					</p>
-					<p className="video-block-rotationZ">
+					<p className="audio-block-rotationZ">
 						{ attributes.rotationZ }
 					</p>
-					<p className="video-block-aspect-height">
+					<p className="audio-block-aspect-height">
 						{ attributes.aspectHeight }
 					</p>
-					<p className="video-block-aspect-width">
+					<p className="audio-block-aspect-width">
 						{ attributes.aspectWidth }
 					</p>
 
