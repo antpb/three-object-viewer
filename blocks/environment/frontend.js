@@ -78,7 +78,7 @@ threeApp.forEach( ( threeApp ) => {
 					portalsToAdd={ portalsToAdd }
 					imagesToAdd={ imagesToAdd }
 					videosToAdd={ videosToAdd }
-					sky={ sky }
+					sky={ sky ? sky : '' }
 				/></>,
 			threeApp
 		);

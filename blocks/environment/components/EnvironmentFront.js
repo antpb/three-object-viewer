@@ -285,19 +285,18 @@ function Portal( model ) {
 }
 
 function Sky( sky ) {
-	// console.log(sky.src);
 	const skyUrl = sky.src[0].querySelector( 'p.sky-block-url' )
 	? sky.src[0].querySelector( 'p.sky-block-url' ).innerText
 	: '';
 
-	const texture_1 = useLoader(THREE.TextureLoader, skyUrl);
+		const texture_1 = useLoader(THREE.TextureLoader, skyUrl);
 
-	return (
-	<mesh visible position={[0, 0, 0]} scale={[200,200,200]} rotation={[0, 0, 0]} >
-		<sphereBufferGeometry args={[5, 200, 200]} />
-		<meshStandardMaterial side={THREE.DoubleSide} map={texture_1} />
-	</mesh>
-	);
+		return (
+			<mesh visible position={[0, 0, 0]} scale={[200,200,200]} rotation={[0, 0, 0]} >
+				<sphereBufferGeometry args={[5, 200, 200]} />
+				<meshStandardMaterial side={THREE.DoubleSide} map={texture_1} />
+			</mesh>
+			);
 }
 
 function ThreeImage( threeImage ) {
@@ -371,7 +370,7 @@ export default function EnvironmentFront( props ) {
 					<Physics>
 						<RigidBody></RigidBody>
 						{/* <Debug />			 */}
-							{ props.skyUrl && (
+							{ props.threeUrl && (
 								<>						
 									<TeleportTravel useNormal={ false }>
 										<Player/>
@@ -386,12 +385,12 @@ export default function EnvironmentFront( props ) {
 										animations={ props.animations }
 										playerData={ props.userData }
 										/>
-										{ props.skyUrl && (
-											<>
+										{ Object.values(props.sky).map((item, index)=>{
+											return(<>
 												<Sky src={ props.sky }/>
-											</>
-										)}
-										{ Object.values(props.imagesToAdd).map((item, index)=>{
+											</>);
+											})}
+											{ Object.values(props.imagesToAdd).map((item, index)=>{
 											const imagePosX = item.querySelector( 'p.image-block-positionX' )
 											? item.querySelector( 'p.image-block-positionX' ).innerText
 											: '';
