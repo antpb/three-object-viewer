@@ -521,7 +521,7 @@ export default function EnvironmentFront( props ) {
 													/>);											
 												})}
 
-{ Object.values(props.modelsToAdd).map((model, index)=>{
+											{ Object.values(props.modelsToAdd).map((model, index)=>{
 												const modelPosX = model.querySelector( 'p.model-block-position-x' )
 												? model.querySelector( 'p.model-block-position-x' ).innerText
 												: '';
@@ -562,6 +562,10 @@ export default function EnvironmentFront( props ) {
 												? model.querySelector( 'p.model-block-url' ).innerText
 												: '';
 
+												const animations = model.querySelector( 'p.model-block-animations' )
+												? model.querySelector( 'p.model-block-animations' ).innerText
+												: '';
+
 												const alt = model.querySelector( 'p.model-block-alt' )
 												? model.querySelector( 'p.model-block-alt' ).innerText
 												: '';
@@ -578,6 +582,7 @@ export default function EnvironmentFront( props ) {
 												rotationY={modelRotationY} 
 												rotationZ={modelRotationZ} 
 												alt={alt}
+												animations={animations}
 												/>);											
 										})}
 											{ Object.values(props.portalsToAdd).map((model, index)=>{
