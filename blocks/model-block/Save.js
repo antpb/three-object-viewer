@@ -21,6 +21,9 @@ export default function save( { attributes } ) {
 					<p className="model-block-animations">
 						{ attributes.animations }
 					</p>
+					<p className="model-block-alt">
+						{ attributes.alt }
+					</p>
 				</div>
 			</>
 		</div>

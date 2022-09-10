@@ -55,7 +55,7 @@ function ThreeObject( props ) {
         VRMUtils.rotateVRM0( vrm );
         const rotationVRM = vrm.scene.rotation.y + parseFloat(props.rotationY);
         vrm.scene.rotation.set( 0, rotationVRM, 0 );
-        vrm.scene.scale.set( props.scale, props.scale, props.scale );
+        // vrm.scene.scale.set( props.scaleX, props.scaleY, props.scaleZ );
         return <primitive object={ vrm.scene } />;    
     }
     gltf.scene.position.set( 0, 0, 0 );

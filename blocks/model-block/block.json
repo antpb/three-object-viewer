@@ -47,6 +47,10 @@
             "type": "string",
             "default": ""
         },
+        "alt": {
+            "type": "string",
+            "default": ""
+        },
         "collidable": {
             "type": "boolean",
             "default": false

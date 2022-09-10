@@ -44,7 +44,7 @@ const Controls = (props) => {
 
 			if (hit) {
 				let hitPoint = ray.pointAt(hit.toi); // Same as: `ray.origin + ray.dir * toi`
-				console.log("hit!", hitPoint);
+				// console.log("hit!", hitPoint);
 				playerThing.setTranslation({x: controlsRef.current.camera.position.x, y: hitPoint.y, z: controlsRef.current.camera.position.z - 3 });
 			}
 			if(p2pcf){
@@ -62,7 +62,7 @@ const Controls = (props) => {
 		
 			if (hit) {
 				let hitPoint = ray.pointAt(hit.toi); // Same as: `ray.origin + ray.dir * toi`
-				console.log("hit!", hitPoint);
+				// console.log("hit!", hitPoint);
 				playerThing.setTranslation({x: controlsRef.current.camera.position.x, y: hitPoint.y, z: controlsRef.current.camera.position.z - 3 });
 
 			}
@@ -81,7 +81,7 @@ const Controls = (props) => {
 		
 			if (hit) {
 				let hitPoint = ray.pointAt(hit.toi); // Same as: `ray.origin + ray.dir * toi`
-				console.log("hit!", hitPoint);
+				// console.log("hit!", hitPoint);
 				playerThing.setTranslation({x: controlsRef.current.camera.position.x, y: hitPoint.y, z: controlsRef.current.camera.position.z - 3 });
 
 			}
@@ -100,7 +100,6 @@ const Controls = (props) => {
 		
 			if (hit) {
 				let hitPoint = ray.pointAt(hit.toi); // Same as: `ray.origin + ray.dir * toi`
-				console.log("hit!", hitPoint);
 				playerThing.setTranslation({x: controlsRef.current.camera.position.x, y: hitPoint.y, z: controlsRef.current.camera.position.z - 3 });
 
 			}

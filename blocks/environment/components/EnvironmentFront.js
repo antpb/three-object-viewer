@@ -7,11 +7,15 @@ import { Physics, RigidBody, MeshCollider, Debug } from "@react-three/rapier";
 import {
 	useAnimations,
 } from '@react-three/drei';
+import {
+	A11y,
+} from '@react-three/a11y';
 import { GLTFAudioEmitterExtension } from 'three-omi';
 import {
 	VRCanvas,
 	DefaultXRControllers,
 	Hands,
+	XRButton
 } from '@react-three/xr';
 import { VRM, VRMUtils, VRMSchema, VRMLoaderPlugin  } from '@pixiv/three-vrm'
 import TeleportTravel from './TeleportTravel';
@@ -210,8 +214,10 @@ function ModelObject( model ) {
 			const rotationVRM = vrm.scene.rotation.y + parseFloat(0);
 			vrm.scene.rotation.set( 0, rotationVRM, 0 );
 			vrm.scene.scale.set( 1, 1, 1 );
-			// vrm.scene.scale.set( props.scale, props.scale, props.scale );
-			return <primitive object={ vrm.scene } />;    
+			vrm.scene.scale.set( model.scaleX, model.scaleY, model.scaleZ );
+			return (<A11y role="content" description={model.alt} showAltText >
+				<primitive object={ vrm.scene } /> 
+				</A11y>); 
     }
     gltf.scene.position.set( model.positionX, model.positionY, model.positionZ );
     gltf.scene.rotation.set( 0, 0, 0 );
@@ -220,7 +226,9 @@ function ModelObject( model ) {
     gltf.scene.rotation.set(model.rotationX , model.rotationY, model.rotationZ );
     // gltf.scene.scale.set( props.scale, props.scale, props.scale );
 	return <>
-		<primitive object={ gltf.scene } />
+		<A11y role="content" description={model.alt} showAltText >
+			<primitive object={ gltf.scene } />
+		</A11y>
 	</>;    
 }
 
@@ -256,25 +264,24 @@ function Portal( model ) {
 			} );
 		}
 	}, [] );
-    if(gltf?.userData?.gltfExtensions?.VRM){
-			const vrm = gltf.userData.vrm;
-			vrm.scene.position.set( model.positionX, model.positionY, model.positionZ );
-			VRMUtils.rotateVRM0( vrm );
-			const rotationVRM = vrm.scene.rotation.y + parseFloat(0);
-			vrm.scene.rotation.set( 0, rotationVRM, 0 );
-			vrm.scene.scale.set( 1, 1, 1 );
-			// vrm.scene.scale.set( props.scale, props.scale, props.scale );
-			return <primitive object={ vrm.scene } />;    
-    }
     gltf.scene.position.set( model.positionX, model.positionY, model.positionZ );
     gltf.scene.rotation.set( 0, 0, 0 );
     gltf.scene.scale.set(model.scaleX , model.scaleY, model.scaleZ );
 	// console.log(model.rotationX, model.rotationY, model.rotationZ);
     gltf.scene.rotation.set(model.rotationX , model.rotationY, model.rotationZ );
     // gltf.scene.scale.set( props.scale, props.scale, props.scale );
-	return <>
-		<primitive object={ gltf.scene } />
-	</>;    
+	return(<>
+		<RigidBody 
+			type="fixed"
+			position={[model.positionX, model.positionY, model.positionZ]}
+			colliders={"cuboid"}
+			onCollisionEnter={ ( props ) =>
+				window.location.href = model.destinationUrl
+			}
+		>
+			<primitive object={ gltf.scene } />
+		</RigidBody>
+	</>);    
 }
 
 function Sky( sky ) {
@@ -349,6 +356,7 @@ export default function EnvironmentFront( props ) {
 						width: '90%',
 					} }
 				>
+					{/* <XRButton className="enter-vr" /> */}
 					<Hands />
 					<DefaultXRControllers />
 					<ambientLight intensity={ 0.5 } />
@@ -363,7 +371,7 @@ export default function EnvironmentFront( props ) {
 					<Physics>
 						<RigidBody></RigidBody>
 						{/* <Debug />			 */}
-							{ props.threeUrl && (
+							{ props.skyUrl && (
 								<>						
 									<TeleportTravel useNormal={ false }>
 										<Player/>
@@ -378,7 +386,7 @@ export default function EnvironmentFront( props ) {
 										animations={ props.animations }
 										playerData={ props.userData }
 										/>
-										{ props.threeUrl && (
+										{ props.skyUrl && (
 											<>
 												<Sky src={ props.sky }/>
 											</>
@@ -554,6 +562,10 @@ export default function EnvironmentFront( props ) {
 												const url = model.querySelector( 'p.model-block-url' )
 												? model.querySelector( 'p.model-block-url' ).innerText
 												: '';
+
+												const alt = model.querySelector( 'p.model-block-alt' )
+												? model.querySelector( 'p.model-block-alt' ).innerText
+												: '';
 																				
 											return(<ModelObject 
 												url={url} 
@@ -566,6 +578,7 @@ export default function EnvironmentFront( props ) {
 												rotationX={modelRotationX} 
 												rotationY={modelRotationY} 
 												rotationZ={modelRotationZ} 
+												alt={alt}
 												/>);											
 										})}
 											{ Object.values(props.portalsToAdd).map((model, index)=>{
@@ -613,6 +626,10 @@ export default function EnvironmentFront( props ) {
 												? model.querySelector( 'p.three-portal-block-destination-url' ).innerText
 												: '';
 
+												const animations = model.querySelector( 'p.three-portal-block-animations' )
+												? model.querySelector( 'p.three-portal-block-animations' ).innerText
+												: '';
+
 												console.log("where are we going?", destinationUrl);
 																				
 											return(<Portal 
@@ -620,6 +637,7 @@ export default function EnvironmentFront( props ) {
 												destinationUrl={destinationUrl} 
 												positionX={modelPosX} 
 												positionY={modelPosY} 
+												animations={animations} 
 												positionZ={modelPosZ} 
 												scaleX={modelScaleX} 
 												scaleY={modelScaleY} 

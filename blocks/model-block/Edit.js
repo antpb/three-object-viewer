@@ -16,6 +16,7 @@ import {
 	ToggleControl,
 	SelectControl,
 	TextControl,
+	TextareaControl,
 } from '@wordpress/components';
 import { more } from '@wordpress/icons';
 
@@ -31,6 +32,10 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 	};
 	const onChangePositionZ = ( positionZ ) => {
 		setAttributes( { positionZ: positionZ } );
+	};
+
+	const onChangeAlt = ( altValue ) => {
+		setAttributes( { alt: altValue } );
 	};
 
 	const onChangeRotationX = ( rotationX ) => {
@@ -164,6 +169,16 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 								value={ attributes.animations }
 								onChange={ ( value ) =>
 									onChangeAnimations( value )
+								}
+							/>
+						</PanelRow>
+						<PanelRow>
+							<TextareaControl
+								label="Model Alt Text"
+								help="Describe your model to provide context for screen readers."
+								value={ attributes.alt }
+								onChange={ ( value ) =>
+									onChangeAlt( value )
 								}
 							/>
 						</PanelRow>
@@ -324,7 +339,9 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 					{ attributes.threeObjectUrl ? (
 						<ModelEdit
 						url={ attributes.threeObjectUrl }
-						scale={ attributes.scale }
+						scaleX={ attributes.scaleX }
+						scaleY={ attributes.scaleY }
+						scaleZ={ attributes.scaleZ }
 						animations={ attributes.animations }
 						position={ attributes.position }
 						rotation={ attributes.rotation }
