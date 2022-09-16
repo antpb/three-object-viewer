@@ -43,9 +43,9 @@ const Controls = (props) => {
 			playerThing.setRotation({x: 0, y: 1, z: 0, w: 0}, true);
 
 			if (hit) {
-				let hitPoint = ray.pointAt(hit.toi); // Same as: `ray.origin + ray.dir * toi`
+				let hitPoint = ray.pointAt(hit.toi);
 				// console.log("hit!", hitPoint);
-				playerThing.setTranslation({x: controlsRef.current.camera.position.x, y: hitPoint.y, z: controlsRef.current.camera.position.z - 3 });
+				playerThing.setTranslation({x: controlsRef.current.camera.position.x, y: hitPoint.y, z: controlsRef.current.camera.position.z });
 			}
 			if(p2pcf){
 				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
@@ -63,7 +63,7 @@ const Controls = (props) => {
 			if (hit) {
 				let hitPoint = ray.pointAt(hit.toi); // Same as: `ray.origin + ray.dir * toi`
 				// console.log("hit!", hitPoint);
-				playerThing.setTranslation({x: controlsRef.current.camera.position.x, y: hitPoint.y, z: controlsRef.current.camera.position.z - 3 });
+				playerThing.setTranslation({x: controlsRef.current.camera.position.x, y: hitPoint.y, z: controlsRef.current.camera.position.z });
 
 			}
 			if(p2pcf){
@@ -82,7 +82,7 @@ const Controls = (props) => {
 			if (hit) {
 				let hitPoint = ray.pointAt(hit.toi); // Same as: `ray.origin + ray.dir * toi`
 				// console.log("hit!", hitPoint);
-				playerThing.setTranslation({x: controlsRef.current.camera.position.x, y: hitPoint.y, z: controlsRef.current.camera.position.z - 3 });
+				playerThing.setTranslation({x: controlsRef.current.camera.position.x, y: hitPoint.y, z: controlsRef.current.camera.position.z });
 
 			}
 			if(p2pcf){
@@ -100,7 +100,7 @@ const Controls = (props) => {
 		
 			if (hit) {
 				let hitPoint = ray.pointAt(hit.toi); // Same as: `ray.origin + ray.dir * toi`
-				playerThing.setTranslation({x: controlsRef.current.camera.position.x, y: hitPoint.y, z: controlsRef.current.camera.position.z - 3 });
+				playerThing.setTranslation({x: controlsRef.current.camera.position.x, y: hitPoint.y, z: controlsRef.current.camera.position.z });
 
 			}
 			// rigidBody.applyImpulse(controlsRef.current.vec);

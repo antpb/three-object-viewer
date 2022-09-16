@@ -71,11 +71,11 @@ export default function Player( props ) {
 								args={[.5]}
 							/>
 							<Controls
-							id={rapierId}
-							point={contactPoint}
-							something={rigidRef}
+								id={rapierId}
+								point={contactPoint}
+								something={rigidRef}
 							/>
-							<primitive name="playerOne" object={ playerController.scene } />
+							<primitive visible={false} name="playerOne" object={ playerController.scene } />
 						</RigidBody>
 					</>
 					)

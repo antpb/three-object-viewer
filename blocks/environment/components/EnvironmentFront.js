@@ -350,9 +350,10 @@ export default function EnvironmentFront( props ) {
 					shadowMap
 					style={ {
 						backgroundColor: props.backgroundColor,
-						margin: '0 Auto',
-						height: '500px',
-						width: '90%',
+						margin: '0',
+						height: '900px',
+						width: '100%',
+						padding: '0',
 					} }
 				>
 					{/* <XRButton className="enter-vr" /> */}
@@ -365,7 +366,7 @@ export default function EnvironmentFront( props ) {
 						shadow-mapSize-width={ 2048 }
 						shadow-mapSize-height={ 2048 }
 						castShadow
-					/>			
+					/>
 					<Suspense fallback={ null }>
 					<Physics>
 						<RigidBody></RigidBody>

@@ -40,6 +40,26 @@ function SavedObject( props ) {
 	}
 }
 
+function CreateImage() {
+	const { gl, scene, camera } = useThree()
+	let getImageData = true;
+	console.log(gl);
+	if(gl){
+		if(getImageData == true) {
+			window.setTimeout(function () {
+				const url = gl.domElement.toDataURL();
+				const link = document.getElementById('download');
+
+				// const link = document.createElement('a');
+				link.setAttribute('href', url);
+				link.setAttribute('target', '_blank');
+				link.setAttribute('download', "download the scene image");	
+			}, 200);
+			getImageData = false;
+		}
+	}
+}
+
 //Main component for admin page app
 export default function App({ getSettings, updateSettings }) {
 
@@ -108,6 +128,7 @@ export default function App({ getSettings, updateSettings }) {
 			<div>
 				<h2>Three Object Viewer Settings</h2>
 			</div>
+			<div><a id="download">download the thing</a></div>
 			<div>
 				<h3>Avatar and World Defaults</h3>
 				<p>This avatar will be used for guest visitors or logged in users that have not set their main avatar in the user profile page.</p>
@@ -115,7 +136,8 @@ export default function App({ getSettings, updateSettings }) {
 			<div>
 				<label htmlFor="defaultVRM"><b>Default VRM: </b></label>
 				<Canvas
-          			camera={ { fov: 40, position: [0, 0, 10], zoom: 1} }
+           			camera={ { fov: 40, position: [0, 0, 10], zoom: 1} }
+					gl={{ preserveDrawingBuffer: true }}
 					shadowMap
 					style={ {
 						backgroundColor: '#6a737c',
@@ -123,7 +145,8 @@ export default function App({ getSettings, updateSettings }) {
 						height: '450px',
 						width: '40%',
 					} }
-				>
+				>				
+					<CreateImage/>
 					<ambientLight intensity={ 0.5 } />
 					<directionalLight
 						intensity={ 0.6 }

@@ -50,13 +50,15 @@ threeApp.forEach( ( threeApp ) => {
 
 		render(
 			<>
-				{/* <div id="session-id"></div>
-				<p>Peers</p>
-				<div id="peers"></div>
-				<p>Messages</p>
-				<div id="messages"></div>
-				<div class="button" id="send-button">Send Button</div>
-				<div class="button" id="video-button">Video Button</div>
+				{/* <div id="networking">
+					<div id="session-id"></div>
+					<p>Peers</p>
+					<div id="peers"></div>
+					<p>Messages</p>
+					<div id="messages"></div>
+					<div class="button" id="send-button">Send Button</div>
+					<div class="button" id="video-button">Video Button</div>
+				</div>
 				<Networking
 						postSlug={postSlug}
 						userData={userData}

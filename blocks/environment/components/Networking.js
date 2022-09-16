@@ -21,53 +21,53 @@ const Networking = (props) => {
     console.log("client id:", p2pcf.clientId);
 
     const removePeerUi = clientId => {
-        document.getElementById(clientId)?.remove()
-        document.getElementById(`${clientId}-video`)?.remove()  
+        document.getElementById(clientId)?.remove();
+        document.getElementById(`${clientId}-video`)?.remove();  
     }
       
     const addPeerUi = sessionId => {
     if (document.getElementById(sessionId)) return
     
-    const peerEl = document.createElement('div')
-    peerEl.style = 'display: flex;'
+    const peerEl = document.createElement('div');
+    peerEl.style = 'display: flex;';
     
-    const name = document.createElement('div')
-    name.innerText = sessionId.substring(0, 5)
+    const name = document.createElement('div');
+    name.innerText = sessionId.substring(0, 5);
     
-    peerEl.id = sessionId
-    peerEl.appendChild(name)
+    peerEl.id = sessionId;
+    peerEl.appendChild(name);
     
-    document.getElementById('peers').appendChild(peerEl)
+    document.getElementById('peers').appendChild(peerEl);
     }
     const addMessage = message => {
-    const messageEl = document.createElement('div')
-    messageEl.innerText = message
+    const messageEl = document.createElement('div');
+    messageEl.innerText = message;
     
-    document.getElementById('messages').appendChild(messageEl)
+    document.getElementById('messages').appendChild(messageEl);
     }
-    let stream
+    let stream;
     p2pcf.on('peerconnect', peer => {
-    console.log('Peer connect', peer.id, peer)
+    console.log('Peer connect', peer.id, peer);
     console.log(peer.client_id);
 
     if (stream) {
         peer.addStream(stream)
     }
     peer.on('track', (track, stream) => {
-        console.log('got track', track)
-        const video = document.createElement('video')
-        video.id = `${peer.id}-video`
-        video.srcObject = stream
-        video.setAttribute('playsinline', true)
-        document.getElementById('videos').appendChild(video)
-        video.play()
+        console.log('got track', track);
+        const video = document.createElement('video');
+        video.id = `${peer.id}-video`;
+        video.srcObject = stream;
+        video.setAttribute('playsinline', true);
+        document.getElementById('videos').appendChild(video);
+        video.play();
         })
-        addPeerUi(peer.id)
+        addPeerUi(peer.id);
     })
 
     p2pcf.on('peerclose', peer => {
-        console.log('Peer close', peer.id, peer)
-        removePeerUi(peer.id)
+        console.log('Peer close', peer.id, peer);
+        removePeerUi(peer.id);
     })
           
     p2pcf.on('msg', (peer, data) => {
@@ -77,7 +77,7 @@ const Networking = (props) => {
     })
     const go = () => {
     document.getElementById('session-id').innerText =
-        p2pcf.sessionId.substring(0, 5) + '@' + p2pcf.roomId + ':'
+        p2pcf.sessionId.substring(0, 5) + '@' + p2pcf.roomId + ':';
     
     document.getElementById('send-button').addEventListener('click', () => {
         const box = document.getElementById('send-box')
