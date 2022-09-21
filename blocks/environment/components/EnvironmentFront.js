@@ -41,24 +41,24 @@ function Participant( participant ) {
 		playerController.scene.rotation.set( 0, rotationVRM, 0 );
 		playerController.scene.scale.set( 1, 1, 1 );
 		const theScene = useThree();
-		participant.p2pcf.on('msg', (peer, data) => {
-			let finalData = new TextDecoder('utf-8').decode(data);
-			const participantData = JSON.parse( finalData );
-			const participantObject = theScene.scene.getObjectByName(peer.client_id);
-			if(participantObject){
-				participantObject.position.set(participantData[peer.client_id][0]["position"][0], participantData[peer.client_id][0]["position"][1], participantData[peer.client_id][0]["position"][2] );
-				participantObject.rotation.set(participantData[peer.client_id][1]["rotation"][0], participantData[peer.client_id][1]["rotation"][1], participantData[peer.client_id][1]["rotation"][2] );
-			}
-		});
+		// participant.p2pcf.on('msg', (peer, data) => {
+		// 	let finalData = new TextDecoder('utf-8').decode(data);
+		// 	const participantData = JSON.parse( finalData );
+		// 	const participantObject = theScene.scene.getObjectByName(peer.client_id);
+		// 	if(participantObject){
+		// 		participantObject.position.set(participantData[peer.client_id][0]["position"][0], participantData[peer.client_id][0]["position"][1], participantData[peer.client_id][0]["position"][2] );
+		// 		participantObject.rotation.set(participantData[peer.client_id][1]["rotation"][0], participantData[peer.client_id][1]["rotation"][1], participantData[peer.client_id][1]["rotation"][2] );
+		// 	}
+		// });
 
-		participant.p2pcf.on('peerclose', peer => {
-			const participantObject = theScene.scene.getObjectByName(peer.client_id);
-			// theScene.scene.remove(participantObject.name);
-			theScene.scene.remove(...participantObject.children);
-			// console.log(participantObject);
-			console.log('Peer close', peer.id, peer);
-			// removePeerUi(peer.id)
-		})
+		// participant.p2pcf.on('peerclose', peer => {
+		// 	const participantObject = theScene.scene.getObjectByName(peer.client_id);
+		// 	// theScene.scene.remove(participantObject.name);
+		// 	theScene.scene.remove(...participantObject.children);
+		// 	// console.log(participantObject);
+		// 	console.log('Peer close', peer.id, peer);
+		// 	// removePeerUi(peer.id)
+		// })
 			  
 	
 		return (
@@ -78,6 +78,7 @@ function SavedObject( props ) {
 	const p2pcf = window.p2pcf;
 	if(p2pcf){
 		p2pcf.on('peerconnect', peer => {
+			console.log(peer);
 			setParticipant(current => [...current, peer.client_id]);	
 		})
 	}
@@ -115,36 +116,36 @@ function SavedObject( props ) {
 	}, [] );
 
 	// Player controller.
-	// const fallbackURL = threeObjectPlugin + defaultVRM;
-	// const playerURL = props.playerData.vrm ? props.playerData.vrm : fallbackURL
+	const fallbackURL = threeObjectPlugin + defaultVRM;
+	const playerURL = props.playerData.vrm ? props.playerData.vrm : fallbackURL
 
-	// const someSceneState = useLoader( GLTFLoader, playerURL, ( loader ) => {
-	// 	loader.register(
-	// 		( parser ) => new GLTFAudioEmitterExtension( parser, listener )
-	// 	);
-	// 	loader.register( ( parser ) => {
-    //         return new VRMLoaderPlugin( parser );
-    //     } );
-	// } );
+	const someSceneState = useLoader( GLTFLoader, playerURL, ( loader ) => {
+		loader.register(
+			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
+		);
+		loader.register( ( parser ) => {
+            return new VRMLoaderPlugin( parser );
+        } );
+	} );
 
-	// if(someSceneState?.userData?.gltfExtensions?.VRM){
-	// 	const playerController = someSceneState.userData.vrm;
-	// 	const { camera } = useThree();
-	// 	useFrame(() => {
-	// 		const offsetZ = camera.position.z - 0.4;
-	// 		const offsetY = camera.position.y - 10;
-	// 		playerController.scene.position.set( camera.position.x, offsetY, offsetZ );
-	// 		playerController.scene.rotation.set( camera.rotation.x, camera.rotation.y, camera.rotation.z );
-	// 	});
-	// 	VRMUtils.rotateVRM0( playerController );
-	// 	const rotationVRM = playerController.scene.rotation.y;
-	// 	playerController.scene.rotation.set( 0, rotationVRM, 0 );
-	// 	playerController.scene.scale.set( 1, 1, 1 );
-	// 	gltf.scene.position.set( 0, props.positionY, 0 );
-	// 	gltf.scene.rotation.set( 0, props.rotationY, 0 );
-	// 	gltf.scene.scale.set( props.scale, props.scale, props.scale );	
-	// 	return <><primitive object={ gltf.scene } /><primitive object={ playerController.scene } /></>;    
-	// }
+	if(someSceneState?.userData?.gltfExtensions?.VRM){
+		const playerController = someSceneState.userData.vrm;
+		const { camera } = useThree();
+		useFrame(() => {
+			const offsetZ = camera.position.z - 0.4;
+			const offsetY = camera.position.y - 10;
+			playerController.scene.position.set( camera.position.x, offsetY, offsetZ );
+			playerController.scene.rotation.set( camera.rotation.x, camera.rotation.y, camera.rotation.z );
+		});
+		VRMUtils.rotateVRM0( playerController );
+		const rotationVRM = playerController.scene.rotation.y;
+		playerController.scene.rotation.set( 0, rotationVRM, 0 );
+		playerController.scene.scale.set( 1, 1, 1 );
+		gltf.scene.position.set( 0, props.positionY, 0 );
+		gltf.scene.rotation.set( 0, props.rotationY, 0 );
+		gltf.scene.scale.set( props.scale, props.scale, props.scale );	
+		return <><primitive object={ gltf.scene } /><primitive object={ playerController.scene } /></>;    
+	}
 	// End controller.
 
     if(gltf?.userData?.gltfExtensions?.VRM){
@@ -390,7 +391,8 @@ export default function EnvironmentFront( props ) {
 											return(<>
 												<Sky src={ props.sky }/>
 											</>);
-											})}
+											})
+										}
 											{ Object.values(props.imagesToAdd).map((item, index)=>{
 											const imagePosX = item.querySelector( 'p.image-block-positionX' )
 											? item.querySelector( 'p.image-block-positionX' ).innerText

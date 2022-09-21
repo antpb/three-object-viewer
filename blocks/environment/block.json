@@ -36,7 +36,8 @@
     "apiVersion": 2,
     "supports": {
         "html": false,
-        "multiple": true
+        "multiple": true,
+        "align": ["full"]
     },
     "editorScript": "file:../../build/block-environment.js",
 	"editorStyle": "file:../../build/block-environment.css",

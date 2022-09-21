@@ -55,8 +55,8 @@ const Networking = (props) => {
     }
     peer.on('track', (track, stream) => {
         console.log('got track', track);
-        const video = document.createElement('video');
-        video.id = `${peer.id}-video`;
+        const video = document.createElement('audio');
+        video.id = `${peer.id}-audio`;
         video.srcObject = stream;
         video.setAttribute('playsinline', true);
         document.getElementById('videos').appendChild(video);
@@ -71,43 +71,42 @@ const Networking = (props) => {
     })
           
     p2pcf.on('msg', (peer, data) => {
-    addMessage(
-        peer.id.substring(0, 5) + ': ' + new TextDecoder('utf-8').decode(data)
-    )
-    })
+        addMessage(
+            peer.id.substring(0, 5) + ': ' + new TextDecoder('utf-8').decode(data)
+        )
+    });
+
     const go = () => {
     document.getElementById('session-id').innerText =
         p2pcf.sessionId.substring(0, 5) + '@' + p2pcf.roomId + ':';
     
     document.getElementById('send-button').addEventListener('click', () => {
-        const box = document.getElementById('send-box')
-        addMessage(p2pcf.sessionId.substring(0, 5) + ': ' + box.value)
-        p2pcf.broadcast(new TextEncoder().encode(box.value))
-        box.value = ''
+        const box = document.getElementById('send-box');
+        addMessage(p2pcf.sessionId.substring(0, 5) + ': ' + box.value);
+        p2pcf.broadcast(new TextEncoder().encode(box.value));
+        box.value = '';
     })
     
     document
-        .getElementById('video-button')
+        .getElementById('audio-button')
         .addEventListener('click', async () => {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true })
-    
-        for (const peer of p2pcf.peers.values()) {
-            peer.addStream(stream)
-        }
+            stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+            for (const peer of p2pcf.peers.values()) {
+                peer.addStream(stream)
+            }
         })
     
     p2pcf.start()
     }
-          if (
-            document.readyState === 'complete' ||
-            document.readyState === 'interactive'
-          ) {
-            go()
-          } else {
-            window.addEventListener('DOMContentLoaded', go, { once: true })
-          }                                                              
-      
-
+    if (
+        document.readyState === 'complete' ||
+        document.readyState === 'interactive'
+    ) {
+    go()
+    } else {
+        window.addEventListener('DOMContentLoaded', go, { once: true })
+    }                                                              
       
 	return (
     <>

@@ -29,6 +29,7 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 	};
 
 	const onImageSelect = ( imageObject ) => {
+		console.log(imageObject);
 		setAttributes( { threeObjectUrl: null } );
 		setAttributes( { threeObjectUrl: imageObject.url } );
 	};

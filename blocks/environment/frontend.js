@@ -50,19 +50,20 @@ threeApp.forEach( ( threeApp ) => {
 
 		render(
 			<>
-				{/* <div id="networking">
+				<div id="networking">
 					<div id="session-id"></div>
 					<p>Peers</p>
 					<div id="peers"></div>
 					<p>Messages</p>
-					<div id="messages"></div>
+					<div id="messages" style={{display: "none"}}></div>
 					<div class="button" id="send-button">Send Button</div>
-					<div class="button" id="video-button">Video Button</div>
+					<button class="button" id="audio-button">Connect Audio</button>
+					<div id="videos"></div>
 				</div>
 				<Networking
 						postSlug={postSlug}
 						userData={userData}
-				/> */}
+				/>
 				<EnvironmentFront
 					threeUrl={ threeUrl }
 					deviceTarget={ deviceTarget }

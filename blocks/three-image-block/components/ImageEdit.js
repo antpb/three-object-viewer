@@ -41,7 +41,7 @@ export default function ImageEdit( props ) {
 				shadowMap
 				style={ {
 					margin: '0 Auto',
-					height: '500px',
+					height: '100px',
 					width: '90%',
 				} }
 			>

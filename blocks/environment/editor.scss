@@ -21,6 +21,55 @@
 	border: solid 1.5px black;
 }
 
+.wp-block-three-object-viewer-sky-block, .wp-block-three-object-viewer-model-block, .wp-block-three-object-viewer-three-image-block, .wp-block-three-object-viewer-three-portal-block, .wp-block-three-object-viewer-three-video-block {
+	display: flex;
+	float: left;
+	padding-left:10px;
+	height: auto;
+    padding-right: 10px;
+    background-color: rgb(42, 42, 42);
+}
+
+.wp-block-three-object-viewer-environment .block-editor-inner-blocks {
+	background-color: rgb(42, 42, 42);
+	height: 210px;
+}
+
+.wp-block-three-object-viewer-environment .block-editor-inner-blocks .block-editor-button-block-appender {
+	width: 60px;
+	height: 60px;
+}
+
+.wp-block-three-object-viewer-environment .block-editor-inner-blocks .block-editor-button-block-appender svg{
+	width: 40px;
+	height: 40px;
+}
+
+.wp-block-three-object-viewer-environment {
+	background-color: rgb(42, 42, 42);
+}
+
+.three-object-viewer-inner {
+	background-color: #e7e7e7;
+	padding: 10px;
+	box-sizing: border-box;
+	margin-bottom: 20px;
+	margin-top: 20px;
+	max-width: 100px;
+	width: 100px;
+	height: 100px;
+	font-size: 0.8em;
+	text-align: center;
+}
+
+.three-object-viewer-inner svg {
+	max-height: 30px;
+}
+
+.three-object-viewer-inner p {
+	font-size: 0.8em;
+}
+
 .glb-preview-container button:hover{
 	border-radius: 30px;
 	background-color:rgb(156, 199, 0);

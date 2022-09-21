@@ -47,7 +47,7 @@ export default function VideoEdit( props ) {
 				shadowMap
 				style={ {
 					margin: '0 Auto',
-					height: '500px',
+					height: '100px',
 					width: '90%',
 				} }
 			>
