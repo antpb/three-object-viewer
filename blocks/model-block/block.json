@@ -1,7 +1,7 @@
 {
     "name": "three-object-viewer/model-block",
     "title": "Model Block",
-    "description": "A 3D model for your VersePress environment",
+    "description": "A 3D model for your XP Portal environment",
     "attributes": {
         "scaleX": {
             "type": "int",
