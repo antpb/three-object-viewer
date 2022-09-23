@@ -1,6 +1,6 @@
 {
     "name": "three-object-viewer/three-image-block",
-    "title": "Three Image Block",
+    "title": "3D Image",
     "description": "An image block for your environment",
     "attributes": {
         "imageUrl": {

@@ -1,6 +1,6 @@
 {
     "name": "three-object-viewer/model-block",
-    "title": "Model Block",
+    "title": "3D Model",
     "description": "A 3D model for your XP Portal environment",
     "attributes": {
         "scaleX": {

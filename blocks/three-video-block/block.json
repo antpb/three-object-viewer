@@ -1,6 +1,6 @@
 {
     "name": "three-object-viewer/three-video-block",
-    "title": "Three Video Block",
+    "title": "3D Video",
     "description": "A video block for your environment",
     "attributes": {
         "videoUrl": {

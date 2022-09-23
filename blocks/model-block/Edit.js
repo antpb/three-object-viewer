@@ -307,23 +307,19 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 							{/* <p>URL: {attributes.threeObjectUrl}</p> */}
 						</div>					
 				) : (
-						<div className="glb-preview-container">
-							<MyDropZone />
-
-							<div>
-								<span>
-									Select a glb file to render in the canvas:
-								</span>
-								{/* <div className="three-object-block-url-input"> 
-									<input onChange={(e) => setEnteredURL(e.target.value)}></input> 
-									<button 
-										className="three-object-viewer-button" 
-										onClick={	handleClick(enteredURL) }
-									>
-										Use URL
-									</button>
-								</div> */}
-							<MediaUpload
+					<div className="three-object-viewer-inner">
+					<div className="three-object-viewer-inner-edit-container">
+					<svg
+						class="custom-icon custom-icon-cube"
+						viewBox="0 0 40 40"
+						version="1.1"
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<g transform="matrix(1,0,0,1,-1.1686,0.622128)">
+							<path d="M37.485,28.953L21.699,38.067L21.699,19.797L37.485,10.683L37.485,28.953ZM21.218,19.821L21.218,38.065L5.435,28.953L5.435,10.709L21.218,19.821ZM37.207,10.288L21.438,19.392L5.691,10.301L21.46,1.197L37.207,10.288Z" />
+						</g>
+					</svg>
+					<MediaUpload
 								onSelect={ ( imageObject ) =>
 									onImageSelect( imageObject )
 								}
@@ -333,13 +329,13 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 								render={ ( { open } ) => (
 									<button className="three-object-viewer-button" onClick={ open }>
 										{ attributes.threeObjectUrl
-											? 'Replace Object'
-											: 'Select From Media Library' }
+												? 'Replace Model'
+												: 'Select Model' }
 									</button>
 								) }
-							/>
-						</div>
-						</div>
+					/>
+					</div>
+					</div>			
 					) }
 				</>
 			) : (
@@ -362,37 +358,36 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 							</div>
 						</div>					
 					) : (
-						<div className="glb-preview-container">
-							<MyDropZone />
-							<div>
-								<span>
-									Select a glb file to render in the canvas:
-								</span>
-								{/* <div className="three-object-block-url-input"> 
-								<input onChange={(e) => console.log(e.target.value) && setEnteredURL(e.target.value)}></input> 
-									<button 
-										className="three-object-viewer-button" 
-										onClick={	handleClick(enteredURL) }
-									>
-										Use URL
-									</button>
-								</div> */}
-							</div>
-							<MediaUpload
-								onSelect={ ( imageObject ) =>
-									onImageSelect( imageObject )
-								}
-								type="image"
-								allowedTypes={ ALLOWED_MEDIA_TYPES }
-								value={ attributes.threeObjectUrl }
-								render={ ( { open } ) => (
-									<button className="three-object-viewer-button" onClick={ open }>
-										Select From Media Library
-									</button>
-								) }
-							/>
+						<div className="three-object-viewer-inner">
+						<div className="three-object-viewer-inner-edit-container">
+						<svg
+							class="custom-icon custom-icon-cube"
+							viewBox="0 0 40 40"
+							version="1.1"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<g transform="matrix(1,0,0,1,-1.1686,0.622128)">
+								<path d="M37.485,28.953L21.699,38.067L21.699,19.797L37.485,10.683L37.485,28.953ZM21.218,19.821L21.218,38.065L5.435,28.953L5.435,10.709L21.218,19.821ZM37.207,10.288L21.438,19.392L5.691,10.301L21.46,1.197L37.207,10.288Z" />
+							</g>
+						</svg>
+						<MediaUpload
+									onSelect={ ( imageObject ) =>
+										onImageSelect( imageObject )
+									}
+									type="image"
+									allowedTypes={ ALLOWED_MEDIA_TYPES }
+									value={ attributes.threeObjectUrl }
+									render={ ( { open } ) => (
+										<button className="three-object-viewer-button" onClick={ open }>
+											{ attributes.threeObjectUrl
+												? 'Replace Model'
+												: 'Select Model' }
+										</button>
+									) }
+						/>
 						</div>
-					) }
+						</div>			
+						) }
 				</>
 			) }
 		</div>

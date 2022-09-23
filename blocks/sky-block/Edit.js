@@ -124,13 +124,18 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 								</div>
 							</div>	
 						</>) : (
-						<div className="glb-preview-container">
-							<MyDropZone />
-
-							<div>
-								<span>
-									Select an image to be used as your skybox. 360 spherical panoramics recommended:
-								</span>
+					<div className="three-object-viewer-inner">
+					<div className="three-object-viewer-inner-edit-container">
+					<svg
+						class="custom-icon custom-icon-cube"
+						viewBox="0 0 40 40"
+						version="1.1"
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<g transform="matrix(1,0,0,1,-1.1686,0.622128)">
+							<path d="M37.485,28.953L21.699,38.067L21.699,19.797L37.485,10.683L37.485,28.953ZM21.218,19.821L21.218,38.065L5.435,28.953L5.435,10.709L21.218,19.821ZM37.207,10.288L21.438,19.392L5.691,10.301L21.46,1.197L37.207,10.288Z" />
+						</g>
+					</svg>
 							<MediaUpload
 								onSelect={ ( imageObject ) =>
 									onImageSelect( imageObject )
@@ -142,7 +147,7 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 									<button className="three-object-viewer-button" onClick={ open }>
 										{ attributes.skyUrl
 											? 'Replace Object'
-											: 'Select From Media Library' }
+											: 'Select Sky' }
 									</button>
 								) }
 							/>
@@ -171,22 +176,18 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 							</div>
 						</div>	
 					</>) : (
-					<div className="glb-preview-container">
-							<MyDropZone />
-							<div>
-								<span>
-									Select an image to be used as your skybox. 360 spherical panoramics recommended:
-								</span>
-								{/* <div className="three-object-block-url-input"> 
-								<input onChange={(e) => console.log(e.target.value) && setEnteredURL(e.target.value)}></input> 
-									<button 
-										className="three-object-viewer-button" 
-										onClick={	handleClick(enteredURL) }
-									>
-										Use URL
-									</button>
-								</div> */}
-							</div>
+					<div className="three-object-viewer-inner">
+					<div className="three-object-viewer-inner-edit-container">
+					<svg
+						class="custom-icon custom-icon-cube"
+						viewBox="0 0 40 40"
+						version="1.1"
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<g transform="matrix(1,0,0,1,-1.1686,0.622128)">
+							<path d="M37.485,28.953L21.699,38.067L21.699,19.797L37.485,10.683L37.485,28.953ZM21.218,19.821L21.218,38.065L5.435,28.953L5.435,10.709L21.218,19.821ZM37.207,10.288L21.438,19.392L5.691,10.301L21.46,1.197L37.207,10.288Z" />
+						</g>
+					</svg>
 							<MediaUpload
 								onSelect={ ( imageObject ) =>
 									onImageSelect( imageObject )
@@ -196,10 +197,11 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 								value={ attributes.skyUrl }
 								render={ ( { open } ) => (
 									<button className="three-object-viewer-button" onClick={ open }>
-										Select From Media Library
+										Select Sky
 									</button>
 								) }
 							/>
+						</div>
 						</div>
 					) }
 				</>

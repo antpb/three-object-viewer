@@ -1,6 +1,6 @@
 {
     "name": "three-object-viewer/sky-block",
-    "title": "Sky Block",
+    "title": "3D Sky Block",
     "description": "A sky your environment",
     "attributes": {
         "skyUrl": {

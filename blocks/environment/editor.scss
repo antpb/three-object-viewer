@@ -16,12 +16,14 @@
 }
 
 .three-object-viewer-button {
-	background-color:rgb(199, 254, 0);
 	color: black;
 	border: solid 1.5px black;
+	border-radius: 8px;
+	cursor: pointer;
+
 }
 
-.wp-block-three-object-viewer-sky-block, .wp-block-three-object-viewer-model-block, .wp-block-three-object-viewer-three-image-block, .wp-block-three-object-viewer-three-portal-block, .wp-block-three-object-viewer-three-video-block {
+.wp-block-three-object-viewer-sky-block, .wp-block-three-object-viewer-model-block, .wp-block-three-object-viewer-three-image-block, .wp-block-three-object-viewer-three-audio-block, .wp-block-three-object-viewer-three-portal-block, .wp-block-three-object-viewer-three-video-block {
 	display: flex;
 	float: left;
 	padding-left:10px;

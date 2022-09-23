@@ -1,6 +1,6 @@
 {
     "name": "three-object-viewer/three-audio-block",
-    "title": "Three Audio Block",
+    "title": "3D Audio",
     "description": "An audio block for your environment",
     "attributes": {
         "audioUrl": {

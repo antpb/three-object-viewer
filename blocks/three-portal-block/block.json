@@ -1,6 +1,6 @@
 {
     "name": "three-object-viewer/three-portal-block",
-    "title": "Portal Block",
+    "title": "3D Portal",
     "description": "A 3D portal",
     "attributes": {
         "scaleX": {
