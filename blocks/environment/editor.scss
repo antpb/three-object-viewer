@@ -23,7 +23,13 @@
 
 }
 
-.wp-block-three-object-viewer-sky-block, .wp-block-three-object-viewer-model-block, .wp-block-three-object-viewer-three-image-block, .wp-block-three-object-viewer-three-audio-block, .wp-block-three-object-viewer-three-portal-block, .wp-block-three-object-viewer-three-video-block {
+.three-html-block-inner-wrapper{
+	border-radius: 20px;
+	padding: 10px;
+	box-sizing: border-box;
+}
+
+.wp-block-three-object-viewer-sky-block, .wp-block-three-object-viewer-model-block, .wp-block-three-object-viewer-three-image-block, .wp-block-three-object-viewer-three-audio-block, .wp-block-three-object-viewer-three-portal-block, .wp-block-three-object-viewer-three-video-block, .wp-block-three-object-viewer-three-html-block  {
 	display: flex;
 	float: left;
 	padding-left:10px;
@@ -64,8 +70,8 @@
 	box-sizing: border-box;
 	margin-bottom: 20px;
 	margin-top: 20px;
-	max-width: 100px;
-	width: 100px;
+	max-width: 130px;
+	width: 130px;
 	height: 100px;
 	font-size: 0.8em;
 	text-align: center;

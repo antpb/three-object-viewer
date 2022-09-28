@@ -6,6 +6,8 @@ import {
 	PerspectiveCamera,
 	OrbitControls,
 	useAnimations,
+	Html,
+	TransformControls
 } from '@react-three/drei';
 import { VRMUtils, VRMLoaderPlugin  } from '@pixiv/three-vrm'
 import { GLTFAudioEmitterExtension } from 'three-omi';
@@ -13,6 +15,24 @@ import {
 	A11y,
 } from '@react-three/a11y';
 import EditControls from './EditControls';
+import CustomComponent from '../../../../four-object-viewer/blocks/four-portal-block/components/CustomComponent';
+
+function Markup( model ) {
+	const targetLoc = useRef();
+
+	return(<>
+		<group ref={ targetLoc }>
+          <mesh scale={[model.scaleX, model.scaleY, model.scaleZ]} position={[model.positionX, model.positionY, model.positionZ]} rotation={[model.rotationX, model.rotationY, model.rotationZ]}>
+			<meshBasicMaterial attach="material" color={ 0xffffff } />
+            <Html className="content" rotation-y={-Math.PI / 2} width={10} height={10} position={[-0.2,0,-1]} transform occlude>
+              <div className="wrapper three-html-block-inner-wrapper" style={{backgroundColor: "#ffffff" }} dangerouslySetInnerHTML={ { __html: model.markup } }>
+              </div>
+            </Html>
+          </mesh>
+		</group>
+
+	</>);    
+}
 
 function Sky( sky ) {
 		const skyUrl = sky.src.skyUrl;
@@ -30,7 +50,6 @@ function Sky( sky ) {
 
 function ModelObject( model ) {
 	const [ url, set ] = useState( model.url );
-	console.log(url);
 	useEffect( () => {
 		setTimeout( () => set( model.url ), 2000 );
 	}, [] );
@@ -73,15 +92,29 @@ function ModelObject( model ) {
 				<primitive object={ vrm.scene } /> 
 				</A11y>); 
 	}
-	gltf.scene.position.set( model.positionX, model.positionY, model.positionZ );
+	// gltf.scene.position.set( model.positionX, model.positionY, model.positionZ );
 	gltf.scene.rotation.set( 0, 0, 0 );
 	gltf.scene.scale.set(model.scaleX , model.scaleY, model.scaleZ );
 	// console.log(model.rotationX, model.rotationY, model.rotationZ);
 	gltf.scene.rotation.set(model.rotationX , model.rotationY, model.rotationZ );
 	// gltf.scene.scale.set( props.scale, props.scale, props.scale );
+	const obj = useRef();
 	return <>
 		<A11y role="content" description={model.alt} >
-			<primitive object={ gltf.scene } />
+		<TransformControls 
+			enabled={model.selected}
+			mode="translate"
+			object={obj ? obj : ''}
+			onObjectChange={ ( e ) =>
+				//updateBlockAttributes
+				wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(model.modelId, { positionX: e?.target.worldPosition.x, positionY: e?.target.worldPosition.y, positionZ: e?.target.worldPosition.z })
+				// console.log( model.modelId, e?.target.worldPosition )
+			}
+		>
+			<group ref={ obj } position={[model.positionX, model.positionY, model.positionZ ]}>
+				<primitive object={ gltf.scene } />
+			</group>
+		</TransformControls>
 		</A11y>
 	</>;    
 }
@@ -89,22 +122,24 @@ function ModelObject( model ) {
 function ThreeObject( props ) {
 	let skyobject = null;
 	let modelobject = null;
+	let modelID = null;
+	let htmlobject = null;
 	const currentBlocks = wp.data.select( 'core/block-editor' ).getBlocks();
 	if(currentBlocks){
 		currentBlocks.forEach( ( block ) => {
-			console.log("block", block);
 			if (block.name === "three-object-viewer/environment"){
 				const currentInnerBlocks = block.innerBlocks;
 				if (currentInnerBlocks) {
 					currentInnerBlocks.forEach( ( innerBlock ) => {
-						console.log("inner block", innerBlock);
 						if(innerBlock.name === "three-object-viewer/sky-block"){
 							skyobject = innerBlock.attributes;
-							console.log(skyobject)
 						}
 						if(innerBlock.name === "three-object-viewer/model-block"){
 							modelobject = innerBlock.attributes;
-							console.log(modelobject);
+							modelID= innerBlock.clientId;
+						}
+						if(innerBlock.name === "three-object-viewer/three-html-block"){
+							htmlobject = innerBlock.attributes;
 						}
 					});
 				}
@@ -164,6 +199,20 @@ function ThreeObject( props ) {
 	return(
 		<>									
 			{skyobject && <Sky src={ skyobject }/>}
+			{htmlobject && 
+				<Markup 
+					markup={ htmlobject.markup }
+					positionX={htmlobject.positionX} 
+					positionY={htmlobject.positionY} 
+					positionZ={htmlobject.positionZ} 
+					scaleX={htmlobject.scaleX} 
+					scaleY={htmlobject.scaleY} 
+					scaleZ={htmlobject.scaleZ} 
+					rotationX={htmlobject.rotationX} 
+					rotationY={htmlobject.rotationY} 
+					rotationZ={htmlobject.rotationZ} 
+				/>
+			}
 			{modelobject && modelobject.threeObjectUrl && 
 				<ModelObject 
 					url={modelobject.threeObjectUrl} 
@@ -178,6 +227,8 @@ function ThreeObject( props ) {
 					rotationZ={modelobject.rotationZ} 
 					alt={modelobject.alt}
 					animations={modelobject.animations}
+					selected={props.selected}
+					modelId={modelID}
 				/>
 			}
 			<primitive object={ gltf.scene } />
@@ -194,7 +245,7 @@ export default function ThreeObjectEdit( props ) {
 				shadowMap
 				style={ {
 					margin: '0 Auto',
-					height: '500px',
+					height: '550px',
 					width: '100%',
 				} }
 			>
@@ -219,7 +270,8 @@ export default function ThreeObjectEdit( props ) {
 								/>
 						</Suspense>
 					) }
-				<OrbitControls enableZoom={ true } />
+					<CustomComponent/>
+				<OrbitControls makeDefault enableZoom={ props.selected } />
 			</Canvas>
 		</>
 	);

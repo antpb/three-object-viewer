@@ -38,6 +38,9 @@ include_once dirname( __FILE__ ) . '/blocks/three-audio-block/init.php';
 // Include portal
 include_once dirname( __FILE__ ) . '/blocks/three-portal-block/init.php';
 
+// Include html
+include_once dirname( __FILE__ ) . '/blocks/three-html-block/init.php';
+
 /**
 * Include the autoloader
 */

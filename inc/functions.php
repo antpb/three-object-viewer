@@ -116,3 +116,28 @@ function threeobjectviewer_frontend_assets() {
 	);
 
 }
+
+add_action('enqueue_block_assets', __NAMESPACE__ . '\threeobjectviewer_editor_assets');
+
+/**
+ * Enqueue block frontend JavaScript
+ */
+function threeobjectviewer_editor_assets() {
+
+
+    $DEFAULT_BLOCKS = [
+                        'three-object-viewer/three-portal-block',
+                         'three-object-viewer/three-html-block',
+                         'three-object-viewer/model-block',
+                         'three-object-viewer/sky-block',
+                         'three-object-viewer/npc-block',
+                         'three-object-viewer/three-image-block',
+                         'three-object-viewer/three-video-block',
+                         'three-object-viewer/three-audio-block' 
+                    ];
+    $ALLOWED_BLOCKS = apply_filters( 'three-object-environment-inner-allowed-blocks', $DEFAULT_BLOCKS );
+
+    wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'allowed_blocks', $ALLOWED_BLOCKS );
+
+}
+

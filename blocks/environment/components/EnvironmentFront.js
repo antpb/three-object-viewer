@@ -6,6 +6,7 @@ import { Physics, RigidBody, MeshCollider, Debug } from "@react-three/rapier";
 
 import {
 	useAnimations,
+	Html
 } from '@react-three/drei';
 import {
 	A11y,
@@ -285,6 +286,19 @@ function Portal( model ) {
 	</>);    
 }
 
+function Markup( model ) {
+	return(<>
+          <mesh geometry={nodes['Cube008_2'].geometry}>
+            <Html className="content" rotation-x={-Math.PI / 2} position={[model.positionX, model.positionY, model.positionZ]} transform occlude>
+              <div className="wrapper">
+				{model.markup}
+              </div>
+            </Html>
+          </mesh>
+	</>);    
+}
+
+
 function Sky( sky ) {
 	const skyUrl = sky.src[0].querySelector( 'p.sky-block-url' )
 	? sky.src[0].querySelector( 'p.sky-block-url' ).innerText
@@ -497,8 +511,6 @@ export default function EnvironmentFront( props ) {
 												const videoUrl = item.querySelector( 'div.video-block-url' )
 												? item.querySelector( 'div.video-block-url' ).innerText
 												: '';
-												console.log("no url?", item.querySelector( 'div.video-block-url' ));
-												console.log(item);
 
 												const aspectHeight = item.querySelector( 'p.video-block-aspect-height' )
 												? item.querySelector( 'p.video-block-aspect-height' ).innerText
@@ -636,8 +648,6 @@ export default function EnvironmentFront( props ) {
 												const animations = model.querySelector( 'p.three-portal-block-animations' )
 												? model.querySelector( 'p.three-portal-block-animations' ).innerText
 												: '';
-
-												console.log("where are we going?", destinationUrl);
 																				
 											return(<Portal 
 												url={url} 
