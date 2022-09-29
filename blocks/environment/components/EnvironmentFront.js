@@ -22,7 +22,7 @@ import { VRM, VRMUtils, VRMSchema, VRMLoaderPlugin  } from '@pixiv/three-vrm'
 import TeleportTravel from './TeleportTravel';
 import Player from './Player';
 import defaultVRM from '../../../inc/avatars/mummy.vrm';
-import { useAspect } from '@react-three/drei'
+import { useAspect } from '@react-three/drei';
 
 function Participant( participant ) {
 	// Participant VRM.
@@ -286,19 +286,6 @@ function Portal( model ) {
 	</>);    
 }
 
-function Markup( model ) {
-	return(<>
-          <mesh geometry={nodes['Cube008_2'].geometry}>
-            <Html className="content" rotation-x={-Math.PI / 2} position={[model.positionX, model.positionY, model.positionZ]} transform occlude>
-              <div className="wrapper">
-				{model.markup}
-              </div>
-            </Html>
-          </mesh>
-	</>);    
-}
-
-
 function Sky( sky ) {
 	const skyUrl = sky.src[0].querySelector( 'p.sky-block-url' )
 	? sky.src[0].querySelector( 'p.sky-block-url' ).innerText
@@ -355,6 +342,23 @@ function Floor( props ) {
 		</mesh>
 	);
 }
+
+function Markup( model ) {
+	const htmlObj = useRef();
+	const {scene}= useThree();
+	return(<>
+			<group ref={ htmlObj }>
+			<mesh scale={[1,1,1]} position={[0,0,0]} rotation={[0,0,0]}>
+				<meshBasicMaterial attach="material" color={ 0xffffff } />
+				<Html className="content" rotation-y={-Math.PI / 2} width={10} height={10} position={[model.positionX, model.positionY, model.positionZ]} rotation={[model.rotationX, model.rotationY, model.rotationZ]} transform >
+					<div className="wrapper three-html-block-inner-wrapper" style={{backgroundColor: "#ffffff" }} dangerouslySetInnerHTML={ { __html: model.markup } }>
+					</div>
+				</Html>
+			</mesh>
+			</group>
+	</>);    
+}
+
 
 export default function EnvironmentFront( props ) {	
 	if ( props.deviceTarget === 'vr' ) {
@@ -598,6 +602,45 @@ export default function EnvironmentFront( props ) {
 												rotationZ={modelRotationZ} 
 												alt={alt}
 												animations={animations}
+												/>);											
+										})}
+											{ Object.values(props.htmlToAdd).map((model, index)=>{
+												const markup = model.querySelector( 'p.three-html-markup' )
+												? model.querySelector( 'p.three-html-markup' ).innerText
+												: '';
+												const rotationX = model.querySelector( 'p.three-html-rotationX' )
+												? model.querySelector( 'p.three-html-rotationX' ).innerText
+												: '';
+												const rotationY = model.querySelector( 'p.three-html-rotationY' )
+												? model.querySelector( 'p.three-html-rotationY' ).innerText
+												: '';
+												const rotationZ = model.querySelector( 'p.three-html-rotationZ' )
+												? model.querySelector( 'p.three-html-rotationZ' ).innerText
+												: '';
+												const positionX = model.querySelector( 'p.three-html-positionX' )
+												? model.querySelector( 'p.three-html-positionX' ).innerText
+												: '';
+												const positionY = model.querySelector( 'p.three-html-positionY' )
+												? model.querySelector( 'p.three-html-positionY' ).innerText
+												: '';
+												const positionZ = model.querySelector( 'p.three-html-positionZ' )
+												? model.querySelector( 'p.three-html-positionZ' ).innerText
+												: '';
+
+											console.log("some markup", markup);												
+											return(<Markup 
+												markup={markup} 
+												positionX={positionX} 
+												positionY={positionY} 
+												positionZ={positionZ} 
+												// scaleX={modelScaleX} 
+												// scaleY={modelScaleY} 
+												// scaleZ={modelScaleZ} 
+												rotationX={rotationX} 
+												rotationY={rotationY} 
+												rotationZ={rotationZ} 
+												// alt={alt}
+												// animations={animations}
 												/>);											
 										})}
 											{ Object.values(props.portalsToAdd).map((model, index)=>{

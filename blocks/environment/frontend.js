@@ -5,6 +5,7 @@ import Networking from './components/Networking';
 
 const threeApp = document.querySelectorAll( '.three-object-three-app-environment' );
 const modelsToAdd = document.querySelectorAll( '.three-object-three-app-model-block' );
+const htmlToAdd = document.querySelectorAll( '.three-object-three-app-three-html-block' );
 const portalsToAdd = document.querySelectorAll( '.three-object-three-app-three-portal-block' );
 const sky = document.querySelectorAll( '.three-object-three-app-sky-block' );
 const imagesToAdd = document.querySelectorAll( '.three-object-three-app-image-block' );
@@ -50,7 +51,7 @@ threeApp.forEach( ( threeApp ) => {
 
 		render(
 			<>
-				<div id="networking">
+				{/* <div id="networking">
 					<div id="session-id"></div>
 					<p>Peers</p>
 					<div id="peers"></div>
@@ -63,7 +64,7 @@ threeApp.forEach( ( threeApp ) => {
 				<Networking
 						postSlug={postSlug}
 						userData={userData}
-				/>
+				/> */}
 				<EnvironmentFront
 					threeUrl={ threeUrl }
 					deviceTarget={ deviceTarget }
@@ -81,6 +82,7 @@ threeApp.forEach( ( threeApp ) => {
 					portalsToAdd={ portalsToAdd }
 					imagesToAdd={ imagesToAdd }
 					videosToAdd={ videosToAdd }
+					htmlToAdd={htmlToAdd}
 					sky={ sky ? sky : '' }
 				/></>,
 			threeApp

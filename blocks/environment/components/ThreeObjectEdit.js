@@ -7,7 +7,8 @@ import {
 	OrbitControls,
 	useAnimations,
 	Html,
-	TransformControls
+	TransformControls,
+	Stats
 } from '@react-three/drei';
 import { VRMUtils, VRMLoaderPlugin  } from '@pixiv/three-vrm'
 import { GLTFAudioEmitterExtension } from 'three-omi';
@@ -18,19 +19,36 @@ import EditControls from './EditControls';
 import CustomComponent from '../../../../four-object-viewer/blocks/four-portal-block/components/CustomComponent';
 
 function Markup( model ) {
-	const targetLoc = useRef();
-
+	const htmlObj = useRef();
+	const { scene } = useThree();
 	return(<>
-		<group ref={ targetLoc }>
-          <mesh scale={[model.scaleX, model.scaleY, model.scaleZ]} position={[model.positionX, model.positionY, model.positionZ]} rotation={[model.rotationX, model.rotationY, model.rotationZ]}>
-			<meshBasicMaterial attach="material" color={ 0xffffff } />
-            <Html className="content" rotation-y={-Math.PI / 2} width={10} height={10} position={[-0.2,0,-1]} transform occlude>
-              <div className="wrapper three-html-block-inner-wrapper" style={{backgroundColor: "#ffffff" }} dangerouslySetInnerHTML={ { __html: model.markup } }>
-              </div>
-            </Html>
-          </mesh>
-		</group>
-
+		<TransformControls 
+			enabled={model.selected}
+			mode={model.transformMode}
+			object={ htmlObj }
+			onObjectChange={ ( e ) => {
+				const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
+				rot.setFromQuaternion(e?.target.worldQuaternion);
+				wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(model.htmlobjectId, { 
+					positionX: e?.target.worldPosition.x,
+					positionY: e?.target.worldPosition.y,
+					positionZ: e?.target.worldPosition.z, 
+					rotationX: rot.x,
+					rotationY: rot.y,
+					rotationZ: rot.z, 
+				})
+			}}
+		>
+			<group ref={ htmlObj } position={[model.positionX, model.positionY, model.positionZ]} rotation={[model.rotationX, model.rotationY, model.rotationZ]}>
+			<mesh>
+				<meshBasicMaterial attach="material" color={ 0xffffff } />
+				<Html className="content" rotation-y={-Math.PI / 2} width={10} height={10} position={[-0.2,0,-1]} transform >
+					<div className="wrapper three-html-block-inner-wrapper" style={{backgroundColor: "#ffffff" }} dangerouslySetInnerHTML={ { __html: model.markup } }>
+					</div>
+				</Html>
+			</mesh>
+			</group>
+		</TransformControls>
 	</>);    
 }
 
@@ -92,38 +110,63 @@ function ModelObject( model ) {
 				<primitive object={ vrm.scene } /> 
 				</A11y>); 
 	}
-	// gltf.scene.position.set( model.positionX, model.positionY, model.positionZ );
 	gltf.scene.rotation.set( 0, 0, 0 );
-	gltf.scene.scale.set(model.scaleX , model.scaleY, model.scaleZ );
-	// console.log(model.rotationX, model.rotationY, model.rotationZ);
-	gltf.scene.rotation.set(model.rotationX , model.rotationY, model.rotationZ );
-	// gltf.scene.scale.set( props.scale, props.scale, props.scale );
 	const obj = useRef();
-	return <>
+	return ( model.transformMode !== undefined ? (<>
 		<A11y role="content" description={model.alt} >
 		<TransformControls 
 			enabled={model.selected}
-			mode="translate"
-			object={obj ? obj : ''}
-			onObjectChange={ ( e ) =>
-				//updateBlockAttributes
-				wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(model.modelId, { positionX: e?.target.worldPosition.x, positionY: e?.target.worldPosition.y, positionZ: e?.target.worldPosition.z })
-				// console.log( model.modelId, e?.target.worldPosition )
+			mode={model.transformMode ? model.transformMode : "translate" }
+			object={ obj }
+			onObjectChange={ ( e ) => {
+				const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
+				rot.setFromQuaternion(e?.target.worldQuaternion);
+				wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(model.modelId, { 
+					positionX: e?.target.worldPosition.x,
+					positionY: e?.target.worldPosition.y,
+					positionZ: e?.target.worldPosition.z, 
+					rotationX: rot.x,
+					rotationY: rot.y,
+					rotationZ: rot.z, 
+				})
+				}
 			}
 		>
-			<group ref={ obj } position={[model.positionX, model.positionY, model.positionZ ]}>
+			<group 
+				ref={ obj } 
+				position={[model.positionX, model.positionY, model.positionZ ]}
+				rotation={[ model.rotationX , model.rotationY, model.rotationZ ]}
+				scale={[ model.scaleX , model.scaleY, model.scaleZ ]}
+			>
 				<primitive object={ gltf.scene } />
 			</group>
 		</TransformControls>
 		</A11y>
-	</>;    
+	</>) : 	(<>
+	<A11y role="content" description={model.alt} >
+		<group 
+			ref={ obj } 
+			position={[model.positionX, model.positionY, model.positionZ ]}
+			rotation={[ model.rotationX , model.rotationY, model.rotationZ ]}
+			scale={[ model.scaleX , model.scaleY, model.scaleZ ]}
+		>
+			<primitive object={ gltf.scene } />
+		</group>
+	</A11y>
+	</>)
+	);    
 }
 	
 function ThreeObject( props ) {
-	let skyobject = null;
-	let modelobject = null;
-	let modelID = null;
-	let htmlobject = null;
+	let skyobject;
+	let skyobjectId;
+	let modelobject;
+	let modelID;
+	let editorModelsToAdd = [];
+	let editorHtmlToAdd= [];
+	let htmlobject;
+	let htmlobjectId;
+
 	const currentBlocks = wp.data.select( 'core/block-editor' ).getBlocks();
 	if(currentBlocks){
 		currentBlocks.forEach( ( block ) => {
@@ -131,15 +174,21 @@ function ThreeObject( props ) {
 				const currentInnerBlocks = block.innerBlocks;
 				if (currentInnerBlocks) {
 					currentInnerBlocks.forEach( ( innerBlock ) => {
+						// console.log(innerBlock);
 						if(innerBlock.name === "three-object-viewer/sky-block"){
 							skyobject = innerBlock.attributes;
+							skyobjectId = innerBlock.clientId;
 						}
 						if(innerBlock.name === "three-object-viewer/model-block"){
 							modelobject = innerBlock.attributes;
-							modelID= innerBlock.clientId;
+							modelID = innerBlock.clientId;
+							let something = [{modelobject, modelID}]
+							editorModelsToAdd.push({modelobject, modelID});
 						}
 						if(innerBlock.name === "three-object-viewer/three-html-block"){
 							htmlobject = innerBlock.attributes;
+							htmlobjectId = innerBlock.clientId;
+							editorHtmlToAdd.push({htmlobject, htmlobjectId});
 						}
 					});
 				}
@@ -196,24 +245,46 @@ function ThreeObject( props ) {
     gltf.scene.position.set( 0, props.positionY, 0 );
     gltf.scene.rotation.set( 0, props.rotationY, 0 );
     gltf.scene.scale.set( props.scale, props.scale, props.scale );
+
 	return(
 		<>									
-			{skyobject && <Sky src={ skyobject }/>}
-			{htmlobject && 
-				<Markup 
-					markup={ htmlobject.markup }
-					positionX={htmlobject.positionX} 
-					positionY={htmlobject.positionY} 
-					positionZ={htmlobject.positionZ} 
-					scaleX={htmlobject.scaleX} 
-					scaleY={htmlobject.scaleY} 
-					scaleZ={htmlobject.scaleZ} 
-					rotationX={htmlobject.rotationX} 
-					rotationY={htmlobject.rotationY} 
-					rotationZ={htmlobject.rotationZ} 
-				/>
-			}
-			{modelobject && modelobject.threeObjectUrl && 
+			{skyobject && <Sky skyobjectId={skyobjectId} src={ skyobject }/>}
+			{ Object.values(editorModelsToAdd).map((model, index)=>{
+					return(<ModelObject 
+					url={model.modelobject.threeObjectUrl} 
+					positionX={model.modelobject.positionX} 
+					positionY={model.modelobject.positionY} 
+					positionZ={model.modelobject.positionZ} 
+					scaleX={model.modelobject.scaleX} 
+					scaleY={model.modelobject.scaleY} 
+					scaleZ={model.modelobject.scaleZ} 
+					rotationX={model.modelobject.rotationX} 
+					rotationY={model.modelobject.rotationY} 
+					rotationZ={model.modelobject.rotationZ} 
+					alt={model.modelobject.alt}
+					animations={model.modelobject.animations}
+					selected={props.selected}
+					modelId={model.modelID}
+					transformMode={props.transformMode}
+				/>);
+			})}
+			{ Object.values(editorHtmlToAdd).map((markup, index)=>{
+				return(<Markup 
+					markup={ markup.htmlobject.markup }
+					positionX={markup.htmlobject.positionX} 
+					positionY={markup.htmlobject.positionY} 
+					positionZ={markup.htmlobject.positionZ} 
+					scaleX={markup.htmlobject.scaleX} 
+					scaleY={markup.htmlobject.scaleY} 
+					scaleZ={markup.htmlobject.scaleZ} 
+					rotationX={markup.htmlobject.rotationX} 
+					rotationY={markup.htmlobject.rotationY} 
+					rotationZ={markup.htmlobject.rotationZ}
+					htmlobjectId={markup.htmlobjectId}
+					transformMode={props.transformMode}
+				/>);
+			})}
+			{/* {modelobject && props.transformMode && modelobject.threeObjectUrl && 
 				<ModelObject 
 					url={modelobject.threeObjectUrl} 
 					positionX={modelobject.positionX} 
@@ -229,26 +300,48 @@ function ThreeObject( props ) {
 					animations={modelobject.animations}
 					selected={props.selected}
 					modelId={modelID}
+					transformMode={props.transformMode}
 				/>
-			}
+			} */}
 			<primitive object={ gltf.scene } />
 		</>
 	);
 }
 
 export default function ThreeObjectEdit( props ) {
+
+	const [ transformMode, setTransformMode ] = useState("translate");
+	const onKeyDown = function ( event ) {
+		switch ( event.code ) {
+			case 'KeyT':
+				setTransformMode( "translate" );
+				console.log(transformMode)
+				break;	
+			case 'KeyR':
+				setTransformMode( "rotate" );
+				console.log(transformMode)
+				break;
+			default:
+				return;
+		}
+	};
+	document.addEventListener( 'keydown', onKeyDown );
+
+
 	return (
 		<>
 			<Canvas
 				name={"maincanvas"}
-				camera={ { fov: 40, zoom: props.zoom, position: [ 0, 0, 20 ] } }
+				camera={ { fov: 40, near: 0.1, far: 1000, zoom: props.zoom, position: [ 0, 0, 20 ] } }
 				shadowMap
+				performance={{ min: 0.5 }}
 				style={ {
 					margin: '0 Auto',
 					height: '550px',
 					width: '100%',
 				} }
 			>
+				<Stats showPanel={1} className="stats" />
 				<PerspectiveCamera fov={40} position={[0,0,20]} makeDefault zoom={1} />
 				<ambientLight intensity={ 0.5 } />
 				<directionalLight
@@ -267,10 +360,10 @@ export default function ThreeObjectEdit( props ) {
 									rotationY={ props.rotationY }
 									scale={ props.scale }
 									animations={ props.animations }
+									transformMode={transformMode}
 								/>
 						</Suspense>
 					) }
-					<CustomComponent/>
 				<OrbitControls makeDefault enableZoom={ props.selected } />
 			</Canvas>
 		</>

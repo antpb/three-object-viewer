@@ -5,24 +5,27 @@ export default function save( { attributes } ) {
 	return (
 		<div { ...useBlockProps.save() }>
 			<>
-				<div className="three-object-three-app-three-portal-block">
-				<p className="three-portal-block-url">
-						{ attributes.threeObjectUrl }
+				<div className="three-object-three-app-three-html-block">
+				<p className="three-html-markup">
+						{ attributes.markup }
 					</p>
-					<p className="three-portal-block-destination-url">
-						{ attributes.destinationUrl }
+					<p className="three-html-positionX">
+						{ attributes.positionX }
 					</p>
-					<p className="three-portal-block-scale-x">{ attributes.scaleX }</p>
-					<p className="three-portal-block-scale-y">{ attributes.scaleY }</p>
-					<p className="three-portal-block-scale-z">{ attributes.scaleZ }</p>
-					<p className="three-portal-block-position-x">{ attributes.positionX }</p>
-					<p className="three-portal-block-position-y">{ attributes.positionY }</p>
-					<p className="three-portal-block-position-z">{ attributes.positionZ }</p>
-					<p className="three-portal-block-rotation-x">{ attributes.rotationX }</p>
-					<p className="three-portal-block-rotation-y">{ attributes.rotationY }</p>
-					<p className="three-portal-block-rotation-z">{ attributes.rotationZ }</p>
-					<p className="three-portal-block-animations">
-						{ attributes.animations }
+					<p className="three-html-positionY">
+						{ attributes.positionY }
+					</p>
+					<p className="three-html-positionZ">
+						{ attributes.positionZ }
+					</p>
+					<p className="three-html-rotationX">
+						{ attributes.rotationX }
+					</p>
+					<p className="three-html-rotationY">
+						{ attributes.rotationY }
+					</p>
+					<p className="three-html-rotationZ">
+						{ attributes.rotationZ }
 					</p>
 				</div>
 			</>
