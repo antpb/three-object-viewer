@@ -103,9 +103,13 @@ const Networking = (props) => {
         document.readyState === 'complete' ||
         document.readyState === 'interactive'
     ) {
-    go()
+        document
+        .getElementById('join-button')
+        .addEventListener('click', async () => {
+            go()
+        })
     } else {
-        window.addEventListener('DOMContentLoaded', go, { once: true })
+        // window.addEventListener('DOMContentLoaded', go, { once: true })
     }                                                              
       
 	return (

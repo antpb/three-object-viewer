@@ -26,6 +26,7 @@ function Markup( model ) {
 			enabled={model.selected}
 			mode={model.transformMode}
 			object={ htmlObj }
+			size={0.5}
 			onObjectChange={ ( e ) => {
 				const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
 				rot.setFromQuaternion(e?.target.worldQuaternion);
@@ -118,6 +119,7 @@ function ModelObject( model ) {
 			enabled={model.selected}
 			mode={model.transformMode ? model.transformMode : "translate" }
 			object={ obj }
+			size={0.5}
 			onObjectChange={ ( e ) => {
 				const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
 				rot.setFromQuaternion(e?.target.worldQuaternion);
@@ -250,23 +252,28 @@ function ThreeObject( props ) {
 		<>									
 			{skyobject && <Sky skyobjectId={skyobjectId} src={ skyobject }/>}
 			{ Object.values(editorModelsToAdd).map((model, index)=>{
-					return(<ModelObject 
-					url={model.modelobject.threeObjectUrl} 
-					positionX={model.modelobject.positionX} 
-					positionY={model.modelobject.positionY} 
-					positionZ={model.modelobject.positionZ} 
-					scaleX={model.modelobject.scaleX} 
-					scaleY={model.modelobject.scaleY} 
-					scaleZ={model.modelobject.scaleZ} 
-					rotationX={model.modelobject.rotationX} 
-					rotationY={model.modelobject.rotationY} 
-					rotationZ={model.modelobject.rotationZ} 
-					alt={model.modelobject.alt}
-					animations={model.modelobject.animations}
-					selected={props.selected}
-					modelId={model.modelID}
-					transformMode={props.transformMode}
-				/>);
+					console.log("some model", model)
+					if(model.modelobject.threeObjectUrl){
+					return(
+						<ModelObject 
+						url={model.modelobject.threeObjectUrl} 
+						positionX={model.modelobject.positionX} 
+						positionY={model.modelobject.positionY} 
+						positionZ={model.modelobject.positionZ} 
+						scaleX={model.modelobject.scaleX} 
+						scaleY={model.modelobject.scaleY} 
+						scaleZ={model.modelobject.scaleZ} 
+						rotationX={model.modelobject.rotationX} 
+						rotationY={model.modelobject.rotationY} 
+						rotationZ={model.modelobject.rotationZ} 
+						alt={model.modelobject.alt}
+						animations={model.modelobject.animations}
+						selected={props.selected}
+						modelId={model.modelID}
+						transformMode={props.transformMode}
+						/>
+					);
+				}
 			})}
 			{ Object.values(editorHtmlToAdd).map((markup, index)=>{
 				return(<Markup 
