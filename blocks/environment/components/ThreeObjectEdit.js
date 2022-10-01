@@ -17,6 +17,7 @@ import {
 } from '@react-three/a11y';
 import EditControls from './EditControls';
 import CustomComponent from '../../../../four-object-viewer/blocks/four-portal-block/components/CustomComponent';
+import { Resizable } from 're-resizable';
 
 function Markup( model ) {
 	const htmlObj = useRef();
@@ -337,6 +338,14 @@ export default function ThreeObjectEdit( props ) {
 
 	return (
 		<>
+			<Resizable
+				defaultSize={{
+					height:550,
+				}}
+				enable={{
+					top:false, right:false, bottom:true, left:false, topRight:false, bottomRight:false, bottomLeft:false, topLeft:false
+				}}
+			>
 			<Canvas
 				name={"maincanvas"}
 				camera={ { fov: 40, near: 0.1, far: 1000, zoom: props.zoom, position: [ 0, 0, 20 ] } }
@@ -344,7 +353,7 @@ export default function ThreeObjectEdit( props ) {
 				performance={{ min: 0.5 }}
 				style={ {
 					margin: '0 Auto',
-					height: '550px',
+					height: '100%',
 					width: '100%',
 				} }
 			>
@@ -373,6 +382,7 @@ export default function ThreeObjectEdit( props ) {
 					) }
 				<OrbitControls makeDefault enableZoom={ props.selected } />
 			</Canvas>
+			</Resizable>
 		</>
 	);
 }
