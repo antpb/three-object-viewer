@@ -1,12 +1,13 @@
 import * as THREE from 'three';
-import React, { Suspense, useRef, useState, useEffect } from 'react';
+import React, { Suspense, useRef, useState, useEffect, useMemo } from 'react';
 import { Canvas, useLoader, useFrame, useThree } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Physics, RigidBody, MeshCollider, Debug } from "@react-three/rapier";
 
 import {
 	useAnimations,
-	Html
+	Html,
+	Stats
 } from '@react-three/drei';
 import {
 	A11y,
@@ -18,6 +19,7 @@ import {
 	Hands,
 	XRButton
 } from '@react-three/xr';
+import { Perf } from 'r3f-perf';
 import { VRM, VRMUtils, VRMSchema, VRMLoaderPlugin  } from '@pixiv/three-vrm'
 import TeleportTravel from './TeleportTravel';
 import Player from './Player';
@@ -161,9 +163,11 @@ function SavedObject( props ) {
     gltf.scene.position.set( 0, props.positionY, 0 );
     gltf.scene.rotation.set( 0, props.rotationY, 0 );
     gltf.scene.scale.set( props.scale, props.scale, props.scale );
+	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene])
+
 		return(<>
 			<RigidBody position={[0, props.positionY, 0]} type="fixed" colliders={"trimesh"}>
-					<primitive object={ gltf.scene } />
+					<primitive object={ copyGltf } />
 			</RigidBody>
 			{ participants && participants.map((item, index)=>{
 				return (
@@ -217,20 +221,23 @@ function ModelObject( model ) {
 			vrm.scene.rotation.set( 0, rotationVRM, 0 );
 			vrm.scene.scale.set( 1, 1, 1 );
 			vrm.scene.scale.set( model.scaleX, model.scaleY, model.scaleZ );
-			return (<A11y role="content" description={model.alt} showAltText >
-				<primitive object={ vrm.scene } /> 
-				</A11y>); 
+			return (
+				// <A11y role="content" description={model.alt} showAltText >
+					<primitive object={ vrm.scene } /> 
+				// </A11y>
+			); 
     }
     gltf.scene.position.set( model.positionX, model.positionY, model.positionZ );
     gltf.scene.rotation.set( 0, 0, 0 );
     gltf.scene.scale.set(model.scaleX , model.scaleY, model.scaleZ );
-	// console.log(model.rotationX, model.rotationY, model.rotationZ);
     gltf.scene.rotation.set(model.rotationX , model.rotationY, model.rotationZ );
-    // gltf.scene.scale.set( props.scale, props.scale, props.scale );
+	console.log("gltf", gltf);
+	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene])
+
 	return <>
-		<A11y role="content" description={model.alt} showAltText >
-			<primitive object={ gltf.scene } />
-		</A11y>
+		{/* <A11y role="content" description={model.alt} showAltText > */}
+			<primitive object={ copyGltf } />
+		{/* </A11y> */}
 	</>;    
 }
 
@@ -272,6 +279,8 @@ function Portal( model ) {
 	// console.log(model.rotationX, model.rotationY, model.rotationZ);
     gltf.scene.rotation.set(model.rotationX , model.rotationY, model.rotationZ );
     // gltf.scene.scale.set( props.scale, props.scale, props.scale );
+	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene])
+
 	return(<>
 		<RigidBody 
 			type="fixed"
@@ -281,7 +290,7 @@ function Portal( model ) {
 				window.location.href = model.destinationUrl
 			}
 		>
-			<primitive object={ gltf.scene } />
+			<primitive object={ copyGltf } />
 		</RigidBody>
 	</>);    
 }
@@ -375,6 +384,7 @@ export default function EnvironmentFront( props ) {
 						padding: '0',
 					} }
 				>
+				<Perf className="stats"/>
 					{/* <XRButton className="enter-vr" /> */}
 					<Hands />
 					<DefaultXRControllers />
@@ -627,7 +637,6 @@ export default function EnvironmentFront( props ) {
 												? model.querySelector( 'p.three-html-positionZ' ).innerText
 												: '';
 
-											console.log("some markup", markup);												
 											return(<Markup 
 												markup={markup} 
 												positionX={positionX} 

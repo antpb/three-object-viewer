@@ -45,6 +45,7 @@
         "convert-hex": "^0.1.0",
         "events": "^3.3.0",
         "get-browser-rtc": "^1.1.0",
+        "r3f-perf": "4.9.1",
         "re-resizable": "^6.9.9",
         "three": "0.144.0",
         "three-omi": "^0.1.5",

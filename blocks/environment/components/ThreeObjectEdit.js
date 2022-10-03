@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import React, { Suspense, useRef, useState, useEffect } from 'react';
+import React, { Suspense, useRef, useState, useEffect, useMemo } from 'react';
 import { Canvas, useLoader, useFrame, useThree } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import {
@@ -15,13 +15,13 @@ import { GLTFAudioEmitterExtension } from 'three-omi';
 import {
 	A11y,
 } from '@react-three/a11y';
+import { Perf } from 'r3f-perf';
 import EditControls from './EditControls';
 import CustomComponent from '../../../../four-object-viewer/blocks/four-portal-block/components/CustomComponent';
 import { Resizable } from 're-resizable';
 
 function Markup( model ) {
 	const htmlObj = useRef();
-	const { scene } = useThree();
 	return(<>
 		<TransformControls 
 			enabled={model.selected}
@@ -78,6 +78,7 @@ function ModelObject( model ) {
 	useThree( ( { camera } ) => {
 		camera.add( listener );
 	} );
+	const {camera} = useThree();
 
 	const gltf = useLoader( GLTFLoader, model.url, ( loader ) => {
 		loader.register(
@@ -108,30 +109,39 @@ function ModelObject( model ) {
 			vrm.scene.rotation.set( 0, rotationVRM, 0 );
 			vrm.scene.scale.set( 1, 1, 1 );
 			vrm.scene.scale.set( model.scaleX, model.scaleY, model.scaleZ );
-			return (<A11y role="content" description={model.alt} >
-				<primitive object={ vrm.scene } /> 
-				</A11y>); 
+			return (
+				// <A11y role="content" description={model.alt} >
+					<primitive object={ vrm.scene } /> 
+				// </A11y>
+			); 
 	}
 	gltf.scene.rotation.set( 0, 0, 0 );
 	const obj = useRef();
+	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene])
+
 	return ( model.transformMode !== undefined ? (<>
-		<A11y role="content" description={model.alt} >
 		<TransformControls 
 			enabled={model.selected}
 			mode={model.transformMode ? model.transformMode : "translate" }
 			object={ obj }
 			size={0.5}
 			onObjectChange={ ( e ) => {
-				const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
-				rot.setFromQuaternion(e?.target.worldQuaternion);
-				wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(model.modelId, { 
-					positionX: e?.target.worldPosition.x,
-					positionY: e?.target.worldPosition.y,
-					positionZ: e?.target.worldPosition.z, 
-					rotationX: rot.x,
-					rotationY: rot.y,
-					rotationZ: rot.z, 
-				})
+					const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
+					rot.setFromQuaternion(e?.target.worldQuaternion);
+					wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(model.modelId, { 
+						positionX: e?.target.worldPosition.x,
+						positionY: e?.target.worldPosition.y,
+						positionZ: e?.target.worldPosition.z, 
+						rotationX: rot.x,
+						rotationY: rot.y,
+						rotationZ: rot.z, 
+					});
+					console.log(model.setFocusPosition);
+
+					if(model.shouldFocus){
+						// model.setFocusPosition([e?.target.worldPosition.x, e?.target.worldPosition.y, e?.target.worldPosition.z]);
+						// camera.position.set(model.focusPosition);
+					}
 				}
 			}
 		>
@@ -141,21 +151,18 @@ function ModelObject( model ) {
 				rotation={[ model.rotationX , model.rotationY, model.rotationZ ]}
 				scale={[ model.scaleX , model.scaleY, model.scaleZ ]}
 			>
-				<primitive object={ gltf.scene } />
+				<primitive object={ copyGltf } />
 			</group>
 		</TransformControls>
-		</A11y>
 	</>) : 	(<>
-	<A11y role="content" description={model.alt} >
 		<group 
 			ref={ obj } 
 			position={[model.positionX, model.positionY, model.positionZ ]}
 			rotation={[ model.rotationX , model.rotationY, model.rotationZ ]}
 			scale={[ model.scaleX , model.scaleY, model.scaleZ ]}
 		>
-			<primitive object={ gltf.scene } />
+			<primitive object={ copyGltf } />
 		</group>
-	</A11y>
 	</>)
 	);    
 }
@@ -248,12 +255,12 @@ function ThreeObject( props ) {
     gltf.scene.position.set( 0, props.positionY, 0 );
     gltf.scene.rotation.set( 0, props.rotationY, 0 );
     gltf.scene.scale.set( props.scale, props.scale, props.scale );
+	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene])
 
 	return(
 		<>									
 			{skyobject && <Sky skyobjectId={skyobjectId} src={ skyobject }/>}
 			{ Object.values(editorModelsToAdd).map((model, index)=>{
-					console.log("some model", model)
 					if(model.modelobject.threeObjectUrl){
 					return(
 						<ModelObject 
@@ -272,6 +279,8 @@ function ThreeObject( props ) {
 						selected={props.selected}
 						modelId={model.modelID}
 						transformMode={props.transformMode}
+						setFocusPosition={props.setFocusPosition}
+						shouldFocus={props.shouldFocus}
 						/>
 					);
 				}
@@ -311,7 +320,7 @@ function ThreeObject( props ) {
 					transformMode={props.transformMode}
 				/>
 			} */}
-			<primitive object={ gltf.scene } />
+			<primitive object={ copyGltf } />
 		</>
 	);
 }
@@ -319,7 +328,9 @@ function ThreeObject( props ) {
 export default function ThreeObjectEdit( props ) {
 
 	const [ transformMode, setTransformMode ] = useState("translate");
-	const onKeyDown = function ( event ) {
+	const [ focusPosition, setFocusPosition ] = useState([0,0,0]);
+	const [ shouldFocus, setShouldFocus ] = useState(false);
+	const onKeyUp = function ( event ) {
 		switch ( event.code ) {
 			case 'KeyT':
 				setTransformMode( "translate" );
@@ -329,11 +340,15 @@ export default function ThreeObjectEdit( props ) {
 				setTransformMode( "rotate" );
 				console.log(transformMode)
 				break;
+			case 'KeyF':
+				console.log(focusPosition)
+				setShouldFocus(true);
+				break;	
 			default:
 				return;
 		}
 	};
-	document.addEventListener( 'keydown', onKeyDown );
+	document.addEventListener( 'keyup', onKeyUp );
 
 
 	return (
@@ -357,7 +372,7 @@ export default function ThreeObjectEdit( props ) {
 					width: '100%',
 				} }
 			>
-				<Stats showPanel={1} className="stats" />
+				<Perf className="stats"/>
 				<PerspectiveCamera fov={40} position={[0,0,20]} makeDefault zoom={1} />
 				<ambientLight intensity={ 0.5 } />
 				<directionalLight
@@ -377,6 +392,8 @@ export default function ThreeObjectEdit( props ) {
 									scale={ props.scale }
 									animations={ props.animations }
 									transformMode={transformMode}
+									setFocusPosition={setFocusPosition}
+									shouldFocus={shouldFocus}
 								/>
 						</Suspense>
 					) }
