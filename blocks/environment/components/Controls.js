@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Raycaster, Vector3, Math } from 'three';
 
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { PointerLockControls, OrbitControls } from '@react-three/drei';
 import previewOptions from '@wordpress/block-editor/build/components/preview-options';
 import { RigidBody, MeshCollider, useRapier, BallCollider, useRigidBody, RigidBodyApi, useCollider } from '@react-three/rapier';
@@ -18,7 +18,7 @@ const Controls = (props) => {
 	const currentRigidbody = useRigidBody();
 	const {world, rapier} = useRapier();
 	let ray = new rapier.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
-
+	const {camera} = useThree();
 	useFrame( () => {
 
 		const playerThing = world.getRigidBody(props.something.current.handle);
@@ -46,6 +46,7 @@ const Controls = (props) => {
 				let hitPoint = ray.pointAt(hit.toi);
 				// console.log("hit!", hitPoint);
 				playerThing.setTranslation({x: controlsRef.current.camera.position.x, y: hitPoint.y, z: controlsRef.current.camera.position.z });
+				camera.position.setY( hitPoint.y);	
 			}
 			if(p2pcf){
 				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
@@ -56,7 +57,6 @@ const Controls = (props) => {
 		} else if ( moveLeft ) {
 			playerThing.lockRotations(true);
 			playerThing.setRotation({x: 0, y: -0.707107, z: 0, w: 0.707107}, true);
-
 			controlsRef.current.moveRight( -velocity );
 			let hit = world.raw().queryPipeline.castRay(world.raw().colliders, ray, maxToi, solid, 0xfffffffff);
 		
@@ -101,7 +101,6 @@ const Controls = (props) => {
 			if (hit) {
 				let hitPoint = ray.pointAt(hit.toi); // Same as: `ray.origin + ray.dir * toi`
 				playerThing.setTranslation({x: controlsRef.current.camera.position.x, y: hitPoint.y, z: controlsRef.current.camera.position.z });
-
 			}
 			// rigidBody.applyImpulse(controlsRef.current.vec);
 			if(p2pcf){

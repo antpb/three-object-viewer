@@ -227,18 +227,42 @@ function ModelObject( model ) {
 				// </A11y>
 			); 
     }
-    gltf.scene.position.set( model.positionX, model.positionY, model.positionZ );
-    gltf.scene.rotation.set( 0, 0, 0 );
-    gltf.scene.scale.set(model.scaleX , model.scaleY, model.scaleZ );
-    gltf.scene.rotation.set(model.rotationX , model.rotationY, model.rotationZ );
 	console.log("gltf", gltf);
 	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene])
-
-	return <>
+	if(model.collidable){
+		return(<>
+			<RigidBody 
+				type="fixed"
+				colliders={"trimesh"}
+				rotation={[model.rotationX , model.rotationY, model.rotationZ]}
+				position={[model.positionX, model.positionY, model.positionZ]}
+				scale={[model.scaleX , model.scaleY, model.scaleZ]}
+				// onCollisionEnter={ ( props ) =>(
+				// 	// window.location.href = model.destinationUrl
+				// 	console.log(model.destinationUrl)
+				// 	)
+				// }
+			>
+				<primitive 
+					object={ copyGltf }
+					rotation={[model.rotationX , model.rotationY, model.rotationZ]}
+					position={[model.positionX, model.positionY, model.positionZ]}
+					scale={[model.scaleX , model.scaleY, model.scaleZ]}
+				/>
+			</RigidBody>
+			</>);
+	} else {
+		return <>
 		{/* <A11y role="content" description={model.alt} showAltText > */}
-			<primitive object={ copyGltf } />
+			<primitive 
+				object={ copyGltf }
+				rotation={[model.rotationX , model.rotationY, model.rotationZ]}
+				position={[model.positionX, model.positionY, model.positionZ]}
+				scale={[model.scaleX , model.scaleY, model.scaleZ]}
+			/>
 		{/* </A11y> */}
 	</>;    
+	}
 }
 
 function Portal( model ) {
@@ -598,6 +622,10 @@ export default function EnvironmentFront( props ) {
 												const alt = model.querySelector( 'p.model-block-alt' )
 												? model.querySelector( 'p.model-block-alt' ).innerText
 												: '';
+
+												const collidable = model.querySelector( 'p.model-block-collidable' )
+												? model.querySelector( 'p.model-block-collidable' ).innerText
+												: false;
 																				
 											return(<ModelObject 
 												url={url} 
@@ -612,6 +640,7 @@ export default function EnvironmentFront( props ) {
 												rotationZ={modelRotationZ} 
 												alt={alt}
 												animations={animations}
+												collidable={collidable}
 												/>);											
 										})}
 											{ Object.values(props.htmlToAdd).map((model, index)=>{

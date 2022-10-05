@@ -13,22 +13,19 @@ export default function Player( props ) {
 
 	const { camera, scene } = useThree();
 	const participantObject = scene.getObjectByName("playerOne");
-	// console.log(participantObject)
 	const [ rapierId, setRapierId ] = useState("");
 	const [ contactPoint, setContactPoint ] = useState("");
 	const rigidRef = useRef();
 
 	useFrame( () => {
-		// console.log(rigidBodyEvents);
 		if(participantObject){
-			// console.log(participantObject.parent.position.x, participantObject.parent.position.y, participantObject.parent.position.z);
-			camera.position.setY( participantObject.parent.position.y + 1);
+			camera.position.setY( participantObject.parent.position.y + 2);	
 		}
 	} );
 
 	// Participant VRM.
 	const fallbackURL = threeObjectPlugin + defaultVRM;
-	const playerURL = userData.vrm ? userData.vrm : fallbackURL
+	const playerURL = userData.vrm ? userData.vrm : fallbackURL;
 
 	const someSceneState = useLoader( GLTFLoader, playerURL, ( loader ) => {
 		loader.register( ( parser ) => {
@@ -57,25 +54,25 @@ export default function Player( props ) {
 							type={"dynamic"}
 							onCollisionEnter={ ({manifold, target}) => {
 								// console.log("data1", target.colliderSet.map.data[1]);
-								console.log("target", target);
+								// console.log(manifold.solverContactPoint(0));
 								// console.log("handle", target.handle);
 								setRapierId(target.colliderSet.map.data[1]);
 								setContactPoint(manifold.solverContactPoint(0));
 							}}
-							onCollisionExit={ () => {
-								// console.log('Collision at world position');
-							}}
+							// onCollisionExit={ () => {
+							// 	console.log('Collision at world position');
+							// }}
 						>
 							<BallCollider
 								position={[0, 0.5, 0]}
-								args={[.5]}
+								args={[1.3]}
 							/>
 							<Controls
 								id={rapierId}
 								point={contactPoint}
 								something={rigidRef}
 							/>
-							<primitive visible={false} name="playerOne" object={ playerController.scene } />
+							<primitive name="playerOne" object={ playerController.scene } />
 						</RigidBody>
 					</>
 					)
