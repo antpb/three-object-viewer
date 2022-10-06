@@ -19,6 +19,7 @@ import { Perf } from 'r3f-perf';
 import EditControls from './EditControls';
 import CustomComponent from '../../../../four-object-viewer/blocks/four-portal-block/components/CustomComponent';
 import { Resizable } from 're-resizable';
+import { useAspect } from '@react-three/drei';
 
 function Markup( model ) {
 	const htmlObj = useRef();
@@ -67,6 +68,39 @@ function Sky( sky ) {
 				);	
 		}
 }
+
+function ImageObject( threeImage ) {
+	// console.log(threeImage.aspectWidth, threeImage.aspectHeight);
+	const texture_2 = useLoader(THREE.TextureLoader, threeImage.url);	
+	const imgObj = useRef();
+
+	return (
+		<TransformControls 
+			enabled={threeImage.selected}
+			mode={threeImage.transformMode}
+			object={ imgObj }
+			size={0.5}
+			onObjectChange={ ( e ) => {
+				const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
+				rot.setFromQuaternion(e?.target.worldQuaternion);
+				wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(threeImage.imageID, {
+					positionX: e?.target.worldPosition.x,
+					positionY: e?.target.worldPosition.y,
+					positionZ: e?.target.worldPosition.z, 
+					rotationX: rot.x,
+					rotationY: rot.y,
+					rotationZ: rot.z, 
+				})
+			}}
+		>
+			<mesh ref={imgObj} visible position={[threeImage.positionX, threeImage.positionY, threeImage.positionZ]} scale={[threeImage.scaleX, threeImage.scaleY, threeImage.scaleZ]} rotation={[threeImage.rotationX, threeImage.rotationY, threeImage.rotationZ]} >
+				<planeBufferGeometry args={useAspect(threeImage.aspectWidth, threeImage.aspectHeight)} />
+				<meshStandardMaterial side={THREE.DoubleSide} map={texture_2} />
+			</mesh>
+		</TransformControls>
+	);
+}
+
 
 function ModelObject( model ) {
 	const [ url, set ] = useState( model.url );
@@ -136,7 +170,6 @@ function ModelObject( model ) {
 						rotationY: rot.y,
 						rotationZ: rot.z, 
 					});
-					console.log(model.setFocusPosition);
 
 					if(model.shouldFocus){
 						// model.setFocusPosition([e?.target.worldPosition.x, e?.target.worldPosition.y, e?.target.worldPosition.z]);
@@ -166,13 +199,117 @@ function ModelObject( model ) {
 	</>)
 	);    
 }
-	
+
+function PortalObject( model ) {
+	const [ url, set ] = useState( model.url );
+	useEffect( () => {
+		setTimeout( () => set( model.url ), 2000 );
+	}, [] );
+	const [ listener ] = useState( () => new THREE.AudioListener() );
+
+	useThree( ( { camera } ) => {
+		camera.add( listener );
+	} );
+	const {camera} = useThree();
+
+	const gltf = useLoader( GLTFLoader, model.url, ( loader ) => {
+		loader.register(
+			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
+		);
+		loader.register( ( parser ) => {
+			return new VRMLoaderPlugin( parser );
+		} );
+	} );
+
+	const { actions } = useAnimations( gltf.animations, gltf.scene );
+
+	const animationList = model.animations ? model.animations.split( ',' ) : '';
+	useEffect( () => {
+		if ( animationList ) {
+			animationList.forEach( ( name ) => {
+				if ( Object.keys( actions ).includes( name ) ) {
+					actions[ name ].play();
+				}
+			} );
+		}
+	}, [] );
+	if(gltf?.userData?.gltfExtensions?.VRM){
+			const vrm = gltf.userData.vrm;
+			vrm.scene.position.set( model.positionX, model.positionY, model.positionZ );
+			VRMUtils.rotateVRM0( vrm );
+			const rotationVRM = vrm.scene.rotation.y + parseFloat(0);
+			vrm.scene.rotation.set( 0, rotationVRM, 0 );
+			vrm.scene.scale.set( 1, 1, 1 );
+			vrm.scene.scale.set( model.scaleX, model.scaleY, model.scaleZ );
+			return (
+				// <A11y role="content" description={model.alt} >
+					<primitive object={ vrm.scene } /> 
+				// </A11y>
+			); 
+	}
+	gltf.scene.rotation.set( 0, 0, 0 );
+	const obj = useRef();
+	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene])
+
+	return ( model.transformMode !== undefined ? (<>
+		<TransformControls 
+			enabled={model.selected}
+			mode={model.transformMode ? model.transformMode : "translate" }
+			object={ obj }
+			size={0.5}
+			onObjectChange={ ( e ) => {
+					const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
+					rot.setFromQuaternion(e?.target.worldQuaternion);
+					wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(model.portalID, { 
+						positionX: e?.target.worldPosition.x,
+						positionY: e?.target.worldPosition.y,
+						positionZ: e?.target.worldPosition.z, 
+						rotationX: rot.x,
+						rotationY: rot.y,
+						rotationZ: rot.z, 
+					});
+
+					if(model.shouldFocus){
+						// model.setFocusPosition([e?.target.worldPosition.x, e?.target.worldPosition.y, e?.target.worldPosition.z]);
+						// camera.position.set(model.focusPosition);
+					}
+				}
+			}
+		>
+			<group 
+				ref={ obj } 
+				position={[model.positionX, model.positionY, model.positionZ ]}
+				rotation={[ model.rotationX , model.rotationY, model.rotationZ ]}
+				scale={[ model.scaleX , model.scaleY, model.scaleZ ]}
+			>
+				<primitive object={ copyGltf } />
+			</group>
+		</TransformControls>
+	</>) : 	(<>
+		<group 
+			ref={ obj } 
+			position={[model.positionX, model.positionY, model.positionZ ]}
+			rotation={[ model.rotationX , model.rotationY, model.rotationZ ]}
+			scale={[ model.scaleX , model.scaleY, model.scaleZ ]}
+		>
+			<primitive object={ copyGltf } />
+		</group>
+	</>)
+	);    
+}
+
 function ThreeObject( props ) {
 	let skyobject;
 	let skyobjectId;
 	let modelobject;
+	let portalobject;
 	let modelID;
+	let portalID;
+	let imageID;
+	let imageobject;
+	let imageElementsToAdd = [];
 	let editorModelsToAdd = [];
+	let editorPortalsToAdd = [];
 	let editorHtmlToAdd= [];
 	let htmlobject;
 	let htmlobjectId;
@@ -194,6 +331,18 @@ function ThreeObject( props ) {
 							modelID = innerBlock.clientId;
 							let something = [{modelobject, modelID}]
 							editorModelsToAdd.push({modelobject, modelID});
+						}
+						if(innerBlock.name === "three-object-viewer/three-image-block"){
+							imageobject = innerBlock.attributes;
+							imageID = innerBlock.clientId;
+							let something = [{imageobject, imageID}]
+							imageElementsToAdd.push({imageobject, imageID});
+						}
+						if(innerBlock.name === "three-object-viewer/three-portal-block"){
+							portalobject = innerBlock.attributes;
+							portalID = innerBlock.clientId;
+							let something = [{portalobject, portalID}]
+							editorPortalsToAdd.push({portalobject, portalID});
 						}
 						if(innerBlock.name === "three-object-viewer/three-html-block"){
 							htmlobject = innerBlock.attributes;
@@ -285,6 +434,58 @@ function ThreeObject( props ) {
 					);
 				}
 			})}
+			{ Object.values(editorPortalsToAdd).map((model, index)=>{
+					if(model.portalobject.threeObjectUrl){
+					return(
+						<PortalObject 
+						url={model.portalobject.threeObjectUrl} 
+						positionX={model.portalobject.positionX} 
+						positionY={model.portalobject.positionY} 
+						positionZ={model.portalobject.positionZ} 
+						scaleX={model.portalobject.scaleX} 
+						scaleY={model.portalobject.scaleY} 
+						scaleZ={model.portalobject.scaleZ} 
+						rotationX={model.portalobject.rotationX} 
+						rotationY={model.portalobject.rotationY} 
+						rotationZ={model.portalobject.rotationZ} 
+						alt={model.portalobject.alt}
+						animations={model.portalobject.animations}
+						selected={props.selected}
+						modelId={model.modelID}
+						transformMode={props.transformMode}
+						setFocusPosition={props.setFocusPosition}
+						shouldFocus={props.shouldFocus}
+						/>
+					);
+				}
+			})}
+			{ Object.values(imageElementsToAdd).map((model, index)=>{
+					if(model.imageobject.imageUrl){
+					return(
+						<ImageObject 
+							url={model.imageobject.imageUrl} 
+							positionX={model.imageobject.positionX} 
+							positionY={model.imageobject.positionY} 
+							positionZ={model.imageobject.positionZ} 
+							scaleX={model.imageobject.scaleX} 
+							scaleY={model.imageobject.scaleY} 
+							scaleZ={model.imageobject.scaleZ} 
+							rotationX={model.imageobject.rotationX} 
+							rotationY={model.imageobject.rotationY} 
+							rotationZ={model.imageobject.rotationZ} 
+							alt={model.imageobject.alt}
+							animations={model.imageobject.animations}
+							selected={props.selected}
+							imageID={model.imageID}
+							aspectHeight={model.imageobject.aspectHeight}
+							aspectWidth={model.imageobject.aspectWidth} 
+							transformMode={props.transformMode}
+							setFocusPosition={props.setFocusPosition}
+							shouldFocus={props.shouldFocus}
+						/>
+					);
+				}
+			})}
 			{ Object.values(editorHtmlToAdd).map((markup, index)=>{
 				return(<Markup 
 					markup={ markup.htmlobject.markup }
@@ -363,7 +564,7 @@ export default function ThreeObjectEdit( props ) {
 			>
 			<Canvas
 				name={"maincanvas"}
-				camera={ { fov: 40, near: 0.1, far: 1000, zoom: props.zoom, position: [ 0, 0, 20 ] } }
+				camera={ { fov: 50, near: 0.1, far: 1000, zoom: props.zoom, position: [ 0, 0, 20 ] } }
 				shadowMap
 				performance={{ min: 0.5 }}
 				style={ {
@@ -372,8 +573,8 @@ export default function ThreeObjectEdit( props ) {
 					width: '100%',
 				} }
 			>
-				<Perf className="stats"/>
-				<PerspectiveCamera fov={40} position={[0,0,20]} makeDefault zoom={1} />
+				{/* <Perf className="stats"/> */}
+				<PerspectiveCamera fov={50} position={[0,0,20]} makeDefault zoom={1} />
 				<ambientLight intensity={ 0.5 } />
 				<directionalLight
 					intensity={ 0.6 }

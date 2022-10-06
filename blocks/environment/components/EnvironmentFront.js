@@ -398,7 +398,7 @@ export default function EnvironmentFront( props ) {
 		return (
 			<>
 				<VRCanvas
-					camera={ { fov: 40, zoom: 1, far: 2000, position: [ 0, 0, 20 ] } }
+					camera={ { fov: 50, zoom: 1, far: 2000, position: [ 0, 0, 20 ] } }
 					shadowMap
 					style={ {
 						backgroundColor: props.backgroundColor,
@@ -408,7 +408,7 @@ export default function EnvironmentFront( props ) {
 						padding: '0',
 					} }
 				>
-				<Perf className="stats"/>
+				{/* <Perf className="stats"/> */}
 					{/* <XRButton className="enter-vr" /> */}
 					<Hands />
 					<DefaultXRControllers />
