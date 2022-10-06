@@ -451,7 +451,7 @@ function ThreeObject( props ) {
 						alt={model.portalobject.alt}
 						animations={model.portalobject.animations}
 						selected={props.selected}
-						modelId={model.modelID}
+						portalID={model.portalID}
 						transformMode={props.transformMode}
 						setFocusPosition={props.setFocusPosition}
 						shouldFocus={props.shouldFocus}
@@ -460,7 +460,7 @@ function ThreeObject( props ) {
 				}
 			})}
 			{ Object.values(imageElementsToAdd).map((model, index)=>{
-					if(model.imageobject.imageUrl){
+				if(model.imageobject.imageUrl){
 					return(
 						<ImageObject 
 							url={model.imageobject.imageUrl} 
