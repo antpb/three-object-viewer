@@ -62,6 +62,10 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 		setAttributes( { animations: animations } );
 	};
 
+	const onChangeName = ( name ) => {
+		setAttributes( { name: name } );
+	};
+
 	const onImageSelect = ( imageObject ) => {
 		setAttributes( { threeObjectUrl: null } );
 		setAttributes( { threeObjectUrl: imageObject.url } );
@@ -118,6 +122,16 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 						icon={ more }
 						initialOpen={ true }
 					>
+						<PanelRow>
+							<TextControl
+								label="Name"
+								help="Give your object a name"
+								value={ attributes.name }
+								onChange={ ( value ) =>
+									onChangeName( value )
+								}
+							/>
+						</PanelRow>
 						<PanelRow>
 							<span>
 								select a glb file from your media library to

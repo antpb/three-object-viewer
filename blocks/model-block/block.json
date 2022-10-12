@@ -7,6 +7,9 @@
             "type": "int",
             "default":1
         },
+        "name": {
+            "type": "string"
+        },
         "scaleY": {
             "type": "int",
             "default":1

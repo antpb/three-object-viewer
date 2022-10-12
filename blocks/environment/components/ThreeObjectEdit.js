@@ -94,7 +94,7 @@ function ImageObject( threeImage ) {
 			}}
 		>
 			<mesh ref={imgObj} visible position={[threeImage.positionX, threeImage.positionY, threeImage.positionZ]} scale={[threeImage.scaleX, threeImage.scaleY, threeImage.scaleZ]} rotation={[threeImage.rotationX, threeImage.rotationY, threeImage.rotationZ]} >
-				<planeBufferGeometry args={useAspect(threeImage.aspectWidth, threeImage.aspectHeight)} />
+				<planeBufferGeometry args={[threeImage.aspectWidth/12, threeImage.aspectHeight/12]} />
 				<meshStandardMaterial side={THREE.DoubleSide} map={texture_2} />
 			</mesh>
 		</TransformControls>
