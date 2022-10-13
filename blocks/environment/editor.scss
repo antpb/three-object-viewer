@@ -44,9 +44,50 @@
 	overflow: scroll;
 }
 
-.three-object-viewer-inner-edit-container {
-	margin: 9% auto;
+.three-object-viewer-component-container {
+	display: flex;
+	flex-direction: column;
 }
+.three-object-viewer-component-container p {
+	font-size: 0.6em;
+}
+
+.three-object-viewer-inner-edit-container p{
+	margin: 0 auto;
+}
+.three-object-viewer-inner-edit-container .three-object-viewer-model-name {
+    font-size: 0.7em;
+}
+
+.three-object-viewer-inner p {
+	font-size: 0.8em;
+	margin: 0;
+}
+
+.three-object-viewer-inner {
+	z-index:1;
+	flex: 1;
+	background-color: #3f3f3f;
+	padding: 10px;
+	color: white;
+	box-sizing: border-box;
+	margin-bottom: 20px;
+	margin-top: 20px;
+	max-width: 130px;
+	width: 130px;
+	max-height: 93px;
+	height: 93px;
+	font-size: 0.8em;
+	text-align: center;
+	border-radius: 8px;
+	box-shadow:0px 1px 5px 1px #1e1e1e;
+}
+
+.three-object-viewer-inner svg {
+	max-height: 30px;
+	filter: invert(88%) ;
+}
+
 .wp-block-three-object-viewer-environment .block-editor-inner-blocks .block-editor-button-block-appender {
 	width: 60px;
 	height: 60px;
@@ -63,33 +104,9 @@
 	background-color: rgb(42, 42, 42);
 }
 
-.three-object-viewer-inner {
-	background-color: #3f3f3f;
-	padding: 10px;
-	color: white;
-	box-sizing: border-box;
-	margin-bottom: 20px;
-	margin-top: 20px;
-	max-width: 130px;
-	width: 130px;
-	height: 100px;
-	font-size: 0.8em;
-	text-align: center;
-	border-radius: 8px;
-	box-shadow:0px 1px 5px 1px #1e1e1e;
-}
 
 .stats {
 	margin-top: 200px !important;
-}
-
-.three-object-viewer-inner svg {
-	max-height: 30px;
-	filter: invert(88%) ;
-}
-
-.three-object-viewer-inner p {
-	font-size: 0.8em;
 }
 
 .glb-preview-container button:hover{
