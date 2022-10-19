@@ -4,8 +4,8 @@ import { useFrame, useLoader, useThree } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import Controls from './Controls';
 
-import { useCallback, useRef, useState } from 'react';
-import { RigidBody, MeshCollider, useRapier, usePhysics, useRigidBody, BallCollider, RigidBodyApi } from '@react-three/rapier';
+import { useCallback, useRef, useState, useEffect } from 'react';
+import { RigidBody, MeshCollider, useRapier, usePhysics, useRigidBody, BallCollider, CapsuleCollider, RigidBodyApi } from '@react-three/rapier';
 import defaultVRM from '../../../inc/avatars/mummy.vrm';
 import { VRM, VRMUtils, VRMSchema, VRMLoaderPlugin  } from '@pixiv/three-vrm'
 
@@ -15,11 +15,18 @@ export default function Player( props ) {
 	const participantObject = scene.getObjectByName("playerOne");
 	const [ rapierId, setRapierId ] = useState("");
 	const [ contactPoint, setContactPoint ] = useState("");
+	const [ headPoint, setHeadPoint ] = useState("");
 	const rigidRef = useRef();
 
 	useFrame( () => {
 		if(participantObject){
-			camera.position.setY( participantObject.parent.position.y + 2);	
+			var posY = participantObject.parent.position.y;
+			// var posY = participantObject.userData.vrm.firstPerson.humanoid.humanBones.head.position.y;
+			// camera.position.setY( posY + 1.5 );
+			camera.position.setY( posY + 1.5 );
+			// console.log(camera.rotation.y);
+			// participantObject.rotation.set([0, camera.rotation.y, 0]);
+			// participantObject.rotation.set(camera.rotation);
 		}
 	} );
 
@@ -35,10 +42,17 @@ export default function Player( props ) {
 
 	if(someSceneState?.userData?.gltfExtensions?.VRM){
 		const playerController = someSceneState.userData.vrm;
-		VRMUtils.rotateVRM0( playerController );
-		const rotationVRM = playerController.scene.rotation.y;
-		playerController.scene.rotation.set( 0, rotationVRM, 0 );
-		playerController.scene.scale.set( 1, 1, 1 );
+		// VRMUtils.rotateVRM0( playerController );
+		// console.log("vrm", playerController);
+		useEffect(()=>{
+			console.log(playerController.firstPerson.humanoid.humanBones.head.node);
+			setHeadPoint(playerController.firstPerson.humanoid.humanBones.head.node.position.y);
+		}, [])
+		playerController.firstPerson.humanoid.humanBones.head.node.scale.set([0,0,0]);
+		// console.log(playerController);
+		// const rotationVRM = playerController.scene.rotation.y;
+		// playerController.scene.rotation.set( 0, rotationVRM, 0 );
+		// playerController.scene.scale.set( 1, 1, 1 );
 
 		return (
 			<>
@@ -48,9 +62,10 @@ export default function Player( props ) {
 						<RigidBody 
 							colliders={false}
 							linearDamping={100}
-							friction={1}
+							angularDamping={0}
+							friction={0}
 							ref={rigidRef}
-							mass={1}
+							mass={0}
 							type={"dynamic"}
 							onCollisionEnter={ ({manifold, target}) => {
 								// console.log("data1", target.colliderSet.map.data[1]);
@@ -63,9 +78,9 @@ export default function Player( props ) {
 							// 	console.log('Collision at world position');
 							// }}
 						>
-							<BallCollider
+							<CapsuleCollider
 								position={[0, 0.5, 0]}
-								args={[1.3]}
+								args={[1, 1]}
 							/>
 							<Controls
 								id={rapierId}

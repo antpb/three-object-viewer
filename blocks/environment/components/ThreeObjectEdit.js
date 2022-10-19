@@ -45,7 +45,7 @@ function Markup( model ) {
 			<group ref={ htmlObj } position={[model.positionX, model.positionY, model.positionZ]} rotation={[model.rotationX, model.rotationY, model.rotationZ]}>
 			<mesh>
 				<meshBasicMaterial attach="material" color={ 0xffffff } />
-				<Html className="content" rotation-y={-Math.PI / 2} width={10} height={10} position={[-0.2,0,-1]} transform >
+				<Html className="content" rotation-y={-Math.PI / 2} width={10} height={10} position={[-0.2,0,-1]} occlude transform >
 					<div className="wrapper three-html-block-inner-wrapper" style={{backgroundColor: "#ffffff" }} dangerouslySetInnerHTML={ { __html: model.markup } }>
 					</div>
 				</Html>

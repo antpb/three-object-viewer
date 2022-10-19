@@ -2,7 +2,9 @@ import * as THREE from 'three';
 import React, { Suspense, useRef, useState, useEffect, useMemo } from 'react';
 import { Canvas, useLoader, useFrame, useThree } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
 import { Physics, RigidBody, MeshCollider, Debug } from "@react-three/rapier";
+import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 
 import {
 	useAnimations,
@@ -105,6 +107,32 @@ function SavedObject( props ) {
         } );
 	} );
 
+	//OMI_collider logic.
+	let childrenToParse = [];
+	let collidersToAdd = [];
+	let meshesToAdd = [];
+
+	if ( gltf.userData.gltfExtensions?.OMI_collider ) {
+		var colliders = gltf.userData.gltfExtensions.OMI_collider.colliders;
+	}
+	gltf.scene.traverse( (child) => {
+		if ( child.userData.gltfExtensions?.OMI_collider ) {
+			childrenToParse.push(child);
+			child.parent.remove(child.name);
+		} else {
+			meshesToAdd.push(child);
+		}
+	});
+	
+	childrenToParse.forEach( (child) => {
+		let index = child.userData.gltfExtensions.OMI_collider.collider;
+		collidersToAdd.push([child, colliders[index]]);
+		// gltf.scene.remove(child.name);
+	});
+
+	// console.log("colliders to add", collidersToAdd);
+	// End OMI_collider logic.
+
 	const { actions } = useAnimations( gltf.animations, gltf.scene );
 
 	const animationList = props.animations ? props.animations.split( ',' ) : '';
@@ -118,67 +146,111 @@ function SavedObject( props ) {
 		}
 	}, [] );
 
-	// Player controller.
-	const fallbackURL = threeObjectPlugin + defaultVRM;
-	const playerURL = props.playerData.vrm ? props.playerData.vrm : fallbackURL
+	// // Player controller.
+	// const fallbackURL = threeObjectPlugin + defaultVRM;
+	// const playerURL = props.playerData.vrm ? props.playerData.vrm : fallbackURL
 
-	const someSceneState = useLoader( GLTFLoader, playerURL, ( loader ) => {
-		loader.register(
-			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
-		);
-		loader.register( ( parser ) => {
-            return new VRMLoaderPlugin( parser );
-        } );
-	} );
+	// const someSceneState = useLoader( GLTFLoader, playerURL, ( loader ) => {
+	// 	loader.register(
+	// 		( parser ) => new GLTFAudioEmitterExtension( parser, listener )
+	// 	);
+	// 	loader.register( ( parser ) => {
+    //         return new VRMLoaderPlugin( parser );
+    //     } );
+	// } );
 
-	if(someSceneState?.userData?.gltfExtensions?.VRM){
-		const playerController = someSceneState.userData.vrm;
-		const { camera } = useThree();
-		useFrame(() => {
-			const offsetZ = camera.position.z - 0.4;
-			const offsetY = camera.position.y - 10;
-			playerController.scene.position.set( camera.position.x, offsetY, offsetZ );
-			playerController.scene.rotation.set( camera.rotation.x, camera.rotation.y, camera.rotation.z );
-		});
-		VRMUtils.rotateVRM0( playerController );
-		const rotationVRM = playerController.scene.rotation.y;
-		playerController.scene.rotation.set( 0, rotationVRM, 0 );
-		playerController.scene.scale.set( 1, 1, 1 );
-		gltf.scene.position.set( 0, props.positionY, 0 );
-		gltf.scene.rotation.set( 0, props.rotationY, 0 );
-		gltf.scene.scale.set( props.scale, props.scale, props.scale );	
-		return <><primitive object={ gltf.scene } /><primitive object={ playerController.scene } /></>;    
-	}
-	// End controller.
+	// if(someSceneState?.userData?.gltfExtensions?.VRM){
+	// 	const playerController = someSceneState.userData.vrm;
+	// 	const { camera } = useThree();
+	// 	useFrame(() => {
+	// 		const offsetZ = camera.position.z - 0.4;
+	// 		const offsetY = camera.position.y - 10;
+	// 		playerController.scene.position.set( camera.position.x, offsetY, offsetZ );
+	// 		playerController.scene.rotation.set( camera.rotation.x, camera.rotation.y, camera.rotation.z );
+	// 	});
+	// 	VRMUtils.rotateVRM0( playerController );
+	// 	const rotationVRM = playerController.scene.rotation.y;
+	// 	playerController.scene.rotation.set( 0, rotationVRM, 0 );
+	// 	playerController.scene.scale.set( 1, 1, 1 );
+	// 	gltf.scene.position.set( 0, props.positionY, 0 );
+	// 	gltf.scene.rotation.set( 0, props.rotationY, 0 );
+	// 	gltf.scene.scale.set( props.scale, props.scale, props.scale );	
+	// 	return <><primitive object={ gltf.scene } /><primitive object={ playerController.scene } /></>;    
+	// }
+	// // End controller.
 
-    if(gltf?.userData?.gltfExtensions?.VRM){
-			const vrm = gltf.userData.vrm;
-			vrm.scene.position.set( 0, props.positionY, 0 );
-			VRMUtils.rotateVRM0( vrm );
-			const rotationVRM = vrm.scene.rotation.y + parseFloat(props.rotationY);
-			vrm.scene.rotation.set( 0, rotationVRM, 0 );
-			vrm.scene.scale.set( props.scale, props.scale, props.scale );
-			return <primitive object={ vrm.scene } />;    
-    }
-    gltf.scene.position.set( 0, props.positionY, 0 );
-    gltf.scene.rotation.set( 0, props.rotationY, 0 );
-    gltf.scene.scale.set( props.scale, props.scale, props.scale );
-	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene])
+    // if(gltf?.userData?.gltfExtensions?.VRM){
+	// 		const vrm = gltf.userData.vrm;
+	// 		vrm.scene.position.set( 0, props.positionY, 0 );
+	// 		VRMUtils.rotateVRM0( vrm );
+	// 		const rotationVRM = vrm.scene.rotation.y + parseFloat(props.rotationY);
+	// 		vrm.scene.rotation.set( 0, rotationVRM, 0 );
+	// 		vrm.scene.scale.set( props.scale, props.scale, props.scale );
+	// 		return <primitive object={ vrm.scene } />;    
+    // }
 
-		return(<>
-			<RigidBody position={[0, props.positionY, 0]} type="fixed" colliders={"trimesh"}>
-					<primitive object={ copyGltf } />
-			</RigidBody>
-			{ participants && participants.map((item, index)=>{
-				return (
-					<>
-						<Participant
-							name={item}
-							p2pcf={p2pcf}
-						/>
-					</>
-				)})}
-		</>);
+    // gltf.scene.position.set( 0, props.positionY, 0 );
+    // gltf.scene.rotation.set( 0, props.rotationY, 0 );
+    // gltf.scene.scale.set( props.scale, props.scale, props.scale );
+	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene]);
+
+	return(<>
+		{ meshesToAdd && meshesToAdd.map((item, index)=>{
+			if(item.isObject3D){
+				const mixer = new THREE.AnimationMixer(gltf.scene);
+
+				var pos = new THREE.Vector3(); // create once an reuse it
+				var quat = new THREE.Quaternion(); // create once an reuse it
+				var rotation = new THREE.Euler();
+				var quaternion = item.getWorldQuaternion(quat);
+				var finalRotation = rotation.setFromQuaternion(quaternion);
+
+				// console.log(item.getWorldPosition(target));
+				return(<primitive rotation={finalRotation} position={item.getWorldPosition(pos)} object={ item } />)
+			}
+		})}
+		{ collidersToAdd && collidersToAdd.map((item, index)=>{
+			var pos = new THREE.Vector3(); // create once an reuse it
+			var quat = new THREE.Quaternion(); // create once an reuse it
+			var rotation = new THREE.Euler();
+			var quaternion = item[0].getWorldQuaternion(quat);
+			var finalRotation = rotation.setFromQuaternion(quaternion);
+			
+			// console.log("someitem", item);
+			//'ball' | 'cuboid' | 'hull' | 'trimesh' | false;
+			// rotation={item[0].rotation} position={item[0].position} 
+			if(item[1].type === "mesh"){
+				return (<RigidBody type="fixed" colliders="trimesh">
+							<primitive rotation={finalRotation} position={item[0].getWorldPosition(pos)} object={ item[0] } />
+						</RigidBody>)				
+			}
+			if(item[1].type === "box"){
+				return (<RigidBody type="fixed" colliders="cuboid">
+							<primitive rotation={finalRotation} position={item[0].getWorldPosition(pos)} object={ item[0] } />
+						</RigidBody>)				
+			}
+			if(item[1].type === "capsule"){
+				return (<RigidBody type="fixed" colliders="hull">
+							<primitive rotation={finalRotation} position={item[0].getWorldPosition(pos)} object={ item[0] } />
+						</RigidBody>)				
+			}
+			if(item[1].type === "sphere"){
+				return (<RigidBody type="fixed" colliders="ball">
+							<primitive rotation={finalRotation} position={item[0].getWorldPosition(pos)} object={ item[0] } />
+						</RigidBody>)				
+			}
+		})}
+		{ participants && participants.map((item, index)=>{
+			return (
+				<>
+					<Participant
+						name={item}
+						p2pcf={p2pcf}
+					/>
+				</>
+			)})
+		}
+	</>);
 }
 
 function ModelObject( model ) {
@@ -202,13 +274,14 @@ function ModelObject( model ) {
 	} );
 
 	const { actions } = useAnimations( gltf.animations, gltf.scene );
-
+	console.log(model.animations);
+	let animationClips = gltf.animations;
 	const animationList = model.animations ? model.animations.split( ',' ) : '';
 	useEffect( () => {
 		if ( animationList ) {
 			animationList.forEach( ( name ) => {
 				if ( Object.keys( actions ).includes( name ) ) {
-					actions[ name ].play();
+					console.log(actions[ name ].play());
 				}
 			} );
 		}
@@ -227,9 +300,12 @@ function ModelObject( model ) {
 				// </A11y>
 			); 
     }
-	console.log("gltf", gltf);
-	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene])
-	if(model.collidable){
+	// console.log("gltf", gltf);
+	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene]);
+	const modelClone = SkeletonUtils.clone(gltf.scene);
+	console.log("model clone", modelClone);
+	console.log("scene", gltf.scene);
+	if(model.collidable === "1"){
 		return(<>
 			<RigidBody 
 				type="fixed"
@@ -244,7 +320,7 @@ function ModelObject( model ) {
 				// }
 			>
 				<primitive 
-					object={ copyGltf }
+					object={ modelClone }
 					rotation={[model.rotationX , model.rotationY, model.rotationZ]}
 					position={[model.positionX, model.positionY, model.positionZ]}
 					scale={[model.scaleX , model.scaleY, model.scaleZ]}
@@ -255,7 +331,7 @@ function ModelObject( model ) {
 		return <>
 		{/* <A11y role="content" description={model.alt} showAltText > */}
 			<primitive 
-				object={ copyGltf }
+				object={ modelClone }
 				rotation={[model.rotationX , model.rotationY, model.rotationZ]}
 				position={[model.positionX, model.positionY, model.positionZ]}
 				scale={[model.scaleX , model.scaleY, model.scaleZ]}
@@ -423,7 +499,7 @@ export default function EnvironmentFront( props ) {
 					<Suspense fallback={ null }>
 					<Physics>
 						<RigidBody></RigidBody>
-						{/* <Debug />			 */}
+						<Debug />			
 							{ props.threeUrl && (
 								<>						
 									<TeleportTravel useNormal={ false }>
@@ -745,12 +821,12 @@ export default function EnvironmentFront( props ) {
 												rotationZ={modelRotationZ} 
 												/>);											
 										})}
-										<RigidBody 
+										{/* <RigidBody 
 											position={[0, -3, 0]}
 											type="fixed"
 										>
 												<Floor rotation={[-Math.PI / 2, 0, 0]} />
-										</RigidBody>
+										</RigidBody> */}
 									</TeleportTravel>
 								</>
 							) }
