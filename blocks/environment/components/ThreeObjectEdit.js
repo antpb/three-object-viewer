@@ -38,7 +38,10 @@ function Markup( model ) {
 					positionZ: e?.target.worldPosition.z, 
 					rotationX: rot.x,
 					rotationY: rot.y,
-					rotationZ: rot.z, 
+					rotationZ: rot.z,
+					scaleX:    e?.target.scale.x,
+					scaleY:    e?.target.scale.y,
+					scaleZ:    e?.target.scale.z
 				})
 			}}
 		>
@@ -89,7 +92,10 @@ function ImageObject( threeImage ) {
 					positionZ: e?.target.worldPosition.z, 
 					rotationX: rot.x,
 					rotationY: rot.y,
-					rotationZ: rot.z, 
+					rotationZ: rot.z,
+					scaleX:    e?.target.scale.x,
+					scaleY:    e?.target.scale.y,
+					scaleZ:    e?.target.scale.z 
 				})
 			}}
 		>
@@ -101,6 +107,45 @@ function ImageObject( threeImage ) {
 	);
 }
 
+function VideoObject(threeVideo) {
+	// console.log(threeVideo);
+	const clicked = true;
+	const [video] = useState(() => Object.assign(document.createElement('video'), { src: threeVideo.url, crossOrigin: 'Anonymous', loop: true, muted: true }));
+	const videoObj = useRef();
+
+	useEffect(() => void (clicked && video.play()), [video, clicked]);
+
+	return (
+		<TransformControls 
+		enabled={threeVideo.selected}
+		mode={threeVideo.transformMode}
+		object={ videoObj }
+		size={0.5}
+		onObjectChange={ ( e ) => {
+			const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
+			rot.setFromQuaternion(e?.target.worldQuaternion);
+			wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(threeVideo.imageID, {
+				positionX: e?.target.worldPosition.x,
+				positionY: e?.target.worldPosition.y,
+				positionZ: e?.target.worldPosition.z, 
+				rotationX: rot.x,
+				rotationY: rot.y,
+				rotationZ: rot.z,
+				scaleX:    e?.target.scale.x,
+				scaleY:    e?.target.scale.y,
+				scaleZ:    e?.target.scale.z
+			})
+		}}
+		>
+			<mesh ref={ videoObj } scale={[threeVideo.scaleX, threeVideo.scaleY, threeVideo.scaleZ]} position={[threeVideo.positionX, threeVideo.positionY, threeVideo.positionZ]} rotation={[threeVideo.rotationX, threeVideo.rotationY, threeVideo.rotationZ]} >
+				<meshBasicMaterial toneMapped={false}>
+					<videoTexture attach="map" args={[video]} encoding={THREE.sRGBEncoding} />
+				</meshBasicMaterial>
+				<planeBufferGeometry args={[threeVideo.aspectWidth/12, threeVideo.aspectHeight/12]} />
+			</mesh>
+		</TransformControls>
+	);
+}
 
 function ModelObject( model ) {
 	const [ url, set ] = useState( model.url );
@@ -168,12 +213,15 @@ function ModelObject( model ) {
 						positionZ: e?.target.worldPosition.z, 
 						rotationX: rot.x,
 						rotationY: rot.y,
-						rotationZ: rot.z, 
+						rotationZ: rot.z,
+						scaleX:    e?.target.scale.x,
+						scaleY:    e?.target.scale.y,
+						scaleZ:    e?.target.scale.z	 
 					});
 
 					if(model.shouldFocus){
-						// model.setFocusPosition([e?.target.worldPosition.x, e?.target.worldPosition.y, e?.target.worldPosition.z]);
-						// camera.position.set(model.focusPosition);
+						setFocusPosition([e?.target.worldPosition.x, e?.target.worldPosition.y, e?.target.worldPosition.z]);
+						camera.position.set(model.focusPosition);
 					}
 				}
 			}
@@ -306,7 +354,10 @@ function ThreeObject( props ) {
 	let modelID;
 	let portalID;
 	let imageID;
+	let videoID;
 	let imageobject;
+	let videoobject;
+	let videoElementsToAdd = [];
 	let imageElementsToAdd = [];
 	let editorModelsToAdd = [];
 	let editorPortalsToAdd = [];
@@ -337,6 +388,12 @@ function ThreeObject( props ) {
 							imageID = innerBlock.clientId;
 							let something = [{imageobject, imageID}]
 							imageElementsToAdd.push({imageobject, imageID});
+						}
+						if(innerBlock.name === "three-object-viewer/three-video-block"){
+							videoobject = innerBlock.attributes;
+							videoID = innerBlock.clientId;
+							let something = [{videoobject, videoID}]
+							videoElementsToAdd.push({videoobject, videoID});
 						}
 						if(innerBlock.name === "three-object-viewer/three-portal-block"){
 							portalobject = innerBlock.attributes;
@@ -486,6 +543,31 @@ function ThreeObject( props ) {
 					);
 				}
 			})}
+			{ Object.values(videoElementsToAdd).map((model, index)=>{
+				if(model.videoobject.videoUrl){
+					return(
+						<VideoObject 
+							url={model.videoobject.videoUrl} 
+							positionX={model.videoobject.positionX} 
+							positionY={model.videoobject.positionY} 
+							positionZ={model.videoobject.positionZ} 
+							scaleX={model.videoobject.scaleX} 
+							scaleY={model.videoobject.scaleY} 
+							scaleZ={model.videoobject.scaleZ} 
+							rotationX={model.videoobject.rotationX} 
+							rotationY={model.videoobject.rotationY} 
+							rotationZ={model.videoobject.rotationZ} 
+							selected={props.selected}
+							imageID={model.videoID}
+							aspectHeight={model.videoobject.aspectHeight}
+							aspectWidth={model.videoobject.aspectWidth} 
+							transformMode={props.transformMode}
+							setFocusPosition={props.setFocusPosition}
+							shouldFocus={props.shouldFocus}
+						/>
+					);
+				}
+			})}
 			{ Object.values(editorHtmlToAdd).map((markup, index)=>{
 				return(<Markup 
 					markup={ markup.htmlobject.markup }
@@ -535,11 +617,12 @@ export default function ThreeObjectEdit( props ) {
 		switch ( event.code ) {
 			case 'KeyT':
 				setTransformMode( "translate" );
-				console.log(transformMode)
 				break;	
 			case 'KeyR':
 				setTransformMode( "rotate" );
-				console.log(transformMode)
+				break;
+			case 'KeyS':
+				setTransformMode( "scale" );
 				break;
 			case 'KeyF':
 				console.log(focusPosition)

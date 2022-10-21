@@ -63,7 +63,7 @@ const Controls = (props) => {
 				p2pcf.broadcast(new TextEncoder().encode(message));
 			}
 		} else if ( moveLeft ) {
-			playerThing.lockRotations(true);
+			playerThing.lockRotations(true, true);
 			// playerThing.setRotation({x: 0, y: -0.707107, z: 0, w: 0.707107}, true);
 			controlsRef.current.moveRight( -velocity );
 			let hit = world.raw().queryPipeline.castRay(world.raw().colliders, ray, maxToi, solid, 0xfffffffff);
@@ -81,7 +81,7 @@ const Controls = (props) => {
 				p2pcf.broadcast(new TextEncoder().encode(message));
 			}
 		} else if ( moveBackward ) {
-			playerThing.lockRotations(true);
+			playerThing.lockRotations(true, true);
 			// playerThing.setRotation({x: 0, y: 0, z: 0, w: -1}, true);
 
 			controlsRef.current.moveForward( -velocity );
@@ -100,7 +100,7 @@ const Controls = (props) => {
 				p2pcf.broadcast(new TextEncoder().encode(message));
 			}
 		} else if ( moveRight ) {
-			playerThing.lockRotations(true);
+			playerThing.lockRotations(true, true);
 			// playerThing.setRotation({x: 0, y: 0.707107, z: 0, w: 0.707107}, true);
 
 			controlsRef.current.moveRight( velocity );
@@ -132,16 +132,19 @@ const Controls = (props) => {
 			case 'ArrowLeft':
 			case 'KeyA':
 				setMoveLeft( true );
+				setLock(false);
 				break;
 
 			case 'ArrowDown':
 			case 'KeyS':
 				setMoveBackward( true );
+				setLock(false);
 				break;
 
 			case 'ArrowRight':
 			case 'KeyD':
 				setMoveRight( true );
+				setLock(false);
 				break;
 			case "Space":
 				window.addEventListener('keydown', (e) => {
@@ -167,11 +170,13 @@ const Controls = (props) => {
 			case 'ArrowLeft':
 			case 'KeyA':
 				setMoveLeft( false );
+				setLock(true);
 				break;
 
 			case 'ArrowDown':
 			case 'KeyS':
 				setMoveBackward( false );
+				setLock(true);
 				break;
 
 			case "Space":
@@ -181,6 +186,7 @@ const Controls = (props) => {
 			case 'ArrowRight':
 			case 'KeyD':
 				setMoveRight( false );
+				setLock(true);
 				break;
 
 			default:
@@ -218,9 +224,7 @@ const Controls = (props) => {
 					? rotation.z
 					: (2 * Math.PI) + rotation.z;
 				const degrees = THREE.MathUtils.radToDeg(radians);
-				console.log(radians);
 				rotatingPlayer.rotation.set(0, radians, 0);
-				console.log(rotatingPlayer);
 			}}
 			ref={ controlsRef }
 		/>

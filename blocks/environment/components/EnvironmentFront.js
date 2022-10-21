@@ -434,7 +434,7 @@ function ThreeVideo(threeVideo) {
 		<meshBasicMaterial toneMapped={false}>
 			<videoTexture attach="map" args={[video]} encoding={THREE.sRGBEncoding} />
 		</meshBasicMaterial>
-		<planeBufferGeometry args={useAspect(threeVideo.aspectWidth, threeVideo.aspectHeight)} />
+		<planeBufferGeometry args={[threeVideo.aspectWidth/12, threeVideo.aspectHeight/12]} />
 	</mesh>
 	);
 }
@@ -651,6 +651,7 @@ export default function EnvironmentFront( props ) {
 												})}
 
 											{ Object.values(props.modelsToAdd).map((model, index)=>{
+												console.log("adding", model);
 												const modelPosX = model.querySelector( 'p.model-block-position-x' )
 												? model.querySelector( 'p.model-block-position-x' ).innerText
 												: '';

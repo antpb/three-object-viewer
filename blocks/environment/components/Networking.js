@@ -106,8 +106,8 @@ const Networking = (props) => {
         document
         .getElementById('join-button')
         .addEventListener('click', async () => {
-            go()
-        })
+        // window.addEventListener('DOMContentLoaded', go, { once: true })
+    })
     } else {
         // window.addEventListener('DOMContentLoaded', go, { once: true })
     }                                                              
