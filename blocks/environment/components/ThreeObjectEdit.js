@@ -31,6 +31,7 @@ function Markup( model ) {
 			size={0.5}
 			onObjectChange={ ( e ) => {
 				const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
+				const scale = e?.target.worldScale;
 				rot.setFromQuaternion(e?.target.worldQuaternion);
 				wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(model.htmlobjectId, { 
 					positionX: e?.target.worldPosition.x,
@@ -39,9 +40,9 @@ function Markup( model ) {
 					rotationX: rot.x,
 					rotationY: rot.y,
 					rotationZ: rot.z,
-					scaleX:    e?.target.scale.x,
-					scaleY:    e?.target.scale.y,
-					scaleZ:    e?.target.scale.z
+					scaleX:    scale.x,
+					scaleY:    scale.y,
+					scaleZ:    scale.z
 				})
 			}}
 		>
@@ -85,6 +86,7 @@ function ImageObject( threeImage ) {
 			size={0.5}
 			onObjectChange={ ( e ) => {
 				const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
+				const scale = e?.target.worldScale;
 				rot.setFromQuaternion(e?.target.worldQuaternion);
 				wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(threeImage.imageID, {
 					positionX: e?.target.worldPosition.x,
@@ -93,9 +95,9 @@ function ImageObject( threeImage ) {
 					rotationX: rot.x,
 					rotationY: rot.y,
 					rotationZ: rot.z,
-					scaleX:    e?.target.scale.x,
-					scaleY:    e?.target.scale.y,
-					scaleZ:    e?.target.scale.z 
+					scaleX:    scale.x,
+					scaleY:    scale.y,
+					scaleZ:    scale.z
 				})
 			}}
 		>
@@ -123,18 +125,20 @@ function VideoObject(threeVideo) {
 		size={0.5}
 		onObjectChange={ ( e ) => {
 			const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
+			const scale = e?.target.worldScale;
+			console.log("videoscale", scale);
 			rot.setFromQuaternion(e?.target.worldQuaternion);
-			wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(threeVideo.imageID, {
+			wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(threeVideo.videoID, {
 				positionX: e?.target.worldPosition.x,
 				positionY: e?.target.worldPosition.y,
 				positionZ: e?.target.worldPosition.z, 
 				rotationX: rot.x,
 				rotationY: rot.y,
 				rotationZ: rot.z,
-				scaleX:    e?.target.scale.x,
-				scaleY:    e?.target.scale.y,
-				scaleZ:    e?.target.scale.z
-			})
+				scaleX:    scale.x,
+				scaleY:    scale.y,
+				scaleZ:    scale.z
+		})
 		}}
 		>
 			<mesh ref={ videoObj } scale={[threeVideo.scaleX, threeVideo.scaleY, threeVideo.scaleZ]} position={[threeVideo.positionX, threeVideo.positionY, threeVideo.positionZ]} rotation={[threeVideo.rotationX, threeVideo.rotationY, threeVideo.rotationZ]} >
@@ -206,6 +210,8 @@ function ModelObject( model ) {
 			size={0.5}
 			onObjectChange={ ( e ) => {
 					const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
+					const scale = e?.target.worldScale;
+
 					rot.setFromQuaternion(e?.target.worldQuaternion);
 					wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(model.modelId, { 
 						positionX: e?.target.worldPosition.x,
@@ -214,9 +220,9 @@ function ModelObject( model ) {
 						rotationX: rot.x,
 						rotationY: rot.y,
 						rotationZ: rot.z,
-						scaleX:    e?.target.scale.x,
-						scaleY:    e?.target.scale.y,
-						scaleZ:    e?.target.scale.z	 
+						scaleX:    scale.x,
+						scaleY:    scale.y,
+						scaleZ:    scale.z	 
 					});
 
 					if(model.shouldFocus){
@@ -307,6 +313,8 @@ function PortalObject( model ) {
 			size={0.5}
 			onObjectChange={ ( e ) => {
 					const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
+					const scale = e?.target.worldScale;
+
 					rot.setFromQuaternion(e?.target.worldQuaternion);
 					wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(model.portalID, { 
 						positionX: e?.target.worldPosition.x,
@@ -314,7 +322,10 @@ function PortalObject( model ) {
 						positionZ: e?.target.worldPosition.z, 
 						rotationX: rot.x,
 						rotationY: rot.y,
-						rotationZ: rot.z, 
+						rotationZ: rot.z,
+						scaleX: scale.x,
+						scaleY: scale.y,
+						scaleZ: scale.z
 					});
 
 					if(model.shouldFocus){
@@ -349,18 +360,23 @@ function PortalObject( model ) {
 function ThreeObject( props ) {
 	let skyobject;
 	let skyobjectId;
+
 	let modelobject;
-	let portalobject;
 	let modelID;
+	let editorModelsToAdd = [];
+
+	let portalobject;
 	let portalID;
+	let editorPortalsToAdd = [];
+
 	let imageID;
-	let videoID;
+	let imageElementsToAdd = [];
 	let imageobject;
+
+	let videoID;
 	let videoobject;
 	let videoElementsToAdd = [];
-	let imageElementsToAdd = [];
-	let editorModelsToAdd = [];
-	let editorPortalsToAdd = [];
+
 	let editorHtmlToAdd= [];
 	let htmlobject;
 	let htmlobjectId;
@@ -558,7 +574,7 @@ function ThreeObject( props ) {
 							rotationY={model.videoobject.rotationY} 
 							rotationZ={model.videoobject.rotationZ} 
 							selected={props.selected}
-							imageID={model.videoID}
+							videoID={model.videoID}
 							aspectHeight={model.videoobject.aspectHeight}
 							aspectWidth={model.videoobject.aspectWidth} 
 							transformMode={props.transformMode}

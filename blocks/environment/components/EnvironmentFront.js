@@ -423,7 +423,6 @@ function ThreeImage( threeImage ) {
 }
 
 function ThreeVideo(threeVideo) {
-	// console.log(threeVideo);
 	const clicked = true;
 	const [video] = useState(() => Object.assign(document.createElement('video'), { src: threeVideo.url, crossOrigin: 'Anonymous', loop: true, muted: true }));
 
