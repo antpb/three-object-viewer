@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import React, { Suspense, useRef, useState, useEffect, useMemo } from 'react';
 import { Canvas, useLoader, useFrame, useThree } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+// import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
 import { Physics, RigidBody, MeshCollider, Debug } from "@react-three/rapier";
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
@@ -27,6 +28,7 @@ import TeleportTravel from './TeleportTravel';
 import Player from './Player';
 import defaultVRM from '../../../inc/avatars/mummy.vrm';
 import { useAspect } from '@react-three/drei';
+import { Button } from '@wordpress/components';
 
 function Participant( participant ) {
 	// Participant VRM.
@@ -72,185 +74,6 @@ function Participant( participant ) {
 			</>
 		);
 	}
-}
-
-function SavedObject( props ) {
-	const [ participants, setParticipant ] = useState([]);
-	const meshRef = useRef();
-
-	// console.log(participants);
-
-	const p2pcf = window.p2pcf;
-	if(p2pcf){
-		p2pcf.on('peerconnect', peer => {
-			console.log(peer);
-			setParticipant(current => [...current, peer.client_id]);	
-		})
-	}
-
-	const [ url, set ] = useState( props.url );
-	useEffect( () => {
-		setTimeout( () => set( props.url ), 2000 );
-	}, [] );
-	const [ listener ] = useState( () => new THREE.AudioListener() );
-
-	useThree( ( { camera } ) => {
-		camera.add( listener );
-	} );
-
-	const gltf = useLoader( GLTFLoader, url, ( loader ) => {
-		loader.register(
-			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
-		);
-		loader.register( ( parser ) => {
-            return new VRMLoaderPlugin( parser );
-        } );
-	} );
-
-	//OMI_collider logic.
-	let childrenToParse = [];
-	let collidersToAdd = [];
-	let meshesToAdd = [];
-
-	if ( gltf.userData.gltfExtensions?.OMI_collider ) {
-		var colliders = gltf.userData.gltfExtensions.OMI_collider.colliders;
-	}
-	gltf.scene.traverse( (child) => {
-		if ( child.userData.gltfExtensions?.OMI_collider ) {
-			childrenToParse.push(child);
-			child.parent.remove(child.name);
-		} else {
-			meshesToAdd.push(child);
-		}
-	});
-	
-	childrenToParse.forEach( (child) => {
-		let index = child.userData.gltfExtensions.OMI_collider.collider;
-		collidersToAdd.push([child, colliders[index]]);
-		// gltf.scene.remove(child.name);
-	});
-
-	// console.log("colliders to add", collidersToAdd);
-	// End OMI_collider logic.
-
-	const { actions } = useAnimations( gltf.animations, gltf.scene );
-
-	const animationList = props.animations ? props.animations.split( ',' ) : '';
-	useEffect( () => {
-		if ( animationList ) {
-			animationList.forEach( ( name ) => {
-				if ( Object.keys( actions ).includes( name ) ) {
-					actions[ name ].play();
-				}
-			} );
-		}
-	}, [] );
-
-	// // Player controller.
-	// const fallbackURL = threeObjectPlugin + defaultVRM;
-	// const playerURL = props.playerData.vrm ? props.playerData.vrm : fallbackURL
-
-	// const someSceneState = useLoader( GLTFLoader, playerURL, ( loader ) => {
-	// 	loader.register(
-	// 		( parser ) => new GLTFAudioEmitterExtension( parser, listener )
-	// 	);
-	// 	loader.register( ( parser ) => {
-    //         return new VRMLoaderPlugin( parser );
-    //     } );
-	// } );
-
-	// if(someSceneState?.userData?.gltfExtensions?.VRM){
-	// 	const playerController = someSceneState.userData.vrm;
-	// 	const { camera } = useThree();
-	// 	useFrame(() => {
-	// 		const offsetZ = camera.position.z - 0.4;
-	// 		const offsetY = camera.position.y - 10;
-	// 		playerController.scene.position.set( camera.position.x, offsetY, offsetZ );
-	// 		playerController.scene.rotation.set( camera.rotation.x, camera.rotation.y, camera.rotation.z );
-	// 	});
-	// 	VRMUtils.rotateVRM0( playerController );
-	// 	const rotationVRM = playerController.scene.rotation.y;
-	// 	playerController.scene.rotation.set( 0, rotationVRM, 0 );
-	// 	playerController.scene.scale.set( 1, 1, 1 );
-	// 	gltf.scene.position.set( 0, props.positionY, 0 );
-	// 	gltf.scene.rotation.set( 0, props.rotationY, 0 );
-	// 	gltf.scene.scale.set( props.scale, props.scale, props.scale );	
-	// 	return <><primitive object={ gltf.scene } /><primitive object={ playerController.scene } /></>;    
-	// }
-	// // End controller.
-
-    // if(gltf?.userData?.gltfExtensions?.VRM){
-	// 		const vrm = gltf.userData.vrm;
-	// 		vrm.scene.position.set( 0, props.positionY, 0 );
-	// 		VRMUtils.rotateVRM0( vrm );
-	// 		const rotationVRM = vrm.scene.rotation.y + parseFloat(props.rotationY);
-	// 		vrm.scene.rotation.set( 0, rotationVRM, 0 );
-	// 		vrm.scene.scale.set( props.scale, props.scale, props.scale );
-	// 		return <primitive object={ vrm.scene } />;    
-    // }
-
-    // gltf.scene.position.set( 0, props.positionY, 0 );
-    // gltf.scene.rotation.set( 0, props.rotationY, 0 );
-    // gltf.scene.scale.set( props.scale, props.scale, props.scale );
-	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene]);
-
-	return(<>
-		{ meshesToAdd && meshesToAdd.map((item, index)=>{
-			if(item.isObject3D){
-				const mixer = new THREE.AnimationMixer(gltf.scene);
-
-				var pos = new THREE.Vector3(); // create once an reuse it
-				var quat = new THREE.Quaternion(); // create once an reuse it
-				var rotation = new THREE.Euler();
-				var quaternion = item.getWorldQuaternion(quat);
-				var finalRotation = rotation.setFromQuaternion(quaternion);
-
-				// console.log(item.getWorldPosition(target));
-				return(<primitive rotation={finalRotation} position={item.getWorldPosition(pos)} object={ item } />)
-			}
-		})}
-		{ collidersToAdd && collidersToAdd.map((item, index)=>{
-			var pos = new THREE.Vector3(); // create once an reuse it
-			var quat = new THREE.Quaternion(); // create once an reuse it
-			var rotation = new THREE.Euler();
-			var quaternion = item[0].getWorldQuaternion(quat);
-			var finalRotation = rotation.setFromQuaternion(quaternion);
-			
-			// console.log("someitem", item);
-			//'ball' | 'cuboid' | 'hull' | 'trimesh' | false;
-			// rotation={item[0].rotation} position={item[0].position} 
-			if(item[1].type === "mesh"){
-				return (<RigidBody type="fixed" colliders="trimesh">
-							<primitive rotation={finalRotation} position={item[0].getWorldPosition(pos)} object={ item[0] } />
-						</RigidBody>)				
-			}
-			if(item[1].type === "box"){
-				return (<RigidBody type="fixed" colliders="cuboid">
-							<primitive rotation={finalRotation} position={item[0].getWorldPosition(pos)} object={ item[0] } />
-						</RigidBody>)				
-			}
-			if(item[1].type === "capsule"){
-				return (<RigidBody type="fixed" colliders="hull">
-							<primitive rotation={finalRotation} position={item[0].getWorldPosition(pos)} object={ item[0] } />
-						</RigidBody>)				
-			}
-			if(item[1].type === "sphere"){
-				return (<RigidBody type="fixed" colliders="ball">
-							<primitive rotation={finalRotation} position={item[0].getWorldPosition(pos)} object={ item[0] } />
-						</RigidBody>)				
-			}
-		})}
-		{ participants && participants.map((item, index)=>{
-			return (
-				<>
-					<Participant
-						name={item}
-						p2pcf={p2pcf}
-					/>
-				</>
-			)})
-		}
-	</>);
 }
 
 function ModelObject( model ) {
@@ -416,7 +239,7 @@ function ThreeImage( threeImage ) {
 
 	return (
 		<mesh visible position={[threeImage.positionX, threeImage.positionY, threeImage.positionZ]} scale={[threeImage.scaleX, threeImage.scaleY, threeImage.scaleZ]} rotation={[threeImage.rotationX, threeImage.rotationY, threeImage.rotationZ]} >
-		<planeBufferGeometry args={[threeImage.aspectWidth/12, threeImage.aspectHeight/12]} />
+		<planeGeometry args={[threeImage.aspectWidth/12, threeImage.aspectHeight/12]} />
 			<meshStandardMaterial side={THREE.DoubleSide} map={texture_2} />
 		</mesh>
 	);
@@ -433,7 +256,7 @@ function ThreeVideo(threeVideo) {
 		<meshBasicMaterial toneMapped={false}>
 			<videoTexture attach="map" args={[video]} encoding={THREE.sRGBEncoding} />
 		</meshBasicMaterial>
-		<planeBufferGeometry args={[threeVideo.aspectWidth/12, threeVideo.aspectHeight/12]} />
+		<planeGeometry args={[threeVideo.aspectWidth/12, threeVideo.aspectHeight/12]} />
 	</mesh>
 	);
 }
@@ -467,376 +290,567 @@ function Markup( model ) {
 	</>);    
 }
 
+function SavedObject( props ) {
+	const [ participants, setParticipant ] = useState([]);
+	const meshRef = useRef();
 
-export default function EnvironmentFront( props ) {	
-	if ( props.deviceTarget === 'vr' ) {
-		return (
-			<>
-				<VRCanvas
-					camera={ { fov: 50, zoom: 1, far: 2000, position: [ 0, 0, 20 ] } }
-					shadowMap
-					style={ {
-						backgroundColor: props.backgroundColor,
-						margin: '0',
-						height: '900px',
-						width: '100%',
-						padding: '0',
-					} }
-				>
-				{/* <Perf className="stats"/> */}
-					{/* <XRButton className="enter-vr" /> */}
-					<Hands />
-					<DefaultXRControllers />
-					<ambientLight intensity={ 0.5 } />
-					<directionalLight
-						intensity={ 0.6 }
-						position={ [ 0, 2, 2 ] }
-						shadow-mapSize-width={ 2048 }
-						shadow-mapSize-height={ 2048 }
-						castShadow
+	const p2pcf = window.p2pcf;
+	if(p2pcf){
+		p2pcf.on('peerconnect', peer => {
+			console.log(peer);
+			setParticipant(current => [...current, peer.client_id]);	
+		})
+	}
+
+	const [ url, set ] = useState( props.url );
+	useEffect( () => {
+		setTimeout( () => set( props.url ), 2000 );
+	}, [] );
+	const [ listener ] = useState( () => new THREE.AudioListener() );
+
+	useThree( ( { camera } ) => {
+		camera.add( listener );
+	} );
+
+	const gltf = useLoader( GLTFLoader, url, ( loader ) => {
+		// const dracoLoader = new DRACOLoader();
+		// dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+		// loader.setDRACOLoader(dracoLoader);
+
+		loader.register(
+			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
+		);
+
+		loader.register( ( parser ) => {
+            return new VRMLoaderPlugin( parser );
+        } );
+	} );
+
+	//OMI_collider logic.
+	let childrenToParse = [];
+	let collidersToAdd = [];
+	let meshesToAdd = [];
+
+	if ( gltf.userData.gltfExtensions?.OMI_collider ) {
+		var colliders = gltf.userData.gltfExtensions.OMI_collider.colliders;
+	}
+	if ( gltf.userData.gltfExtensions?.KHR_audio ) {
+		var colliders = gltf.userData.gltfExtensions.OMI_collider.colliders;
+	}
+
+	gltf.scene.traverse( (child) => {
+		if ( child.userData.gltfExtensions?.OMI_collider ) {
+			childrenToParse.push(child);
+			child.parent.remove(child.name);
+		} else {
+			meshesToAdd.push(child);
+		}
+	});
+	
+	childrenToParse.forEach( (child) => {
+		let index = child.userData.gltfExtensions.OMI_collider.collider;
+		collidersToAdd.push([child, colliders[index]]);
+		// gltf.scene.remove(child.name);
+	});
+
+	// console.log("colliders to add", collidersToAdd);
+	// End OMI_collider logic.
+
+	const { actions } = useAnimations( gltf.animations, gltf.scene );
+
+	const animationList = props.animations ? props.animations.split( ',' ) : '';
+	useEffect( () => {
+		if ( animationList ) {
+			animationList.forEach( ( name ) => {
+				if ( Object.keys( actions ).includes( name ) ) {
+					actions[ name ].play();
+				}
+			} );
+		}
+	}, [] );
+
+    // if(gltf?.userData?.gltfExtensions?.VRM){
+	// 		const vrm = gltf.userData.vrm;
+	// 		vrm.scene.position.set( 0, props.positionY, 0 );
+	// 		VRMUtils.rotateVRM0( vrm );
+	// 		const rotationVRM = vrm.scene.rotation.y + parseFloat(props.rotationY);
+	// 		vrm.scene.rotation.set( 0, rotationVRM, 0 );
+	// 		vrm.scene.scale.set( props.scale, props.scale, props.scale );
+	// 		return <primitive object={ vrm.scene } />;    
+    // }
+
+    // gltf.scene.position.set( 0, props.positionY, 0 );
+    // gltf.scene.rotation.set( 0, props.rotationY, 0 );
+    // gltf.scene.scale.set( props.scale, props.scale, props.scale );
+	// const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene]);
+
+	if(collidersToAdd.length === 0){
+		return (<RigidBody type="fixed" colliders="trimesh">
+		<primitive object={ gltf.scene } />
+		</RigidBody>)				
+	}
+
+	return(<>
+		{ meshesToAdd && meshesToAdd.map((item, index)=>{
+			if(item.isObject3D){
+				const mixer = new THREE.AnimationMixer(gltf.scene);
+
+				var pos = new THREE.Vector3(); // create once an reuse it
+				var quat = new THREE.Quaternion(); // create once an reuse it
+				var rotation = new THREE.Euler();
+				var quaternion = item.getWorldQuaternion(quat);
+				var finalRotation = rotation.setFromQuaternion(quaternion);
+
+				// console.log(item.getWorldPosition(target));
+				return(<primitive rotation={finalRotation} position={item.getWorldPosition(pos)} object={ item } />)
+			}
+		})}
+		{ collidersToAdd && collidersToAdd.map((item, index)=>{
+			var pos = new THREE.Vector3(); // create once an reuse it
+			var quat = new THREE.Quaternion(); // create once an reuse it
+			var rotation = new THREE.Euler();
+			var quaternion = item[0].getWorldQuaternion(quat);
+			var finalRotation = rotation.setFromQuaternion(quaternion);
+			
+			// console.log("someitem", item);
+			//'ball' | 'cuboid' | 'hull' | 'trimesh' | false;
+			// rotation={item[0].rotation} position={item[0].position} 
+			if(item[1].type === "mesh"){
+				return (<RigidBody type="fixed" colliders="trimesh">
+							<primitive rotation={finalRotation} position={item[0].getWorldPosition(pos)} object={ item[0] } />
+						</RigidBody>)				
+			}
+			if(item[1].type === "box"){
+				return (<RigidBody type="fixed" colliders="cuboid">
+							<primitive rotation={finalRotation} position={item[0].getWorldPosition(pos)} object={ item[0] } />
+						</RigidBody>)				
+			}
+			if(item[1].type === "capsule"){
+				return (<RigidBody type="fixed" colliders="hull">
+							<primitive rotation={finalRotation} position={item[0].getWorldPosition(pos)} object={ item[0] } />
+						</RigidBody>)				
+			}
+			if(item[1].type === "sphere"){
+				return (<RigidBody type="fixed" colliders="ball">
+							<primitive rotation={finalRotation} position={item[0].getWorldPosition(pos)} object={ item[0] } />
+						</RigidBody>)				
+			}
+		})}
+		{ participants && participants.map((item, index)=>{
+			return (
+				<>
+					<Participant
+						name={item}
+						p2pcf={p2pcf}
 					/>
-					<Suspense fallback={ null }>
-					<Physics>
-						<RigidBody></RigidBody>
-						<Debug />			
-							{ props.threeUrl && (
-								<>						
-									<TeleportTravel useNormal={ false }>
-										<Player/>
-										<SavedObject
-										positionY={ props.positionY }
-										rotationY={ props.rotationY }
-										url={ props.threeUrl }
-										color={ props.backgroundColor }
-										hasZoom={ props.hasZoom }
-										scale={ props.scale }
-										hasTip={ props.hasTip }
-										animations={ props.animations }
-										playerData={ props.userData }
-										/>
-										{ Object.values(props.sky).map((item, index)=>{
-											return(<>
-												<Sky src={ props.sky }/>
-											</>);
-											})
-										}
-											{ Object.values(props.imagesToAdd).map((item, index)=>{
-											const imagePosX = item.querySelector( 'p.image-block-positionX' )
-											? item.querySelector( 'p.image-block-positionX' ).innerText
-											: '';
-									
-											const imagePosY = item.querySelector( 'p.image-block-positionY' )
-											? item.querySelector( 'p.image-block-positionY' ).innerText
-											: '';
+				</>
+			)})
+		}
+	</>);
+}
+
+export default function EnvironmentFront( props ) {
+	const [loaded, setLoaded] = useState(false);
+	if( loaded === true) {
+		if ( props.deviceTarget === 'vr' ) {
+			return (
+				<>
+					<VRCanvas
+						camera={ { fov: 50, zoom: 1, far: 2000, position: [ 0, 0, 20 ] } }
+						shadowMap
+						style={ {
+							backgroundColor: props.backgroundColor,
+							margin: '0',
+							height: '900px',
+							width: '100%',
+							padding: '0',
+						} }
+					>
+					{/* <Perf className="stats"/> */}
+						{/* <XRButton className="enter-vr" /> */}
+						<Hands />
+						<DefaultXRControllers />
+						<ambientLight intensity={ 0.5 } />
+						<directionalLight
+							intensity={ 0.6 }
+							position={ [ 0, 2, 2 ] }
+							shadow-mapSize-width={ 2048 }
+							shadow-mapSize-height={ 2048 }
+							castShadow
+						/>
+						<Suspense fallback={ null }>
+						<Physics>
+							<RigidBody></RigidBody>
+							{/* <Debug />			 */}
+								{ props.threeUrl && (
+									<>						
+										<TeleportTravel useNormal={ false }>
+											<Player/>
+											<SavedObject
+											positionY={ props.positionY }
+											rotationY={ props.rotationY }
+											url={ props.threeUrl }
+											color={ props.backgroundColor }
+											hasZoom={ props.hasZoom }
+											scale={ props.scale }
+											hasTip={ props.hasTip }
+											animations={ props.animations }
+											playerData={ props.userData }
+											/>
+											{ Object.values(props.sky).map((item, index)=>{
+												return(<>
+													<Sky src={ props.sky }/>
+												</>);
+												})
+											}
+												{ Object.values(props.imagesToAdd).map((item, index)=>{
+												const imagePosX = item.querySelector( 'p.image-block-positionX' )
+												? item.querySelector( 'p.image-block-positionX' ).innerText
+												: '';
 										
-											const imagePosZ = item.querySelector( 'p.image-block-positionZ' )
-											? item.querySelector( 'p.image-block-positionZ' ).innerText
-											: '';
-
-											const imageScaleX = item.querySelector( 'p.image-block-scaleX' )
-											? item.querySelector( 'p.image-block-scaleX' ).innerText
-											: '';
-
-											const imageScaleY = item.querySelector( 'p.image-block-scaleY' )
-											? item.querySelector( 'p.image-block-scaleY' ).innerText
-											: '';
-
-											const imageScaleZ = item.querySelector( 'p.image-block-scaleZ' )
-											? item.querySelector( 'p.image-block-scaleZ' ).innerText
-											: '';
-
-											const imageRotationX = item.querySelector( 'p.image-block-rotationX' )
-											? item.querySelector( 'p.image-block-rotationX' ).innerText
-											: '';
-
-											const imageRotationY = item.querySelector( 'p.image-block-rotationY' )
-											? item.querySelector( 'p.image-block-rotationY' ).innerText
-											: '';
-
-											const imageRotationZ = item.querySelector( 'p.image-block-rotationZ' )
-											? item.querySelector( 'p.image-block-rotationZ' ).innerText
-											: '';
-
-											const imageUrl = item.querySelector( 'p.image-block-url' )
-											? item.querySelector( 'p.image-block-url' ).innerText
-											: '';
-
-											const aspectHeight = item.querySelector( 'p.image-block-aspect-height' )
-											? item.querySelector( 'p.image-block-aspect-height' ).innerText
-											: '';
-
-											const aspectWidth = item.querySelector( 'p.image-block-aspect-width' )
-											? item.querySelector( 'p.image-block-aspect-width' ).innerText
-											: '';
-												
-											return(<ThreeImage 
-												url={imageUrl} 
-												positionX={imagePosX} 
-												positionY={imagePosY} 
-												positionZ={imagePosZ} 
-												scaleX={imageScaleX} 
-												scaleY={imageScaleY} 
-												scaleZ={imageScaleZ} 
-												rotationX={imageRotationX} 
-												rotationY={imageRotationY} 
-												rotationZ={imageRotationZ}
-												aspectHeight={aspectHeight}
-												aspectWidth={aspectWidth} 
-												/>);											
-											})}
-											{ Object.values(props.videosToAdd).map((item, index)=>{
-												const videoPosX = item.querySelector( 'p.video-block-positionX' )
-												? item.querySelector( 'p.video-block-positionX' ).innerText
+												const imagePosY = item.querySelector( 'p.image-block-positionY' )
+												? item.querySelector( 'p.image-block-positionY' ).innerText
 												: '';
-
-												const videoPosY = item.querySelector( 'p.video-block-positionY' )
-												? item.querySelector( 'p.video-block-positionY' ).innerText
+											
+												const imagePosZ = item.querySelector( 'p.image-block-positionZ' )
+												? item.querySelector( 'p.image-block-positionZ' ).innerText
 												: '';
-
-												const videoPosZ = item.querySelector( 'p.video-block-positionZ' )
-												? item.querySelector( 'p.video-block-positionZ' ).innerText
+	
+												const imageScaleX = item.querySelector( 'p.image-block-scaleX' )
+												? item.querySelector( 'p.image-block-scaleX' ).innerText
 												: '';
-
-												const videoScaleX = item.querySelector( 'p.video-block-scaleX' )
-												? item.querySelector( 'p.video-block-scaleX' ).innerText
+	
+												const imageScaleY = item.querySelector( 'p.image-block-scaleY' )
+												? item.querySelector( 'p.image-block-scaleY' ).innerText
 												: '';
-
-												const videoScaleY = item.querySelector( 'p.video-block-scaleY' )
-												? item.querySelector( 'p.video-block-scaleY' ).innerText
+	
+												const imageScaleZ = item.querySelector( 'p.image-block-scaleZ' )
+												? item.querySelector( 'p.image-block-scaleZ' ).innerText
 												: '';
-
-												const videoScaleZ = item.querySelector( 'p.video-block-scaleZ' )
-												? item.querySelector( 'p.video-block-scaleZ' ).innerText
+	
+												const imageRotationX = item.querySelector( 'p.image-block-rotationX' )
+												? item.querySelector( 'p.image-block-rotationX' ).innerText
 												: '';
-
-												const videoRotationX = item.querySelector( 'p.video-block-rotationX' )
-												? item.querySelector( 'p.video-block-rotationX' ).innerText
+	
+												const imageRotationY = item.querySelector( 'p.image-block-rotationY' )
+												? item.querySelector( 'p.image-block-rotationY' ).innerText
 												: '';
-
-												const videoRotationY = item.querySelector( 'p.video-block-rotationY' )
-												? item.querySelector( 'p.video-block-rotationY' ).innerText
+	
+												const imageRotationZ = item.querySelector( 'p.image-block-rotationZ' )
+												? item.querySelector( 'p.image-block-rotationZ' ).innerText
 												: '';
-
-												const videoRotationZ = item.querySelector( 'p.video-block-rotationZ' )
-												? item.querySelector( 'p.video-block-rotationZ' ).innerText
+	
+												const imageUrl = item.querySelector( 'p.image-block-url' )
+												? item.querySelector( 'p.image-block-url' ).innerText
 												: '';
-
-												const videoUrl = item.querySelector( 'div.video-block-url' )
-												? item.querySelector( 'div.video-block-url' ).innerText
+	
+												const aspectHeight = item.querySelector( 'p.image-block-aspect-height' )
+												? item.querySelector( 'p.image-block-aspect-height' ).innerText
 												: '';
-
-												const aspectHeight = item.querySelector( 'p.video-block-aspect-height' )
-												? item.querySelector( 'p.video-block-aspect-height' ).innerText
+	
+												const aspectWidth = item.querySelector( 'p.image-block-aspect-width' )
+												? item.querySelector( 'p.image-block-aspect-width' ).innerText
 												: '';
-
-												const aspectWidth = item.querySelector( 'p.video-block-aspect-width' )
-												? item.querySelector( 'p.video-block-aspect-width' ).innerText
-												: '';
-												
-												return(<ThreeVideo 
-													url={videoUrl} 
-													positionX={videoPosX} 
-													positionY={videoPosY} 
-													positionZ={videoPosZ} 
-													scaleX={videoScaleX} 
-													scaleY={videoScaleY} 
-													scaleZ={videoScaleZ} 
-													rotationX={videoRotationX} 
-													rotationY={videoRotationY} 
-													rotationZ={videoRotationZ}
+													
+												return(<ThreeImage 
+													url={imageUrl} 
+													positionX={imagePosX} 
+													positionY={imagePosY} 
+													positionZ={imagePosZ} 
+													scaleX={imageScaleX} 
+													scaleY={imageScaleY} 
+													scaleZ={imageScaleZ} 
+													rotationX={imageRotationX} 
+													rotationY={imageRotationY} 
+													rotationZ={imageRotationZ}
 													aspectHeight={aspectHeight}
 													aspectWidth={aspectWidth} 
 													/>);											
 												})}
-
-											{ Object.values(props.modelsToAdd).map((model, index)=>{
-												console.log("adding", model);
-												const modelPosX = model.querySelector( 'p.model-block-position-x' )
-												? model.querySelector( 'p.model-block-position-x' ).innerText
-												: '';
-										
-												const modelPosY = model.querySelector( 'p.model-block-position-y' )
-												? model.querySelector( 'p.model-block-position-y' ).innerText
-												: '';
+												{ Object.values(props.videosToAdd).map((item, index)=>{
+													const videoPosX = item.querySelector( 'p.video-block-positionX' )
+													? item.querySelector( 'p.video-block-positionX' ).innerText
+													: '';
+	
+													const videoPosY = item.querySelector( 'p.video-block-positionY' )
+													? item.querySelector( 'p.video-block-positionY' ).innerText
+													: '';
+	
+													const videoPosZ = item.querySelector( 'p.video-block-positionZ' )
+													? item.querySelector( 'p.video-block-positionZ' ).innerText
+													: '';
+	
+													const videoScaleX = item.querySelector( 'p.video-block-scaleX' )
+													? item.querySelector( 'p.video-block-scaleX' ).innerText
+													: '';
+	
+													const videoScaleY = item.querySelector( 'p.video-block-scaleY' )
+													? item.querySelector( 'p.video-block-scaleY' ).innerText
+													: '';
+	
+													const videoScaleZ = item.querySelector( 'p.video-block-scaleZ' )
+													? item.querySelector( 'p.video-block-scaleZ' ).innerText
+													: '';
+	
+													const videoRotationX = item.querySelector( 'p.video-block-rotationX' )
+													? item.querySelector( 'p.video-block-rotationX' ).innerText
+													: '';
+	
+													const videoRotationY = item.querySelector( 'p.video-block-rotationY' )
+													? item.querySelector( 'p.video-block-rotationY' ).innerText
+													: '';
+	
+													const videoRotationZ = item.querySelector( 'p.video-block-rotationZ' )
+													? item.querySelector( 'p.video-block-rotationZ' ).innerText
+													: '';
+	
+													const videoUrl = item.querySelector( 'div.video-block-url' )
+													? item.querySelector( 'div.video-block-url' ).innerText
+													: '';
+	
+													const aspectHeight = item.querySelector( 'p.video-block-aspect-height' )
+													? item.querySelector( 'p.video-block-aspect-height' ).innerText
+													: '';
+	
+													const aspectWidth = item.querySelector( 'p.video-block-aspect-width' )
+													? item.querySelector( 'p.video-block-aspect-width' ).innerText
+													: '';
+													
+													return(<ThreeVideo 
+														url={videoUrl} 
+														positionX={videoPosX} 
+														positionY={videoPosY} 
+														positionZ={videoPosZ} 
+														scaleX={videoScaleX} 
+														scaleY={videoScaleY} 
+														scaleZ={videoScaleZ} 
+														rotationX={videoRotationX} 
+														rotationY={videoRotationY} 
+														rotationZ={videoRotationZ}
+														aspectHeight={aspectHeight}
+														aspectWidth={aspectWidth} 
+														/>);											
+													})}
+	
+												{ Object.values(props.modelsToAdd).map((model, index)=>{
+													console.log("adding", model);
+													const modelPosX = model.querySelector( 'p.model-block-position-x' )
+													? model.querySelector( 'p.model-block-position-x' ).innerText
+													: '';
 											
-												const modelPosZ = model.querySelector( 'p.model-block-position-z' )
-												? model.querySelector( 'p.model-block-position-z' ).innerText
-												: '';
-
-												const modelScaleX = model.querySelector( 'p.model-block-scale-x' )
-												? model.querySelector( 'p.model-block-scale-x' ).innerText
-												: '';
-
-												const modelScaleY = model.querySelector( 'p.model-block-scale-y' )
-												? model.querySelector( 'p.model-block-scale-y' ).innerText
-												: '';
-
-												const modelScaleZ = model.querySelector( 'p.model-block-scale-z' )
-												? model.querySelector( 'p.model-block-scale-z' ).innerText
-												: '';
-
-												const modelRotationX = model.querySelector( 'p.model-block-rotation-x' )
-												? model.querySelector( 'p.model-block-rotation-x' ).innerText
-												: '';
-
-												const modelRotationY = model.querySelector( 'p.model-block-rotation-y' )
-												? model.querySelector( 'p.model-block-rotation-y' ).innerText
-												: '';
-
-												const modelRotationZ = model.querySelector( 'p.model-block-rotation-z' )
-												? model.querySelector( 'p.model-block-rotation-z' ).innerText
-												: '';
-
-												const url = model.querySelector( 'p.model-block-url' )
-												? model.querySelector( 'p.model-block-url' ).innerText
-												: '';
-
-												const animations = model.querySelector( 'p.model-block-animations' )
-												? model.querySelector( 'p.model-block-animations' ).innerText
-												: '';
-
-												const alt = model.querySelector( 'p.model-block-alt' )
-												? model.querySelector( 'p.model-block-alt' ).innerText
-												: '';
-
-												const collidable = model.querySelector( 'p.model-block-collidable' )
-												? model.querySelector( 'p.model-block-collidable' ).innerText
-												: false;
-																				
-											return(<ModelObject 
-												url={url} 
-												positionX={modelPosX} 
-												positionY={modelPosY} 
-												positionZ={modelPosZ} 
-												scaleX={modelScaleX} 
-												scaleY={modelScaleY} 
-												scaleZ={modelScaleZ} 
-												rotationX={modelRotationX} 
-												rotationY={modelRotationY} 
-												rotationZ={modelRotationZ} 
-												alt={alt}
-												animations={animations}
-												collidable={collidable}
-												/>);											
-										})}
-											{ Object.values(props.htmlToAdd).map((model, index)=>{
-												const markup = model.querySelector( 'p.three-html-markup' )
-												? model.querySelector( 'p.three-html-markup' ).innerText
-												: '';
-												const rotationX = model.querySelector( 'p.three-html-rotationX' )
-												? model.querySelector( 'p.three-html-rotationX' ).innerText
-												: '';
-												const rotationY = model.querySelector( 'p.three-html-rotationY' )
-												? model.querySelector( 'p.three-html-rotationY' ).innerText
-												: '';
-												const rotationZ = model.querySelector( 'p.three-html-rotationZ' )
-												? model.querySelector( 'p.three-html-rotationZ' ).innerText
-												: '';
-												const positionX = model.querySelector( 'p.three-html-positionX' )
-												? model.querySelector( 'p.three-html-positionX' ).innerText
-												: '';
-												const positionY = model.querySelector( 'p.three-html-positionY' )
-												? model.querySelector( 'p.three-html-positionY' ).innerText
-												: '';
-												const positionZ = model.querySelector( 'p.three-html-positionZ' )
-												? model.querySelector( 'p.three-html-positionZ' ).innerText
-												: '';
-
-											return(<Markup 
-												markup={markup} 
-												positionX={positionX} 
-												positionY={positionY} 
-												positionZ={positionZ} 
-												// scaleX={modelScaleX} 
-												// scaleY={modelScaleY} 
-												// scaleZ={modelScaleZ} 
-												rotationX={rotationX} 
-												rotationY={rotationY} 
-												rotationZ={rotationZ} 
-												// alt={alt}
-												// animations={animations}
-												/>);											
-										})}
-											{ Object.values(props.portalsToAdd).map((model, index)=>{
-												const modelPosX = model.querySelector( 'p.three-portal-block-position-x' )
-												? model.querySelector( 'p.three-portal-block-position-x' ).innerText
-												: '';
-										
-												const modelPosY = model.querySelector( 'p.three-portal-block-position-y' )
-												? model.querySelector( 'p.three-portal-block-position-y' ).innerText
-												: '';
+													const modelPosY = model.querySelector( 'p.model-block-position-y' )
+													? model.querySelector( 'p.model-block-position-y' ).innerText
+													: '';
+												
+													const modelPosZ = model.querySelector( 'p.model-block-position-z' )
+													? model.querySelector( 'p.model-block-position-z' ).innerText
+													: '';
+	
+													const modelScaleX = model.querySelector( 'p.model-block-scale-x' )
+													? model.querySelector( 'p.model-block-scale-x' ).innerText
+													: '';
+	
+													const modelScaleY = model.querySelector( 'p.model-block-scale-y' )
+													? model.querySelector( 'p.model-block-scale-y' ).innerText
+													: '';
+	
+													const modelScaleZ = model.querySelector( 'p.model-block-scale-z' )
+													? model.querySelector( 'p.model-block-scale-z' ).innerText
+													: '';
+	
+													const modelRotationX = model.querySelector( 'p.model-block-rotation-x' )
+													? model.querySelector( 'p.model-block-rotation-x' ).innerText
+													: '';
+	
+													const modelRotationY = model.querySelector( 'p.model-block-rotation-y' )
+													? model.querySelector( 'p.model-block-rotation-y' ).innerText
+													: '';
+	
+													const modelRotationZ = model.querySelector( 'p.model-block-rotation-z' )
+													? model.querySelector( 'p.model-block-rotation-z' ).innerText
+													: '';
+	
+													const url = model.querySelector( 'p.model-block-url' )
+													? model.querySelector( 'p.model-block-url' ).innerText
+													: '';
+	
+													const animations = model.querySelector( 'p.model-block-animations' )
+													? model.querySelector( 'p.model-block-animations' ).innerText
+													: '';
+	
+													const alt = model.querySelector( 'p.model-block-alt' )
+													? model.querySelector( 'p.model-block-alt' ).innerText
+													: '';
+	
+													const collidable = model.querySelector( 'p.model-block-collidable' )
+													? model.querySelector( 'p.model-block-collidable' ).innerText
+													: false;
+																					
+												return(<ModelObject 
+													url={url} 
+													positionX={modelPosX} 
+													positionY={modelPosY} 
+													positionZ={modelPosZ} 
+													scaleX={modelScaleX} 
+													scaleY={modelScaleY} 
+													scaleZ={modelScaleZ} 
+													rotationX={modelRotationX} 
+													rotationY={modelRotationY} 
+													rotationZ={modelRotationZ} 
+													alt={alt}
+													animations={animations}
+													collidable={collidable}
+													/>);											
+											})}
+												{ Object.values(props.htmlToAdd).map((model, index)=>{
+													const markup = model.querySelector( 'p.three-html-markup' )
+													? model.querySelector( 'p.three-html-markup' ).innerText
+													: '';
+													const rotationX = model.querySelector( 'p.three-html-rotationX' )
+													? model.querySelector( 'p.three-html-rotationX' ).innerText
+													: '';
+													const rotationY = model.querySelector( 'p.three-html-rotationY' )
+													? model.querySelector( 'p.three-html-rotationY' ).innerText
+													: '';
+													const rotationZ = model.querySelector( 'p.three-html-rotationZ' )
+													? model.querySelector( 'p.three-html-rotationZ' ).innerText
+													: '';
+													const positionX = model.querySelector( 'p.three-html-positionX' )
+													? model.querySelector( 'p.three-html-positionX' ).innerText
+													: '';
+													const positionY = model.querySelector( 'p.three-html-positionY' )
+													? model.querySelector( 'p.three-html-positionY' ).innerText
+													: '';
+													const positionZ = model.querySelector( 'p.three-html-positionZ' )
+													? model.querySelector( 'p.three-html-positionZ' ).innerText
+													: '';
+	
+												return(<Markup 
+													markup={markup} 
+													positionX={positionX} 
+													positionY={positionY} 
+													positionZ={positionZ} 
+													// scaleX={modelScaleX} 
+													// scaleY={modelScaleY} 
+													// scaleZ={modelScaleZ} 
+													rotationX={rotationX} 
+													rotationY={rotationY} 
+													rotationZ={rotationZ} 
+													// alt={alt}
+													// animations={animations}
+													/>);											
+											})}
+												{ Object.values(props.portalsToAdd).map((model, index)=>{
+													const modelPosX = model.querySelector( 'p.three-portal-block-position-x' )
+													? model.querySelector( 'p.three-portal-block-position-x' ).innerText
+													: '';
 											
-												const modelPosZ = model.querySelector( 'p.three-portal-block-position-z' )
-												? model.querySelector( 'p.three-portal-block-position-z' ).innerText
-												: '';
-
-												const modelScaleX = model.querySelector( 'p.three-portal-block-scale-x' )
-												? model.querySelector( 'p.three-portal-block-scale-x' ).innerText
-												: '';
-
-												const modelScaleY = model.querySelector( 'p.three-portal-block-scale-y' )
-												? model.querySelector( 'p.three-portal-block-scale-y' ).innerText
-												: '';
-
-												const modelScaleZ = model.querySelector( 'p.three-portal-block-scale-z' )
-												? model.querySelector( 'p.three-portal-block-scale-z' ).innerText
-												: '';
-
-												const modelRotationX = model.querySelector( 'p.three-portal-block-rotation-x' )
-												? model.querySelector( 'p.three-portal-block-rotation-x' ).innerText
-												: '';
-
-												const modelRotationY = model.querySelector( 'p.three-portal-block-rotation-y' )
-												? model.querySelector( 'p.three-portal-block-rotation-y' ).innerText
-												: '';
-
-												const modelRotationZ = model.querySelector( 'p.three-portal-block-rotation-z' )
-												? model.querySelector( 'p.three-portal-block-rotation-z' ).innerText
-												: '';
-
-												const url = model.querySelector( 'p.three-portal-block-url' )
-												? model.querySelector( 'p.three-portal-block-url' ).innerText
-												: '';
-
-												const destinationUrl = model.querySelector( 'p.three-portal-block-destination-url' )
-												? model.querySelector( 'p.three-portal-block-destination-url' ).innerText
-												: '';
-
-												const animations = model.querySelector( 'p.three-portal-block-animations' )
-												? model.querySelector( 'p.three-portal-block-animations' ).innerText
-												: '';
-																				
-											return(<Portal 
-												url={url} 
-												destinationUrl={destinationUrl} 
-												positionX={modelPosX} 
-												positionY={modelPosY} 
-												animations={animations} 
-												positionZ={modelPosZ} 
-												scaleX={modelScaleX} 
-												scaleY={modelScaleY} 
-												scaleZ={modelScaleZ} 
-												rotationX={modelRotationX} 
-												rotationY={modelRotationY} 
-												rotationZ={modelRotationZ} 
-												/>);											
-										})}
-										{/* <RigidBody 
-											position={[0, -3, 0]}
-											type="fixed"
-										>
-												<Floor rotation={[-Math.PI / 2, 0, 0]} />
-										</RigidBody> */}
-									</TeleportTravel>
-								</>
-							) }
-					</Physics>
-					</Suspense>
-					{/* <OrbitControls
-						enableZoom={ true }
-					/> */}
-				</VRCanvas>
-			</>
+													const modelPosY = model.querySelector( 'p.three-portal-block-position-y' )
+													? model.querySelector( 'p.three-portal-block-position-y' ).innerText
+													: '';
+												
+													const modelPosZ = model.querySelector( 'p.three-portal-block-position-z' )
+													? model.querySelector( 'p.three-portal-block-position-z' ).innerText
+													: '';
+	
+													const modelScaleX = model.querySelector( 'p.three-portal-block-scale-x' )
+													? model.querySelector( 'p.three-portal-block-scale-x' ).innerText
+													: '';
+	
+													const modelScaleY = model.querySelector( 'p.three-portal-block-scale-y' )
+													? model.querySelector( 'p.three-portal-block-scale-y' ).innerText
+													: '';
+	
+													const modelScaleZ = model.querySelector( 'p.three-portal-block-scale-z' )
+													? model.querySelector( 'p.three-portal-block-scale-z' ).innerText
+													: '';
+	
+													const modelRotationX = model.querySelector( 'p.three-portal-block-rotation-x' )
+													? model.querySelector( 'p.three-portal-block-rotation-x' ).innerText
+													: '';
+	
+													const modelRotationY = model.querySelector( 'p.three-portal-block-rotation-y' )
+													? model.querySelector( 'p.three-portal-block-rotation-y' ).innerText
+													: '';
+	
+													const modelRotationZ = model.querySelector( 'p.three-portal-block-rotation-z' )
+													? model.querySelector( 'p.three-portal-block-rotation-z' ).innerText
+													: '';
+	
+													const url = model.querySelector( 'p.three-portal-block-url' )
+													? model.querySelector( 'p.three-portal-block-url' ).innerText
+													: '';
+	
+													const destinationUrl = model.querySelector( 'p.three-portal-block-destination-url' )
+													? model.querySelector( 'p.three-portal-block-destination-url' ).innerText
+													: '';
+	
+													const animations = model.querySelector( 'p.three-portal-block-animations' )
+													? model.querySelector( 'p.three-portal-block-animations' ).innerText
+													: '';
+																					
+												return(<Portal 
+													url={url} 
+													destinationUrl={destinationUrl} 
+													positionX={modelPosX} 
+													positionY={modelPosY} 
+													animations={animations} 
+													positionZ={modelPosZ} 
+													scaleX={modelScaleX} 
+													scaleY={modelScaleY} 
+													scaleZ={modelScaleZ} 
+													rotationX={modelRotationX} 
+													rotationY={modelRotationY} 
+													rotationZ={modelRotationZ} 
+													/>);											
+											})}
+											{/* <RigidBody 
+												position={[0, -3, 0]}
+												type="fixed"
+											>
+													<Floor rotation={[-Math.PI / 2, 0, 0]} />
+											</RigidBody> */}
+										</TeleportTravel>
+									</>
+								) }
+						</Physics>
+						</Suspense>
+						{/* <OrbitControls
+							enableZoom={ true }
+						/> */}
+					</VRCanvas>
+				</>
+			);
+		}	
+	} else {
+		return(
+			<div style={ {
+				backgroundColor: props.backgroundColor,
+				backgroundImage: `url(${props.previewImage})`,
+				backgroundPosition: 'center',
+				margin: '0',
+				height: '900px',
+				width: '100%',
+				padding: '0',
+				alignItems: 'center',
+				justifyContent: 'center',
+			} }>
+				<div style={ {
+					height: '20px',
+					width: '200px',
+					position: 'relative',
+					top: '50%',
+					left: '50%',
+					padding: '0',
+				} }>
+					<button 
+					onClick={() => setLoaded(true)}
+					style={ {
+						margin: '0 auto',
+						padding: '10px',
+					} }> Enter World </button>
+				</div>
+			</div>
 		);
 	}
 }

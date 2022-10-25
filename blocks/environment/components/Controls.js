@@ -7,6 +7,10 @@ import { PointerLockControls, OrbitControls } from '@react-three/drei';
 import previewOptions from '@wordpress/block-editor/build/components/preview-options';
 import { RigidBody, MeshCollider, useRapier, BallCollider, useRigidBody, RigidBodyApi, useCollider } from '@react-three/rapier';
 
+function touchStarted() {
+	getAudioContext().resume();
+  }
+  
 const Controls = (props) => {
 	const p2pcf = window.p2pcf;
 	const controlsRef = useRef();

@@ -25,7 +25,7 @@ function Plane(props) {
 		<meshBasicMaterial toneMapped={false}>
 			<videoTexture attach="map" args={[video]} encoding={THREE.sRGBEncoding} />
 		</meshBasicMaterial>
-		<planeBufferGeometry args={useAspect(props.aspectWidth, props.aspectHeight)} />
+		<planeGeometry args={useAspect(props.aspectWidth, props.aspectHeight)} />
 	</mesh>
 	);
 }

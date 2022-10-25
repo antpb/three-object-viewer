@@ -27,6 +27,10 @@
             "type": "string",
             "default": null
         },
+        "threePreviewImage": {
+            "type": "string",
+            "default": null
+        },
         "deviceTarget": {
             "type": "string",
             "default": "vr"
@@ -36,7 +40,7 @@
             "default": ""
         }
     },
-    "category": "3D",
+    "category": "design",
     "apiVersion": 2,
     "supports": {
         "html": false,

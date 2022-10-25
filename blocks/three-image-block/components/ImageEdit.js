@@ -18,7 +18,7 @@ function Plane(props) {
 
 	return (
 	<mesh visible position={[0, 0, 0]} rotation={[0, 0, 0]} >
-		<planeBufferGeometry args={useAspect(props.aspectWidth, props.aspectHeight)} />
+		<planeGeometry args={useAspect(props.aspectWidth, props.aspectHeight)} />
 		<meshStandardMaterial side={THREE.DoubleSide} map={texture_1} />
 	</mesh>
 	);

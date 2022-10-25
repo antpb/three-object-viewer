@@ -1,4 +1,5 @@
 const { Component, render } = wp.element;
+import React, { Suspense, useRef, useState, useEffect, useMemo } from 'react';
 
 import EnvironmentFront from './components/EnvironmentFront';
 import Networking from './components/Networking';
@@ -10,11 +11,13 @@ const portalsToAdd = document.querySelectorAll( '.three-object-three-app-three-p
 const sky = document.querySelectorAll( '.three-object-three-app-sky-block' );
 const imagesToAdd = document.querySelectorAll( '.three-object-three-app-image-block' );
 const videosToAdd = document.querySelectorAll( '.three-object-three-app-video-block' );
-
 threeApp.forEach( ( threeApp ) => {
 	if ( threeApp ) {
 		const threeUrl = threeApp.querySelector( 'p.three-object-block-url' )
 			? threeApp.querySelector( 'p.three-object-block-url' ).innerText
+			: '';
+		const threePreviewImage = threeApp.querySelector( 'p.three-object-preview-image' )
+			? threeApp.querySelector( 'p.three-object-preview-image' ).innerText
 			: '';
 		const deviceTarget = threeApp.querySelector(
 			'p.three-object-block-device-target'
@@ -58,6 +61,7 @@ threeApp.forEach( ( threeApp ) => {
 					<p>Messages</p>
 					<div id="messages" style={{display: "none"}}></div>
 					<div class="button" id="send-button">Send Button</div>
+					<button class="button" id="audio-start">Start Audio</button>
 					<button class="button" id="audio-button">Connect Audio</button>
 					<button class="button" id="join-button">Join Public Room</button>
 					<div id="videos"></div>
@@ -85,7 +89,9 @@ threeApp.forEach( ( threeApp ) => {
 					videosToAdd={ videosToAdd }
 					htmlToAdd={htmlToAdd}
 					sky={ sky ? sky : '' }
-				/></>,
+					previewImage={threePreviewImage}
+				/>
+			</>,
 			threeApp
 		);
 	}

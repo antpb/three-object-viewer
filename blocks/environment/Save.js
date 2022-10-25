@@ -30,6 +30,7 @@ export default function save( { attributes } ) {
 						{ attributes.rotationY }
 					</p>
 					<p className="three-object-scale">{ attributes.scale }</p>
+					<p className="three-object-preview-image">{ attributes.threePreviewImage }</p>
 					<p className="three-object-animations">
 						{ attributes.animations }
 					</p>

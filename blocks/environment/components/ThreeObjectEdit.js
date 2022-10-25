@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import React, { Suspense, useRef, useState, useEffect, useMemo } from 'react';
 import { Canvas, useLoader, useFrame, useThree } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import {
 	PerspectiveCamera,
 	OrbitControls,
@@ -102,7 +103,7 @@ function ImageObject( threeImage ) {
 			}}
 		>
 			<mesh ref={imgObj} visible position={[threeImage.positionX, threeImage.positionY, threeImage.positionZ]} scale={[threeImage.scaleX, threeImage.scaleY, threeImage.scaleZ]} rotation={[threeImage.rotationX, threeImage.rotationY, threeImage.rotationZ]} >
-				<planeBufferGeometry args={[threeImage.aspectWidth/12, threeImage.aspectHeight/12]} />
+				<planeGeometry args={[threeImage.aspectWidth/12, threeImage.aspectHeight/12]} />
 				<meshStandardMaterial side={THREE.DoubleSide} map={texture_2} />
 			</mesh>
 		</TransformControls>
@@ -145,7 +146,7 @@ function VideoObject(threeVideo) {
 				<meshBasicMaterial toneMapped={false}>
 					<videoTexture attach="map" args={[video]} encoding={THREE.sRGBEncoding} />
 				</meshBasicMaterial>
-				<planeBufferGeometry args={[threeVideo.aspectWidth/12, threeVideo.aspectHeight/12]} />
+				<planeGeometry args={[threeVideo.aspectWidth/12, threeVideo.aspectHeight/12]} />
 			</mesh>
 		</TransformControls>
 	);
@@ -440,6 +441,10 @@ function ThreeObject( props ) {
 	} );
 
 	const gltf = useLoader( GLTFLoader, url, ( loader ) => {
+		// const dracoLoader = new DRACOLoader();
+		// dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+		// loader.setDRACOLoader(dracoLoader);
+
 		loader.register(
 			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
 		);
@@ -477,7 +482,7 @@ function ThreeObject( props ) {
     gltf.scene.position.set( 0, props.positionY, 0 );
     gltf.scene.rotation.set( 0, props.rotationY, 0 );
     gltf.scene.scale.set( props.scale, props.scale, props.scale );
-	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene])
+	// const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene])
 
 	return(
 		<>									
@@ -619,7 +624,7 @@ function ThreeObject( props ) {
 					transformMode={props.transformMode}
 				/>
 			} */}
-			<primitive object={ copyGltf } />
+			<primitive object={ gltf.scene } />
 		</>
 	);
 }

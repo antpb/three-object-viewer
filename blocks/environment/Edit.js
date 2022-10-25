@@ -33,6 +33,13 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 		setAttributes( { threeObjectUrl: null } );
 		setAttributes( { threeObjectUrl: imageObject.url } );
 	};
+
+	const onPreviewImageSelect = ( imageObject ) => {
+		console.log(imageObject);
+		setAttributes( { threePreviewImage: null } );
+		setAttributes( { threePreviewImage: imageObject.url } );
+	};
+
 	const onChangePositionY = ( posy ) => {
 		setAttributes( { positionY: posy } );
 	};
@@ -106,6 +113,38 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 										{ attributes.threeObjectUrl
 											? 'Replace Object'
 											: 'Select Object' }
+									</button>
+								) }
+							/>
+						</PanelRow>
+						<PanelRow>
+							<span>
+								Select an image to be used as the preview image:
+							</span>
+						</PanelRow>
+						<PanelRow>
+							<span>
+								<img src={attributes.threePreviewImage ? attributes.threePreviewImage : ''}
+									style={ {
+										maxHeight: '150px',
+									} }
+								/>
+							</span>
+						</PanelRow>
+						<PanelRow>
+							<MediaUpload
+								onSelect={ ( imageObject ) =>
+									onPreviewImageSelect( imageObject )
+								}
+								type="image"
+								label="Image File"
+								// allowedTypes={ ALLOWED_MEDIA_TYPES }
+								value={ attributes.threePreviewImage }
+								render={ ( { open } ) => (
+									<button onClick={ open }>
+										{ attributes.threePreviewImage
+											? 'Replace Image'
+											: 'Select Image' }
 									</button>
 								) }
 							/>

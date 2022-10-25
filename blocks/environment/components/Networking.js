@@ -76,6 +76,13 @@ const Networking = (props) => {
         )
     });
 
+    const audio = () => {
+        document.getElementById('audio-start').addEventListener('click', () => {
+            console.log(getAudioContext());
+            getAudioContext().resume();
+        })
+    }
+
     const go = () => {
     document.getElementById('session-id').innerText =
         p2pcf.sessionId.substring(0, 5) + '@' + p2pcf.roomId + ':';
@@ -106,10 +113,12 @@ const Networking = (props) => {
         document
         .getElementById('join-button')
         .addEventListener('click', async () => {
+            window.addEventListener('DOMContentLoaded', audio, { once: true })
         // window.addEventListener('DOMContentLoaded', go, { once: true })
     })
     } else {
         // window.addEventListener('DOMContentLoaded', go, { once: true })
+        window.addEventListener('DOMContentLoaded', audio, { once: true })
     }                                                              
       
 	return (
