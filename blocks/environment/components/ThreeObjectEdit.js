@@ -9,7 +9,8 @@ import {
 	useAnimations,
 	Html,
 	TransformControls,
-	Stats
+	Stats,
+	Select
 } from '@react-three/drei';
 import { VRMUtils, VRMLoaderPlugin  } from '@pixiv/three-vrm'
 import { GLTFAudioEmitterExtension } from 'three-omi';
@@ -78,35 +79,43 @@ function ImageObject( threeImage ) {
 	// console.log(threeImage.aspectWidth, threeImage.aspectHeight);
 	const texture_2 = useLoader(THREE.TextureLoader, threeImage.url);	
 	const imgObj = useRef();
+	const [isSelected, setIsSelected] = useState();
+	const threeImageBlockAttributes = wp.data.select( 'core/block-editor' ).getBlockAttributes(threeImage.imageID);
 
 	return (
-		<TransformControls 
-			enabled={threeImage.selected}
-			mode={threeImage.transformMode}
-			object={ imgObj }
-			size={0.5}
-			onObjectChange={ ( e ) => {
-				const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
-				const scale = e?.target.worldScale;
-				rot.setFromQuaternion(e?.target.worldQuaternion);
-				wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(threeImage.imageID, {
-					positionX: e?.target.worldPosition.x,
-					positionY: e?.target.worldPosition.y,
-					positionZ: e?.target.worldPosition.z, 
-					rotationX: rot.x,
-					rotationY: rot.y,
-					rotationZ: rot.z,
-					scaleX:    scale.x,
-					scaleY:    scale.y,
-					scaleZ:    scale.z
-				})
-			}}
-		>
-			<mesh ref={imgObj} visible position={[threeImage.positionX, threeImage.positionY, threeImage.positionZ]} scale={[threeImage.scaleX, threeImage.scaleY, threeImage.scaleZ]} rotation={[threeImage.rotationX, threeImage.rotationY, threeImage.rotationZ]} >
-				<planeGeometry args={[threeImage.aspectWidth/12, threeImage.aspectHeight/12]} />
-				<meshStandardMaterial side={THREE.DoubleSide} map={texture_2} />
-			</mesh>
-		</TransformControls>
+		<Select box multiple onChange={(e) => {e.length !== 0 ? setIsSelected(true) : setIsSelected(false) }} filter={items => items}>
+			{ isSelected === true ? (<TransformControls 
+				mode={threeImage.transformMode}
+				object={ imgObj }
+				size={0.5}
+				onObjectChange={ ( e ) => {
+					const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
+					const scale = e?.target.worldScale;
+					rot.setFromQuaternion(e?.target.worldQuaternion);
+					wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(threeImage.imageID, {
+						positionX: e?.target.worldPosition.x,
+						positionY: e?.target.worldPosition.y,
+						positionZ: e?.target.worldPosition.z, 
+						rotationX: rot.x,
+						rotationY: rot.y,
+						rotationZ: rot.z,
+						scaleX:    scale.x,
+						scaleY:    scale.y,
+						scaleZ:    scale.z
+					})
+				}}
+			>
+				<mesh ref={imgObj} visible position={[threeImage.positionX, threeImage.positionY, threeImage.positionZ]} scale={[threeImage.scaleX, threeImage.scaleY, threeImage.scaleZ]} rotation={[threeImage.rotationX, threeImage.rotationY, threeImage.rotationZ]} >
+					<planeGeometry args={[threeImage.aspectWidth/12, threeImage.aspectHeight/12]} />
+					<meshStandardMaterial side={THREE.DoubleSide} map={texture_2} />
+				</mesh>
+			</TransformControls>) : (
+				<mesh ref={imgObj} visible position={[threeImageBlockAttributes.positionX, threeImageBlockAttributes.positionY, threeImageBlockAttributes.positionZ]} scale={[threeImageBlockAttributes.scaleX, threeImageBlockAttributes.scaleY, threeImageBlockAttributes.scaleZ]} rotation={[threeImageBlockAttributes.rotationX, threeImageBlockAttributes.rotationY, threeImageBlockAttributes.rotationZ]} >
+					<planeGeometry args={[threeImageBlockAttributes.aspectWidth/12, threeImageBlockAttributes.aspectHeight/12]} />
+					<meshStandardMaterial side={THREE.DoubleSide} map={texture_2} />
+				</mesh>
+			)}
+		</Select>
 	);
 }
 
@@ -115,40 +124,61 @@ function VideoObject(threeVideo) {
 	const clicked = true;
 	const [video] = useState(() => Object.assign(document.createElement('video'), { src: threeVideo.url, crossOrigin: 'Anonymous', loop: true, muted: true }));
 	const videoObj = useRef();
+	const [isSelected, setIsSelected] = useState();
+	const [threeVideoBlockAttributes, setThreeVideoBlockAttributes ] = useState(wp.data.select( 'core/block-editor' ).getBlockAttributes(threeVideo.videoID));
+	const TransformController = ({condition, wrap, children}) => condition ? wrap(children) : children;
+
 
 	useEffect(() => void (clicked && video.play()), [video, clicked]);
 
 	return (
-		<TransformControls 
-		enabled={threeVideo.selected}
-		mode={threeVideo.transformMode}
-		object={ videoObj }
-		size={0.5}
-		onObjectChange={ ( e ) => {
-			const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
-			const scale = e?.target.worldScale;
-			console.log("videoscale", scale);
-			rot.setFromQuaternion(e?.target.worldQuaternion);
-			wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(threeVideo.videoID, {
-				positionX: e?.target.worldPosition.x,
-				positionY: e?.target.worldPosition.y,
-				positionZ: e?.target.worldPosition.z, 
-				rotationX: rot.x,
-				rotationY: rot.y,
-				rotationZ: rot.z,
-				scaleX:    scale.x,
-				scaleY:    scale.y,
-				scaleZ:    scale.z
-		})
-		}}
-		>
-			<mesh ref={ videoObj } scale={[threeVideo.scaleX, threeVideo.scaleY, threeVideo.scaleZ]} position={[threeVideo.positionX, threeVideo.positionY, threeVideo.positionZ]} rotation={[threeVideo.rotationX, threeVideo.rotationY, threeVideo.rotationZ]} >
+		<Select box multiple onChange={(e) => {e.length !== 0 ? setIsSelected(true) : setIsSelected(false) }} filter={items => items}>
+			<TransformController
+				condition={isSelected}
+				wrap={children => (
+					<TransformControls 
+						enabled={isSelected}
+						mode={threeVideo.transformMode ? threeVideo.transformMode : "translate" }
+						object={ videoObj }
+						size={0.5}
+						onMouseUp={ ( e ) => {
+								const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
+								const scale = e?.target.worldScale;
+								rot.setFromQuaternion(e?.target.worldQuaternion);
+								wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(threeVideo.videoID, {
+									positionX: e?.target.worldPosition.x,
+									positionY: e?.target.worldPosition.y,
+									positionZ: e?.target.worldPosition.z, 
+									rotationX: rot.x,
+									rotationY: rot.y,
+									rotationZ: rot.z,
+									scaleX:    scale.x,
+									scaleY:    scale.y,
+									scaleZ:    scale.z
+							})
+							setThreeVideoBlockAttributes(wp.data.select( 'core/block-editor' ).getBlockAttributes(threeVideo.videoID));
+
+							if(threeVideo.shouldFocus){
+								setFocusPosition([e?.target.worldPosition.x, e?.target.worldPosition.y, e?.target.worldPosition.z]);
+								camera.position.set(threeVideo.focusPosition);
+							}
+						}
+					}
+				>
+					{children}
+				</TransformControls>
+			)}
+	    > 
+			{threeVideoBlockAttributes && (
+			<mesh ref={ videoObj } scale={[threeVideoBlockAttributes.scaleX, threeVideoBlockAttributes.scaleY, threeVideoBlockAttributes.scaleZ]} position={[threeVideoBlockAttributes.positionX, threeVideoBlockAttributes.positionY, threeVideoBlockAttributes.positionZ]} rotation={[threeVideoBlockAttributes.rotationX, threeVideoBlockAttributes.rotationY, threeVideoBlockAttributes.rotationZ]} >
 				<meshBasicMaterial toneMapped={false}>
 					<videoTexture attach="map" args={[video]} encoding={THREE.sRGBEncoding} />
 				</meshBasicMaterial>
-				<planeGeometry args={[threeVideo.aspectWidth/12, threeVideo.aspectHeight/12]} />
+				<planeGeometry args={[threeVideoBlockAttributes.aspectWidth/12, threeVideoBlockAttributes.aspectHeight/12]} />
 			</mesh>
-		</TransformControls>
+			)}
+		</TransformController>
+		</Select>
 	);
 }
 
@@ -202,57 +232,62 @@ function ModelObject( model ) {
 	gltf.scene.rotation.set( 0, 0, 0 );
 	const obj = useRef();
 	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene])
+	const [isSelected, setIsSelected] = useState();
+	const [modelBlockAttributes, setModelBlockAttributes ] = useState(wp.data.select( 'core/block-editor' ).getBlockAttributes(model.modelId));
+	const TransformController = ({condition, wrap, children}) => condition ? wrap(children) : children;
 
-	return ( model.transformMode !== undefined ? (<>
-		<TransformControls 
-			enabled={model.selected}
-			mode={model.transformMode ? model.transformMode : "translate" }
-			object={ obj }
-			size={0.5}
-			onObjectChange={ ( e ) => {
-					const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
-					const scale = e?.target.worldScale;
+	return (<>
+		<Select box multiple onChange={(e) => {e.length !== 0 ? setIsSelected(true) : setIsSelected(false) }} filter={items => items}>
+		<TransformController
+			condition={isSelected}
+			wrap={children => (
+				<TransformControls 
+				enabled={isSelected}
+				mode={model.transformMode ? model.transformMode : "translate" }
+				object={ obj }
+				size={0.5}
+				onMouseUp={ ( e ) => {
+						const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
+						const scale = e?.target.worldScale;
+						rot.setFromQuaternion(e?.target.worldQuaternion);
+						wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(model.modelId, { 
+							positionX: e?.target.worldPosition.x,
+							positionY: e?.target.worldPosition.y,
+							positionZ: e?.target.worldPosition.z, 
+							rotationX: rot.x,
+							rotationY: rot.y,
+							rotationZ: rot.z,
+							scaleX:    scale.x,
+							scaleY:    scale.y,
+							scaleZ:    scale.z	 
+						});
+						setModelBlockAttributes(wp.data.select( 'core/block-editor' ).getBlockAttributes(model.modelId));
 
-					rot.setFromQuaternion(e?.target.worldQuaternion);
-					wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(model.modelId, { 
-						positionX: e?.target.worldPosition.x,
-						positionY: e?.target.worldPosition.y,
-						positionZ: e?.target.worldPosition.z, 
-						rotationX: rot.x,
-						rotationY: rot.y,
-						rotationZ: rot.z,
-						scaleX:    scale.x,
-						scaleY:    scale.y,
-						scaleZ:    scale.z	 
-					});
-
-					if(model.shouldFocus){
-						setFocusPosition([e?.target.worldPosition.x, e?.target.worldPosition.y, e?.target.worldPosition.z]);
-						camera.position.set(model.focusPosition);
+						if(model.shouldFocus){
+							setFocusPosition([e?.target.worldPosition.x, e?.target.worldPosition.y, e?.target.worldPosition.z]);
+							camera.position.set(model.focusPosition);
+						}
 					}
 				}
-			}
-		>
-			<group 
-				ref={ obj } 
-				position={[model.positionX, model.positionY, model.positionZ ]}
-				rotation={[ model.rotationX , model.rotationY, model.rotationZ ]}
-				scale={[ model.scaleX , model.scaleY, model.scaleZ ]}
 			>
-				<primitive object={ copyGltf } />
-			</group>
-		</TransformControls>
-	</>) : 	(<>
-		<group 
-			ref={ obj } 
-			position={[model.positionX, model.positionY, model.positionZ ]}
-			rotation={[ model.rotationX , model.rotationY, model.rotationZ ]}
-			scale={[ model.scaleX , model.scaleY, model.scaleZ ]}
-		>
-			<primitive object={ copyGltf } />
-		</group>
-	</>)
-	);    
+				{children}
+			</TransformControls>
+			)}
+	    > 
+		{ modelBlockAttributes && (
+				<group 
+					ref={ obj } 
+					position={[modelBlockAttributes.positionX, modelBlockAttributes.positionY, modelBlockAttributes.positionZ ]}
+					rotation={[ modelBlockAttributes.rotationX , modelBlockAttributes.rotationY, modelBlockAttributes.rotationZ ]}
+					scale={[ modelBlockAttributes.scaleX , modelBlockAttributes.scaleY, modelBlockAttributes.scaleZ ]}
+				>
+					<primitive object={ copyGltf } />
+				</group>			
+			)	
+		}
+		</TransformController>
+		</Select>
+	</>);    
 }
 
 function PortalObject( model ) {

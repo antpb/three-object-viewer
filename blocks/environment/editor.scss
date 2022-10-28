@@ -2,6 +2,14 @@
  .wp-block-three-object-block {
 	border: 1px dotted #f00;
 }
+
+.wp-block-three-object-viewer-environment.alignfull {
+	position: relative;
+	top: 0;
+	bottom: 0;
+	width:100vw;
+	height: 100vh;
+}
  .glb-preview-container {
 	 padding: 100px;
 	 text-align: center;
@@ -29,12 +37,18 @@
 	box-sizing: border-box;
 }
 
-.wp-block-three-object-viewer-sky-block, .wp-block-three-object-viewer-model-block, .wp-block-three-object-viewer-three-image-block, .wp-block-three-object-viewer-three-audio-block, .wp-block-three-object-viewer-three-portal-block, .wp-block-three-object-viewer-three-video-block, .wp-block-three-object-viewer-three-html-block  {
+.wp-block-three-object-viewer-sky-block,
+.wp-block-three-object-viewer-model-block,
+.wp-block-three-object-viewer-three-image-block,
+.wp-block-three-object-viewer-three-audio-block,
+.wp-block-three-object-viewer-three-portal-block,
+.wp-block-three-object-viewer-three-video-block,
+.wp-block-three-object-viewer-three-html-block  {
 	display: flex;
 	float: left;
-	padding-left:10px;
+	padding-left:10px !important;
 	height: auto;
-    padding-right: 10px;
+    padding-right: 10px !important;
     // background-color: rgb(42, 42, 42);
 }
 

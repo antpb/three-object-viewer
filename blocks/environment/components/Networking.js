@@ -51,7 +51,7 @@ const Networking = (props) => {
     console.log(peer.client_id);
 
     if (stream) {
-        peer.addStream(stream)
+        peer.addStream(stream);
     }
     peer.on('track', (track, stream) => {
         console.log('got track', track);
@@ -76,23 +76,16 @@ const Networking = (props) => {
         )
     });
 
-    const audio = () => {
-        document.getElementById('audio-start').addEventListener('click', () => {
-            console.log(getAudioContext());
-            getAudioContext().resume();
-        })
-    }
-
     const go = () => {
     document.getElementById('session-id').innerText =
         p2pcf.sessionId.substring(0, 5) + '@' + p2pcf.roomId + ':';
     
-    document.getElementById('send-button').addEventListener('click', () => {
-        const box = document.getElementById('send-box');
-        addMessage(p2pcf.sessionId.substring(0, 5) + ': ' + box.value);
-        p2pcf.broadcast(new TextEncoder().encode(box.value));
-        box.value = '';
-    })
+    // document.getElementById('send-button').addEventListener('click', () => {
+    //     const box = document.getElementById('send-box');
+    //     addMessage(p2pcf.sessionId.substring(0, 5) + ': ' + box.value);
+    //     p2pcf.broadcast(new TextEncoder().encode(box.value));
+    //     box.value = '';
+    // })
     
     document
         .getElementById('audio-button')
@@ -117,8 +110,7 @@ const Networking = (props) => {
         // window.addEventListener('DOMContentLoaded', go, { once: true })
     })
     } else {
-        // window.addEventListener('DOMContentLoaded', go, { once: true })
-        window.addEventListener('DOMContentLoaded', audio, { once: true })
+        window.addEventListener('DOMContentLoaded', go, { once: true })
     }                                                              
       
 	return (

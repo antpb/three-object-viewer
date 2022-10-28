@@ -60,10 +60,8 @@ threeApp.forEach( ( threeApp ) => {
 					<div id="peers"></div>
 					<p>Messages</p>
 					<div id="messages" style={{display: "none"}}></div>
-					<div class="button" id="send-button">Send Button</div>
-					<button class="button" id="audio-start">Start Audio</button>
+					{/* <div class="button" id="send-button">Send Button</div> */}
 					<button class="button" id="audio-button">Connect Audio</button>
-					<button class="button" id="join-button">Join Public Room</button>
 					<div id="videos"></div>
 				</div>
 				<Networking

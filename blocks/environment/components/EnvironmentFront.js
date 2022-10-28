@@ -2,10 +2,11 @@ import * as THREE from 'three';
 import React, { Suspense, useRef, useState, useEffect, useMemo } from 'react';
 import { Canvas, useLoader, useFrame, useThree } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-// import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
 import { Physics, RigidBody, MeshCollider, Debug } from "@react-three/rapier";
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
+import Networking from './Networking';
 
 import {
 	useAnimations,
@@ -48,15 +49,16 @@ function Participant( participant ) {
 		playerController.scene.rotation.set( 0, rotationVRM, 0 );
 		playerController.scene.scale.set( 1, 1, 1 );
 		const theScene = useThree();
-		// participant.p2pcf.on('msg', (peer, data) => {
-		// 	let finalData = new TextDecoder('utf-8').decode(data);
-		// 	const participantData = JSON.parse( finalData );
-		// 	const participantObject = theScene.scene.getObjectByName(peer.client_id);
-		// 	if(participantObject){
-		// 		participantObject.position.set(participantData[peer.client_id][0]["position"][0], participantData[peer.client_id][0]["position"][1], participantData[peer.client_id][0]["position"][2] );
-		// 		participantObject.rotation.set(participantData[peer.client_id][1]["rotation"][0], participantData[peer.client_id][1]["rotation"][1], participantData[peer.client_id][1]["rotation"][2] );
-		// 	}
-		// });
+
+		participant.p2pcf.on('msg', (peer, data) => {
+			let finalData = new TextDecoder('utf-8').decode(data);
+			const participantData = JSON.parse( finalData );
+			const participantObject = theScene.scene.getObjectByName(peer.client_id);
+			if(participantObject){
+				participantObject.position.set(participantData[peer.client_id][0]["position"][0], participantData[peer.client_id][0]["position"][1], participantData[peer.client_id][0]["position"][2] );
+				participantObject.rotation.set(participantData[peer.client_id][1]["rotation"][0], participantData[peer.client_id][1]["rotation"][1], participantData[peer.client_id][1]["rotation"][2] );
+			}
+		});
 
 		// participant.p2pcf.on('peerclose', peer => {
 		// 	const participantObject = theScene.scene.getObjectByName(peer.client_id);
@@ -66,11 +68,12 @@ function Participant( participant ) {
 		// 	console.log('Peer close', peer.id, peer);
 		// 	// removePeerUi(peer.id)
 		// })
-			  
+
+		const modelClone = SkeletonUtils.clone(playerController.scene);
 	
 		return (
 			<>
-				{playerController && <primitive name={participant.name} object={ playerController.scene } />}
+				{playerController && <primitive name={participant.name} object={ modelClone } />}
 			</>
 		);
 	}
@@ -127,7 +130,7 @@ function ModelObject( model ) {
 	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene]);
 	const modelClone = SkeletonUtils.clone(gltf.scene);
 	console.log("model clone", modelClone);
-	console.log("scene", gltf.scene);
+	console.log("copygltf", copyGltf);
 	if(model.collidable === "1"){
 		return(<>
 			<RigidBody 
@@ -152,14 +155,12 @@ function ModelObject( model ) {
 			</>);
 	} else {
 		return <>
-		{/* <A11y role="content" description={model.alt} showAltText > */}
 			<primitive 
-				object={ modelClone }
+				object={ gltf.scene }
 				rotation={[model.rotationX , model.rotationY, model.rotationZ]}
 				position={[model.positionX, model.positionY, model.positionZ]}
 				scale={[model.scaleX , model.scaleY, model.scaleZ]}
 			/>
-		{/* </A11y> */}
 	</>;    
 	}
 }
@@ -290,10 +291,8 @@ function Markup( model ) {
 	</>);    
 }
 
-function SavedObject( props ) {
+function Participants( props ) {
 	const [ participants, setParticipant ] = useState([]);
-	const meshRef = useRef();
-
 	const p2pcf = window.p2pcf;
 	if(p2pcf){
 		p2pcf.on('peerconnect', peer => {
@@ -301,6 +300,23 @@ function SavedObject( props ) {
 			setParticipant(current => [...current, peer.client_id]);	
 		})
 	}
+	return(<>
+		{ participants && participants.map((item, index)=>{
+			return (
+				<>
+					<Participant
+						name={item}
+						p2pcf={p2pcf}
+					/>
+				</>
+			)})
+		}
+		</>);
+}
+
+function SavedObject( props ) {
+	const meshRef = useRef();
+
 
 	const [ url, set ] = useState( props.url );
 	useEffect( () => {
@@ -313,9 +329,9 @@ function SavedObject( props ) {
 	} );
 
 	const gltf = useLoader( GLTFLoader, url, ( loader ) => {
-		// const dracoLoader = new DRACOLoader();
-		// dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
-		// loader.setDRACOLoader(dracoLoader);
+		const dracoLoader = new DRACOLoader();
+		dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+		loader.setDRACOLoader(dracoLoader);
 
 		loader.register(
 			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
@@ -326,6 +342,7 @@ function SavedObject( props ) {
         } );
 	} );
 
+	console.log("hopefordraco", gltf.userData.gltfExtensions);
 	//OMI_collider logic.
 	let childrenToParse = [];
 	let collidersToAdd = [];
@@ -353,7 +370,6 @@ function SavedObject( props ) {
 		// gltf.scene.remove(child.name);
 	});
 
-	// console.log("colliders to add", collidersToAdd);
 	// End OMI_collider logic.
 
 	const { actions } = useAnimations( gltf.animations, gltf.scene );
@@ -386,8 +402,8 @@ function SavedObject( props ) {
 
 	if(collidersToAdd.length === 0){
 		return (<RigidBody type="fixed" colliders="trimesh">
-		<primitive object={ gltf.scene } />
-		</RigidBody>)				
+					<primitive object={ gltf.scene } />
+				</RigidBody>)				
 	}
 
 	return(<>
@@ -436,16 +452,6 @@ function SavedObject( props ) {
 						</RigidBody>)				
 			}
 		})}
-		{ participants && participants.map((item, index)=>{
-			return (
-				<>
-					<Participant
-						name={item}
-						p2pcf={p2pcf}
-					/>
-				</>
-			)})
-		}
 	</>);
 }
 
@@ -461,7 +467,7 @@ export default function EnvironmentFront( props ) {
 						style={ {
 							backgroundColor: props.backgroundColor,
 							margin: '0',
-							height: '900px',
+							height: '100vh',
 							width: '100%',
 							padding: '0',
 						} }
@@ -483,9 +489,10 @@ export default function EnvironmentFront( props ) {
 							<RigidBody></RigidBody>
 							{/* <Debug />			 */}
 								{ props.threeUrl && (
-									<>						
+									<>		
 										<TeleportTravel useNormal={ false }>
 											<Player/>
+											<Participants/>
 											<SavedObject
 											positionY={ props.positionY }
 											rotationY={ props.rotationY }
