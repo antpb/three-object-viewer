@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, componentDidMount } from 'react';
 // import { Raycaster, Vector3, Math, Euler } from 'three';
 import * as THREE from 'three';
 
@@ -10,7 +10,7 @@ import { RigidBody, MeshCollider, useRapier, BallCollider, useRigidBody, RigidBo
 function touchStarted() {
 	getAudioContext().resume();
   }
-  
+ 
 const Controls = (props) => {
 	const p2pcf = window.p2pcf;
 	const controlsRef = useRef();
@@ -20,11 +20,19 @@ const Controls = (props) => {
 	const [ moveBackward, setMoveBackward ] = useState( false );
 	const [ moveLeft, setMoveLeft ] = useState( false );
 	const [ moveRight, setMoveRight ] = useState( false );
+	const [ spawnPos, setSpawnPos ] = useState();
 	const [ jump, setJump ] = useState( false );
 	const currentRigidbody = useRigidBody();
 	const {world, rapier} = useRapier();
 	let ray = new rapier.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
 	const {camera, scene} = useThree();
+	console.log("your spawnpoint", props.spawnPoint);
+
+	useEffect( () => {
+		setSpawnPos(props.spawnPoint);
+		// console.log("janky point", spawnPos);
+	}, []);
+
 	useFrame( () => {
 
 		const playerThing = world.getRigidBody(props.something.current.handle);
@@ -151,6 +159,9 @@ const Controls = (props) => {
 				setLock(false);
 				break;
 			case "Space":
+				// camera.position.set(spawnPos[0], spawnPos[1], spawnPos[2]);
+				controlsRef.current.camera.position.set(spawnPos[0], spawnPos[1], spawnPos[2]);
+				setLock(false);
 				window.addEventListener('keydown', (e) => {
 					if (e.keyCode === 32 && e.target === document.body) {
 						e.preventDefault();
@@ -185,6 +196,7 @@ const Controls = (props) => {
 
 			case "Space":
 				setJump(false);
+				setLock(true);
 				break;
 	
 			case 'ArrowRight':

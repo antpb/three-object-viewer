@@ -41,6 +41,9 @@ include_once dirname( __FILE__ ) . '/blocks/three-portal-block/init.php';
 // Include html
 include_once dirname( __FILE__ ) . '/blocks/three-html-block/init.php';
 
+// Include spawn point
+include_once dirname( __FILE__ ) . '/blocks/spawn-point-block/init.php';
+
 /**
 * Include the autoloader
 */

@@ -10,9 +10,11 @@ const htmlToAdd = document.querySelectorAll( '.three-object-three-app-three-html
 const portalsToAdd = document.querySelectorAll( '.three-object-three-app-three-portal-block' );
 const sky = document.querySelectorAll( '.three-object-three-app-sky-block' );
 const imagesToAdd = document.querySelectorAll( '.three-object-three-app-image-block' );
+const spawnToAdd = document.querySelectorAll( '.three-object-three-app-spawn-point-block' );
 const videosToAdd = document.querySelectorAll( '.three-object-three-app-video-block' );
 threeApp.forEach( ( threeApp ) => {
 	if ( threeApp ) {
+		const spawnPoint = [spawnToAdd[0].querySelector( 'p.spawn-point-block-positionX' ).innerText, spawnToAdd[0].querySelector( 'p.spawn-point-block-positionY' ).innerText, spawnToAdd[0].querySelector( 'p.spawn-point-block-positionZ' ).innerText ]
 		const threeUrl = threeApp.querySelector( 'p.three-object-block-url' )
 			? threeApp.querySelector( 'p.three-object-block-url' ).innerText
 			: '';
@@ -85,6 +87,7 @@ threeApp.forEach( ( threeApp ) => {
 					portalsToAdd={ portalsToAdd }
 					imagesToAdd={ imagesToAdd }
 					videosToAdd={ videosToAdd }
+					spawnPoint={ spawnPoint }
 					htmlToAdd={htmlToAdd}
 					sky={ sky ? sky : '' }
 					previewImage={threePreviewImage}

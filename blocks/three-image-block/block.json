@@ -53,6 +53,7 @@
         }
     },
     "category": "design",
+    "parent":  [ "three-object-viewer/environment" ],
     "apiVersion": 2,
     "supports": {
         "html": false,

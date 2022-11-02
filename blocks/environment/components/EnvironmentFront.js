@@ -342,7 +342,6 @@ function SavedObject( props ) {
         } );
 	} );
 
-	console.log("hopefordraco", gltf.userData.gltfExtensions);
 	//OMI_collider logic.
 	let childrenToParse = [];
 	let collidersToAdd = [];
@@ -428,9 +427,6 @@ function SavedObject( props ) {
 			var quaternion = item[0].getWorldQuaternion(quat);
 			var finalRotation = rotation.setFromQuaternion(quaternion);
 			
-			// console.log("someitem", item);
-			//'ball' | 'cuboid' | 'hull' | 'trimesh' | false;
-			// rotation={item[0].rotation} position={item[0].position} 
 			if(item[1].type === "mesh"){
 				return (<RigidBody type="fixed" colliders="trimesh">
 							<primitive rotation={finalRotation} position={item[0].getWorldPosition(pos)} object={ item[0] } />
@@ -462,7 +458,12 @@ export default function EnvironmentFront( props ) {
 			return (
 				<>
 					<VRCanvas
-						camera={ { fov: 50, zoom: 1, far: 2000, position: [ 0, 0, 20 ] } }
+						camera={ { 
+							fov: 50,
+							zoom: 1,
+							far: 2000,
+							position: [0,0,20] 
+						} }
 						shadowMap
 						style={ {
 							backgroundColor: props.backgroundColor,
@@ -491,7 +492,9 @@ export default function EnvironmentFront( props ) {
 								{ props.threeUrl && (
 									<>		
 										<TeleportTravel useNormal={ false }>
-											<Player/>
+											<Player
+											spawnPoint={props.spawnPoint}
+											/>
 											<Participants/>
 											<SavedObject
 											positionY={ props.positionY }

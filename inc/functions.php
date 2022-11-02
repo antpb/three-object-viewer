@@ -134,7 +134,8 @@ function threeobjectviewer_editor_assets() {
                          'three-object-viewer/npc-block',
                          'three-object-viewer/three-image-block',
                          'three-object-viewer/three-video-block',
-                         'three-object-viewer/three-audio-block' 
+                         'three-object-viewer/three-audio-block',
+                         'three-object-viewer/spawn-point-block' 
                     ];
     $ALLOWED_BLOCKS = apply_filters( 'three-object-environment-inner-allowed-blocks', $DEFAULT_BLOCKS );
 

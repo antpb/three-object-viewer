@@ -15,7 +15,8 @@
             "three-video-block",
             "three-audio-block",
             "three-portal-block",
-            "three-html-block"
+            "three-html-block",
+            "spawn-point-block"
         ]
     },
     "buildIncludes": [
@@ -32,6 +33,7 @@
         "blocks/three-image-block/init.php",
         "blocks/three-video-block/init.php",
         "blocks/three-portal-block/init.php",
+        "blocks/spawn-point-block/init.php",
         "admin/three-object-viewer-settings/init.php"
     ]
 }

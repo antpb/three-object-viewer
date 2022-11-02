@@ -62,18 +62,65 @@ function Markup( model ) {
 }
 
 function Sky( sky ) {
-		const skyUrl = sky.src.skyUrl;
-		if(skyUrl){
-			const texture_1 = useLoader(THREE.TextureLoader, skyUrl);
+	const skyUrl = sky.src.skyUrl;
+	if(skyUrl){
+		const texture_1 = useLoader(THREE.TextureLoader, skyUrl);
 
-			return (
-				<mesh visible position={[0, 0, 0]} scale={[200,200,200]} rotation={[0, 0, 0]} >
-					<sphereBufferGeometry args={[5, 200, 200]} />
-					<meshStandardMaterial side={THREE.DoubleSide} map={texture_1} />
-				</mesh>
-				);	
-		}
+		return (
+			<mesh visible position={[0, 0, 0]} scale={[200,200,200]} rotation={[0, 0, 0]} >
+				<sphereBufferGeometry args={[5, 200, 200]} />
+				<meshStandardMaterial side={THREE.DoubleSide} map={texture_1} />
+			</mesh>
+			);	
+	}
 }
+
+function Spawn( spawn ) {
+	const spawnObj = useRef();
+	const [isSelected, setIsSelected] = useState();
+	const spawnBlockAttributes = wp.data.select( 'core/block-editor' ).getBlockAttributes(spawn.spawnpointID);
+	const TransformController = ({condition, wrap, children}) => condition ? wrap(children) : children;
+	if(spawn){
+		return (
+			<Select box multiple onChange={(e) => {e.length !== 0 ? setIsSelected(true) : setIsSelected(false) }} filter={items => items}>
+			<TransformController
+			condition={isSelected}
+			wrap={children => (
+			<TransformControls 
+				mode={spawn.transformMode}
+				object={ spawnObj }
+				size={0.5}
+				onObjectChange={ ( e ) => {
+					const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
+					const scale = e?.target.worldScale;
+					rot.setFromQuaternion(e?.target.worldQuaternion);
+					wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(spawn.spawnpointID, {
+						positionX: e?.target.worldPosition.x,
+						positionY: e?.target.worldPosition.y,
+						positionZ: e?.target.worldPosition.z, 
+						rotationX: rot.x,
+						rotationY: rot.y,
+						rotationZ: rot.z,
+						scaleX:    scale.x,
+						scaleY:    scale.y,
+						scaleZ:    scale.z
+					})
+				}}
+			>
+				{children}
+			</TransformControls>)}>
+				{spawnBlockAttributes && (
+					<mesh ref={spawnObj} visible position={[spawnBlockAttributes.positionX, spawnBlockAttributes.positionY, spawnBlockAttributes.positionZ]} scale={[1,1,1]} rotation={[0, 0, 0]} >
+						<boxGeometry args={[1, 0.2, 1]} />
+						<meshStandardMaterial side={THREE.DoubleSide} color="0x00ff00" />
+					</mesh>
+				)}
+			</TransformController>
+			</Select>
+			);	
+	}
+}
+
 
 function ImageObject( threeImage ) {
 	// console.log(threeImage.aspectWidth, threeImage.aspectHeight);
@@ -291,6 +338,10 @@ function ModelObject( model ) {
 }
 
 function PortalObject( model ) {
+	const [isSelected, setIsSelected] = useState();
+	const [portalBlockAttributes, setPortalBlockAttributes ] = useState(wp.data.select( 'core/block-editor' ).getBlockAttributes(model.portalID));
+	const TransformController = ({condition, wrap, children}) => condition ? wrap(children) : children;
+
 	const [ url, set ] = useState( model.url );
 	useEffect( () => {
 		setTimeout( () => set( model.url ), 2000 );
@@ -341,61 +392,65 @@ function PortalObject( model ) {
 	const obj = useRef();
 	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene])
 
-	return ( model.transformMode !== undefined ? (<>
-		<TransformControls 
-			enabled={model.selected}
-			mode={model.transformMode ? model.transformMode : "translate" }
-			object={ obj }
-			size={0.5}
-			onObjectChange={ ( e ) => {
-					const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
-					const scale = e?.target.worldScale;
+	return (<>
+		<Select box multiple onChange={(e) => {e.length !== 0 ? setIsSelected(true) : setIsSelected(false) }} filter={items => items}>
+			<TransformController
+				condition={isSelected}
+				wrap={children => (
+					<TransformControls 
+					enabled={isSelected}
+					mode={model.transformMode ? model.transformMode : "translate" }
+					object={ obj }
+					size={0.5}
+					onMouseUp={ ( e ) => {
+							const rot = new THREE.Euler( 0, 0, 0, 'XYZ' );
+							const scale = e?.target.worldScale;
+							rot.setFromQuaternion(e?.target.worldQuaternion);
+							wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(model.portalID, { 
+								positionX: e?.target.worldPosition.x,
+								positionY: e?.target.worldPosition.y,
+								positionZ: e?.target.worldPosition.z, 
+								rotationX: rot.x,
+								rotationY: rot.y,
+								rotationZ: rot.z,
+								scaleX:    scale.x,
+								scaleY:    scale.y,
+								scaleZ:    scale.z	 
+							});
+							setPortalBlockAttributes(wp.data.select( 'core/block-editor' ).getBlockAttributes(model.portalID));
 
-					rot.setFromQuaternion(e?.target.worldQuaternion);
-					wp.data.dispatch( 'core/block-editor' ).updateBlockAttributes(model.portalID, { 
-						positionX: e?.target.worldPosition.x,
-						positionY: e?.target.worldPosition.y,
-						positionZ: e?.target.worldPosition.z, 
-						rotationX: rot.x,
-						rotationY: rot.y,
-						rotationZ: rot.z,
-						scaleX: scale.x,
-						scaleY: scale.y,
-						scaleZ: scale.z
-					});
-
-					if(model.shouldFocus){
-						// model.setFocusPosition([e?.target.worldPosition.x, e?.target.worldPosition.y, e?.target.worldPosition.z]);
-						// camera.position.set(model.focusPosition);
+							if(model.shouldFocus){
+								setFocusPosition([e?.target.worldPosition.x, e?.target.worldPosition.y, e?.target.worldPosition.z]);
+								camera.position.set(model.focusPosition);
+							}
+						}
 					}
-				}
-			}
-		>
-			<group 
-				ref={ obj } 
-				position={[model.positionX, model.positionY, model.positionZ ]}
-				rotation={[ model.rotationX , model.rotationY, model.rotationZ ]}
-				scale={[ model.scaleX , model.scaleY, model.scaleZ ]}
-			>
-				<primitive object={ copyGltf } />
-			</group>
-		</TransformControls>
-	</>) : 	(<>
-		<group 
-			ref={ obj } 
-			position={[model.positionX, model.positionY, model.positionZ ]}
-			rotation={[ model.rotationX , model.rotationY, model.rotationZ ]}
-			scale={[ model.scaleX , model.scaleY, model.scaleZ ]}
-		>
-			<primitive object={ copyGltf } />
-		</group>
-	</>)
-	);    
+				>
+					{children}
+				</TransformControls>
+				)}
+			> 
+			{ portalBlockAttributes && (
+				<group 
+					ref={ obj } 
+					position={[portalBlockAttributes.positionX, portalBlockAttributes.positionY, portalBlockAttributes.positionZ ]}
+					rotation={[ portalBlockAttributes.rotationX , portalBlockAttributes.rotationY, portalBlockAttributes.rotationZ ]}
+					scale={[ portalBlockAttributes.scaleX , portalBlockAttributes.scaleY, portalBlockAttributes.scaleZ ]}
+				>
+					<primitive object={ copyGltf } />
+				</group>
+			)}
+			</TransformController>
+		</Select>
+	</>);    
 }
 
 function ThreeObject( props ) {
 	let skyobject;
 	let skyobjectId;
+
+	let spawnpoint;
+	let spawnpointID;
 
 	let modelobject;
 	let modelID;
@@ -428,6 +483,10 @@ function ThreeObject( props ) {
 						if(innerBlock.name === "three-object-viewer/sky-block"){
 							skyobject = innerBlock.attributes;
 							skyobjectId = innerBlock.clientId;
+						}
+						if(innerBlock.name === "three-object-viewer/spawn-point-block"){
+							spawnpoint = innerBlock.attributes;
+							spawnpointID = innerBlock.clientId;
 						}
 						if(innerBlock.name === "three-object-viewer/model-block"){
 							modelobject = innerBlock.attributes;
@@ -522,6 +581,16 @@ function ThreeObject( props ) {
 	return(
 		<>									
 			{skyobject && <Sky skyobjectId={skyobjectId} src={ skyobject }/>}
+			{spawnpoint && <Spawn 
+					spawnpointID={spawnpointID} 
+					positionX={spawnpoint.positionX} 
+					positionY={spawnpoint.positionY} 
+					positionZ={spawnpoint.positionZ}
+					transformMode={props.transformMode}
+					setFocusPosition={props.setFocusPosition}
+					shouldFocus={props.shouldFocus}
+				/>
+			}
 			{ Object.values(editorModelsToAdd).map((model, index)=>{
 					if(model.modelobject.threeObjectUrl){
 					return(

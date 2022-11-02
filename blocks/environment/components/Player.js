@@ -86,6 +86,7 @@ export default function Player( props ) {
 								id={rapierId}
 								point={contactPoint}
 								something={rigidRef}
+								spawnPoint={props.spawnPoint}
 							/>
 							<primitive name="playerOne" object={ playerController.scene } />
 						</RigidBody>
