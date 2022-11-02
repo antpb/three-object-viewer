@@ -1,4 +1,5 @@
-import { Raycaster, Vector3 } from 'three';
+import { Raycaster, Vector3, ImageUtils } from 'three';
+import { TextureLoader } from 'three/src/loaders/TextureLoader'
 import { useXR, Interactive } from '@react-three/xr';
 import { useFrame, useLoader, useThree } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
@@ -6,7 +7,7 @@ import Controls from './Controls';
 
 import { useCallback, useRef, useState, useEffect } from 'react';
 import { RigidBody, MeshCollider, useRapier, usePhysics, useRigidBody, BallCollider, CapsuleCollider, RigidBodyApi } from '@react-three/rapier';
-import defaultVRM from '../../../inc/avatars/mummy.vrm';
+import defaultVRM from '../../../inc/avatars/3ov_default_avatar.vrm';
 import { VRM, VRMUtils, VRMSchema, VRMLoaderPlugin  } from '@pixiv/three-vrm'
 
 export default function Player( props ) {
@@ -33,6 +34,7 @@ export default function Player( props ) {
 	// Participant VRM.
 	const fallbackURL = threeObjectPlugin + defaultVRM;
 	const playerURL = userData.vrm ? userData.vrm : fallbackURL;
+	console.log("profile image url", userData.profileImage);
 
 	const someSceneState = useLoader( GLTFLoader, playerURL, ( loader ) => {
 		loader.register( ( parser ) => {
@@ -42,6 +44,8 @@ export default function Player( props ) {
 
 	if(someSceneState?.userData?.gltfExtensions?.VRM){
 		const playerController = someSceneState.userData.vrm;
+		const loadedProfile = useLoader(TextureLoader, userData.profileImage)
+
 		// VRMUtils.rotateVRM0( playerController );
 		// console.log("vrm", playerController);
 		useEffect(()=>{
@@ -88,7 +92,7 @@ export default function Player( props ) {
 								something={rigidRef}
 								spawnPoint={props.spawnPoint}
 							/>
-							<primitive name="playerOne" object={ playerController.scene } />
+							<primitive name="playerOne" children-0-children-1-material-color="red" object={ playerController.scene } />
 						</RigidBody>
 					</>
 					)

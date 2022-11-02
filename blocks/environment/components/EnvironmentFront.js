@@ -27,7 +27,8 @@ import { Perf } from 'r3f-perf';
 import { VRM, VRMUtils, VRMSchema, VRMLoaderPlugin  } from '@pixiv/three-vrm'
 import TeleportTravel from './TeleportTravel';
 import Player from './Player';
-import defaultVRM from '../../../inc/avatars/mummy.vrm';
+import defaultVRM from '../../../inc/avatars/3ov_default_avatar.vrm';
+
 import { useAspect } from '@react-three/drei';
 import { Button } from '@wordpress/components';
 

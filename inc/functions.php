@@ -87,6 +87,7 @@ function threeobjectviewer_frontend_assets() {
         'inWorldName' => $current_user->in_world_name,
         'banner' => $current_user->custom_banner,
         'vrm' => $vrm,
+        'profileImage' => get_avatar_url( $current_user->ID )
      );
      
     $three_object_plugin = plugins_url() . '/three-object-viewer/build/';

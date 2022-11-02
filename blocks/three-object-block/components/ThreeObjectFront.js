@@ -19,7 +19,7 @@ import {
 } from '@react-three/xr';
 import { VRM, VRMUtils, VRMSchema, VRMLoaderPlugin  } from '@pixiv/three-vrm'
 import TeleportTravel from './TeleportTravel';
-import defaultVRM from '../../../inc/avatars/mummy.vrm';
+import defaultVRM from '../../../inc/avatars/3ov_default_avatar.vrm';
 
 function SavedObject( props ) {
 	const [ url, set ] = useState( props.url );

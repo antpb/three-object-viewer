@@ -8,7 +8,7 @@ import {
 	useAnimations,
 } from '@react-three/drei';
 import * as THREE from 'three';
-import defaultAikonaut from '../../inc/avatars/mummy.vrm';
+import defaultProfileVRM from '../../inc/avatars/3ov_default_avatar.vrm';
 
 function SavedObject( props ) {
 	const [ url, set ] = useState( props.url );
@@ -20,7 +20,7 @@ function SavedObject( props ) {
 	useThree( ( { camera } ) => {
 		camera.add( listener );
 	} );
-	const fallbackURL = threeObjectPlugin + defaultAikonaut;
+	const fallbackURL = threeObjectPlugin + defaultProfileVRM;
 	const playerURL = props.url ? props.url : fallbackURL;
 
 	const someSceneState = useLoader( GLTFLoader, playerURL, ( loader ) => {
