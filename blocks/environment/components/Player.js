@@ -25,7 +25,6 @@ export default function Player( props ) {
 			// var posY = participantObject.userData.vrm.firstPerson.humanoid.humanBones.head.position.y;
 			// camera.position.setY( posY + 1.5 );
 			camera.position.setY( posY + 1.5 );
-			// console.log(camera.rotation.y);
 			// participantObject.rotation.set([0, camera.rotation.y, 0]);
 			// participantObject.rotation.set(camera.rotation);
 		}
@@ -34,7 +33,6 @@ export default function Player( props ) {
 	// Participant VRM.
 	const fallbackURL = threeObjectPlugin + defaultVRM;
 	const playerURL = userData.vrm ? userData.vrm : fallbackURL;
-	console.log("profile image url", userData.profileImage);
 
 	const someSceneState = useLoader( GLTFLoader, playerURL, ( loader ) => {
 		loader.register( ( parser ) => {
@@ -45,15 +43,19 @@ export default function Player( props ) {
 	if(someSceneState?.userData?.gltfExtensions?.VRM){
 		const playerController = someSceneState.userData.vrm;
 		const loadedProfile = useLoader(TextureLoader, userData.profileImage)
-
-		// VRMUtils.rotateVRM0( playerController );
-		// console.log("vrm", playerController);
+		playerController.scene.traverse( ( obj ) => {
+			if(obj.name === "profile"){
+				var newMat = obj.material.clone();
+				newMat.map = loadedProfile;
+				obj.material = newMat;
+				obj.material.map.needsUpdate = true;
+			}
+		});
+		VRMUtils.rotateVRM0( playerController );
 		useEffect(()=>{
-			console.log(playerController.firstPerson.humanoid.humanBones.head.node);
 			setHeadPoint(playerController.firstPerson.humanoid.humanBones.head.node.position.y);
 		}, [])
 		playerController.firstPerson.humanoid.humanBones.head.node.scale.set([0,0,0]);
-		// console.log(playerController);
 		// const rotationVRM = playerController.scene.rotation.y;
 		// playerController.scene.rotation.set( 0, rotationVRM, 0 );
 		// playerController.scene.scale.set( 1, 1, 1 );
@@ -72,9 +74,6 @@ export default function Player( props ) {
 							mass={0}
 							type={"dynamic"}
 							onCollisionEnter={ ({manifold, target}) => {
-								// console.log("data1", target.colliderSet.map.data[1]);
-								// console.log(manifold.solverContactPoint(0));
-								// console.log("handle", target.handle);
 								setRapierId(target.colliderSet.map.data[1]);
 								setContactPoint(manifold.solverContactPoint(0));
 							}}
@@ -92,7 +91,7 @@ export default function Player( props ) {
 								something={rigidRef}
 								spawnPoint={props.spawnPoint}
 							/>
-							<primitive name="playerOne" children-0-children-1-material-color="red" object={ playerController.scene } />
+							<primitive visible={false} name="playerOne" object={ playerController.scene } />
 						</RigidBody>
 					</>
 					)

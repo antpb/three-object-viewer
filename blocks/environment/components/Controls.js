@@ -26,11 +26,9 @@ const Controls = (props) => {
 	const {world, rapier} = useRapier();
 	let ray = new rapier.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
 	const {camera, scene} = useThree();
-	console.log("your spawnpoint", props.spawnPoint);
 
 	useEffect( () => {
 		setSpawnPos(props.spawnPoint);
-		// console.log("janky point", spawnPos);
 	}, []);
 
 	useFrame( () => {
@@ -64,14 +62,13 @@ const Controls = (props) => {
 
 			if (hit) {
 				let hitPoint = ray.pointAt(hit.toi);
-				// console.log("hit!", hitPoint);
 				playerThing.setTranslation({x: controlsRef.current.camera.position.x, y: hitPoint.y, z: controlsRef.current.camera.position.z });
 				camera.position.setY( hitPoint.y + 0.001);	
 			}
 			if(p2pcf){
 				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
 				let rotation = [controlsRef.current.camera.rotation.x, controlsRef.current.camera.rotation.y, controlsRef.current.camera.rotation.z ];
-				let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]},{ "rotation" : [`+ rotation +`]}]}`;
+				let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]},{ "rotation" : [`+ rotation +`]},{ "profileImage" : ["`+ userData.profileImage +`"]}]}`;
 				p2pcf.broadcast(new TextEncoder().encode(message));
 			}
 		} else if ( moveLeft ) {
@@ -82,14 +79,13 @@ const Controls = (props) => {
 		
 			if (hit) {
 				let hitPoint = ray.pointAt(hit.toi); // Same as: `ray.origin + ray.dir * toi`
-				// console.log("hit!", hitPoint);
 				playerThing.setTranslation({x: controlsRef.current.camera.position.x, y: hitPoint.y, z: controlsRef.current.camera.position.z });
 
 			}
 			if(p2pcf){
 				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
 				let rotation = [controlsRef.current.camera.rotation.x, controlsRef.current.camera.rotation.y, controlsRef.current.camera.rotation.z ];
-				let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]},{ "rotation" : [`+ rotation +`]}]}`;
+				let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]},{ "rotation" : [`+ rotation +`]},{ "profileImage" : ["`+ userData.profileImage +`"]}]}`;
 				p2pcf.broadcast(new TextEncoder().encode(message));
 			}
 		} else if ( moveBackward ) {
@@ -101,14 +97,13 @@ const Controls = (props) => {
 		
 			if (hit) {
 				let hitPoint = ray.pointAt(hit.toi); // Same as: `ray.origin + ray.dir * toi`
-				// console.log("hit!", hitPoint);
 				playerThing.setTranslation({x: controlsRef.current.camera.position.x, y: hitPoint.y, z: controlsRef.current.camera.position.z });
 
 			}
 			if(p2pcf){
 				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
 				let rotation = [controlsRef.current.camera.rotation.x, controlsRef.current.camera.rotation.y, controlsRef.current.camera.rotation.z ];
-				let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]},{ "rotation" : [`+ rotation +`]}]}`;
+				let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]},{ "rotation" : [`+ rotation +`]},{ "profileImage" : ["`+ userData.profileImage +`"]}]}`;
 				p2pcf.broadcast(new TextEncoder().encode(message));
 			}
 		} else if ( moveRight ) {
@@ -126,7 +121,7 @@ const Controls = (props) => {
 			if(p2pcf){
 				let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
 				let rotation = [controlsRef.current.camera.rotation.x, controlsRef.current.camera.rotation.y, controlsRef.current.camera.rotation.z ];
-				let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]},{ "rotation" : [`+ rotation +`]}]}`;
+				let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]},{ "rotation" : [`+ rotation +`]},{ "profileImage" : ["`+ userData.profileImage +`"]}]}`;
 				p2pcf.broadcast(new TextEncoder().encode(message));
 			}
 		} else if ( jump ) {
@@ -230,7 +225,7 @@ const Controls = (props) => {
 				if(p2pcf && controlsRef){
 					let position = [controlsRef.current.camera.position.x, controlsRef.current.camera.position.y, controlsRef.current.camera.position.z ];
 					let rotation = [controlsRef.current.camera.rotation.x, controlsRef.current.camera.rotation.y, controlsRef.current.camera.rotation.z ];
-					let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]},{ "rotation" : [`+ rotation +`]}]}`;
+					let message = `{ "${p2pcf.clientId}": [{ "position" : [`+ position +`]},{ "rotation" : [`+ rotation +`]},{ "profileImage" : ["`+ userData.profileImage +`"]}]}`;
 					p2pcf.broadcast(new TextEncoder().encode(message));
 				}		
 				let rotatingPlayer = scene.getObjectByName("playerOne");

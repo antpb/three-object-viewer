@@ -17,7 +17,6 @@ const EditControls = (props) => {
 		const velocity = 0.5;
 
 		if ( moveForward ) {
-			console.log(controlsRef);
 			// playerThing.applyImpulse({x:0, y:0, z:0.1}, true);
 			controlsRef.current.moveForward( velocity );
 		} else if ( moveLeft ) {

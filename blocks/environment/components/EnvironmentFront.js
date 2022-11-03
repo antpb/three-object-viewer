@@ -3,6 +3,7 @@ import React, { Suspense, useRef, useState, useEffect, useMemo } from 'react';
 import { Canvas, useLoader, useFrame, useThree } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
+import { TextureLoader } from 'three/src/loaders/TextureLoader';
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
 import { Physics, RigidBody, MeshCollider, Debug } from "@react-three/rapier";
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
@@ -49,6 +50,7 @@ function Participant( participant ) {
 		const rotationVRM = playerController.scene.rotation.y;
 		playerController.scene.rotation.set( 0, rotationVRM, 0 );
 		playerController.scene.scale.set( 1, 1, 1 );
+
 		const theScene = useThree();
 
 		participant.p2pcf.on('msg', (peer, data) => {
@@ -56,6 +58,19 @@ function Participant( participant ) {
 			const participantData = JSON.parse( finalData );
 			const participantObject = theScene.scene.getObjectByName(peer.client_id);
 			if(participantObject){
+				const loadedProfile = useLoader(TextureLoader, participantData[peer.client_id][2]["profileImage"]);
+				if(loadedProfile){
+					console.log("loaded profile", loadedProfile);
+					participantObject.traverse( ( obj ) => {
+						if(obj.name === "profile" && obj.material.map === null){
+							console.log("that peer obj!", obj)
+							var newMat = obj.material.clone();
+							newMat.map = loadedProfile;
+							obj.material = newMat;
+							obj.material.map.needsUpdate = true;
+						}
+					});			
+				}
 				participantObject.position.set(participantData[peer.client_id][0]["position"][0], participantData[peer.client_id][0]["position"][1], participantData[peer.client_id][0]["position"][2] );
 				participantObject.rotation.set(participantData[peer.client_id][1]["rotation"][0], participantData[peer.client_id][1]["rotation"][1], participantData[peer.client_id][1]["rotation"][2] );
 			}
@@ -65,8 +80,6 @@ function Participant( participant ) {
 		// 	const participantObject = theScene.scene.getObjectByName(peer.client_id);
 		// 	// theScene.scene.remove(participantObject.name);
 		// 	theScene.scene.remove(...participantObject.children);
-		// 	// console.log(participantObject);
-		// 	console.log('Peer close', peer.id, peer);
 		// 	// removePeerUi(peer.id)
 		// })
 
@@ -101,7 +114,6 @@ function ModelObject( model ) {
 	} );
 
 	const { actions } = useAnimations( gltf.animations, gltf.scene );
-	console.log(model.animations);
 	let animationClips = gltf.animations;
 	const animationList = model.animations ? model.animations.split( ',' ) : '';
 	useEffect( () => {
@@ -127,11 +139,8 @@ function ModelObject( model ) {
 				// </A11y>
 			); 
     }
-	// console.log("gltf", gltf);
 	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene]);
 	const modelClone = SkeletonUtils.clone(gltf.scene);
-	console.log("model clone", modelClone);
-	console.log("copygltf", copyGltf);
 	if(model.collidable === "1"){
 		return(<>
 			<RigidBody 
@@ -142,7 +151,6 @@ function ModelObject( model ) {
 				scale={[model.scaleX , model.scaleY, model.scaleZ]}
 				// onCollisionEnter={ ( props ) =>(
 				// 	// window.location.href = model.destinationUrl
-				// 	console.log(model.destinationUrl)
 				// 	)
 				// }
 			>
@@ -201,9 +209,7 @@ function Portal( model ) {
     gltf.scene.position.set( model.positionX, model.positionY, model.positionZ );
     gltf.scene.rotation.set( 0, 0, 0 );
     gltf.scene.scale.set(model.scaleX , model.scaleY, model.scaleZ );
-	// console.log(model.rotationX, model.rotationY, model.rotationZ);
     gltf.scene.rotation.set(model.rotationX , model.rotationY, model.rotationZ );
-    // gltf.scene.scale.set( props.scale, props.scale, props.scale );
 	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene])
 
 	return(<>
@@ -297,7 +303,7 @@ function Participants( props ) {
 	const p2pcf = window.p2pcf;
 	if(p2pcf){
 		p2pcf.on('peerconnect', peer => {
-			console.log(peer);
+			console.log("connected peer", peer);
 			setParticipant(current => [...current, peer.client_id]);	
 		})
 	}
@@ -317,8 +323,6 @@ function Participants( props ) {
 
 function SavedObject( props ) {
 	const meshRef = useRef();
-
-
 	const [ url, set ] = useState( props.url );
 	useEffect( () => {
 		setTimeout( () => set( props.url ), 2000 );
@@ -349,6 +353,7 @@ function SavedObject( props ) {
 	let meshesToAdd = [];
 
 	if ( gltf.userData.gltfExtensions?.OMI_collider ) {
+		console.log("gltf debug", gltf);
 		var colliders = gltf.userData.gltfExtensions.OMI_collider.colliders;
 	}
 	if ( gltf.userData.gltfExtensions?.KHR_audio ) {
@@ -417,7 +422,6 @@ function SavedObject( props ) {
 				var quaternion = item.getWorldQuaternion(quat);
 				var finalRotation = rotation.setFromQuaternion(quaternion);
 
-				// console.log(item.getWorldPosition(target));
 				return(<primitive rotation={finalRotation} position={item.getWorldPosition(pos)} object={ item } />)
 			}
 		})}

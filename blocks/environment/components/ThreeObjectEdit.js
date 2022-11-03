@@ -123,7 +123,6 @@ function Spawn( spawn ) {
 
 
 function ImageObject( threeImage ) {
-	// console.log(threeImage.aspectWidth, threeImage.aspectHeight);
 	const texture_2 = useLoader(THREE.TextureLoader, threeImage.url);	
 	const imgObj = useRef();
 	const [isSelected, setIsSelected] = useState();
@@ -167,7 +166,6 @@ function ImageObject( threeImage ) {
 }
 
 function VideoObject(threeVideo) {
-	// console.log(threeVideo);
 	const clicked = true;
 	const [video] = useState(() => Object.assign(document.createElement('video'), { src: threeVideo.url, crossOrigin: 'Anonymous', loop: true, muted: true }));
 	const videoObj = useRef();
@@ -479,7 +477,6 @@ function ThreeObject( props ) {
 				const currentInnerBlocks = block.innerBlocks;
 				if (currentInnerBlocks) {
 					currentInnerBlocks.forEach( ( innerBlock ) => {
-						// console.log(innerBlock);
 						if(innerBlock.name === "three-object-viewer/sky-block"){
 							skyobject = innerBlock.attributes;
 							skyobjectId = innerBlock.clientId;
@@ -750,7 +747,6 @@ export default function ThreeObjectEdit( props ) {
 				setTransformMode( "scale" );
 				break;
 			case 'KeyF':
-				console.log(focusPosition)
 				setShouldFocus(true);
 				break;	
 			default:
