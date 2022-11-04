@@ -60,10 +60,8 @@ function Participant( participant ) {
 			if(participantObject){
 				const loadedProfile = useLoader(TextureLoader, participantData[peer.client_id][2]["profileImage"]);
 				if(loadedProfile){
-					console.log("loaded profile", loadedProfile);
 					participantObject.traverse( ( obj ) => {
 						if(obj.name === "profile" && obj.material.map === null){
-							console.log("that peer obj!", obj)
 							var newMat = obj.material.clone();
 							newMat.map = loadedProfile;
 							obj.material = newMat;
@@ -175,6 +173,19 @@ function ModelObject( model ) {
 }
 
 function Portal( model ) {
+	if ( model.object ){
+		return(<>
+			<RigidBody 
+				type="fixed"
+				colliders={"trimesh"}
+				onCollisionEnter={ ( props ) =>
+					window.location.href = model.destinationUrl
+				}
+			>
+				<primitive visible={false} position={[model.positionX, model.positionY, model.positionZ]} object={ model.object } />
+			</RigidBody>
+			</>)			
+	}
 	const [ url, set ] = useState( model.url );
 	useEffect( () => {
 		setTimeout( () => set( model.url ), 2000 );
@@ -242,7 +253,6 @@ function Sky( sky ) {
 }
 
 function ThreeImage( threeImage ) {
-	// console.log(threeImage.aspectWidth, threeImage.aspectHeight);
 	const texture_2 = useLoader(THREE.TextureLoader, threeImage.url);	
 
 	return (
@@ -328,6 +338,9 @@ function SavedObject( props ) {
 		setTimeout( () => set( props.url ), 2000 );
 	}, [] );
 	const [ listener ] = useState( () => new THREE.AudioListener() );
+	const [colliders, setColliders] = useState();
+	const [meshes, setMeshes] = useState();
+	const [portals, setPortals] = useState();
 
 	useThree( ( { camera } ) => {
 		camera.add( listener );
@@ -347,14 +360,18 @@ function SavedObject( props ) {
         } );
 	} );
 
+	useEffect(()=>{
 	//OMI_collider logic.
 	let childrenToParse = [];
 	let collidersToAdd = [];
 	let meshesToAdd = [];
+	let portalsToAdd = [];
 
 	if ( gltf.userData.gltfExtensions?.OMI_collider ) {
-		console.log("gltf debug", gltf);
 		var colliders = gltf.userData.gltfExtensions.OMI_collider.colliders;
+	}
+	if ( gltf.userData.gltfExtensions?.OMI_link ) {
+		var colliders = gltf.userData.gltfExtensions.OMI_link.colliders;
 	}
 	if ( gltf.userData.gltfExtensions?.KHR_audio ) {
 		var colliders = gltf.userData.gltfExtensions.OMI_collider.colliders;
@@ -363,7 +380,10 @@ function SavedObject( props ) {
 	gltf.scene.traverse( (child) => {
 		if ( child.userData.gltfExtensions?.OMI_collider ) {
 			childrenToParse.push(child);
-			child.parent.remove(child.name);
+			// child.parent.remove(child.name);
+		} 
+		if( child.userData.gltfExtensions?.OMI_link ) {
+			portalsToAdd.push(child);
 		} else {
 			meshesToAdd.push(child);
 		}
@@ -374,8 +394,11 @@ function SavedObject( props ) {
 		collidersToAdd.push([child, colliders[index]]);
 		// gltf.scene.remove(child.name);
 	});
-
+	setColliders(collidersToAdd);
+	setMeshes(meshesToAdd);
+	setPortals(portalsToAdd);
 	// End OMI_collider logic.
+	}, [])
 
 	const { actions } = useAnimations( gltf.animations, gltf.scene );
 
@@ -405,14 +428,15 @@ function SavedObject( props ) {
     // gltf.scene.scale.set( props.scale, props.scale, props.scale );
 	// const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene]);
 
-	if(collidersToAdd.length === 0){
-		return (<RigidBody type="fixed" colliders="trimesh">
-					<primitive object={ gltf.scene } />
-				</RigidBody>)				
-	}
+	// if(collidersToAdd.length === 0){
+	// 	console.log("it should never hit here")
+	// 	return (<RigidBody type="fixed" colliders="trimesh">
+	// 				<primitive object={ gltf.scene } />
+	// 			</RigidBody>)				
+	// }
 
 	return(<>
-		{ meshesToAdd && meshesToAdd.map((item, index)=>{
+		{ meshes && meshes.map((item, index)=>{
 			if(item.isObject3D){
 				const mixer = new THREE.AnimationMixer(gltf.scene);
 
@@ -425,31 +449,52 @@ function SavedObject( props ) {
 				return(<primitive rotation={finalRotation} position={item.getWorldPosition(pos)} object={ item } />)
 			}
 		})}
-		{ collidersToAdd && collidersToAdd.map((item, index)=>{
+		{ portals && portals.map((item, index)=>{
+			var pos = new THREE.Vector3(); // create once an reuse it
+			var quat = new THREE.Quaternion(); // create once an reuse it
+			var rotation = new THREE.Euler();
+			let position = item.getWorldPosition(pos);
+			var quaternion = item.getWorldQuaternion(quat);
+			var finalRotation = rotation.setFromQuaternion(quaternion);
+			return(<Portal 
+					positionX={position.x}
+					positionY={position.y}
+					positionZ={position.z}
+					rotationX={finalRotation.x}
+					rotationY={finalRotation.y}
+					rotationZ={finalRotation.z}
+					object={ item.parent }
+					destinationUrl={item.userData.gltfExtensions.OMI_link.uri}
+					/>
+				)
+		})}
+		{ colliders && colliders.map((item, index)=>{
 			var pos = new THREE.Vector3(); // create once an reuse it
 			var quat = new THREE.Quaternion(); // create once an reuse it
 			var rotation = new THREE.Euler();
 			var quaternion = item[0].getWorldQuaternion(quat);
 			var finalRotation = rotation.setFromQuaternion(quaternion);
-			
+			var worldPosition = item[0].getWorldPosition(pos);
 			if(item[1].type === "mesh"){
-				return (<RigidBody type="fixed" colliders="trimesh">
-							<primitive rotation={finalRotation} position={item[0].getWorldPosition(pos)} object={ item[0] } />
-						</RigidBody>)				
+				return (
+						<RigidBody type="fixed" colliders="trimesh">
+							<primitive rotation={finalRotation} position={worldPosition} object={ item[0] } />
+						</RigidBody>
+						)				
 			}
 			if(item[1].type === "box"){
 				return (<RigidBody type="fixed" colliders="cuboid">
-							<primitive rotation={finalRotation} position={item[0].getWorldPosition(pos)} object={ item[0] } />
+							<primitive rotation={finalRotation} position={worldPosition} object={ item[0] } />
 						</RigidBody>)				
 			}
 			if(item[1].type === "capsule"){
 				return (<RigidBody type="fixed" colliders="hull">
-							<primitive rotation={finalRotation} position={item[0].getWorldPosition(pos)} object={ item[0] } />
+							<primitive rotation={finalRotation} position={worldPosition} object={ item[0] } />
 						</RigidBody>)				
 			}
 			if(item[1].type === "sphere"){
 				return (<RigidBody type="fixed" colliders="ball">
-							<primitive rotation={finalRotation} position={item[0].getWorldPosition(pos)} object={ item[0] } />
+							<primitive rotation={finalRotation} position={worldPosition} object={ item[0] } />
 						</RigidBody>)				
 			}
 		})}
@@ -492,13 +537,14 @@ export default function EnvironmentFront( props ) {
 						/>
 						<Suspense fallback={ null }>
 						<Physics>
-							<RigidBody></RigidBody>
-							{/* <Debug />			 */}
+						<RigidBody></RigidBody>
+							{/* Debug physics */}
+							<Debug />			
 								{ props.threeUrl && (
 									<>		
 										<TeleportTravel useNormal={ false }>
 											<Player
-											spawnPoint={props.spawnPoint}
+												spawnPoint={props.spawnPoint}
 											/>
 											<Participants/>
 											<SavedObject
@@ -648,7 +694,6 @@ export default function EnvironmentFront( props ) {
 													})}
 	
 												{ Object.values(props.modelsToAdd).map((model, index)=>{
-													console.log("adding", model);
 													const modelPosX = model.querySelector( 'p.model-block-position-x' )
 													? model.querySelector( 'p.model-block-position-x' ).innerText
 													: '';
