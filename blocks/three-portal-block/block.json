@@ -47,6 +47,26 @@
             "type": "string",
             "default": null
         },
+        "label": {
+            "type": "string",
+            "default": null
+        },
+        "labelTextColor": {
+            "type": "string",
+            "default": "0x000000"
+        },
+        "labelOffsetX": {
+            "type": "int",
+            "default":0
+        },
+        "labelOffsetY": {
+            "type": "int",
+            "default":0
+        },
+        "labelOffsetZ": {
+            "type": "int",
+            "default":0
+        },
         "animations": {
             "type": "string",
             "default": ""

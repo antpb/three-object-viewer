@@ -36,9 +36,11 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 	const onChangeRotationX = ( rotationX ) => {
 		setAttributes( { rotationX: rotationX } );
 	};
+
 	const onChangeRotationY = ( rotationY ) => {
 		setAttributes( { rotationY: rotationY } );
 	};
+
 	const onChangeRotationZ = ( rotationZ ) => {
 		setAttributes( { rotationZ: rotationZ } );
 	};
@@ -46,15 +48,36 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 	const onChangeScaleX = ( scaleX ) => {
 		setAttributes( { scaleX: scaleX } );
 	};
+
 	const onChangeScaleY = ( scaleY ) => {
 		setAttributes( { scaleY: scaleY } );
 	};
+
 	const onChangeScaleZ = ( scaleZ ) => {
 		setAttributes( { scaleZ: scaleZ } );
 	};
 
 	const onChangeAnimations = ( animations ) => {
 		setAttributes( { animations: animations } );
+	};
+
+	const onChangeLabel = ( label ) => {
+		setAttributes( { label: label } );
+	};
+
+	const onChangeLabelX = ( labelX ) => {
+		setAttributes( { labelOffsetX: labelX } );
+	};
+
+	const onChangeLabelY = ( labelY ) => {
+		setAttributes( { labelOffsetY: labelY } );
+	};
+
+	const onChangeLabelZ = ( labelZ ) => {
+		setAttributes( { labelOffsetZ: labelZ } );
+	};
+	const onChangeLabelTextcolor = ( labelColor ) => {
+		setAttributes({ labelTextColor: labelColor } );
 	};
 
 	const onChangeDestinationUrl = ( destination ) => {
@@ -173,6 +196,16 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 						</PanelRow>
 						<PanelRow>
 							<TextControl
+								label="Link Label"
+								help="This text will describe where the link goes. If blank, will use the url as the label."
+								value={ attributes.label }
+								onChange={ ( value ) =>
+									onChangeLabel( value )
+								}
+							/>
+						</PanelRow>
+						<PanelRow>
+							<TextControl
 								label="Loop Animations"
 								help="Separate each animation name you wish to loop with a comma"
 								value={ attributes.animations }
@@ -181,10 +214,46 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 								}
 							/>
 						</PanelRow>
+						<PanelRow>
+							<ColorPalette
+								value={ attributes.labelTextColor }
+								label="Text Color"
+								onChange={ onChangeLabelTextcolor }
+							/>
+						</PanelRow>
 						<PanelRow>                            
 							<legend className="blocks-base-control__label">
-                                { __( 'Position', 'three-object-viewer' ) }
-                            </legend>
+								{ __( 'Label Offset', 'three-object-viewer' ) }
+							</legend>
+						</PanelRow>					
+						<PanelRow>
+							<TextControl
+								className="position-inputs"
+								label="X Offset"
+								// help="position x"
+								value={ attributes.labelOffsetX }
+								onChange={ ( value ) =>
+									onChangeLabelX( value )
+								}
+							/>
+							<TextControl
+								className="position-inputs"
+								label="Y Offset"
+								// help="position y"
+								value={ attributes.labelOffsetY }
+								onChange={ ( value ) =>
+									onChangeLabelY( value )
+								}
+							/>
+							<TextControl
+								className="position-inputs"
+								label="Z Offset"
+								// help="position z"
+								value={ attributes.labelOffsetZ }
+								onChange={ ( value ) =>
+									onChangeLabelZ( value )
+								}
+							/>
 						</PanelRow>
 						<PanelRow>
 							<TextControl

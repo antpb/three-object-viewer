@@ -10,7 +10,8 @@ import {
 	Html,
 	TransformControls,
 	Stats,
-	Select
+	Select,
+	Text
 } from '@react-three/drei';
 import { VRMUtils, VRMLoaderPlugin  } from '@pixiv/three-vrm'
 import { GLTFAudioEmitterExtension } from 'three-omi';
@@ -112,7 +113,7 @@ function Spawn( spawn ) {
 				{spawnBlockAttributes && (
 					<mesh ref={spawnObj} visible position={[spawnBlockAttributes.positionX, spawnBlockAttributes.positionY, spawnBlockAttributes.positionZ]} scale={[1,1,1]} rotation={[0, 0, 0]} >
 						<boxGeometry args={[1, 0.2, 1]} />
-						<meshStandardMaterial side={THREE.DoubleSide} color="0x00ff00" />
+						<meshStandardMaterial side={THREE.DoubleSide} color={0xff3399} />
 					</mesh>
 				)}
 			</TransformController>
@@ -435,6 +436,13 @@ function PortalObject( model ) {
 					rotation={[ portalBlockAttributes.rotationX , portalBlockAttributes.rotationY, portalBlockAttributes.rotationZ ]}
 					scale={[ portalBlockAttributes.scaleX , portalBlockAttributes.scaleY, portalBlockAttributes.scaleZ ]}
 				>
+					<Text
+						scale={[1, 1, 1]}
+						color={portalBlockAttributes.labelTextColor}
+						position={[0 + portalBlockAttributes.labelOffsetX, 0 + portalBlockAttributes.labelOffsetY, 0 + portalBlockAttributes.labelOffsetZ]}
+					>
+						{ portalBlockAttributes.label + ': ' + portalBlockAttributes.destinationUrl }
+					</Text>
 					<primitive object={ copyGltf } />
 				</group>
 			)}

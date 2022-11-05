@@ -12,7 +12,9 @@ import Networking from './Networking';
 import {
 	useAnimations,
 	Html,
-	Stats
+	Stats,
+	Text,
+	Billboard
 } from '@react-three/drei';
 import {
 	A11y,
@@ -30,8 +32,6 @@ import TeleportTravel from './TeleportTravel';
 import Player from './Player';
 import defaultVRM from '../../../inc/avatars/3ov_default_avatar.vrm';
 
-import { useAspect } from '@react-three/drei';
-import { Button } from '@wordpress/components';
 
 function Participant( participant ) {
 	// Participant VRM.
@@ -175,14 +175,31 @@ function ModelObject( model ) {
 function Portal( model ) {
 	if ( model.object ){
 		return(<>
+			<Billboard
+				position={[model.positionX + 0.01, model.positionY + 0.01, model.positionZ + 0.01]}
+				follow={true}
+				lockX={false}
+				lockY={false}
+				lockZ={false} // Lock the rotation on the z axis (default=false)
+			>
+				<Text
+					scale={[1, 1, 1]}
+					// rotation={[model.rotationX , model.rotationY, model.rotationZ]}
+					// position={[model.positionX, model.positionY, model.positionZ]}			
+					color="black"
+					position={[0, 0, 0]}
+				>
+					{ model.label ? (model.label + ': ') : "" + model.destinationUrl }
+				</Text>
+			</Billboard>
 			<RigidBody 
 				type="fixed"
 				colliders={"trimesh"}
-				onCollisionEnter={ ( props ) =>
+				onCollisionEnter={ () =>
 					window.location.href = model.destinationUrl
 				}
 			>
-				<primitive visible={false} position={[model.positionX, model.positionY, model.positionZ]} object={ model.object } />
+				<primitive visible={false} object={ model.object } />
 			</RigidBody>
 			</>)			
 	}
@@ -217,22 +234,32 @@ function Portal( model ) {
 			} );
 		}
 	}, [] );
-    gltf.scene.position.set( model.positionX, model.positionY, model.positionZ );
-    gltf.scene.rotation.set( 0, 0, 0 );
+    // gltf.scene.position.set( model.positionX, model.positionY, model.positionZ );
+    // gltf.scene.rotation.set( 0, 0, 0 );
     gltf.scene.scale.set(model.scaleX , model.scaleY, model.scaleZ );
-    gltf.scene.rotation.set(model.rotationX , model.rotationY, model.rotationZ );
+    // gltf.scene.rotation.set(model.rotationX , model.rotationY, model.rotationZ );
 	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene])
 
 	return(<>
 		<RigidBody 
 			type="fixed"
+			rotation={[model.rotationX , model.rotationY, model.rotationZ]}
 			position={[model.positionX, model.positionY, model.positionZ]}
 			colliders={"cuboid"}
 			onCollisionEnter={ ( props ) =>
 				window.location.href = model.destinationUrl
 			}
-		>
-			<primitive object={ copyGltf } />
+		>	
+			<group rotation={[model.rotationX , model.rotationY, model.rotationZ]} position={[model.positionX, model.positionY, model.positionZ]}>
+				<Text
+					scale={[1, 1, 1]}
+					color={model.labelTextColor}
+					position={[0 + model.labelOffsetX, 0 + model.labelOffsetY, 0 + model.labelOffsetZ]}
+				>
+					{ model.label + ': ' + model.destinationUrl }
+				</Text>
+				<primitive object={ copyGltf } />
+			</group>
 		</RigidBody>
 	</>);    
 }
@@ -413,28 +440,6 @@ function SavedObject( props ) {
 		}
 	}, [] );
 
-    // if(gltf?.userData?.gltfExtensions?.VRM){
-	// 		const vrm = gltf.userData.vrm;
-	// 		vrm.scene.position.set( 0, props.positionY, 0 );
-	// 		VRMUtils.rotateVRM0( vrm );
-	// 		const rotationVRM = vrm.scene.rotation.y + parseFloat(props.rotationY);
-	// 		vrm.scene.rotation.set( 0, rotationVRM, 0 );
-	// 		vrm.scene.scale.set( props.scale, props.scale, props.scale );
-	// 		return <primitive object={ vrm.scene } />;    
-    // }
-
-    // gltf.scene.position.set( 0, props.positionY, 0 );
-    // gltf.scene.rotation.set( 0, props.rotationY, 0 );
-    // gltf.scene.scale.set( props.scale, props.scale, props.scale );
-	// const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene]);
-
-	// if(collidersToAdd.length === 0){
-	// 	console.log("it should never hit here")
-	// 	return (<RigidBody type="fixed" colliders="trimesh">
-	// 				<primitive object={ gltf.scene } />
-	// 			</RigidBody>)				
-	// }
-
 	return(<>
 		{ meshes && meshes.map((item, index)=>{
 			if(item.isObject3D){
@@ -464,6 +469,7 @@ function SavedObject( props ) {
 					rotationY={finalRotation.y}
 					rotationZ={finalRotation.z}
 					object={ item.parent }
+					label={ props.label }
 					destinationUrl={item.userData.gltfExtensions.OMI_link.uri}
 					/>
 				)
@@ -848,7 +854,26 @@ export default function EnvironmentFront( props ) {
 													const animations = model.querySelector( 'p.three-portal-block-animations' )
 													? model.querySelector( 'p.three-portal-block-animations' ).innerText
 													: '';
-																					
+
+													const label = model.querySelector( 'p.three-portal-block-label' )
+													? model.querySelector( 'p.three-portal-block-label' ).innerText
+													: '';
+
+													const labelOffsetX = model.querySelector( 'p.three-portal-block-label-offset-x' )
+													? model.querySelector( 'p.three-portal-block-label-offset-x' ).innerText
+													: '';
+
+													const labelOffsetY = model.querySelector( 'p.three-portal-block-label-offset-y' )
+													? model.querySelector( 'p.three-portal-block-label-offset-y' ).innerText
+													: '';
+
+													const labelOffsetZ = model.querySelector( 'p.three-portal-block-label-offset-z' )
+													? model.querySelector( 'p.three-portal-block-label-offset-z' ).innerText
+													: '';
+													const labelTextColor = model.querySelector( 'p.three-portal-block-label-text-color' )
+													? model.querySelector( 'p.three-portal-block-label-text-color' ).innerText
+													: '';
+
 												return(<Portal 
 													url={url} 
 													destinationUrl={destinationUrl} 
@@ -861,7 +886,12 @@ export default function EnvironmentFront( props ) {
 													scaleZ={modelScaleZ} 
 													rotationX={modelRotationX} 
 													rotationY={modelRotationY} 
-													rotationZ={modelRotationZ} 
+													rotationZ={modelRotationZ}
+													label={ label }
+													labelOffsetX={ labelOffsetX }
+													labelOffsetY={ labelOffsetY }
+													labelOffsetZ={ labelOffsetZ }
+													labelTextColor={labelTextColor}							
 													/>);											
 											})}
 											{/* <RigidBody 

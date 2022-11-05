@@ -29,13 +29,11 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 	};
 
 	const onImageSelect = ( imageObject ) => {
-		console.log(imageObject);
 		setAttributes( { threeObjectUrl: null } );
 		setAttributes( { threeObjectUrl: imageObject.url } );
 	};
 
 	const onPreviewImageSelect = ( imageObject ) => {
-		console.log(imageObject);
 		setAttributes( { threePreviewImage: null } );
 		setAttributes( { threePreviewImage: imageObject.url } );
 	};

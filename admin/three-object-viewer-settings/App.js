@@ -43,7 +43,6 @@ function SavedObject( props ) {
 function CreateImage() {
 	const { gl, scene, camera } = useThree()
 	let getImageData = true;
-	console.log(gl);
 	if(gl){
 		if(getImageData == true) {
 			window.setTimeout(function () {
@@ -107,7 +106,6 @@ export default function App({ getSettings, updateSettings }) {
       
 			// Get media attachment details from the frame state
 			var attachment = frame.state().get('selection').first().toJSON();
-			// console.log(attachment);
 			setDefaultVRM(attachment.url);
 			// Send the attachment URL to our custom image input field.
 		  });
