@@ -7,6 +7,10 @@
             "type": "string",
             "default": null
         },
+        "transparent": {
+            "type": "boolean",
+            "default": false
+        },
         "scaleX": {
             "type": "int",
             "default":1

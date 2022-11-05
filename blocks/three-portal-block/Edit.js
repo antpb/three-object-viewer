@@ -171,16 +171,6 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 						initialOpen={ true }
 					>
 						<PanelRow>
-							<TextControl
-								label="Destination URL"
-								help="Separate each animation name you wish to loop with a comma"
-								value={ attributes.destinationUrl }
-								onChange={ ( value ) =>
-									onChangeDestinationUrl( value )
-								}
-							/>
-						</PanelRow>
-						<PanelRow>
 							<ToggleControl
 								label="Collidable"
 								help={
@@ -196,21 +186,31 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 						</PanelRow>
 						<PanelRow>
 							<TextControl
-								label="Link Label"
-								help="This text will describe where the link goes. If blank, will use the url as the label."
-								value={ attributes.label }
-								onChange={ ( value ) =>
-									onChangeLabel( value )
-								}
-							/>
-						</PanelRow>
-						<PanelRow>
-							<TextControl
 								label="Loop Animations"
 								help="Separate each animation name you wish to loop with a comma"
 								value={ attributes.animations }
 								onChange={ ( value ) =>
 									onChangeAnimations( value )
+								}
+							/>
+						</PanelRow>
+						<PanelRow>
+							<TextControl
+								label="Destination URL"
+								help="Define a url."
+								value={ attributes.destinationUrl }
+								onChange={ ( value ) =>
+									onChangeDestinationUrl( value )
+								}
+							/>
+						</PanelRow>
+						<PanelRow>
+							<TextControl
+								label="Link Label"
+								help="This text will describe where the link goes. If blank, will use the url as the label."
+								value={ attributes.label }
+								onChange={ ( value ) =>
+									onChangeLabel( value )
 								}
 							/>
 						</PanelRow>

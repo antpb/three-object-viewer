@@ -58,8 +58,12 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 		setAttributes( { scaleZ: scaleZ } );
 	};
 
-	const onChangeCollidable = ( zoomSetting ) => {
-		setAttributes( { hasZoom: zoomSetting } );
+	const onChangeCollidable = ( setting ) => {
+		setAttributes( { collidable: setting } );
+	};
+
+	const onChangeTransparent = ( transparent ) => {
+		setAttributes( { transparent: transparent } );
 	};
 
 
@@ -129,6 +133,20 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 									</button>
 								) }
 							/>
+						<PanelRow>
+							<ToggleControl
+								label="Transparent"
+								help={
+									attributes.transparent
+										? 'Item is transparent.'
+										: 'Item is not transparent.'
+								}
+								checked={ attributes.transparent }
+								onChange={ ( e ) => {
+									onChangeTransparent( e );
+								} }
+							/>
+						</PanelRow>
 						</PanelRow>
 						<PanelRow>
 							<TextControl

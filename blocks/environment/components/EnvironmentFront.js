@@ -32,6 +32,69 @@ import TeleportTravel from './TeleportTravel';
 import Player from './Player';
 import defaultVRM from '../../../inc/avatars/3ov_default_avatar.vrm';
 
+function parseMatrixUri(uri) {
+	const SegmentToSigil = {
+		u: "@",
+		user: "@",
+		r: "#",
+		room: "#",
+		roomid: "!",
+	  };
+	  
+	const url = new URL(uri, window.location.href);
+
+	if (url.protocol === "matrix:") {
+	  const matches = url.pathname.match(/^(\/\/.+\/)?(.+)$/);
+  
+	  let authority = undefined;
+	  let path = undefined;
+  
+	  if (matches) {
+		if (matches.length == 3) {
+		  authority = matches[1];
+		  path = matches[2];
+		} else if (matches.length === 2) {
+		  path = matches[1];
+		}
+	  }
+  
+	  if (!path) {
+		throw new Error(`Invalid matrix uri "${uri}": No path provided`);
+	  }
+  
+	  const segments = path.split("/");
+  
+	  if (segments.length !== 2 && segments.length !== 4) {
+		throw new Error(`Invalid matrix uri "${uri}": Invalid number of segments`);
+	  }
+  
+	  const sigil1 = SegmentToSigil[segments[0]];
+  
+	  if (!sigil1) {
+		throw new Error(`Invalid matrix uri "${uri}": Invalid segment ${segments[0]}`);
+	  }
+  
+	  if (!segments[1]) {
+		throw new Error(`Invalid matrix uri "${uri}": Empty segment`);
+	  }
+  
+	  const mxid1 = `${sigil1}${segments[1]}`;
+  
+	  let mxid2 = undefined;
+  
+	  if (segments.length === 4) {
+		if ((sigil1 === "!" || sigil1 === "#") && (segments[2] === "e" || segments[2] === "event") && segments[3]) {
+		  mxid2 = `$${segments[3]}`;
+		} else {
+		  throw new Error(`Invalid matrix uri "${uri}": Invalid segment ${segments[2]}`);
+		}
+	  }
+	  return { protocol: "matrix:", authority, mxid1, mxid2 };
+	}
+  
+	return url;
+  
+}
 
 function Participant( participant ) {
 	// Participant VRM.
@@ -195,8 +258,15 @@ function Portal( model ) {
 			<RigidBody 
 				type="fixed"
 				colliders={"trimesh"}
-				onCollisionEnter={ () =>
-					window.location.href = model.destinationUrl
+				onCollisionEnter={ () => {
+						const url = new URL(model.destinationUrl, window.location.href);
+						if(url.protocol === "matrix:"){
+							const destination = parseMatrixUri(model.destinationUrl);
+							window.location.href = 'https://thirdroom.io/world/' + destination.mxid1;
+						} else {
+							window.location.href = model.destinationUrl;
+						}
+					}
 				}
 			>
 				<primitive visible={false} object={ model.object } />
@@ -545,7 +615,7 @@ export default function EnvironmentFront( props ) {
 						<Physics>
 						<RigidBody></RigidBody>
 							{/* Debug physics */}
-							<Debug />			
+							{/* <Debug />			 */}
 								{ props.threeUrl && (
 									<>		
 										<TeleportTravel useNormal={ false }>

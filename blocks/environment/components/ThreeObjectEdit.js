@@ -785,7 +785,7 @@ export default function ThreeObjectEdit( props ) {
 					width: '100%',
 				} }
 			>
-				{/* <Perf className="stats"/> */}
+				<Perf className="stats"/>
 				<PerspectiveCamera fov={50} position={[0,0,20]} makeDefault zoom={1} />
 				<ambientLight intensity={ 0.5 } />
 				<directionalLight
