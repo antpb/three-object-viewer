@@ -37,15 +37,22 @@ const Controls = (props) => {
 
 	useEffect(() => {
 		setSpawnPos(props.spawnPoint);
-		// if (controlsRef.current !== null && props.spawnPoint) {
-		// 	controlsRef.current
-		// 		.getObject()
-		// 		.parent.position.set(
-		// 			props.spawnPoint[0],
-		// 			props.spawnPoint[1],
-		// 			props.spawnPoint[2]
-		// 		);
+		const playerThing = world.getRigidBody(props.something.current.handle);
+		// if (playerThing) {
+		// 	playerThing.setTranslation({
+		// 		x: props.spawnPoint[0],
+		// 		y: props.spawnPoint[1],
+		// 		z: props.spawnPoint[2]
+		// 	});
 		// }
+
+		// controlsRef.current
+		// 	.getObject()
+		// 	.parent.position.set(
+		// 		props.spawnPoint[0],
+		// 		props.spawnPoint[1],
+		// 		props.spawnPoint[2]
+		// 	);
 	}, []);
 
 	useFrame(() => {
@@ -277,19 +284,32 @@ const Controls = (props) => {
 				setMoveRight(true);
 				setLock(false);
 				break;
-			// case "KeyR":
-			// 	if (controlsRef.current) {
-			// 		console.log(controlsRef.current.getObject());
-			// 		controlsRef.current
-			// 			.getObject()
-			// 			.parent.position.set(
-			// 				props.spawnPoint[0],
-			// 				props.spawnPoint[1],
-			// 				props.spawnPoint[2]
-			// 			);
-			// 	}
-			// 	setLock(false);
-			// 	break;
+			case "KeyR":
+				console.log(props);
+				if (props.something.current) {
+					const playerThing = world.getRigidBody(
+						props.something.current.handle
+					);
+					if (playerThing) {
+						playerThing.setTranslation({
+							x: props.spawnPoint[0],
+							y: props.spawnPoint[1],
+							z: props.spawnPoint[2]
+						});
+						if (controlsRef.current) {
+							console.log(controlsRef.current.getObject());
+							controlsRef.current
+								.getObject()
+								.parent.position.set(
+									props.spawnPoint[0],
+									props.spawnPoint[1],
+									props.spawnPoint[2]
+								);
+						}
+					}
+				}
+				setLock(false);
+				break;
 			case "Space":
 				setLock(false);
 				window.addEventListener("keydown", (e) => {

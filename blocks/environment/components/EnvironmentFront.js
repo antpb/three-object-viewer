@@ -659,6 +659,10 @@ function SavedObject(props) {
 			});
 		}
 	}, []);
+	console.log(gltf);
+	// const loader = new THREE.ObjectLoader();
+	// const object = await loader.loadAsync("models/json/lightmap/lightmap.json");
+	// scene.add(object);
 
 	return (
 		<>
