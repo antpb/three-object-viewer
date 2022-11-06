@@ -1,11 +1,11 @@
-import { registerBlockType } from '@wordpress/blocks';
-import Edit from './Edit';
-import Save from './Save';
-import { useBlockProps } from '@wordpress/block-editor';
+import { registerBlockType } from "@wordpress/blocks";
+import Edit from "./Edit";
+import Save from "./Save";
+import { useBlockProps } from "@wordpress/block-editor";
 
 const icon = (
 	<svg
-		class="custom-icon custom-icon-cube"
+		className="custom-icon custom-icon-cube"
 		viewBox="0 0 40 40"
 		version="1.1"
 		xmlns="http://www.w3.org/2000/svg"
@@ -16,10 +16,10 @@ const icon = (
 	</svg>
 );
 
-const blockConfig = require( './block.json' );
-registerBlockType( blockConfig.name, {
+const blockConfig = require("./block.json");
+registerBlockType(blockConfig.name, {
 	...blockConfig,
-	icon: icon,
+	icon,
 	apiVersion: 2,
 	edit: Edit,
 	save: Save,
@@ -27,171 +27,177 @@ registerBlockType( blockConfig.name, {
 		{
 			attributes: {
 				bg_color: {
-					type: 'string',
-					default: '#FFFFFF',
+					type: "string",
+					default: "#FFFFFF"
 				},
 				zoom: {
-					type: 'integer',
-					default: 90,
+					type: "integer",
+					default: 90
 				},
 				scale: {
-					type: 'integer',
-					default: 1,
+					type: "integer",
+					default: 1
 				},
 				positionX: {
-					type: 'integer',
-					default: 0,
+					type: "integer",
+					default: 0
 				},
 				positionY: {
-					type: 'integer',
-					default: 0,
+					type: "integer",
+					default: 0
 				},
 				rotationY: {
-					type: 'integer',
-					default: 0,
+					type: "integer",
+					default: 0
 				},
 				threeObjectUrl: {
-					type: 'string',
-					default: null,
+					type: "string",
+					default: null
 				},
 				hasZoom: {
-					type: 'bool',
-					default: false,
+					type: "bool",
+					default: false
 				},
 				hasTip: {
-					type: 'bool',
-					default: true,
+					type: "bool",
+					default: true
 				},
 				deviceTarget: {
-					type: 'string',
-					default: '2d',
-				},
+					type: "string",
+					default: "2d"
+				}
 			},
-			save( props ) {
+			save(props) {
 				return (
-					<div { ...useBlockProps.save() }>
+					<div {...useBlockProps.save()}>
 						<>
 							<div className="three-object-three-app">
 								<p className="three-object-block-device-target">
-									{ props.attributes.deviceTarget }
+									{props.attributes.deviceTarget}
 								</p>
 								<p className="three-object-block-url">
-									{ props.attributes.threeObjectUrl }
+									{props.attributes.threeObjectUrl}
 								</p>
 								<p className="three-object-scale">
-									{ props.attributes.scale }
+									{props.attributes.scale}
 								</p>
 								<p className="three-object-background-color">
-									{ props.attributes.bg_color }
+									{props.attributes.bg_color}
 								</p>
 								<p className="three-object-zoom">
-									{ props.attributes.zoom }
+									{props.attributes.zoom}
 								</p>
 								<p className="three-object-has-zoom">
-									{ props.attributes.hasZoom ? 1 : 0 }
+									{props.attributes.hasZoom ? 1 : 0}
 								</p>
 								<p className="three-object-has-tip">
-									{ props.attributes.hasTip ? 1 : 0 }
+									{props.attributes.hasTip ? 1 : 0}
 								</p>
 								<p className="three-object-position-y">
-									{ props.attributes.positionY }
+									{props.attributes.positionY}
 								</p>
 								<p className="three-object-rotation-y">
-									{ props.attributes.rotationY }
+									{props.attributes.rotationY}
 								</p>
 								<p className="three-object-scale">
-									{ props.attributes.scale }
+									{props.attributes.scale}
 								</p>
 							</div>
 						</>
 					</div>
 				);
-			},
+			}
 		},
 		{
 			attributes: {
 				bg_color: {
-					type: 'string',
-					default: '#FFFFFF',
+					type: "string",
+					default: "#FFFFFF"
 				},
 				zoom: {
-					type: 'integer',
-					default: 90,
+					type: "integer",
+					default: 90
 				},
 				scale: {
-					type: 'integer',
-					default: 1,
+					type: "integer",
+					default: 1
 				},
 				positionX: {
-					type: 'integer',
-					default: 0,
+					type: "integer",
+					default: 0
 				},
 				positionY: {
-					type: 'integer',
-					default: 0,
+					type: "integer",
+					default: 0
 				},
 				rotationY: {
-					type: 'integer',
-					default: 0,
+					type: "integer",
+					default: 0
 				},
 				threeObjectUrl: {
-					type: 'string',
-					default: null,
+					type: "string",
+					default: null
 				},
 				hasZoom: {
-					type: 'bool',
-					default: false,
+					type: "bool",
+					default: false
 				},
 				hasTip: {
-					type: 'bool',
-					default: true,
+					type: "bool",
+					default: true
 				},
 				deviceTarget: {
-					type: 'string',
-					default: '2d',
+					type: "string",
+					default: "2d"
 				},
 				animations: {
-					type: 'string',
-					default: '',
+					type: "string",
+					default: ""
 				}
 			},
-			save( props ) {
+			save(props) {
 				return (
-						<div { ...useBlockProps.save() }>
-							<>
-								<div className="three-object-three-app">
-									<p className="three-object-block-device-target">
-										{ props.attributes.deviceTarget }
-									</p>
-									<p className="three-object-block-url">
-										{ props.attributes.threeObjectUrl }
-									</p>
-									<p className="three-object-scale">{ props.attributes.scale }</p>
-									<p className="three-object-background-color">
-										{ props.attributes.bg_color }
-									</p>
-									<p className="three-object-zoom">{ props.attributes.zoom }</p>
-									<p className="three-object-has-zoom">
-										{ props.attributes.hasZoom ? 1 : 0 }
-									</p>
-									<p className="three-object-has-tip">
-										{ props.attributes.hasTip ? 1 : 0 }
-									</p>
-									<p className="three-object-position-y">
-										{ props.attributes.positionY }
-									</p>
-									<p className="three-object-rotation-y">
-										{ props.attributes.rotationY }
-									</p>
-									<p className="three-object-scale">{ props.attributes.scale }</p>
-									<p className="three-object-animations">
-										{ props.attributes.animations }
-									</p>
-								</div>
-							</>
-						</div>
-						);
-			},
-		},
-	],
-} );
+					<div {...useBlockProps.save()}>
+						<>
+							<div className="three-object-three-app">
+								<p className="three-object-block-device-target">
+									{props.attributes.deviceTarget}
+								</p>
+								<p className="three-object-block-url">
+									{props.attributes.threeObjectUrl}
+								</p>
+								<p className="three-object-scale">
+									{props.attributes.scale}
+								</p>
+								<p className="three-object-background-color">
+									{props.attributes.bg_color}
+								</p>
+								<p className="three-object-zoom">
+									{props.attributes.zoom}
+								</p>
+								<p className="three-object-has-zoom">
+									{props.attributes.hasZoom ? 1 : 0}
+								</p>
+								<p className="three-object-has-tip">
+									{props.attributes.hasTip ? 1 : 0}
+								</p>
+								<p className="three-object-position-y">
+									{props.attributes.positionY}
+								</p>
+								<p className="three-object-rotation-y">
+									{props.attributes.rotationY}
+								</p>
+								<p className="three-object-scale">
+									{props.attributes.scale}
+								</p>
+								<p className="three-object-animations">
+									{props.attributes.animations}
+								</p>
+							</div>
+						</>
+					</div>
+				);
+			}
+		}
+	]
+});

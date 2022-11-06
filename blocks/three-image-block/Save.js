@@ -1,48 +1,39 @@
-import { __ } from '@wordpress/i18n';
-import { useBlockProps } from '@wordpress/block-editor';
+import { __ } from "@wordpress/i18n";
+import { useBlockProps } from "@wordpress/block-editor";
 
-export default function save( { attributes } ) {
+export default function save({ attributes }) {
 	return (
-		<div { ...useBlockProps.save() }>
+		<div {...useBlockProps.save()}>
 			<>
 				<div className="three-object-three-app-image-block">
-					<p className="image-block-url">
-						{ attributes.imageUrl }
-					</p>
-					<p className="image-block-scaleX">
-						{ attributes.scaleX }
-					</p>
-					<p className="image-block-scaleY">
-						{ attributes.scaleY }
-					</p>
-					<p className="image-block-scaleZ">
-						{ attributes.scaleZ }
-					</p>
+					<p className="image-block-url">{attributes.imageUrl}</p>
+					<p className="image-block-scaleX">{attributes.scaleX}</p>
+					<p className="image-block-scaleY">{attributes.scaleY}</p>
+					<p className="image-block-scaleZ">{attributes.scaleZ}</p>
 					<p className="image-block-positionX">
-						{ attributes.positionX }
+						{attributes.positionX}
 					</p>
 					<p className="image-block-positionY">
-						{ attributes.positionY }
+						{attributes.positionY}
 					</p>
 					<p className="image-block-positionZ">
-						{ attributes.positionZ }
+						{attributes.positionZ}
 					</p>
 					<p className="image-block-rotationX">
-						{ attributes.rotationX }
+						{attributes.rotationX}
 					</p>
 					<p className="image-block-rotationY">
-						{ attributes.rotationY }
+						{attributes.rotationY}
 					</p>
 					<p className="image-block-rotationZ">
-						{ attributes.rotationZ }
+						{attributes.rotationZ}
 					</p>
 					<p className="image-block-aspect-height">
-						{ attributes.aspectHeight }
+						{attributes.aspectHeight}
 					</p>
 					<p className="image-block-aspect-width">
-						{ attributes.aspectWidth }
+						{attributes.aspectWidth}
 					</p>
-
 				</div>
 			</>
 		</div>

@@ -1,28 +1,28 @@
-import { __ } from '@wordpress/i18n';
-import { useBlockProps } from '@wordpress/block-editor';
+import { __ } from "@wordpress/i18n";
+import { useBlockProps } from "@wordpress/block-editor";
 
-export default function save( { attributes } ) {
+export default function save({ attributes }) {
 	return (
-		<div { ...useBlockProps.save() }>
+		<div {...useBlockProps.save()}>
 			<>
 				<div className="three-object-three-app-spawn-point-block">
 					<p className="spawn-point-block-positionX">
-						{ attributes.positionX }
+						{attributes.positionX}
 					</p>
 					<p className="spawn-point-block-positionY">
-						{ attributes.positionY }
+						{attributes.positionY}
 					</p>
 					<p className="spawn-point-block-positionZ">
-						{ attributes.positionZ }
+						{attributes.positionZ}
 					</p>
 					<p className="spawn-point-block-rotationX">
-						{ attributes.rotationX }
+						{attributes.rotationX}
 					</p>
 					<p className="spawn-point-block-rotationY">
-						{ attributes.rotationY }
+						{attributes.rotationY}
 					</p>
 					<p className="spawn-point-block-rotationZ">
-						{ attributes.rotationZ }
+						{attributes.rotationZ}
 					</p>
 				</div>
 			</>

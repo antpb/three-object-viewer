@@ -1,48 +1,39 @@
-import { __ } from '@wordpress/i18n';
-import { useBlockProps } from '@wordpress/block-editor';
+import { __ } from "@wordpress/i18n";
+import { useBlockProps } from "@wordpress/block-editor";
 
-export default function save( { attributes } ) {
+export default function save({ attributes }) {
 	return (
-		<div { ...useBlockProps.save() }>
+		<div {...useBlockProps.save()}>
 			<>
 				<div className="three-object-three-app-video-block">
-					<div className="video-block-url">
-						{ attributes.videoUrl }
-					</div>
-					<p className="video-block-scaleX">
-						{ attributes.scaleX }
-					</p>
-					<p className="video-block-scaleY">
-						{ attributes.scaleY }
-					</p>
-					<p className="video-block-scaleZ">
-						{ attributes.scaleZ }
-					</p>
+					<div className="video-block-url">{attributes.videoUrl}</div>
+					<p className="video-block-scaleX">{attributes.scaleX}</p>
+					<p className="video-block-scaleY">{attributes.scaleY}</p>
+					<p className="video-block-scaleZ">{attributes.scaleZ}</p>
 					<p className="video-block-positionX">
-						{ attributes.positionX }
+						{attributes.positionX}
 					</p>
 					<p className="video-block-positionY">
-						{ attributes.positionY }
+						{attributes.positionY}
 					</p>
 					<p className="video-block-positionZ">
-						{ attributes.positionZ }
+						{attributes.positionZ}
 					</p>
 					<p className="video-block-rotationX">
-						{ attributes.rotationX }
+						{attributes.rotationX}
 					</p>
 					<p className="video-block-rotationY">
-						{ attributes.rotationY }
+						{attributes.rotationY}
 					</p>
 					<p className="video-block-rotationZ">
-						{ attributes.rotationZ }
+						{attributes.rotationZ}
 					</p>
 					<p className="video-block-aspect-height">
-						{ attributes.aspectHeight }
+						{attributes.aspectHeight}
 					</p>
 					<p className="video-block-aspect-width">
-						{ attributes.aspectWidth }
+						{attributes.aspectWidth}
 					</p>
-
 				</div>
 			</>
 		</div>
