@@ -1,6 +1,5 @@
 import { __ } from "@wordpress/i18n";
 import React, { useState } from "react";
-import { DropZone } from "@wordpress/components";
 import "./editor.scss";
 import {
 	useBlockProps,
@@ -15,11 +14,10 @@ import {
 	RangeControl,
 	ToggleControl,
 	SelectControl,
-	TextControl
+	TextControl,
+	DropZone
 } from "@wordpress/components";
 import { more } from "@wordpress/icons";
-
-import VideoEdit from "./components/VideoEdit";
 
 export default function Edit({ attributes, setAttributes, isSelected }) {
 	const onImageSelect = (imageObject) => {

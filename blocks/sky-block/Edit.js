@@ -19,8 +19,6 @@ import {
 } from "@wordpress/components";
 import { more } from "@wordpress/icons";
 
-import SkyEdit from "./components/SkyEdit";
-
 export default function Edit({ attributes, setAttributes, isSelected }) {
 	const onImageSelect = (imageObject) => {
 		setAttributes({ skyUrl: null });

@@ -19,8 +19,6 @@ import {
 } from "@wordpress/components";
 import { more } from "@wordpress/icons";
 
-import ModelEdit from "./components/ModelEdit";
-
 export default function Edit({ attributes, setAttributes, isSelected }) {
 	const onChangePositionX = (positionX) => {
 		setAttributes({ positionX });

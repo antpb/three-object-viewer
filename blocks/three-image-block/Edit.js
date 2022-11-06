@@ -19,8 +19,6 @@ import {
 } from "@wordpress/components";
 import { more } from "@wordpress/icons";
 
-import ImageEdit from "./components/ImageEdit";
-
 export default function Edit({ attributes, setAttributes, isSelected }) {
 	const onImageSelect = (imageObject) => {
 		console.log(imageObject);

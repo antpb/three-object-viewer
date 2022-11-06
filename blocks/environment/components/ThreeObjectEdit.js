@@ -357,14 +357,14 @@ function VideoObject(threeVideo) {
 									.getBlockAttributes(threeVideo.videoID)
 							);
 
-							if (threeVideo.shouldFocus) {
-								setFocusPosition([
-									e?.target.worldPosition.x,
-									e?.target.worldPosition.y,
-									e?.target.worldPosition.z
-								]);
-								camera.position.set(threeVideo.focusPosition);
-							}
+							// if (threeVideo.shouldFocus) {
+							// 	setFocusPosition([
+							// 		e?.target.worldPosition.x,
+							// 		e?.target.worldPosition.y,
+							// 		e?.target.worldPosition.z
+							// 	]);
+							// 	camera.position.set(threeVideo.focusPosition);
+							// }
 						}}
 					>
 						{children}
@@ -518,14 +518,14 @@ function ModelObject(model) {
 										.getBlockAttributes(model.modelId)
 								);
 
-								if (model.shouldFocus) {
-									setFocusPosition([
-										e?.target.worldPosition.x,
-										e?.target.worldPosition.y,
-										e?.target.worldPosition.z
-									]);
-									camera.position.set(model.focusPosition);
-								}
+								// if (model.shouldFocus) {
+								// 	setFocusPosition([
+								// 		e?.target.worldPosition.x,
+								// 		e?.target.worldPosition.y,
+								// 		e?.target.worldPosition.z
+								// 	]);
+								// 	camera.position.set(model.focusPosition);
+								// }
 							}}
 						>
 							{children}
@@ -669,14 +669,14 @@ function PortalObject(model) {
 										.getBlockAttributes(model.portalID)
 								);
 
-								if (model.shouldFocus) {
-									setFocusPosition([
-										e?.target.worldPosition.x,
-										e?.target.worldPosition.y,
-										e?.target.worldPosition.z
-									]);
-									camera.position.set(model.focusPosition);
-								}
+								// if (model.shouldFocus) {
+								// 	setFocusPosition([
+								// 		e?.target.worldPosition.x,
+								// 		e?.target.worldPosition.y,
+								// 		e?.target.worldPosition.z
+								// 	]);
+								// 	camera.position.set(model.focusPosition);
+								// }
 							}}
 						>
 							{children}
@@ -882,7 +882,7 @@ function ThreeObject(props) {
 					positionY={spawnpoint.positionY}
 					positionZ={spawnpoint.positionZ}
 					transformMode={props.transformMode}
-					setFocusPosition={props.setFocusPosition}
+					// setFocusPosition={props.setFocusPosition}
 					shouldFocus={props.shouldFocus}
 				/>
 			)}
@@ -905,7 +905,7 @@ function ThreeObject(props) {
 							selected={props.selected}
 							modelId={model.modelID}
 							transformMode={props.transformMode}
-							setFocusPosition={props.setFocusPosition}
+							// setFocusPosition={props.setFocusPosition}
 							shouldFocus={props.shouldFocus}
 						/>
 					);
@@ -930,7 +930,7 @@ function ThreeObject(props) {
 							selected={props.selected}
 							portalID={model.portalID}
 							transformMode={props.transformMode}
-							setFocusPosition={props.setFocusPosition}
+							// setFocusPosition={props.setFocusPosition}
 							shouldFocus={props.shouldFocus}
 						/>
 					);
@@ -957,7 +957,7 @@ function ThreeObject(props) {
 							aspectHeight={model.imageobject.aspectHeight}
 							aspectWidth={model.imageobject.aspectWidth}
 							transformMode={props.transformMode}
-							setFocusPosition={props.setFocusPosition}
+							// setFocusPosition={props.setFocusPosition}
 							shouldFocus={props.shouldFocus}
 						/>
 					);
@@ -982,7 +982,7 @@ function ThreeObject(props) {
 							aspectHeight={model.videoobject.aspectHeight}
 							aspectWidth={model.videoobject.aspectWidth}
 							transformMode={props.transformMode}
-							setFocusPosition={props.setFocusPosition}
+							// setFocusPosition={props.setFocusPosition}
 							shouldFocus={props.shouldFocus}
 						/>
 					);
@@ -1112,7 +1112,7 @@ export default function ThreeObjectEdit(props) {
 								scale={props.scale}
 								animations={props.animations}
 								transformMode={transformMode}
-								setFocusPosition={setFocusPosition}
+								// setFocusPosition={setFocusPosition}
 								shouldFocus={shouldFocus}
 							/>
 						</Suspense>
