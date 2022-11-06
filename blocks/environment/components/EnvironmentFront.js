@@ -515,8 +515,8 @@ function SavedObject( props ) {
 			if(item.isObject3D){
 				const mixer = new THREE.AnimationMixer(gltf.scene);
 
-				var pos = new THREE.Vector3(); // create once an reuse it
-				var quat = new THREE.Quaternion(); // create once an reuse it
+				var pos = new THREE.Vector3();
+				var quat = new THREE.Quaternion();
 				var rotation = new THREE.Euler();
 				var quaternion = item.getWorldQuaternion(quat);
 				var finalRotation = rotation.setFromQuaternion(quaternion);
@@ -525,8 +525,8 @@ function SavedObject( props ) {
 			}
 		})}
 		{ portals && portals.map((item, index)=>{
-			var pos = new THREE.Vector3(); // create once an reuse it
-			var quat = new THREE.Quaternion(); // create once an reuse it
+			var pos = new THREE.Vector3();
+			var quat = new THREE.Quaternion();
 			var rotation = new THREE.Euler();
 			let position = item.getWorldPosition(pos);
 			var quaternion = item.getWorldQuaternion(quat);

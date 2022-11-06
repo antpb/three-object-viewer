@@ -17,10 +17,12 @@
     "devDependencies": {
         "@babel/core": "^7",
         "@testing-library/react": "^12",
+        "@wordpress/eslint-plugin": "^13.5.0",
         "@wordpress/scripts": "^16",
         "airtap": "^4.0.4",
         "browserify": "^17.0.0",
         "esbuild": "^0.15.5",
+        "eslint": "^8.7.0",
         "lint-staged": "^13.0.3",
         "prettier": "^2.7.1",
         "prettier-standard": "^16.4.1",
