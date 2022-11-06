@@ -37,6 +37,15 @@ const Controls = (props) => {
 
 	useEffect(() => {
 		setSpawnPos(props.spawnPoint);
+		// if (controlsRef.current !== null && props.spawnPoint) {
+		// 	controlsRef.current
+		// 		.getObject()
+		// 		.parent.position.set(
+		// 			props.spawnPoint[0],
+		// 			props.spawnPoint[1],
+		// 			props.spawnPoint[2]
+		// 		);
+		// }
 	}, []);
 
 	useFrame(() => {
@@ -268,13 +277,20 @@ const Controls = (props) => {
 				setMoveRight(true);
 				setLock(false);
 				break;
+			// case "KeyR":
+			// 	if (controlsRef.current) {
+			// 		console.log(controlsRef.current.getObject());
+			// 		controlsRef.current
+			// 			.getObject()
+			// 			.parent.position.set(
+			// 				props.spawnPoint[0],
+			// 				props.spawnPoint[1],
+			// 				props.spawnPoint[2]
+			// 			);
+			// 	}
+			// 	setLock(false);
+			// 	break;
 			case "Space":
-				// camera.position.set(spawnPos[0], spawnPos[1], spawnPos[2]);
-				controlsRef.current.camera.position.set(
-					spawnPos[0],
-					spawnPos[1],
-					spawnPos[2]
-				);
 				setLock(false);
 				window.addEventListener("keydown", (e) => {
 					if (e.keyCode === 32 && e.target === document.body) {

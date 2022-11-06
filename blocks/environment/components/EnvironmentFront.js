@@ -805,7 +805,7 @@ export default function EnvironmentFront(props) {
 							<Physics>
 								<RigidBody></RigidBody>
 								{/* Debug physics */}
-								{/* <Debug />			 */}
+								<Debug />
 								{props.threeUrl && (
 									<>
 										<TeleportTravel useNormal={false}>
