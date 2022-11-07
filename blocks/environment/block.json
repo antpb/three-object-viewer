@@ -1,8 +1,12 @@
 {
     "name": "three-object-viewer/environment",
-    "title": "Environment Block",
-    "description": "A 3D environment component for VersePress",
+    "title": "3D Environment",
+    "description": "A 3D environment component for XP Portal",
     "attributes": {
+        "align": {
+            "type": "string",
+            "default": "full"
+        },    
         "scale": {
             "type": "integer",
             "default": 1
@@ -23,20 +27,25 @@
             "type": "string",
             "default": null
         },
+        "threePreviewImage": {
+            "type": "string",
+            "default": null
+        },
         "deviceTarget": {
             "type": "string",
-            "default": "2d"
+            "default": "vr"
         },
         "animations": {
             "type": "string",
             "default": ""
         }
     },
-    "category": "3D",
+    "category": "design",
     "apiVersion": 2,
     "supports": {
         "html": false,
-        "multiple": true
+        "multiple": false,
+        "align": ["full"]
     },
     "editorScript": "file:../../build/block-environment.js",
 	"editorStyle": "file:../../build/block-environment.css",

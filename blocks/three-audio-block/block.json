@@ -1,6 +1,6 @@
 {
     "name": "three-object-viewer/three-audio-block",
-    "title": "Three Audio Block",
+    "title": "3D Audio",
     "description": "An audio block for your environment",
     "attributes": {
         "audioUrl": {
@@ -96,7 +96,8 @@
             "default":0
         }
     },
-    "category": "3D",
+    "category": "design",
+    "parent":  [ "three-object-viewer/environment" ],
     "apiVersion": 2,
     "supports": {
         "html": false,

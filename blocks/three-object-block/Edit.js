@@ -68,6 +68,7 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 	const ALLOWED_MEDIA_TYPES = [
 		'model/gltf-binary',
 		'application/octet-stream',
+		'model/vnd.usdz+zip'
 	];
 
 	const MyDropZone = () => {
@@ -104,13 +105,13 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 			<InspectorControls key="setting">
 				<Panel header="Settings">
 					<PanelBody
-						title="GLB Object"
+						title="3D Object"
 						icon={ more }
 						initialOpen={ true }
 					>
 						<PanelRow>
 							<span>
-								select a glb file from your media library to
+								Select a 3D file from your media library to
 								render an object in the canvas:
 							</span>
 						</PanelRow>
@@ -266,7 +267,7 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 
 							<div>
 								<span>
-									Select a glb file to render in the canvas:
+									Select a 3D file to render in the canvas:
 								</span>
 								{/* <div className="three-object-block-url-input"> 
 									<input onChange={(e) => setEnteredURL(e.target.value)}></input> 
@@ -317,7 +318,7 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 							<MyDropZone />
 							<div>
 								<span>
-									Select a glb file to render in the canvas:
+									Select a 3D file to render in the canvas:
 								</span>
 								{/* <div className="three-object-block-url-input"> 
 								<input onChange={(e) => console.log(e.target.value) && setEnteredURL(e.target.value)}></input> 

@@ -8,7 +8,7 @@ import {
 	useAnimations,
 } from '@react-three/drei';
 import * as THREE from 'three';
-import defaultAikonaut from '../../inc/avatars/mummy.vrm';
+import defaultProfileVRM from '../../inc/avatars/3ov_default_avatar.vrm';
 
 function SavedObject( props ) {
 	const [ url, set ] = useState( props.url );
@@ -20,7 +20,7 @@ function SavedObject( props ) {
 	useThree( ( { camera } ) => {
 		camera.add( listener );
 	} );
-	const fallbackURL = threeObjectPlugin + defaultAikonaut;
+	const fallbackURL = threeObjectPlugin + defaultProfileVRM;
 	const playerURL = props.url ? props.url : fallbackURL;
 
 	const someSceneState = useLoader( GLTFLoader, playerURL, ( loader ) => {
@@ -37,6 +37,25 @@ function SavedObject( props ) {
 		playerController.scene.scale.set( 3, 3, 3 );
 		playerController.scene.position.set( 0, -2.5, 0 );
 		return <><primitive object={ playerController.scene } /></>;    
+	}
+}
+
+function CreateImage() {
+	const { gl, scene, camera } = useThree()
+	let getImageData = true;
+	if(gl){
+		if(getImageData == true) {
+			window.setTimeout(function () {
+				const url = gl.domElement.toDataURL();
+				const link = document.getElementById('download');
+
+				// const link = document.createElement('a');
+				link.setAttribute('href', url);
+				link.setAttribute('target', '_blank');
+				link.setAttribute('download', "download the scene image");	
+			}, 200);
+			getImageData = false;
+		}
 	}
 }
 
@@ -87,7 +106,6 @@ export default function App({ getSettings, updateSettings }) {
       
 			// Get media attachment details from the frame state
 			var attachment = frame.state().get('selection').first().toJSON();
-			// console.log(attachment);
 			setDefaultVRM(attachment.url);
 			// Send the attachment URL to our custom image input field.
 		  });
@@ -108,6 +126,7 @@ export default function App({ getSettings, updateSettings }) {
 			<div>
 				<h2>Three Object Viewer Settings</h2>
 			</div>
+			<div><a id="download">download the thing</a></div>
 			<div>
 				<h3>Avatar and World Defaults</h3>
 				<p>This avatar will be used for guest visitors or logged in users that have not set their main avatar in the user profile page.</p>
@@ -115,7 +134,8 @@ export default function App({ getSettings, updateSettings }) {
 			<div>
 				<label htmlFor="defaultVRM"><b>Default VRM: </b></label>
 				<Canvas
-          			camera={ { fov: 40, position: [0, 0, 10], zoom: 1} }
+           			camera={ { fov: 40, position: [0, 0, 10], zoom: 1} }
+					gl={{ preserveDrawingBuffer: true }}
 					shadowMap
 					style={ {
 						backgroundColor: '#6a737c',
@@ -123,7 +143,8 @@ export default function App({ getSettings, updateSettings }) {
 						height: '450px',
 						width: '40%',
 					} }
-				>
+				>				
+					<CreateImage/>
 					<ambientLight intensity={ 0.5 } />
 					<directionalLight
 						intensity={ 0.6 }

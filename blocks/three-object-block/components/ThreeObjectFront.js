@@ -3,6 +3,7 @@ import React, { Suspense, useRef, useState, useEffect } from 'react';
 import { Canvas, useLoader, useFrame, useThree } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Physics, RigidBody } from "@react-three/rapier";
+import { USDZLoader } from 'three/examples/jsm/loaders/USDZLoader';
 
 import {
 	OrthographicCamera,
@@ -18,7 +19,7 @@ import {
 } from '@react-three/xr';
 import { VRM, VRMUtils, VRMSchema, VRMLoaderPlugin  } from '@pixiv/three-vrm'
 import TeleportTravel from './TeleportTravel';
-import defaultVRM from '../../../inc/avatars/mummy.vrm';
+import defaultVRM from '../../../inc/avatars/3ov_default_avatar.vrm';
 
 function SavedObject( props ) {
 	const [ url, set ] = useState( props.url );
@@ -31,6 +32,14 @@ function SavedObject( props ) {
 		camera.add( listener );
 	} );
 
+	// USDZ loader.
+	if(props.url.split(/[#?]/)[0].split('.').pop().trim() === "usdz") {
+
+		const usdz = useLoader( USDZLoader, url);
+
+        return <primitive scale={[ props.scale, props.scale, props.scale ]} position={[ 0, props.positionY, 0 ]} rotation={[ 0, props.rotationY, 0 ]} object={ usdz } />;
+	}
+
 	const gltf = useLoader( GLTFLoader, url, ( loader ) => {
 		loader.register(
 			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
@@ -39,17 +48,17 @@ function SavedObject( props ) {
             return new VRMLoaderPlugin( parser );
         } );
 	} );
-	const fallbackURL = threeObjectPlugin + defaultVRM;
-	const playerURL = props.playerData.vrm ? props.playerData.vrm : fallbackURL
+	// const fallbackURL = threeObjectPlugin + defaultVRM;
+	// const playerURL = props.playerData.vrm ? props.playerData.vrm : fallbackURL
 
-	const someSceneState = useLoader( GLTFLoader, playerURL, ( loader ) => {
-		loader.register(
-			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
-		);
-		loader.register( ( parser ) => {
-            return new VRMLoaderPlugin( parser );
-        } );
-	} );
+	// const someSceneState = useLoader( GLTFLoader, playerURL, ( loader ) => {
+	// 	loader.register(
+	// 		( parser ) => new GLTFAudioEmitterExtension( parser, listener )
+	// 	);
+	// 	loader.register( ( parser ) => {
+    //         return new VRMLoaderPlugin( parser );
+    //     } );
+	// } );
 
 	const { actions } = useAnimations( gltf.animations, gltf.scene );
 
@@ -63,31 +72,32 @@ function SavedObject( props ) {
 			} );
 		}
 	}, [] );
-	if(someSceneState?.userData?.gltfExtensions?.VRM){
-		const playerController = someSceneState.userData.vrm;
-		const { camera } = useThree();
-		useFrame(() => {
-			const offset = camera.position.z - 3;
-			playerController.scene.position.set( camera.position.x, camera.position.y, offset );
-			playerController.scene.rotation.set( camera.rotation.x, camera.rotation.y, camera.rotation.z );
-		});
-		VRMUtils.rotateVRM0( playerController );
-		const rotationVRM = playerController.scene.rotation.y;
-		playerController.scene.rotation.set( 0, rotationVRM, 0 );
-		playerController.scene.scale.set( 1, 1, 1 );
-		gltf.scene.position.set( 0, props.positionY, 0 );
-		gltf.scene.rotation.set( 0, props.rotationY, 0 );
-		gltf.scene.scale.set( props.scale, props.scale, props.scale );	
-		return <><primitive object={ gltf.scene } /><primitive object={ playerController.scene } /></>;    
-	}
-    if(gltf?.userData?.gltfExtensions?.VRM){
-			const vrm = gltf.userData.vrm;
-			vrm.scene.position.set( 0, props.positionY, 0 );
-			VRMUtils.rotateVRM0( vrm );
-			const rotationVRM = vrm.scene.rotation.y + parseFloat(props.rotationY);
-			vrm.scene.rotation.set( 0, rotationVRM, 0 );
-			vrm.scene.scale.set( props.scale, props.scale, props.scale );
-			return <primitive object={ vrm.scene } />;    
+
+	// if(someSceneState?.userData?.gltfExtensions?.VRM){
+	// 	const playerController = someSceneState.userData.vrm;
+	// 	const { camera } = useThree();
+	// 	useFrame(() => {
+	// 		const offset = camera.position.z - 3;
+	// 		playerController.scene.position.set( camera.position.x, camera.position.y, offset );
+	// 		playerController.scene.rotation.set( camera.rotation.x, camera.rotation.y, camera.rotation.z );
+	// 	});
+	// 	VRMUtils.rotateVRM0( playerController );
+	// 	const rotationVRM = playerController.scene.rotation.y;
+	// 	playerController.scene.rotation.set( 0, rotationVRM, 0 );
+	// 	playerController.scene.scale.set( 1, 1, 1 );
+	// 	gltf.scene.position.set( 0, props.positionY, 0 );
+	// 	gltf.scene.rotation.set( 0, props.rotationY, 0 );
+	// 	gltf.scene.scale.set( props.scale, props.scale, props.scale );	
+	// 	return <><primitive object={ gltf.scene } /><primitive object={ playerController.scene } /></>;    
+	// }
+    if( gltf?.userData?.gltfExtensions?.VRM ){
+		const vrm = gltf.userData.vrm;
+		vrm.scene.position.set( 0, props.positionY, 0 );
+		VRMUtils.rotateVRM0( vrm );
+		const rotationVRM = vrm.scene.rotation.y + parseFloat(props.rotationY);
+		vrm.scene.rotation.set( 0, rotationVRM, 0 );
+		vrm.scene.scale.set( props.scale, props.scale, props.scale );
+		return <primitive object={ vrm.scene } />;	
     }
     gltf.scene.position.set( 0, props.positionY, 0 );
     gltf.scene.rotation.set( 0, props.rotationY, 0 );
@@ -98,7 +108,7 @@ function SavedObject( props ) {
 function Floor( props ) {
 	return (
 		<mesh position={ [ 0, -2, 0 ] } rotation={ [ -Math.PI / 2, 0, 0 ] } { ...props }>
-			<planeBufferGeometry args={ [ 1000, 1000 ] } attach="geometry" />
+			<planeGeometry args={ [ 1000, 1000 ] } attach="geometry" />
 			<meshBasicMaterial
 				opacity={ 0 }
 				transparent={ true }

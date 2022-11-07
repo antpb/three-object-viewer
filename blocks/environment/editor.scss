@@ -2,6 +2,14 @@
  .wp-block-three-object-block {
 	border: 1px dotted #f00;
 }
+
+.wp-block-three-object-viewer-environment.alignfull {
+	position: relative;
+	top: 0;
+	bottom: 0;
+	width:100vw;
+	height: 100vh;
+}
  .glb-preview-container {
 	 padding: 100px;
 	 text-align: center;
@@ -16,9 +24,104 @@
 }
 
 .three-object-viewer-button {
-	background-color:rgb(199, 254, 0);
 	color: black;
 	border: solid 1.5px black;
+	border-radius: 8px;
+	cursor: pointer;
+
+}
+
+.three-html-block-inner-wrapper{
+	border-radius: 20px;
+	padding: 10px;
+	box-sizing: border-box;
+}
+
+.wp-block-three-object-viewer-sky-block,
+.wp-block-three-object-viewer-model-block,
+.wp-block-three-object-viewer-three-image-block,
+.wp-block-three-object-viewer-three-audio-block,
+.wp-block-three-object-viewer-three-portal-block,
+.wp-block-three-object-viewer-three-video-block,
+.wp-block-three-object-viewer-spawn-point-block,
+.wp-block-three-object-viewer-three-html-block  {
+	display: flex;
+	float: left;
+	padding-left:10px !important;
+	height: auto;
+    padding-right: 10px !important;
+    // background-color: rgb(42, 42, 42);
+}
+
+.wp-block-three-object-viewer-environment .block-editor-inner-blocks {
+	background-color: rgb(42, 42, 42);
+	height: 210px;
+	overflow: scroll;
+}
+
+.three-object-viewer-component-container {
+	display: flex;
+	flex-direction: column;
+}
+.three-object-viewer-component-container p {
+	font-size: 0.6em;
+}
+
+.three-object-viewer-inner-edit-container p{
+	margin: 0 auto;
+}
+.three-object-viewer-inner-edit-container .three-object-viewer-model-name {
+    font-size: 0.7em;
+}
+
+.three-object-viewer-inner p {
+	font-size: 0.8em;
+	margin: 0;
+}
+
+.three-object-viewer-inner {
+	z-index:1;
+	flex: 1;
+	background-color: #3f3f3f;
+	padding: 10px;
+	color: white;
+	box-sizing: border-box;
+	margin-bottom: 20px;
+	margin-top: 20px;
+	max-width: 130px;
+	width: 130px;
+	max-height: 93px;
+	height: 93px;
+	font-size: 0.8em;
+	text-align: center;
+	border-radius: 8px;
+	box-shadow:0px 1px 5px 1px #1e1e1e;
+}
+
+.three-object-viewer-inner svg {
+	max-height: 30px;
+	filter: invert(88%) ;
+}
+
+.wp-block-three-object-viewer-environment .block-editor-inner-blocks .block-editor-button-block-appender {
+	width: 60px;
+	height: 60px;
+}
+
+.wp-block-three-object-viewer-environment .block-editor-inner-blocks .block-editor-button-block-appender svg{
+	width: 40px;
+	height: 40px;
+}
+.wp-block-three-object-viewer-environment .block-editor-inner-blocks .block-editor-button-block-appender{
+	margin: 0px 0px -60px;
+}
+.wp-block-three-object-viewer-environment {
+	background-color: rgb(42, 42, 42);
+}
+
+
+.stats {
+	margin-top: 200px !important;
 }
 
 .glb-preview-container button:hover{

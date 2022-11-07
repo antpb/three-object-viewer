@@ -37,9 +37,9 @@ function threeobjectviewer_enqueue_threeobjectloaderinit() {
     );
 }
 
-add_filter('upload_mimes', 'threeobjectviewer_add_file_types_to_uploads', 1, 1);
+add_filter('upload_mimes', __NAMESPACE__ . '\threeobjectviewer_add_file_types_to_uploads', 10, 4);
 /**
-* Adds glb and vrm types to allowed uploads.
+* Adds glb vrm and usdz types to allowed uploads.
 */
 function threeobjectviewer_add_file_types_to_uploads($file_types){
   $new_filetypes = array();
@@ -47,31 +47,27 @@ function threeobjectviewer_add_file_types_to_uploads($file_types){
   // $new_filetypes['glb'] = 'model/gltf-binary';
   $new_filetypes['glb'] = 'application/octet-stream';
   $new_filetypes['vrm'] = 'application/octet-stream';
+  $new_filetypes['usdz'] = 'model/vnd.usdz+zip';
   $file_types = array_merge($file_types, $new_filetypes );
+
   return $file_types;
 }
 
-add_filter('wp_check_filetype_and_ext', __NAMESPACE__ . '\threeobjectviewer_checkfiletypes', 10, 4);
-/**
- * Check the filetypes
- */
-function threeobjectviewer_checkfiletypes($data, $file, $filename, $mimes) {
-    if (!$data['type']) {
-        $wp_filetype = wp_check_filetype($filename, $mimes);
-        $ext = $wp_filetype['ext'];
-        $type = $wp_filetype['type'];
-        $proper_filename = $filename;
-        if ($type && 0 === strpos($type, 'model/') && $ext !== 'glb') {
-            $ext = $type = false;
-        }
-        if ($type && 0 === strpos($type, 'model/') && $ext !== 'vrm') {
-            $ext = $type = false;
-        }
-        $data['ext'] = $ext;
-        $data['type'] = $type;
-        $data['proper_filename'] = $proper_filename;
+add_filter( 'wp_check_filetype_and_ext',  __NAMESPACE__ . '\three_object_viewer_check_for_usdz', 10, 4 );
+function three_object_viewer_check_for_usdz( $types, $file, $filename, $mimes ) {
+    if ( false !== strpos( $filename, '.usdz' ) ) {
+        $types['ext']  = 'usdz';
+        $types['type'] = 'model/vnd.usdz+zip';
     }
-    return $data;
+    if ( false !== strpos( $filename, '.glb' ) ) {
+        $types['ext']  = 'glb';
+        $types['type'] = 'application/octet-stream';
+    }
+    if ( false !== strpos( $filename, '.vrm' ) ) {
+        $types['ext']  = 'vrm';
+        $types['type'] = 'application/octet-stream';
+    }
+    return $types;
 }
 
 add_action('wp_enqueue_scripts', __NAMESPACE__ . '\threeobjectviewer_frontend_assets');
@@ -81,7 +77,8 @@ add_action('wp_enqueue_scripts', __NAMESPACE__ . '\threeobjectviewer_frontend_as
  */
 function threeobjectviewer_frontend_assets() {
 
-	$frontend_js_path = "/assets/js/blocks.frontend.js";
+	$default_frontend_js = "../build/assets/js/blocks.frontend-versepress.js";
+    $frontend_js = apply_filters( 'three-object-environment-frontend-js', $default_frontend_js );
 
     $current_user = wp_get_current_user();
     $vrm = wp_get_attachment_url($current_user->avatar);
@@ -90,8 +87,9 @@ function threeobjectviewer_frontend_assets() {
         'inWorldName' => $current_user->in_world_name,
         'banner' => $current_user->custom_banner,
         'vrm' => $vrm,
+        'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] )
      );
-
+     
     $three_object_plugin = plugins_url() . '/three-object-viewer/build/';
 
     // $user_data_passed = array(
@@ -99,8 +97,10 @@ function threeobjectviewer_frontend_assets() {
     //     'userName' => 'someone',
     //     'vrm' => 'somefile.vrm',
     //  );
+    global $post;
+    $post_slug = $post->post_name;
 
-    wp_register_script( 'threeobjectloader-frontend', plugin_dir_url( __FILE__ ) . '../build/assets/js/blocks.frontend.js', ['wp-element', 'wp-data', 'wp-hooks'], '', true );
+    // wp_register_script( 'threeobjectloader-frontend', plugin_dir_url( __FILE__ ) . $frontend_js, ['wp-element', 'wp-data', 'wp-hooks'], '', true );
     wp_localize_script( 'threeobjectloader-frontend', 'userData', $user_data_passed );
     wp_localize_script( 'threeobjectloader-frontend', 'threeObjectPlugin', $three_object_plugin );
 
@@ -108,8 +108,9 @@ function threeobjectviewer_frontend_assets() {
 		"threeobjectloader-frontend"
 	);
 
-    wp_register_script( 'versepress-frontend', plugin_dir_url( __FILE__ ) . '../build/assets/js/blocks.frontend-versepress.js', ['wp-element', 'wp-data', 'wp-hooks'], '', true );
+    wp_register_script( 'versepress-frontend', plugin_dir_url( __FILE__ ) . $frontend_js, ['wp-element', 'wp-data', 'wp-hooks'], '', true );
     wp_localize_script( 'versepress-frontend', 'userData', $user_data_passed );
+    wp_localize_script( 'versepress-frontend', 'postSlug', $post_slug );
     wp_localize_script( 'versepress-frontend', 'threeObjectPlugin', $three_object_plugin );
 
 	wp_enqueue_script( 
@@ -117,3 +118,29 @@ function threeobjectviewer_frontend_assets() {
 	);
 
 }
+
+add_action('enqueue_block_assets', __NAMESPACE__ . '\threeobjectviewer_editor_assets');
+
+/**
+ * Enqueue block frontend JavaScript
+ */
+function threeobjectviewer_editor_assets() {
+
+
+    $DEFAULT_BLOCKS = [
+                        'three-object-viewer/three-portal-block',
+                         'three-object-viewer/three-html-block',
+                         'three-object-viewer/model-block',
+                         'three-object-viewer/sky-block',
+                         'three-object-viewer/npc-block',
+                         'three-object-viewer/three-image-block',
+                         'three-object-viewer/three-video-block',
+                         'three-object-viewer/three-audio-block',
+                         'three-object-viewer/spawn-point-block' 
+                    ];
+    $ALLOWED_BLOCKS = apply_filters( 'three-object-environment-inner-allowed-blocks', $DEFAULT_BLOCKS );
+
+    wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'allowed_blocks', $ALLOWED_BLOCKS );
+
+}
+

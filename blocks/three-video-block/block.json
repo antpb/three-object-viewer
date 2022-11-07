@@ -1,6 +1,6 @@
 {
     "name": "three-object-viewer/three-video-block",
-    "title": "Three Video Block",
+    "title": "3D Video",
     "description": "A video block for your environment",
     "attributes": {
         "videoUrl": {
@@ -56,7 +56,8 @@
             "default":0
         }
     },
-    "category": "3D",
+    "category": "design",
+    "parent":  [ "three-object-viewer/environment" ],
     "apiVersion": 2,
     "supports": {
         "html": false,

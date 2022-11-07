@@ -1,11 +1,14 @@
 {
     "name": "three-object-viewer/model-block",
-    "title": "Model Block",
-    "description": "A 3D model for your VersePress environment",
+    "title": "3D Model",
+    "description": "A 3D model for your XP Portal environment",
     "attributes": {
         "scaleX": {
             "type": "int",
             "default":1
+        },
+        "name": {
+            "type": "string"
         },
         "scaleY": {
             "type": "int",
@@ -47,12 +50,17 @@
             "type": "string",
             "default": ""
         },
+        "alt": {
+            "type": "string",
+            "default": ""
+        },
         "collidable": {
             "type": "boolean",
             "default": false
         }
     },
-    "category": "3D",
+    "category": "design",
+    "parent":  [ "three-object-viewer/environment" ],
     "apiVersion": 2,
     "supports": {
         "html": false,

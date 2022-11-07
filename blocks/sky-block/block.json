@@ -1,6 +1,6 @@
 {
     "name": "three-object-viewer/sky-block",
-    "title": "Sky Block",
+    "title": "3D Sky Block",
     "description": "A sky your environment",
     "attributes": {
         "skyUrl": {
@@ -8,7 +8,8 @@
             "default": null
         }
     },
-    "category": "3D",
+    "category": "design",
+    "parent":  [ "three-object-viewer/environment" ],
     "apiVersion": 2,
     "supports": {
         "html": false,
