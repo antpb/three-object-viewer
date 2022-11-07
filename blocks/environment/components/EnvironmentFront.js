@@ -223,8 +223,18 @@ function ModelObject(model) {
 			// </A11y>
 		);
 	}
+	// gltf.scene.castShadow = true;
+	// enable shadows @todo figure this out
+	// gltf.scene.traverse(function (node) {
+	// 	if (node.isMesh) {
+	// 		node.castShadow = true;
+	// 		node.receiveShadow = true;
+	// 	}
+	// });
+
 	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene]);
 	const modelClone = SkeletonUtils.clone(gltf.scene);
+	// modelClone.scene.castShadow = true;
 	if (model.collidable === "1") {
 		return (
 			<>
@@ -249,6 +259,8 @@ function ModelObject(model) {
 				>
 					<primitive
 						object={modelClone}
+						// castShadow
+						// receiveShadow
 						rotation={[
 							model.rotationX,
 							model.rotationY,
@@ -268,7 +280,9 @@ function ModelObject(model) {
 	return (
 		<>
 			<primitive
-				object={gltf.scene}
+				object={modelClone}
+				// castShadow
+				// receiveShadow
 				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
 				position={[model.positionX, model.positionY, model.positionZ]}
 				scale={[model.scaleX, model.scaleY, model.scaleZ]}
@@ -625,6 +639,12 @@ function SavedObject(props) {
 		}
 
 		gltf.scene.traverse((child) => {
+			// @todo figure out shadows
+			// if (child.isMesh) {
+			// 	child.castShadow = true;
+			// 	child.receiveShadow = true;
+			// }
+
 			if (child.userData.gltfExtensions?.OMI_collider) {
 				childrenToParse.push(child);
 				// child.parent.remove(child.name);
@@ -681,6 +701,8 @@ function SavedObject(props) {
 						return (
 							<primitive
 								rotation={finalRotation}
+								castShadow
+								receiveShadow
 								position={item.getWorldPosition(pos)}
 								object={item}
 							/>
@@ -784,7 +806,9 @@ export default function EnvironmentFront(props) {
 							far: 2000,
 							position: [0, 0, 20]
 						}}
-						shadowMap
+						// shadowMap
+						// linear={true}
+						// shadows={{ type: "PCFSoftShadowMap" }}
 						style={{
 							backgroundColor: props.backgroundColor,
 							margin: "0",
@@ -801,15 +825,24 @@ export default function EnvironmentFront(props) {
 						<directionalLight
 							intensity={0.6}
 							position={[0, 2, 2]}
-							shadow-mapSize-width={2048}
-							shadow-mapSize-height={2048}
-							castShadow
+							// shadow-mapSize-width={512}
+							// shadow-mapSize-height={512}
+							// shadow-camera-far={5000}
+							// shadow-camera-fov={15}
+							// shadow-camera-near={0.5}
+							// shadow-camera-left={-50}
+							// shadow-camera-bottom={-50}
+							// shadow-camera-right={50}
+							// shadow-camera-top={50}
+							// shadow-radius={1}
+							// shadow-bias={-0.001}
+							// castShadow
 						/>
 						<Suspense fallback={null}>
 							<Physics>
 								<RigidBody></RigidBody>
 								{/* Debug physics */}
-								<Debug />
+								{/* <Debug /> */}
 								{props.threeUrl && (
 									<>
 										<TeleportTravel useNormal={false}>
