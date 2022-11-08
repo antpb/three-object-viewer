@@ -55,8 +55,11 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 		setAttributes({ animations });
 	};
 
-	const onChangeMarkup = (html) => {
-		setAttributes({ markup: html });
+	const onChangeText = (text) => {
+		setAttributes({ textContent: text });
+	};
+	const onChangeTextcolor = (color) => {
+		setAttributes({ textColor: color });
 	};
 
 	const onChangeDestinationUrl = (destination) => {
@@ -114,68 +117,23 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 			<InspectorControls key="setting">
 				<Panel header="Settings">
 					<PanelBody
-						title="GLB Object"
-						icon={more}
-						initialOpen={true}
-					>
-						<PanelRow>
-							<span>
-								select a glb file from your media library to
-								render an object in the canvas:
-							</span>
-						</PanelRow>
-						<PanelRow>
-							<MediaUpload
-								onSelect={(imageObject) =>
-									onImageSelect(imageObject)
-								}
-								type="image"
-								label="GLB File"
-								allowedTypes={ALLOWED_MEDIA_TYPES}
-								value={attributes.threeObjectUrl}
-								render={({ open }) => (
-									<button onClick={open}>
-										{attributes.threeObjectUrl
-											? "Replace Object"
-											: "Select Object"}
-									</button>
-								)}
-							/>
-						</PanelRow>
-					</PanelBody>
-					<PanelBody
-						title="Model Attributes"
+						title="Text Attributes"
 						icon={more}
 						initialOpen={true}
 					>
 						<PanelRow>
 							<TextareaControl
-								label="HTML"
-								help="Party like its 1999."
-								value={attributes.markup}
-								onChange={(value) => onChangeMarkup(value)}
+								label="Text"
+								help="Write here."
+								value={attributes.textContent}
+								onChange={(value) => onChangeText(value)}
 							/>
 						</PanelRow>
 						<PanelRow>
-							<ToggleControl
-								label="Collidable"
-								help={
-									attributes.collidable
-										? "Item is currently collidable."
-										: "Item is not collidable. Users will walk through it."
-								}
-								checked={attributes.collidable}
-								onChange={(e) => {
-									onChangeCollidable(e);
-								}}
-							/>
-						</PanelRow>
-						<PanelRow>
-							<TextControl
-								label="Loop Animations"
-								help="Separate each animation name you wish to loop with a comma"
-								value={attributes.animations}
-								onChange={(value) => onChangeAnimations(value)}
+							<ColorPalette
+								value={attributes.textColor}
+								label="Text Color"
+								onChange={onChangeTextcolor}
 							/>
 						</PanelRow>
 						<PanelRow>
@@ -281,7 +239,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 									</g>
 								</svg>
 								<p>
-									<b>HTML block</b>
+									<b>Text Block</b>
 								</p>
 								{/* <p>URL: {attributes.threeObjectUrl}</p> */}
 							</div>
@@ -300,7 +258,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 									</g>
 								</svg>
 								<p>
-									<b>HTML block</b>
+									<b>Text Block</b>
 								</p>
 								{/* <p>URL: {attributes.threeObjectUrl}</p> */}
 							</div>
@@ -323,7 +281,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 									</g>
 								</svg>
 								<p>
-									<b>HTML block</b>
+									<b>Text Block</b>
 								</p>
 								{/* <p>URL: {attributes.threeObjectUrl}</p> */}
 							</div>
@@ -342,7 +300,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 									</g>
 								</svg>
 								<p>
-									<b>HTML block</b>
+									<b>Text Block</b>
 								</p>
 								{/* <p>URL: {attributes.threeObjectUrl}</p> */}
 							</div>

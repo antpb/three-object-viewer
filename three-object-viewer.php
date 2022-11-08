@@ -39,7 +39,7 @@ include_once dirname( __FILE__ ) . '/blocks/three-audio-block/init.php';
 include_once dirname( __FILE__ ) . '/blocks/three-portal-block/init.php';
 
 // Include html
-include_once dirname( __FILE__ ) . '/blocks/three-html-block/init.php';
+include_once dirname( __FILE__ ) . '/blocks/three-text-block/init.php';
 
 // Include spawn point
 include_once dirname( __FILE__ ) . '/blocks/spawn-point-block/init.php';

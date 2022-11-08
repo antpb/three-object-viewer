@@ -7,9 +7,15 @@ import { TextureLoader } from "three/src/loaders/TextureLoader";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
 import { Physics, RigidBody, MeshCollider, Debug } from "@react-three/rapier";
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
-import Networking from "./Networking";
+// import Networking from "./Networking";
 
-import { useAnimations, Html, Stats, Text, Billboard } from "@react-three/drei";
+import {
+	useAnimations,
+	Stats,
+	Text,
+	Billboard,
+	Select
+} from "@react-three/drei";
 import { A11y } from "@react-three/a11y";
 import { GLTFAudioEmitterExtension } from "three-omi";
 import {
@@ -436,7 +442,7 @@ function Sky(sky) {
 			scale={[200, 200, 200]}
 			rotation={[0, 0, 0]}
 		>
-			<sphereBufferGeometry args={[5, 200, 200]} />
+			<sphereGeometry args={[5, 200, 200]} />
 			<meshStandardMaterial side={THREE.DoubleSide} map={texture1} />
 		</mesh>
 	);
@@ -472,7 +478,8 @@ function ThreeImage(threeImage) {
 }
 
 function ThreeVideo(threeVideo) {
-	const clicked = true;
+	const play = true;
+	const [clicked, setClickEvent] = useState();
 	const [video] = useState(() =>
 		Object.assign(document.createElement("video"), {
 			src: threeVideo.url,
@@ -482,36 +489,56 @@ function ThreeVideo(threeVideo) {
 		})
 	);
 
-	useEffect(() => void (clicked && video.play()), [video, clicked]);
+	useEffect(() => void (play && video.play()), [video, play]);
 
 	return (
-		<mesh
-			scale={[threeVideo.scaleX, threeVideo.scaleY, threeVideo.scaleZ]}
-			position={[
-				threeVideo.positionX,
-				threeVideo.positionY,
-				threeVideo.positionZ
-			]}
-			rotation={[
-				threeVideo.rotationX,
-				threeVideo.rotationY,
-				threeVideo.rotationZ
-			]}
+		<Select
+			box
+			multiple
+			onChange={(e) => {
+				if (e.length !== 0) {
+					setClickEvent(!clicked);
+					if (clicked) {
+						video.play();
+					} else {
+						video.pause();
+					}
+				}
+			}}
+			filter={(items) => items}
 		>
-			<meshBasicMaterial toneMapped={false}>
-				<videoTexture
-					attach="map"
-					args={[video]}
-					encoding={THREE.sRGBEncoding}
-				/>
-			</meshBasicMaterial>
-			<planeGeometry
-				args={[
-					threeVideo.aspectWidth / 12,
-					threeVideo.aspectHeight / 12
+			<mesh
+				scale={[
+					threeVideo.scaleX,
+					threeVideo.scaleY,
+					threeVideo.scaleZ
 				]}
-			/>
-		</mesh>
+				position={[
+					threeVideo.positionX,
+					threeVideo.positionY,
+					threeVideo.positionZ
+				]}
+				rotation={[
+					threeVideo.rotationX,
+					threeVideo.rotationY,
+					threeVideo.rotationZ
+				]}
+			>
+				<meshBasicMaterial toneMapped={false}>
+					<videoTexture
+						attach="map"
+						args={[video]}
+						encoding={THREE.sRGBEncoding}
+					/>
+				</meshBasicMaterial>
+				<planeGeometry
+					args={[
+						threeVideo.aspectWidth / 12,
+						threeVideo.aspectHeight / 12
+					]}
+				/>
+			</mesh>
+		</Select>
 	);
 }
 
@@ -528,41 +555,26 @@ function Floor(props) {
 	);
 }
 
-function Markup(model) {
+function TextObject(model) {
 	const htmlObj = useRef();
 	return (
 		<>
-			<group ref={htmlObj}>
-				<mesh
-					scale={[1, 1, 1]}
-					position={[0, 0, 0]}
-					rotation={[0, 0, 0]}
+			<group
+				position={[model.positionX, model.positionY, model.positionZ]}
+				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
+				scale={[model.scaleX, model.scaleY, model.scaleZ]}
+				ref={htmlObj}
+			>
+				<Text
+					className="content"
+					// rotation-y={-Math.PI / 2}
+					width={10}
+					height={10}
+					color={model.textColor}
+					transform
 				>
-					<meshBasicMaterial attach="material" color={0xffffff} />
-					<Html
-						className="content"
-						rotation-y={-Math.PI / 2}
-						width={10}
-						height={10}
-						position={[
-							model.positionX,
-							model.positionY,
-							model.positionZ
-						]}
-						rotation={[
-							model.rotationX,
-							model.rotationY,
-							model.rotationZ
-						]}
-						transform
-					>
-						<div
-							className="wrapper three-html-block-inner-wrapper"
-							style={{ backgroundColor: "#ffffff" }}
-							dangerouslySetInnerHTML={{ __html: model.markup }}
-						></div>
-					</Html>
-				</mesh>
+					{model.textContent}
+				</Text>
 			</group>
 		</>
 	);
@@ -679,7 +691,8 @@ function SavedObject(props) {
 			});
 		}
 	}, []);
-	console.log(gltf);
+	// Always seem to need to log this...
+	// console.log(gltf);
 	// const loader = new THREE.ObjectLoader();
 	// const object = await loader.loadAsync("models/json/lightmap/lightmap.json");
 	// scene.add(object);
@@ -1296,67 +1309,102 @@ export default function EnvironmentFront(props) {
 											})}
 											{Object.values(props.htmlToAdd).map(
 												(model, index) => {
-													const markup =
+													const textContent =
 														model.querySelector(
-															"p.three-html-markup"
+															"p.three-text-content"
 														)
 															? model.querySelector(
-																	"p.three-html-markup"
+																	"p.three-text-content"
 															  ).innerText
 															: "";
 													const rotationX =
 														model.querySelector(
-															"p.three-html-rotationX"
+															"p.three-text-rotationX"
 														)
 															? model.querySelector(
-																	"p.three-html-rotationX"
+																	"p.three-text-rotationX"
 															  ).innerText
 															: "";
 													const rotationY =
 														model.querySelector(
-															"p.three-html-rotationY"
+															"p.three-text-rotationY"
 														)
 															? model.querySelector(
-																	"p.three-html-rotationY"
+																	"p.three-text-rotationY"
 															  ).innerText
 															: "";
 													const rotationZ =
 														model.querySelector(
-															"p.three-html-rotationZ"
+															"p.three-text-rotationZ"
 														)
 															? model.querySelector(
-																	"p.three-html-rotationZ"
+																	"p.three-text-rotationZ"
 															  ).innerText
 															: "";
 													const positionX =
 														model.querySelector(
-															"p.three-html-positionX"
+															"p.three-text-positionX"
 														)
 															? model.querySelector(
-																	"p.three-html-positionX"
+																	"p.three-text-positionX"
 															  ).innerText
 															: "";
 													const positionY =
 														model.querySelector(
-															"p.three-html-positionY"
+															"p.three-text-positionY"
 														)
 															? model.querySelector(
-																	"p.three-html-positionY"
+																	"p.three-text-positionY"
 															  ).innerText
 															: "";
 													const positionZ =
 														model.querySelector(
-															"p.three-html-positionZ"
+															"p.three-text-positionZ"
 														)
 															? model.querySelector(
-																	"p.three-html-positionZ"
+																	"p.three-text-positionZ"
+															  ).innerText
+															: "";
+													const scaleX =
+														model.querySelector(
+															"p.three-text-scaleX"
+														)
+															? model.querySelector(
+																	"p.three-text-scaleX"
+															  ).innerText
+															: "";
+													const scaleY =
+														model.querySelector(
+															"p.three-text-scaleY"
+														)
+															? model.querySelector(
+																	"p.three-text-scaleY"
+															  ).innerText
+															: "";
+													const scaleZ =
+														model.querySelector(
+															"p.three-text-scaleZ"
+														)
+															? model.querySelector(
+																	"p.three-text-scaleZ"
+															  ).innerText
+															: "";
+
+													const textColor =
+														model.querySelector(
+															"p.three-text-color"
+														)
+															? model.querySelector(
+																	"p.three-text-color"
 															  ).innerText
 															: "";
 
 													return (
-														<Markup
+														<TextObject
 															key={index}
-															markup={markup}
+															textContent={
+																textContent
+															}
 															positionX={
 																positionX
 															}
@@ -1366,9 +1414,12 @@ export default function EnvironmentFront(props) {
 															positionZ={
 																positionZ
 															}
-															// scaleX={modelScaleX}
-															// scaleY={modelScaleY}
-															// scaleZ={modelScaleZ}
+															scaleX={scaleX}
+															scaleY={scaleY}
+															scaleZ={scaleZ}
+															textColor={
+																textColor
+															}
 															rotationX={
 																rotationX
 															}

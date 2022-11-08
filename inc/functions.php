@@ -129,7 +129,7 @@ function threeobjectviewer_editor_assets() {
 
     $DEFAULT_BLOCKS = [
                         'three-object-viewer/three-portal-block',
-                         'three-object-viewer/three-html-block',
+                         'three-object-viewer/three-text-block',
                          'three-object-viewer/model-block',
                          'three-object-viewer/sky-block',
                          'three-object-viewer/npc-block',

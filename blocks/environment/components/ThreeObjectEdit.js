@@ -11,82 +11,90 @@ import {
 	TransformControls,
 	Stats,
 	Select,
-	Text
+	Text,
+	useAspect
 } from "@react-three/drei";
 import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import { GLTFAudioEmitterExtension } from "three-omi";
 import { A11y } from "@react-three/a11y";
 import { Perf } from "r3f-perf";
 import EditControls from "./EditControls";
-import CustomComponent from "../../../../four-object-viewer/blocks/four-portal-block/components/CustomComponent";
 import { Resizable } from "re-resizable";
-import { useAspect } from "@react-three/drei";
 
-function Markup(model) {
-	const htmlObj = useRef();
-	return (
-		<>
-			<TransformControls
-				enabled={model.selected}
-				mode={model.transformMode}
-				object={htmlObj}
-				size={0.5}
-				onObjectChange={(e) => {
-					const rot = new THREE.Euler(0, 0, 0, "XYZ");
-					const scale = e?.target.worldScale;
-					rot.setFromQuaternion(e?.target.worldQuaternion);
-					wp.data
-						.dispatch("core/block-editor")
-						.updateBlockAttributes(model.htmlobjectId, {
-							positionX: e?.target.worldPosition.x,
-							positionY: e?.target.worldPosition.y,
-							positionZ: e?.target.worldPosition.z,
-							rotationX: rot.x,
-							rotationY: rot.y,
-							rotationZ: rot.z,
-							scaleX: scale.x,
-							scaleY: scale.y,
-							scaleZ: scale.z
-						});
+function TextObject(text) {
+	const textObj = useRef();
+	const [isSelected, setIsSelected] = useState();
+	const textBlockAttributes = wp.data
+		.select("core/block-editor")
+		.getBlockAttributes(text.htmlobjectId);
+	const TransformController = ({ condition, wrap, children }) =>
+		condition ? wrap(children) : children;
+	if (text) {
+		return (
+			<Select
+				box
+				multiple
+				onChange={(e) => {
+					e.length !== 0 ? setIsSelected(true) : setIsSelected(false);
 				}}
+				filter={(items) => items}
 			>
-				<group
-					ref={htmlObj}
-					position={[
-						model.positionX,
-						model.positionY,
-						model.positionZ
-					]}
-					rotation={[
-						model.rotationX,
-						model.rotationY,
-						model.rotationZ
-					]}
-				>
-					<mesh>
-						<meshBasicMaterial attach="material" color={0xffffff} />
-						<Html
-							className="content"
-							rotation-y={-Math.PI / 2}
-							width={10}
-							height={10}
-							position={[-0.2, 0, -1]}
-							occlude
-							transform
+				<TransformController
+					condition={isSelected}
+					wrap={(children) => (
+						<TransformControls
+							mode={text.transformMode}
+							object={textObj}
+							size={0.5}
+							onObjectChange={(e) => {
+								const rot = new THREE.Euler(0, 0, 0, "XYZ");
+								const scale = e?.target.worldScale;
+								rot.setFromQuaternion(
+									e?.target.worldQuaternion
+								);
+								wp.data
+									.dispatch("core/block-editor")
+									.updateBlockAttributes(text.htmlobjectId, {
+										positionX: e?.target.worldPosition.x,
+										positionY: e?.target.worldPosition.y,
+										positionZ: e?.target.worldPosition.z,
+										rotationX: rot.x,
+										rotationY: rot.y,
+										rotationZ: rot.z,
+										scaleX: scale.x,
+										scaleY: scale.y,
+										scaleZ: scale.z
+									});
+							}}
 						>
-							<div
-								className="wrapper three-html-block-inner-wrapper"
-								style={{ backgroundColor: "#ffffff" }}
-								dangerouslySetInnerHTML={{
-									__html: model.markup
-								}}
-							></div>
-						</Html>
-					</mesh>
-				</group>
-			</TransformControls>
-		</>
-	);
+							{children}
+						</TransformControls>
+					)}
+				>
+					{textBlockAttributes && (
+						<group
+							ref={textObj}
+							position={[
+								textBlockAttributes.positionX,
+								textBlockAttributes.positionY,
+								textBlockAttributes.positionZ
+							]}
+							rotation={[
+								textBlockAttributes.rotationX,
+								textBlockAttributes.rotationY,
+								textBlockAttributes.rotationZ
+							]}
+							scale={[text.scaleX, text.scaleY, text.scaleZ]}
+						>
+							<Text scale={[1, 1, 1]} color={text.textColor}>
+								{text.textContent}
+							</Text>
+						</group>
+					)}
+				</TransformController>
+			</Select>
+		);
+	}
 }
 
 function Sky(sky) {
@@ -101,7 +109,7 @@ function Sky(sky) {
 				scale={[200, 200, 200]}
 				rotation={[0, 0, 0]}
 			>
-				<sphereBufferGeometry args={[5, 200, 200]} />
+				<sphereGeometry args={[5, 200, 200]} />
 				<meshStandardMaterial side={THREE.DoubleSide} map={texture_1} />
 			</mesh>
 		);
@@ -809,7 +817,7 @@ function ThreeObject(props) {
 						}
 						if (
 							innerBlock.name ===
-							"three-object-viewer/three-html-block"
+							"three-object-viewer/three-text-block"
 						) {
 							htmlobject = innerBlock.attributes;
 							htmlobjectId = innerBlock.clientId;
@@ -988,20 +996,22 @@ function ThreeObject(props) {
 					);
 				}
 			})}
-			{Object.values(editorHtmlToAdd).map((markup, index) => {
+			{Object.values(editorHtmlToAdd).map((text, index) => {
 				return (
-					<Markup
-						markup={markup.htmlobject.markup}
-						positionX={markup.htmlobject.positionX}
-						positionY={markup.htmlobject.positionY}
-						positionZ={markup.htmlobject.positionZ}
-						scaleX={markup.htmlobject.scaleX}
-						scaleY={markup.htmlobject.scaleY}
-						scaleZ={markup.htmlobject.scaleZ}
-						rotationX={markup.htmlobject.rotationX}
-						rotationY={markup.htmlobject.rotationY}
-						rotationZ={markup.htmlobject.rotationZ}
-						htmlobjectId={markup.htmlobjectId}
+					<TextObject
+						key={index}
+						textContent={text.htmlobject.textContent}
+						positionX={text.htmlobject.positionX}
+						positionY={text.htmlobject.positionY}
+						positionZ={text.htmlobject.positionZ}
+						scaleX={text.htmlobject.scaleX}
+						scaleY={text.htmlobject.scaleY}
+						scaleZ={text.htmlobject.scaleZ}
+						rotationX={text.htmlobject.rotationX}
+						rotationY={text.htmlobject.rotationY}
+						rotationZ={text.htmlobject.rotationZ}
+						textColor={text.htmlobject.textColor}
+						htmlobjectId={text.htmlobjectId}
 						transformMode={props.transformMode}
 					/>
 				);
@@ -1087,7 +1097,7 @@ export default function ThreeObjectEdit(props) {
 						width: "100%"
 					}}
 				>
-					<Perf className="stats" />
+					{/* <Perf className="stats" /> */}
 					<PerspectiveCamera
 						fov={50}
 						position={[0, 0, 20]}

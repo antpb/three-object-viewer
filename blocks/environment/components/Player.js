@@ -1,6 +1,5 @@
-import { Raycaster, Vector3, ImageUtils } from "three";
 import { TextureLoader } from "three/src/loaders/TextureLoader";
-import { useXR, Interactive } from "@react-three/xr";
+// import { useXR, Interactive } from "@react-three/xr";
 import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import Controls from "./Controls";

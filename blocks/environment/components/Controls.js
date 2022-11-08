@@ -285,29 +285,30 @@ const Controls = (props) => {
 				setLock(false);
 				break;
 			case "KeyR":
-				console.log(props);
-				if (props.something.current) {
-					const playerThing = world.getRigidBody(
-						props.something.current.handle
-					);
-					if (playerThing) {
-						playerThing.setTranslation({
-							x: props.spawnPoint[0],
-							y: props.spawnPoint[1],
-							z: props.spawnPoint[2]
-						});
-						if (controlsRef.current) {
-							console.log(controlsRef.current.getObject());
-							controlsRef.current
-								.getObject()
-								.parent.position.set(
-									props.spawnPoint[0],
-									props.spawnPoint[1],
-									props.spawnPoint[2]
-								);
-						}
-					}
-				}
+				// @todo revisit the respawn logic
+				// console.log(props);
+				// if (props.something.current) {
+				// 	const playerThing = world.getRigidBody(
+				// 		props.something.current.handle
+				// 	);
+				// 	if (playerThing) {
+				// 		playerThing.setTranslation({
+				// 			x: props.spawnPoint[0],
+				// 			y: props.spawnPoint[1],
+				// 			z: props.spawnPoint[2]
+				// 		});
+				// 		if (controlsRef.current) {
+				// 			console.log(controlsRef.current.getObject());
+				// 			controlsRef.current
+				// 				.getObject()
+				// 				.parent.position.set(
+				// 					props.spawnPoint[0],
+				// 					props.spawnPoint[1],
+				// 					props.spawnPoint[2]
+				// 				);
+				// 		}
+				// 	}
+				// }
 				setLock(false);
 				break;
 			case "Space":
@@ -343,6 +344,10 @@ const Controls = (props) => {
 				setLock(true);
 				break;
 
+			// case "KeyR":
+			// 	setLock(true);
+			// 	break;
+
 			case "Space":
 				setJump(false);
 				setLock(true);
@@ -373,6 +378,9 @@ const Controls = (props) => {
 						isLocked.current = false;
 					});
 				}
+			}}
+			onPointerDown={() => {
+				console.log("raycast");
 			}}
 			onChange={() => {
 				if (p2pcf && controlsRef) {

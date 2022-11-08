@@ -1,7 +1,7 @@
 {
-    "name": "three-object-viewer/three-html-block",
-    "title": "3D HTML Canvas",
-    "description": "A 3D HTML Canvas",
+    "name": "three-object-viewer/three-text-block",
+    "title": "Three Text Block",
+    "description": "A 3D Text Block",
     "attributes": {
         "scaleX": {
             "type": "int",
@@ -47,9 +47,13 @@
             "type": "string",
             "default": null
         },
-        "markup": {
+        "textContent": {
             "type": "string",
             "default": null
+        },
+		"textColor": {
+            "type": "string",
+            "default": "0x000000"
         },
         "animations": {
             "type": "string",
@@ -67,7 +71,7 @@
         "html": false,
         "multiple": true
     },
-    "editorScript": "file:../../build/block-three-html-block.js",
-	"editorStyle": "file:../../build/block-three-html-block.css",
-	"style": "file:../../build/block-three-html-block.css"
+    "editorScript": "file:../../build/block-three-text-block.js",
+	"editorStyle": "file:../../build/block-three-text-block.css",
+	"style": "file:../../build/block-three-text-block.css"
 }
