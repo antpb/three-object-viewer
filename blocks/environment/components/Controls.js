@@ -379,9 +379,6 @@ const Controls = (props) => {
 					});
 				}
 			}}
-			onPointerDown={() => {
-				console.log("raycast");
-			}}
 			onChange={() => {
 				if (p2pcf && controlsRef) {
 					const position = [

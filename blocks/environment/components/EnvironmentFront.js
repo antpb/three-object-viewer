@@ -313,7 +313,9 @@ function Portal(model) {
 					lockZ={false} // Lock the rotation on the z axis (default=false)
 				>
 					<Text
-						scale={[1, 1, 1]}
+						scale={[2, 2, 2]}
+						maxWidth={1}
+						alignX="center"
 						// rotation={[model.rotationX , model.rotationY, model.rotationZ]}
 						// position={[model.positionX, model.positionY, model.positionZ]}
 						color="black"
@@ -411,7 +413,9 @@ function Portal(model) {
 					]}
 				>
 					<Text
-						scale={[1, 1, 1]}
+						scale={[2, 2, 2]}
+						maxWidth={1}
+						alignX="center"
 						color={model.labelTextColor}
 						position={[
 							0 + model.labelOffsetX,

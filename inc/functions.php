@@ -128,15 +128,15 @@ function threeobjectviewer_editor_assets() {
 
 
     $DEFAULT_BLOCKS = [
-                        'three-object-viewer/three-portal-block',
-                         'three-object-viewer/three-text-block',
-                         'three-object-viewer/model-block',
-                         'three-object-viewer/sky-block',
-                         'three-object-viewer/npc-block',
-                         'three-object-viewer/three-image-block',
-                         'three-object-viewer/three-video-block',
-                         'three-object-viewer/three-audio-block',
-                         'three-object-viewer/spawn-point-block' 
+						'three-object-viewer/three-portal-block',
+						'three-object-viewer/three-text-block',
+						'three-object-viewer/model-block',
+						'three-object-viewer/sky-block',
+						'three-object-viewer/npc-block',
+						'three-object-viewer/three-image-block',
+						'three-object-viewer/three-video-block',
+						'three-object-viewer/three-audio-block',
+						'three-object-viewer/spawn-point-block' 
                     ];
     $ALLOWED_BLOCKS = apply_filters( 'three-object-environment-inner-allowed-blocks', $DEFAULT_BLOCKS );
 

@@ -711,8 +711,10 @@ function PortalObject(model) {
 							]}
 						>
 							<Text
-								scale={[1, 1, 1]}
+								scale={[2, 2, 2]}
 								color={portalBlockAttributes.labelTextColor}
+								maxWidth={1}
+								alignX="center"
 								position={[
 									0 + portalBlockAttributes.labelOffsetX,
 									0 + portalBlockAttributes.labelOffsetY,
