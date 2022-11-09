@@ -79,6 +79,7 @@ function threeobjectviewer_frontend_assets() {
 
 	// Enqueue frontend JavaScript
 	$default_frontend_js = "../build/assets/js/blocks.frontend-versepress.js";
+	$default_frontend_js_three_viewer = "../build/assets/js/blocks.frontend.js";
 	// Apply frontend filter
     $frontend_js = apply_filters( 'three-object-environment-frontend-js', $default_frontend_js );
 
@@ -102,22 +103,33 @@ function threeobjectviewer_frontend_assets() {
     global $post;
     $post_slug = $post->post_name;
 
-    wp_register_script( 'threeobjectloader-frontend', plugin_dir_url( __FILE__ ) . $frontend_js, ['wp-element', 'wp-data', 'wp-hooks'], '', true );
-    wp_localize_script( 'threeobjectloader-frontend', 'userData', $user_data_passed );
-    wp_localize_script( 'threeobjectloader-frontend', 'threeObjectPlugin', $three_object_plugin );
+	if(is_singular()){
+		
+		//We only want the script if it's a singular page
+		$id = get_the_ID();
+		if(has_block('three-object-viewer/three-object-block',$id)){
+			wp_register_script( 'threeobjectloader-frontend', plugin_dir_url( __FILE__ ) . $default_frontend_js_three_viewer, ['wp-element', 'wp-data', 'wp-hooks'], '', true );
+			wp_localize_script( 'threeobjectloader-frontend', 'userData', $user_data_passed );
+			wp_localize_script( 'threeobjectloader-frontend', 'threeObjectPlugin', $three_object_plugin );	
+			wp_enqueue_script( 
+				"threeobjectloader-frontend"
+			);
+		}
+		 if(has_block('three-object-viewer/environment',$id)){
+			wp_register_script( 'versepress-frontend', plugin_dir_url( __FILE__ ) . $frontend_js, ['wp-element', 'wp-data', 'wp-hooks'], '', true );
+			wp_localize_script( 'versepress-frontend', 'userData', $user_data_passed );
+			wp_localize_script( 'versepress-frontend', 'postSlug', $post_slug );
+			wp_localize_script( 'versepress-frontend', 'threeObjectPlugin', $three_object_plugin );	
+			wp_enqueue_script( 
+				"versepress-frontend"
+			);
+		}
+  
+		
+	 }
+   
 
-	wp_enqueue_script( 
-		"threeobjectloader-frontend"
-	);
 
-    wp_register_script( 'versepress-frontend', plugin_dir_url( __FILE__ ) . $frontend_js, ['wp-element', 'wp-data', 'wp-hooks'], '', true );
-    wp_localize_script( 'versepress-frontend', 'userData', $user_data_passed );
-    wp_localize_script( 'versepress-frontend', 'postSlug', $post_slug );
-    wp_localize_script( 'versepress-frontend', 'threeObjectPlugin', $three_object_plugin );
-
-	wp_enqueue_script( 
-		"versepress-frontend"
-	);
 
 }
 

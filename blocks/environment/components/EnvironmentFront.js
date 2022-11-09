@@ -476,7 +476,11 @@ function ThreeImage(threeImage) {
 					threeImage.aspectHeight / 12
 				]}
 			/>
-			<meshStandardMaterial side={THREE.DoubleSide} map={texture2} />
+			<meshStandardMaterial
+				transparent
+				side={THREE.DoubleSide}
+				map={texture2}
+			/>
 		</mesh>
 	);
 }
@@ -827,7 +831,7 @@ export default function EnvironmentFront(props) {
 							padding: "0"
 						}}
 					>
-						<Perf className="stats" />
+						{/* <Perf className="stats" /> */}
 						{/* <XRButton className="enter-vr" /> */}
 						<Hands />
 						<DefaultXRControllers />
