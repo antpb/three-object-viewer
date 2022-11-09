@@ -482,6 +482,8 @@ function ThreeImage(threeImage) {
 }
 
 function ThreeVideo(threeVideo) {
+	// const pauseImage = useLoader(TextureLoader, "PavingStones092_1K_Color.jpg");
+
 	const play = true;
 	const [clicked, setClickEvent] = useState();
 	const [video] = useState(() =>
@@ -641,6 +643,7 @@ function SavedObject(props) {
 			return new VRMLoaderPlugin(parser);
 		});
 	});
+	const meshesScene = new THREE.Object3D();
 
 	useEffect(() => {
 		//OMI_collider logic.
@@ -672,13 +675,17 @@ function SavedObject(props) {
 			}
 		});
 
+		meshesToAdd.forEach((mesh) => {
+			meshesScene.attach(mesh);
+		});
+
 		childrenToParse.forEach((child) => {
 			const index = child.userData.gltfExtensions.OMI_collider.collider;
 			collidersToAdd.push([child, omiColliders[index]]);
 			// gltf.scene.remove(child.name);
 		});
 		setColliders(collidersToAdd);
-		setMeshes(meshesToAdd);
+		setMeshes(meshesScene);
 		setPortals(portalsToAdd);
 		// End OMI_collider logic.
 	}, []);
@@ -703,29 +710,15 @@ function SavedObject(props) {
 
 	return (
 		<>
-			{meshes &&
-				meshes.map((item, index) => {
-					if (item.isObject3D) {
-						const mixer = new THREE.AnimationMixer(gltf.scene);
-
-						const pos = new THREE.Vector3();
-						const quat = new THREE.Quaternion();
-						const rotation = new THREE.Euler();
-						const quaternion = item.getWorldQuaternion(quat);
-						const finalRotation =
-							rotation.setFromQuaternion(quaternion);
-
-						return (
-							<primitive
-								rotation={finalRotation}
-								castShadow
-								receiveShadow
-								position={item.getWorldPosition(pos)}
-								object={item}
-							/>
-						);
-					}
-				})}
+			{meshes && (
+				<primitive
+					// rotation={finalRotation}
+					castShadow
+					receiveShadow
+					// position={item.getWorldPosition(pos)}
+					object={meshes}
+				/>
+			)}
 			{portals &&
 				portals.map((item, index) => {
 					const pos = new THREE.Vector3();
@@ -834,7 +827,7 @@ export default function EnvironmentFront(props) {
 							padding: "0"
 						}}
 					>
-						{/* <Perf className="stats"/> */}
+						<Perf className="stats" />
 						{/* <XRButton className="enter-vr" /> */}
 						<Hands />
 						<DefaultXRControllers />

@@ -52,7 +52,7 @@ export default function TeleportTravel(props) {
 				if (useNormal) {
 					const p = intersection.point;
 
-					targetLoc.current.position.set(0, 0, 0);
+					targetLoc.current.position.set(0, 1, 0);
 
 					const n = intersection.face.normal.clone();
 					n.transformDirection(intersection.object.matrixWorld);
@@ -72,7 +72,11 @@ export default function TeleportTravel(props) {
 
 	const click = useCallback(() => {
 		if (isHovered) {
-			player.position.copy(targetLoc.current.position);
+			player.position.copy([
+				targetLoc.current.position.x,
+				targetLoc.current.position.y + 0.1,
+				targetLoc.current.position.z
+			]);
 		}
 	}, [centerOnTeleport, isHovered, useNormal]);
 

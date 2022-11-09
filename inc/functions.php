@@ -77,7 +77,9 @@ add_action('wp_enqueue_scripts', __NAMESPACE__ . '\threeobjectviewer_frontend_as
  */
 function threeobjectviewer_frontend_assets() {
 
+	// Enqueue frontend JavaScript
 	$default_frontend_js = "../build/assets/js/blocks.frontend-versepress.js";
+	// Apply frontend filter
     $frontend_js = apply_filters( 'three-object-environment-frontend-js', $default_frontend_js );
 
     $current_user = wp_get_current_user();
@@ -100,7 +102,7 @@ function threeobjectviewer_frontend_assets() {
     global $post;
     $post_slug = $post->post_name;
 
-    // wp_register_script( 'threeobjectloader-frontend', plugin_dir_url( __FILE__ ) . $frontend_js, ['wp-element', 'wp-data', 'wp-hooks'], '', true );
+    wp_register_script( 'threeobjectloader-frontend', plugin_dir_url( __FILE__ ) . $frontend_js, ['wp-element', 'wp-data', 'wp-hooks'], '', true );
     wp_localize_script( 'threeobjectloader-frontend', 'userData', $user_data_passed );
     wp_localize_script( 'threeobjectloader-frontend', 'threeObjectPlugin', $three_object_plugin );
 
