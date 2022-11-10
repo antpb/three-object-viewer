@@ -4062,6 +4062,11 @@ atob@^2.1.2:
   resolved "https://registry.yarnpkg.com/atob/-/atob-2.1.2.tgz#6d9517eb9e030d2436666651e86bd9f6f13533c9"
   integrity sha512-Wm6ukoaOGJi/73p/cl2GvLjTI5JM1k/O14isD73YML8StrH/7/lRFgmg8nICZgD3bZZvjwCGxtMOD3wWNAu8cg==
 
+autobind-decorator@^2.1.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/autobind-decorator/-/autobind-decorator-2.4.0.tgz#ea9e1c98708cf3b5b356f7cf9f10f265ff18239c"
+  integrity sha512-OGYhWUO72V6DafbF8PM8rm3EPbfuyMZcJhtm5/n26IDwO18pohE4eNazLoCGhPiXOCD0gEGmrbU3849QvM8bbw==
+
 autoprefixer@^10.2.5:
   version "10.4.4"
   resolved "https://registry.yarnpkg.com/autoprefixer/-/autoprefixer-10.4.4.tgz#3e85a245b32da876a893d3ac2ea19f01e7ea5a1e"
@@ -5154,6 +5159,11 @@ class-utils@^0.3.5:
     define-property "^0.2.5"
     isobject "^3.0.0"
     static-extend "^0.1.1"
+
+classnames@^2.2.6:
+  version "2.3.2"
+  resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.3.2.tgz#351d813bf0137fcc6a76a16b88208d2560a0d924"
+  integrity sha512-CSbhY4cFEJRe6/GQzIk5qXZ4Jeg5pcsP7b5peFSDpffpe1cqjASH/n9UTjBwOp6XpMSTwQ8Za2K5V02ueA7Tmw==
 
 classnames@^2.3.1:
   version "2.3.1"
@@ -11633,6 +11643,11 @@ nice-try@^1.0.4:
   resolved "https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.5.tgz#a3378a7696ce7d223e88fc9b764bd7ef1089e366"
   integrity sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==
 
+nipplejs@^0.7.1:
+  version "0.7.3"
+  resolved "https://registry.yarnpkg.com/nipplejs/-/nipplejs-0.7.3.tgz#8cff8a3c9452e7883e6e7fa16df67114e9b9317b"
+  integrity sha512-3b6N5vdhaIIhuj2qRVhA8SjfZgsoB+WhKtrcq4Xowkgp+PD/kgYmdlqhiAIv2n1OzXdqqYT0mSZF+9Dr2LfqkA==
+
 no-case@^3.0.4:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/no-case/-/no-case-3.0.4.tgz#d361fd5c9800f558551a8369fc0dcd4662b6124d"
@@ -13189,6 +13204,16 @@ react-moment-proptypes@^1.6.0:
   integrity sha512-Er940DxWoObfIqPrZNfwXKugjxMIuk1LAuEzn23gytzV6hKS/sw108wibi9QubfMN4h+nrlje8eUCSbQRJo2fQ==
   dependencies:
     moment ">=1.6.0"
+
+react-nipple@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/react-nipple/-/react-nipple-1.0.2.tgz#23d98109e35eb4106f11055b8273fb6ee660bd7d"
+  integrity sha512-qiPHyy94kPI+mjEKl0s50KyefUMkF5ZPqcHBQJIzDWu0jfvc0YjQ0FnBuf0mkiuKWOPGDHayVasil73b2Da/FQ==
+  dependencies:
+    autobind-decorator "^2.1.0"
+    classnames "^2.2.6"
+    lodash.isequal "^4.5.0"
+    nipplejs "^0.7.1"
 
 react-outside-click-handler@^1.2.0:
   version "1.3.0"

@@ -49,6 +49,7 @@
         "get-browser-rtc": "^1.1.0",
         "r3f-perf": "4.9.1",
         "re-resizable": "^6.9.9",
+        "react-nipple": "^1.0.2",
         "three": "0.146.0",
         "three-omi": "^0.1.5",
         "tiny-simple-peer": "^10.1.1"

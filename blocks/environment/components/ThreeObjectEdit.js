@@ -2,7 +2,7 @@ import * as THREE from "three";
 import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
 import { Canvas, useLoader, useFrame, useThree } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
+// import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import {
 	PerspectiveCamera,
 	OrbitControls,
@@ -16,9 +16,9 @@ import {
 } from "@react-three/drei";
 import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import { GLTFAudioEmitterExtension } from "three-omi";
-import { A11y } from "@react-three/a11y";
+// import { A11y } from "@react-three/a11y";
 import { Perf } from "r3f-perf";
-import EditControls from "./EditControls";
+// import EditControls from "./EditControls";
 import { Resizable } from "re-resizable";
 
 function TextObject(text) {
@@ -257,10 +257,18 @@ function ImageObject(threeImage) {
 								threeImage.aspectHeight / 12
 							]}
 						/>
-						<meshStandardMaterial
-							side={THREE.DoubleSide}
-							map={texture_2}
-						/>
+						{threeImage.transparent ? (
+							<meshBasicMaterial
+								transparent
+								side={THREE.DoubleSide}
+								map={texture_2}
+							/>
+						) : (
+							<meshStandardMaterial
+								side={THREE.DoubleSide}
+								map={texture_2}
+							/>
+						)}
 					</mesh>
 				</TransformControls>
 			) : (
@@ -289,10 +297,18 @@ function ImageObject(threeImage) {
 							threeImageBlockAttributes.aspectHeight / 12
 						]}
 					/>
-					<meshStandardMaterial
-						side={THREE.DoubleSide}
-						map={texture_2}
-					/>
+					{threeImageBlockAttributes.transparent ? (
+						<meshBasicMaterial
+							transparent
+							side={THREE.DoubleSide}
+							map={texture_2}
+						/>
+					) : (
+						<meshStandardMaterial
+							side={THREE.DoubleSide}
+							map={texture_2}
+						/>
+					)}
 				</mesh>
 			)}
 		</Select>

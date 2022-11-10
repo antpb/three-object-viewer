@@ -1,19 +1,11 @@
-import React, { useEffect, useRef, useState, componentDidMount } from "react";
+import React, { useEffect, useRef, useState } from "react";
 // import { Raycaster, Vector3, Math, Euler } from 'three';
 import * as THREE from "three";
 
 import { useFrame, useThree } from "@react-three/fiber";
-import { PointerLockControls, OrbitControls } from "@react-three/drei";
-import previewOptions from "@wordpress/block-editor/build/components/preview-options";
-import {
-	RigidBody,
-	MeshCollider,
-	useRapier,
-	BallCollider,
-	useRigidBody,
-	RigidBodyApi,
-	useCollider
-} from "@react-three/rapier";
+import { PointerLockControls } from "@react-three/drei";
+// import previewOptions from "@wordpress/block-editor/build/components/preview-options";
+import { useRapier, useRigidBody } from "@react-three/rapier";
 
 function touchStarted() {
 	getAudioContext().resume();

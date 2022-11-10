@@ -1,12 +1,13 @@
 import * as THREE from "three";
 import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
-import { Canvas, useLoader, useFrame, useThree } from "@react-three/fiber";
+import { useLoader, useThree } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import { TextureLoader } from "three/src/loaders/TextureLoader";
-import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
-import { Physics, RigidBody, MeshCollider, Debug } from "@react-three/rapier";
+// import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
+import { Physics, RigidBody, Debug } from "@react-three/rapier";
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
+
 // import Networking from "./Networking";
 
 import {
@@ -16,19 +17,15 @@ import {
 	Billboard,
 	Select
 } from "@react-three/drei";
-import { A11y } from "@react-three/a11y";
+// import { A11y } from "@react-three/a11y";
 import { GLTFAudioEmitterExtension } from "three-omi";
-import {
-	VRCanvas,
-	DefaultXRControllers,
-	Hands,
-	XRButton
-} from "@react-three/xr";
+import { VRCanvas, DefaultXRControllers, Hands } from "@react-three/xr";
 import { Perf } from "r3f-perf";
-import { VRM, VRMUtils, VRMSchema, VRMLoaderPlugin } from "@pixiv/three-vrm";
+import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import TeleportTravel from "./TeleportTravel";
 import Player from "./Player";
 import defaultVRM from "../../../inc/avatars/3ov_default_avatar.vrm";
+import { ItemBaseUI } from "@wordpress/components/build/navigation/styles/navigation-styles";
 
 function parseMatrixUri(uri) {
 	const SegmentToSigil = {
@@ -476,11 +473,15 @@ function ThreeImage(threeImage) {
 					threeImage.aspectHeight / 12
 				]}
 			/>
-			<meshStandardMaterial
-				transparent
-				side={THREE.DoubleSide}
-				map={texture2}
-			/>
+			{threeImage.transparent ? (
+				<meshBasicMaterial
+					transparent
+					side={THREE.DoubleSide}
+					map={texture2}
+				/>
+			) : (
+				<meshStandardMaterial side={THREE.DoubleSide} map={texture2} />
+			)}
 		</mesh>
 	);
 }
@@ -997,6 +998,14 @@ export default function EnvironmentFront(props) {
 														  ).innerText
 														: "";
 
+												const transparent =
+													item.querySelector(
+														"p.image-block-transparent"
+													)
+														? item.querySelector(
+																"p.image-block-transparent"
+														  ).innerText
+														: false;
 												return (
 													<ThreeImage
 														key={index}
@@ -1021,6 +1030,9 @@ export default function EnvironmentFront(props) {
 														}
 														aspectWidth={
 															aspectWidth
+														}
+														transparent={
+															transparent
 														}
 													/>
 												);

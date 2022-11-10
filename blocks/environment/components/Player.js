@@ -4,19 +4,10 @@ import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import Controls from "./Controls";
 
-import { useCallback, useRef, useState, useEffect } from "react";
-import {
-	RigidBody,
-	MeshCollider,
-	useRapier,
-	usePhysics,
-	useRigidBody,
-	BallCollider,
-	CapsuleCollider,
-	RigidBodyApi
-} from "@react-three/rapier";
+import { useRef, useState, useEffect } from "react";
+import { RigidBody, CapsuleCollider } from "@react-three/rapier";
 import defaultVRM from "../../../inc/avatars/3ov_default_avatar.vrm";
-import { VRM, VRMUtils, VRMSchema, VRMLoaderPlugin } from "@pixiv/three-vrm";
+import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 
 export default function Player(props) {
 	const { camera, scene } = useThree();

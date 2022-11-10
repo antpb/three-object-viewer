@@ -1,5 +1,4 @@
 import React, { useRef, useState } from "react";
-import { Raycaster, Vector3, Math } from "three";
 
 import { useFrame, useThree } from "@react-three/fiber";
 import { PointerLockControls, OrbitControls } from "@react-three/drei";
