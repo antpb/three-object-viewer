@@ -72,11 +72,12 @@ export default function TeleportTravel(props) {
 
 	const click = useCallback(() => {
 		if (isHovered) {
-			player.position.copy([
+			targetLoc.current.position.set(
 				targetLoc.current.position.x,
-				targetLoc.current.position.y + 0.1,
+				targetLoc.current.position.y + 1.1,
 				targetLoc.current.position.z
-			]);
+			);
+			player.position.copy(targetLoc.current.position);
 		}
 	}, [centerOnTeleport, isHovered, useNormal]);
 

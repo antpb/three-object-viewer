@@ -1692,7 +1692,7 @@ export default function EnvironmentFront(props) {
 						}}
 					>
 						{" "}
-						Enter World{" "}
+						Load World{" "}
 					</button>
 				</div>
 			</div>
