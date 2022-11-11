@@ -2,7 +2,7 @@
 Requires at least: 5.7
 Tested up to: 6.1
 Requires PHP: 7.2
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Author: antpb
@@ -47,7 +47,13 @@ It can also be installed manually using a zip file.
 
 == Changelog ==
 
-= 1.0 =
+= 1.0.1 =
+Environment blocks without a OMI collider will be treated as a trimesh collider. This means that every item used in the Environment block will be collidable/walkable.
+
+Image Block Edit Controls now update correctly. Fixed a bug where an image would return to its previous location after chaging position.
+
+
+= 1.0.0 =
 New Environment Block for building feature rich experiences. This is the start to something big. 
 
 3D Image Block- The Image block enables position and rotation settings for any image pulled from your media library. Support for transparency and a future update will include the ability to set external urls as the source.- 3D Video Block- Similar to image, the video block enables content creators to select video assets from the Media Library to attach to a plane in 3D space. I plan to add the ability to select external urls as well as custom mesh objects to render video on. The block can be paused and played by focusing your view in the direction of the video and clicking.

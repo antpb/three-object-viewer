@@ -20,9 +20,9 @@ Download the release zip and install on your WordPress.
 
 - Build JS/CSS
     - `yarn build`
-- Start JS/CSS for development
+- Start JS/CSS for development - currently broken
     - `yarn start`
-- Test changed files
+- Test changed files - pending tests
     - `yarn test --watch`
 - Test all files once
     - `yarn test`

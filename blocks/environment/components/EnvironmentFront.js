@@ -714,7 +714,7 @@ function SavedObject(props) {
 
 	return (
 		<>
-			{meshes && (
+			{meshes && colliders.length > 0 && (
 				<primitive
 					// rotation={finalRotation}
 					castShadow
@@ -722,6 +722,11 @@ function SavedObject(props) {
 					// position={item.getWorldPosition(pos)}
 					object={meshes}
 				/>
+			)}
+			{meshes && colliders.length === 0 && (
+				<RigidBody type="fixed" colliders="trimesh">
+					<primitive object={meshes} />
+				</RigidBody>
 			)}
 			{portals &&
 				portals.map((item, index) => {
