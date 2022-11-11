@@ -488,8 +488,7 @@ function ThreeImage(threeImage) {
 
 function ThreeVideo(threeVideo) {
 	// const pauseImage = useLoader(TextureLoader, "PavingStones092_1K_Color.jpg");
-
-	const play = true;
+	const play = threeVideo.autoPlay === 0 ? true : false;
 	const [clicked, setClickEvent] = useState();
 	const [video] = useState(() =>
 		Object.assign(document.createElement("video"), {
@@ -1148,6 +1147,15 @@ export default function EnvironmentFront(props) {
 														  ).innerText
 														: "";
 
+												const autoPlay =
+													item.querySelector(
+														"p.video-block-autoplay"
+													)
+														? item.querySelector(
+																"p.video-block-autoplay"
+														  ).innerText
+														: false;
+
 												return (
 													<ThreeVideo
 														key={index}
@@ -1173,6 +1181,7 @@ export default function EnvironmentFront(props) {
 														aspectWidth={
 															aspectWidth
 														}
+														autoPlay={autoPlay}
 													/>
 												);
 											})}

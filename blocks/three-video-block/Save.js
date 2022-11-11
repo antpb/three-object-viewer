@@ -34,6 +34,9 @@ export default function save({ attributes }) {
 					<p className="video-block-aspect-width">
 						{attributes.aspectWidth}
 					</p>
+					<p className="video-block-autoplay">
+						{attributes.autoPlay ? 1 : 0}
+					</p>
 				</div>
 			</>
 		</div>

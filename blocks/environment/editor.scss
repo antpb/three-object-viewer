@@ -10,6 +10,13 @@
 	width:100%;
 	height: 100vh;
 }
+
+#VRButton{
+	position: fixed !important;
+	top: 20px !important;
+	bottom:auto !important;
+	background-color: rgba(76, 0, 99, 0.677) !important;
+}
  .glb-preview-container {
 	 padding: 100px;
 	 text-align: center;
