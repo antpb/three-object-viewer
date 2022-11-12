@@ -656,7 +656,8 @@ function SavedObject(props) {
 		const meshesToAdd = [];
 		const portalsToAdd = [];
 		let omiColliders;
-		gltf.scene.scale.set(props.scale, props.scale, props.scale);
+
+    gltf.scene.scale.set(props.scale, props.scale, props.scale);
 		gltf.scene.position.set(gltf.scene.position.x, props.positionY, gltf.scene.position.z);
 		gltf.scene.rotation.set(gltf.scene.rotation.x, props.rotationY, gltf.scene.rotation.z);
 		if (gltf.userData.gltfExtensions?.OMI_collider) {

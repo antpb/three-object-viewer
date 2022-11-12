@@ -4,7 +4,8 @@
 
 ## Installation
 
-Download the release zip and install on your WordPress. 
+Download the from WordPress or install by searching for "Three Object Viewer" in the plugin repository in wp-admin.
+https://wordpress.org/plugins/three-object-viewer/
 
 
 ## Local Development
