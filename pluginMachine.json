@@ -4,10 +4,19 @@
     "buildId": 172,
     "entryPoints": {
         "adminPages": [
-            "three-model-viewer-settings"
+            "three-object-viewer-settings"
         ],
         "blocks": [
-            "three-object-block"
+            "three-object-block",
+            "environment",
+            "model-block",
+            "sky-block",
+            "three-image-block",
+            "three-video-block",
+            "three-audio-block",
+            "three-portal-block",
+            "three-text-block",
+            "spawn-point-block"
         ]
     },
     "buildIncludes": [
@@ -17,6 +26,14 @@
         "vendor",
         "build",
         "blocks/three-object-block/init.php",
-        "admin/three-model-viewer-settings/init.php"
+        "blocks/environment/init.php",
+        "blocks/model-block/init.php",
+        "blocks/sky-block/init.php",
+        "blocks/three-text-block/init.php",
+        "blocks/three-image-block/init.php",
+        "blocks/three-video-block/init.php",
+        "blocks/three-portal-block/init.php",
+        "blocks/spawn-point-block/init.php",
+        "admin/three-object-viewer-settings/init.php"
     ]
 }
