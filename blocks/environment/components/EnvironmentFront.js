@@ -657,6 +657,9 @@ function SavedObject(props) {
 		const portalsToAdd = [];
 		let omiColliders;
 
+    gltf.scene.scale.set(props.scale, props.scale, props.scale);
+		gltf.scene.position.set(gltf.scene.position.x, props.positionY, gltf.scene.position.z);
+		gltf.scene.rotation.set(gltf.scene.rotation.x, props.rotationY, gltf.scene.rotation.z);
 		if (gltf.userData.gltfExtensions?.OMI_collider) {
 			omiColliders = gltf.userData.gltfExtensions.OMI_collider.colliders;
 		}
@@ -861,7 +864,7 @@ export default function EnvironmentFront(props) {
 							<Physics>
 								<RigidBody></RigidBody>
 								{/* Debug physics */}
-								{/* <Debug /> */}
+								<Debug />
 								{props.threeUrl && (
 									<>
 										<TeleportTravel useNormal={false}>

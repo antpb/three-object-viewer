@@ -21,7 +21,7 @@ https://wordpress.org/plugins/three-object-viewer/
 
 - Build JS/CSS
     - `yarn build`
-- Start JS/CSS for development - broken. just build.
+- Start JS/CSS for development - currently broken
     - `yarn start`
 - Test changed files - pending tests
     - `yarn test --watch`
