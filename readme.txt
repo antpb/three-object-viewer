@@ -2,7 +2,7 @@
 Requires at least: 5.7
 Tested up to: 6.1
 Requires PHP: 7.2
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Author: antpb
@@ -46,6 +46,9 @@ It can also be installed manually using a zip file.
 
 
 == Changelog ==
+= 1.0.3 =
+Fix: Removes collider debug.
+
 = 1.0.2 =
 Fix: Environment block settings were not respected on the front end. Should be good now!
 Fix: range controls in the Environment block were in a broken flex.
