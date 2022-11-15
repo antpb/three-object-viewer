@@ -86,7 +86,7 @@ function TextObject(text) {
 							]}
 							scale={[text.scaleX, text.scaleY, text.scaleZ]}
 						>
-							<Text scale={[1, 1, 1]} color={text.textColor}>
+							<Text scale={[4, 4, 4]} color={text.textColor}>
 								{text.textContent}
 							</Text>
 						</group>
@@ -701,6 +701,7 @@ function PortalObject(model) {
 								color={portalBlockAttributes.labelTextColor}
 								maxWidth={1}
 								alignX="center"
+								textAlign="center"
 								position={[
 									0 + portalBlockAttributes.labelOffsetX,
 									0 + portalBlockAttributes.labelOffsetY,

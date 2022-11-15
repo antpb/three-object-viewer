@@ -31,6 +31,9 @@
         "tinyify": "^3.1.0"
     },
     "dependencies": {
+        "@babel/plugin-proposal-optional-chaining": "^7.18.9",
+        "@babel/preset-env": "^7.20.2",
+        "@babel/preset-react": "^7.18.6",
         "@pixiv/three-vrm": "1.0.0-beta.17",
         "@react-three/a11y": "2.2.4",
         "@react-three/drei": "^8.7.4",
@@ -43,15 +46,22 @@
         "@wordpress/element": "^3",
         "@wordpress/i18n": "^4",
         "array-buffer-to-hex": "^1.0.0",
+        "babel-loader": "8",
         "base64-arraybuffer": "^1.0.2",
         "convert-hex": "^0.1.0",
         "events": "^3.3.0",
         "get-browser-rtc": "^1.1.0",
+        "image-webpack-loader": "^8.1.0",
+        "json-loader": "^0.5.7",
         "r3f-perf": "4.9.1",
         "re-resizable": "^6.9.9",
         "react-nipple": "^1.0.2",
+        "sass-loader": "^13.2.0",
+        "style-loader": "2.0.0",
         "three": "0.146.0",
+        "three-icosa": "^0.4.0",
         "three-omi": "^0.1.5",
-        "tiny-simple-peer": "^10.1.1"
+        "tiny-simple-peer": "^10.1.1",
+        "webpack-glsl-loader": "^1.0.1"
     }
 }

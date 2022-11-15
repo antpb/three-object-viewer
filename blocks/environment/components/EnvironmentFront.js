@@ -7,6 +7,7 @@ import { TextureLoader } from "three/src/loaders/TextureLoader";
 // import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
 import { Physics, RigidBody, Debug } from "@react-three/rapier";
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
+import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
 
 // import Networking from "./Networking";
 
@@ -191,6 +192,12 @@ function ModelObject(model) {
 		loader.register(
 			(parser) => new GLTFAudioEmitterExtension(parser, listener)
 		);
+		if(openbrushEnabled === true){
+			loader.register(
+				(parser) =>
+					new GLTFGoogleTiltBrushMaterialExtension(parser, openbrushDirectory)
+			);	
+		}
 		loader.register((parser) => {
 			return new VRMLoaderPlugin(parser);
 		});
@@ -208,6 +215,27 @@ function ModelObject(model) {
 			});
 		}
 	}, []);
+
+	const generator = gltf.asset.generator;
+
+	// return tilt brush if tilt brush
+	if (String(generator).includes("Tilt Brush")) {
+		return (
+			<primitive 
+			rotation={[
+				model.rotationX,
+				model.rotationY,
+				model.rotationZ
+			]}
+			position={[
+				model.positionX,
+				model.positionY,
+				model.positionZ
+			]}
+			scale={[model.scaleX, model.scaleY, model.scaleZ]}
+			object={gltf.scene} />
+		);
+	} 
 	if (gltf?.userData?.gltfExtensions?.VRM) {
 		const vrm = gltf.userData.vrm;
 		vrm.scene.position.set(
@@ -261,7 +289,7 @@ function ModelObject(model) {
 					// }
 				>
 					<primitive
-						object={modelClone}
+						object={copyGltf}
 						// castShadow
 						// receiveShadow
 						rotation={[
@@ -283,7 +311,7 @@ function ModelObject(model) {
 	return (
 		<>
 			<primitive
-				object={modelClone}
+				object={copyGltf}
 				// castShadow
 				// receiveShadow
 				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
@@ -382,7 +410,7 @@ function Portal(model) {
 	}, []);
 	// gltf.scene.position.set( model.positionX, model.positionY, model.positionZ );
 	// gltf.scene.rotation.set( 0, 0, 0 );
-	gltf.scene.scale.set(model.scaleX, model.scaleY, model.scaleZ);
+	// gltf.scene.scale.set(model.scaleX, model.scaleY, model.scaleZ);
 	// gltf.scene.rotation.set(model.rotationX , model.rotationY, model.rotationZ );
 	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene]);
 
@@ -390,12 +418,13 @@ function Portal(model) {
 		<>
 			<RigidBody
 				type="fixed"
-				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
-				position={[model.positionX, model.positionY, model.positionZ]}
 				colliders={"cuboid"}
 				onCollisionEnter={(props) =>
 					(window.location.href = model.destinationUrl)
 				}
+				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
+				position={[model.positionX, model.positionY, model.positionZ]}
+				scale={[model.scaleX, model.scaleY, model.scaleZ]}
 			>
 				<group
 					rotation={[
@@ -408,11 +437,13 @@ function Portal(model) {
 						model.positionY,
 						model.positionZ
 					]}
+					scale={[model.scaleX, model.scaleY, model.scaleZ]}
 				>
 					<Text
 						scale={[2, 2, 2]}
 						maxWidth={1}
 						alignX="center"
+						textAlign="center"
 						color={model.labelTextColor}
 						position={[
 							0 + model.labelOffsetX,
@@ -577,6 +608,7 @@ function TextObject(model) {
 			>
 				<Text
 					className="content"
+					scale={[4, 4, 4]}
 					// rotation-y={-Math.PI / 2}
 					width={10}
 					height={10}
@@ -657,9 +689,17 @@ function SavedObject(props) {
 		const portalsToAdd = [];
 		let omiColliders;
 
-    gltf.scene.scale.set(props.scale, props.scale, props.scale);
-		gltf.scene.position.set(gltf.scene.position.x, props.positionY, gltf.scene.position.z);
-		gltf.scene.rotation.set(gltf.scene.rotation.x, props.rotationY, gltf.scene.rotation.z);
+		gltf.scene.scale.set(props.scale, props.scale, props.scale);
+		gltf.scene.position.set(
+			gltf.scene.position.x,
+			props.positionY,
+			gltf.scene.position.z
+		);
+		gltf.scene.rotation.set(
+			gltf.scene.rotation.x,
+			props.rotationY,
+			gltf.scene.rotation.z
+		);
 		if (gltf.userData.gltfExtensions?.OMI_collider) {
 			omiColliders = gltf.userData.gltfExtensions.OMI_collider.colliders;
 		}
@@ -864,7 +904,7 @@ export default function EnvironmentFront(props) {
 							<Physics>
 								<RigidBody></RigidBody>
 								{/* Debug physics */}
-								<Debug />
+								{/* <Debug /> */}
 								{props.threeUrl && (
 									<>
 										<TeleportTravel useNormal={false}>
