@@ -1,35 +1,35 @@
-const defaultConfig = require( '@wordpress/scripts/config/webpack.config' );
-const path = require( 'path' );
-const isProduction = 'production' === process.env.NODE_ENV;
-const { entryPoints } = require( './pluginMachine.json' );
+const defaultConfig = require("@wordpress/scripts/config/webpack.config");
+const path = require("path");
+const isProduction = "production" === process.env.NODE_ENV;
+const { entryPoints } = require("./pluginMachine.json");
 
-let entry = {};
-if ( entryPoints.hasOwnProperty( 'blocks' ) ) {
-	entryPoints.blocks.forEach( ( entryPoint ) => {
-		entry[ `block-${ entryPoint }` ] = path.resolve(
+const entry = {};
+if (entryPoints.hasOwnProperty("blocks")) {
+	entryPoints.blocks.forEach((entryPoint) => {
+		entry[`block-${entryPoint}`] = path.resolve(
 			process.cwd(),
-			`blocks/${ entryPoint }/index.js`
+			`blocks/${entryPoint}/index.js`
 		);
-	} );
+	});
 }
 
-if ( entryPoints.hasOwnProperty( 'adminPages' ) ) {
-	entryPoints.adminPages.forEach( ( entryPoint ) => {
-		entry[ `admin-page-${ entryPoint }` ] = path.resolve(
+if (entryPoints.hasOwnProperty("adminPages")) {
+	entryPoints.adminPages.forEach((entryPoint) => {
+		entry[`admin-page-${entryPoint}`] = path.resolve(
 			process.cwd(),
-			`admin/${ entryPoint }/index.js`
+			`admin/${entryPoint}/index.js`
 		);
-	} );
+	});
 }
 
-entry[ `./assets/js/blocks.frontend` ] =
-	'./blocks/three-object-block/frontend.js';
+entry[`./assets/js/blocks.frontend`] =
+	"./blocks/three-object-block/frontend.js";
 
-entry[ `./assets/js/blocks.frontend-versepress` ] =
-'./blocks/environment/frontend.js';
+entry[`./assets/js/blocks.frontend-versepress`] =
+	"./blocks/environment/frontend.js";
 
 module.exports = {
-	mode: isProduction ? 'production' : 'development',
+	mode: isProduction ? "production" : "development",
 	...defaultConfig,
 	module: {
 		...defaultConfig.module,
@@ -37,25 +37,40 @@ module.exports = {
 			...defaultConfig.module.rules,
 			{
 				test: /\.css$/,
-				use: [ 'style-loader', 'css-loader' ],
+				use: ["style-loader", "sass-loader", "css-loader"]
+			},
+			{
+				test: /\.glsl$/,
+				include: [path.resolve(__dirname, "node_modules/three-icosa")],
+				use: "webpack-glsl"
+			},
+			{
+				test: /\.js$/,
+				include: [path.resolve(__dirname, "node_modules/three-icosa")],
+				use: "babel-loader"
 			},
 			{
 				test: /\.vrm$/,
 				use: [
 					{
-						loader: 'file-loader',
-					},
-				],
-			},
-			],
+						loader: "file-loader"
+					}
+				]
+			}
+		]
 	},
 	entry,
 	output: {
-		filename: '[name].js',
-		path: path.join( __dirname, './build' ),
+		filename: "[name].js",
+		path: path.join(__dirname, "./build")
 	},
 	externals: {
-		react: 'React',
-		'react-dom': 'ReactDOM',
+		react: "React",
+		"react-dom": "ReactDOM"
 	},
+	resolve: {
+		alias: {
+			Brushes: path.resolve(__dirname, "brushes")
+		}
+	}
 };
