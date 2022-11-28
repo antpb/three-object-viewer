@@ -1,6 +1,6 @@
+import * as THREE from "three";
 import { TextureLoader } from "three/src/loaders/TextureLoader";
-// import { useXR, Interactive } from "@react-three/xr";
-import { useFrame, useLoader, useThree } from "@react-three/fiber";
+import { useFrame, useLoader, useThree, Interactive } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import Controls from "./Controls";
 
@@ -9,6 +9,20 @@ import { RigidBody, CapsuleCollider } from "@react-three/rapier";
 import defaultVRM from "../../../inc/avatars/3ov_default_avatar.vrm";
 import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 
+function Reticle() {
+	const { camera } = useThree();
+	var reticle = new THREE.Mesh(
+	new THREE.RingGeometry( 0.85 * 5, 5, 32),
+	new THREE.MeshBasicMaterial( {color: 0xffffff, side: THREE.DoubleSide })
+		);
+	reticle.position.z = -1000;
+	reticle.lookAt(camera.position)
+	reticle.material.depthTest = false;
+	reticle.material.opacity = 0.025;
+
+	return reticle;
+}
+
 export default function Player(props) {
 	const { camera, scene } = useThree();
 	const participantObject = scene.getObjectByName("playerOne");
@@ -16,6 +30,9 @@ export default function Player(props) {
 	const [contactPoint, setContactPoint] = useState("");
 	const [headPoint, setHeadPoint] = useState("");
 	const rigidRef = useRef();
+
+	var reticle = Reticle();
+	camera.add(reticle);
 
 	useFrame(() => {
 		if (participantObject) {

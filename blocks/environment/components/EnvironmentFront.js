@@ -189,6 +189,12 @@ function ModelObject(model) {
 	});
 
 	const gltf = useLoader(GLTFLoader, url, (loader) => {
+		// const dracoLoader = new DRACOLoader();
+		// dracoLoader.setDecoderPath(
+		// 	"https://www.gstatic.com/draco/v1/decoders/"
+		// );
+		// loader.setDRACOLoader(dracoLoader);
+
 		loader.register(
 			(parser) => new GLTFAudioEmitterExtension(parser, listener)
 		);
@@ -518,8 +524,8 @@ function ThreeImage(threeImage) {
 }
 
 function ThreeVideo(threeVideo) {
-	// const pauseImage = useLoader(TextureLoader, "PavingStones092_1K_Color.jpg");
-	const play = threeVideo.autoPlay === 0 ? true : false;
+	const play = threeVideo.autoPlay === "1" ? true : false;
+	const { scene } = useThree();
 	const [clicked, setClickEvent] = useState();
 	const [video] = useState(() =>
 		Object.assign(document.createElement("video"), {
@@ -529,57 +535,120 @@ function ThreeVideo(threeVideo) {
 			muted: true
 		})
 	);
+	// Add a triangle mesh on top of the video
+	const [triangle] = useState(() => {
 
-	useEffect(() => void (play && video.play()), [video, play]);
+		const points = []
+		points.push(
+			new THREE.Vector3(0, -3, 0),
+			new THREE.Vector3(0, 3, 0),
+			new THREE.Vector3(4, 0, 0)
+		);
+		const geometry = new THREE.BufferGeometry().setFromPoints( points );
+		const material = new THREE.MeshBasicMaterial( {color: 0x00000, side: THREE.DoubleSide });
+		const triangle = new THREE.Mesh(geometry, material);
+		return triangle;
+	});
+
+	const [circle] = useState(() => {
+
+		const geometryCircle = new THREE.CircleGeometry( 5, 32 );
+		const materialCircle = new THREE.MeshBasicMaterial( {color: 0xFFFFF, side: THREE.DoubleSide });
+		const circle = new THREE.Mesh(geometryCircle, materialCircle);
+		return circle;
+	});
+
+	useEffect(() => {
+		if(play) {
+			triangle.material.visible = false;
+			circle.material.visible = false;
+			video.play()	
+		} else {
+			triangle.material.visible = true;
+			circle.material.visible = true;
+		}
+	}, [video, play]);
 
 	return (
-		<Select
-			box
-			multiple
-			onChange={(e) => {
-				if (e.length !== 0) {
-					setClickEvent(!clicked);
-					if (clicked) {
-						video.play();
-					} else {
-						video.pause();
-					}
-				}
-			}}
-			filter={(items) => items}
-		>
-			<mesh
-				scale={[
-					threeVideo.scaleX,
-					threeVideo.scaleY,
-					threeVideo.scaleZ
-				]}
-				position={[
-					threeVideo.positionX,
-					threeVideo.positionY,
-					threeVideo.positionZ
-				]}
-				rotation={[
-					threeVideo.rotationX,
-					threeVideo.rotationY,
-					threeVideo.rotationZ
-				]}
-			>
-				<meshBasicMaterial toneMapped={false}>
-					<videoTexture
-						attach="map"
-						args={[video]}
-						encoding={THREE.sRGBEncoding}
-					/>
-				</meshBasicMaterial>
-				<planeGeometry
-					args={[
-						threeVideo.aspectWidth / 12,
-						threeVideo.aspectHeight / 12
+		// <Select
+		// 	box
+		// 	multiple
+		// 	onChange={(e) => {
+		// 		if (e.length !== 0) {
+		// 			setClickEvent(!clicked);
+		// 			if (clicked) {
+		// 				video.play();
+		// 				triangle.material.visible = false;
+		// 				circle.material.visible = false;
+		// 			} else {
+		// 				video.pause();
+		// 				triangle.material.visible = true;
+		// 				circle.material.visible = true;
+		// 			}
+		// 		}
+		// 	}}
+		// 	filter={(items) => items}
+		// >
+				<group
+					name="video"
+					scale={[
+						threeVideo.scaleX,
+						threeVideo.scaleY,
+						threeVideo.scaleZ
 					]}
-				/>
-			</mesh>
-		</Select>
+					position={[
+						threeVideo.positionX,
+						threeVideo.positionY,
+						threeVideo.positionZ
+					]}
+					rotation={[
+						threeVideo.rotationX,
+						threeVideo.rotationY,
+						threeVideo.rotationZ
+					]}
+				>
+				<RigidBody
+					type="fixed"
+					colliders={"trimesh"}
+					onCollisionExit={(manifold, target, other) => {
+				  
+						// console.log("exit", manifold, target, other);
+					}}
+					onCollisionEnter={(manifold, target, other) => {
+						setClickEvent(!clicked);
+						if (clicked) {
+							video.play();
+							triangle.material.visible = false;
+							circle.material.visible = false;
+						} else {
+							video.pause();
+							triangle.material.visible = true;
+							circle.material.visible = true;
+						}	
+					}}
+				>
+					<object3D>
+						<mesh>
+							<meshBasicMaterial toneMapped={false}>
+								<videoTexture
+									attach="map"
+									args={[video]}
+									encoding={THREE.sRGBEncoding}
+								/>
+							</meshBasicMaterial>
+							<planeGeometry
+								args={[
+									threeVideo.aspectWidth / 12,
+									threeVideo.aspectHeight / 12
+								]}
+							/>
+						</mesh>
+					</object3D>
+				</RigidBody>
+				<primitive	position={[-1.5, 0, 0.1]} object={triangle} />
+				<primitive	position={[0, 0, 0.05]} object={circle} />
+				</group>
+		// </Select>
 	);
 }
 
