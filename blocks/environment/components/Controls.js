@@ -27,10 +27,13 @@ const Controls = (props) => {
 	const { world, rapier } = useRapier();
 	const ray = new rapier.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
 
-	const pointerRay = new rapier.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: -1 });
+	const pointerRay = new rapier.Ray(
+		{ x: 0, y: 0, z: 0 },
+		{ x: 0, y: 0, z: -1 }
+	);
 	const { camera, scene } = useThree();
 
-	useEffect(() => {	
+	useEffect(() => {
 		setSpawnPos(props.spawnPoint);
 		const playerThing = world.getRigidBody(props.something.current.handle);
 		// if (playerThing) {
@@ -87,31 +90,44 @@ const Controls = (props) => {
 		const maxToi = 14;
 		const solid = true;
 
-		if(click){
-			if (raycaster){
-				raycaster.setFromCamera({x: 0, y: 0}, camera);
-				const intersects = raycaster.intersectObjects(scene.children, true);
+		if (click) {
+			if (raycaster) {
+				raycaster.setFromCamera({ x: 0, y: 0 }, camera);
+				const intersects = raycaster.intersectObjects(
+					scene.children,
+					true
+				);
 				if (intersects.length > 0) {
 					console.log(intersects[0].object.name);
-					var pointHitObject = scene.getObjectByName(intersects[0].object.name);
+					const pointHitObject = scene.getObjectByName(
+						intersects[0].object.name
+					);
 					console.log(pointHitObject);
 					// add a rigidbody at the point of intersection
-					if (intersects[0].point){
-						let rigidBodyDesc = new rapier.RigidBodyDesc(rapier.RigidBodyType.Dynamic)
+					if (intersects[0].point) {
+						const rigidBodyDesc = new rapier.RigidBodyDesc(
+							rapier.RigidBodyType.Dynamic
+						)
 							// The rigid body translation.
 							// Default: zero vector.
-							.setTranslation(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z)
+							.setTranslation(
+								intersects[0].point.x,
+								intersects[0].point.y,
+								intersects[0].point.z
+							)
 							// The linear velocity of this body.
 							// Default: zero velocity.
 							.setCanSleep(false)
 							// Whether or not CCD is enabled for this rigid-body.
 							// Default: false
 							.setCcdEnabled(true);
-						let rigidBody = world.createRigidBody(rigidBodyDesc);
+						const rigidBody = world.createRigidBody(rigidBodyDesc);
 
 						const collider = world.createCollider(
-							rapier.ColliderDesc.cuboid(0.05, 0.05, 0.05), rigidBody);
-							
+							rapier.ColliderDesc.cuboid(0.05, 0.05, 0.05),
+							rigidBody
+						);
+
 						// collider.setTranslation(intersects[0].point);
 						setTimeout(() => {
 							// console.log("removing collider", collider);
@@ -120,7 +136,6 @@ const Controls = (props) => {
 						}, 50);
 
 						// world.removeCollider(collider.handle);
-
 					}
 				}
 			}
@@ -147,7 +162,6 @@ const Controls = (props) => {
 			// 		solid,
 			// 		0xfffffffff
 			// 	);
-
 
 			playerThing.lockRotations(true, true);
 			// playerThing.setRotation({x: 0, y: 1, z: 0, w: 0}, true);
@@ -390,9 +404,8 @@ const Controls = (props) => {
 
 	// listen for a click event on the canvas
 	window.addEventListener("click", () => {
-		setClick(true)
+		setClick(true);
 	});
-
 
 	const onKeyUp = function (event, props) {
 		switch (event.code) {

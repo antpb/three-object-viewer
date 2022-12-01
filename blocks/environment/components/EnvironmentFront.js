@@ -200,11 +200,14 @@ function ModelObject(model) {
 		loader.register(
 			(parser) => new GLTFAudioEmitterExtension(parser, listener)
 		);
-		if(openbrushEnabled === true){
+		if (openbrushEnabled === true) {
 			loader.register(
 				(parser) =>
-					new GLTFGoogleTiltBrushMaterialExtension(parser, openbrushDirectory)
-			);	
+					new GLTFGoogleTiltBrushMaterialExtension(
+						parser,
+						openbrushDirectory
+					)
+			);
 		}
 		loader.register((parser) => {
 			return new VRMLoaderPlugin(parser);
@@ -229,21 +232,14 @@ function ModelObject(model) {
 	// return tilt brush if tilt brush
 	if (String(generator).includes("Tilt Brush")) {
 		return (
-			<primitive 
-			rotation={[
-				model.rotationX,
-				model.rotationY,
-				model.rotationZ
-			]}
-			position={[
-				model.positionX,
-				model.positionY,
-				model.positionZ
-			]}
-			scale={[model.scaleX, model.scaleY, model.scaleZ]}
-			object={gltf.scene} />
+			<primitive
+				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
+				position={[model.positionX, model.positionY, model.positionZ]}
+				scale={[model.scaleX, model.scaleY, model.scaleZ]}
+				object={gltf.scene}
+			/>
 		);
-	} 
+	}
 	if (gltf?.userData?.gltfExtensions?.VRM) {
 		const vrm = gltf.userData.vrm;
 		vrm.scene.position.set(
@@ -346,7 +342,7 @@ function Portal(model) {
 					lockZ={false} // Lock the rotation on the z axis (default=false)
 				>
 					<Text
-						font={(threeObjectPlugin + defaultFont)}
+						font={threeObjectPlugin + defaultFont}
 						scale={[2, 2, 2]}
 						maxWidth={1}
 						alignX="center"
@@ -449,7 +445,7 @@ function Portal(model) {
 					scale={[model.scaleX, model.scaleY, model.scaleZ]}
 				>
 					<Text
-						font={(threeObjectPlugin + defaultFont)}
+						font={threeObjectPlugin + defaultFont}
 						scale={[2, 2, 2]}
 						maxWidth={1}
 						alignX="center"
@@ -541,32 +537,36 @@ function ThreeVideo(threeVideo) {
 	);
 	// Add a triangle mesh on top of the video
 	const [triangle] = useState(() => {
-
-		const points = []
+		const points = [];
 		points.push(
 			new THREE.Vector3(0, -3, 0),
 			new THREE.Vector3(0, 3, 0),
 			new THREE.Vector3(4, 0, 0)
 		);
-		const geometry = new THREE.BufferGeometry().setFromPoints( points );
-		const material = new THREE.MeshBasicMaterial( {color: 0x00000, side: THREE.DoubleSide });
+		const geometry = new THREE.BufferGeometry().setFromPoints(points);
+		const material = new THREE.MeshBasicMaterial({
+			color: 0x00000,
+			side: THREE.DoubleSide
+		});
 		const triangle = new THREE.Mesh(geometry, material);
 		return triangle;
 	});
 
 	const [circle] = useState(() => {
-
-		const geometryCircle = new THREE.CircleGeometry( 5, 32 );
-		const materialCircle = new THREE.MeshBasicMaterial( {color: 0xFFFFF, side: THREE.DoubleSide });
+		const geometryCircle = new THREE.CircleGeometry(5, 32);
+		const materialCircle = new THREE.MeshBasicMaterial({
+			color: 0xfffff,
+			side: THREE.DoubleSide
+		});
 		const circle = new THREE.Mesh(geometryCircle, materialCircle);
 		return circle;
 	});
 
 	useEffect(() => {
-		if(play) {
+		if (play) {
 			triangle.material.visible = false;
 			circle.material.visible = false;
-			video.play()	
+			video.play();
 		} else {
 			triangle.material.visible = true;
 			circle.material.visible = true;
@@ -593,66 +593,58 @@ function ThreeVideo(threeVideo) {
 		// 	}}
 		// 	filter={(items) => items}
 		// >
-				<group
-					name="video"
-					scale={[
-						threeVideo.scaleX,
-						threeVideo.scaleY,
-						threeVideo.scaleZ
-					]}
-					position={[
-						threeVideo.positionX,
-						threeVideo.positionY,
-						threeVideo.positionZ
-					]}
-					rotation={[
-						threeVideo.rotationX,
-						threeVideo.rotationY,
-						threeVideo.rotationZ
-					]}
-				>
-				<RigidBody
-					type="fixed"
-					colliders={"trimesh"}
-					ccd={true}
-					onCollisionExit={(manifold, target, other) => {
-				  
-						// console.log("exit", manifold, target, other);
-					}}
-					onCollisionEnter={(manifold, target, other) => {
-						setClickEvent(!clicked);
-						if (clicked) {
-							video.play();
-							triangle.material.visible = false;
-							circle.material.visible = false;
-						} else {
-							video.pause();
-							triangle.material.visible = true;
-							circle.material.visible = true;
-						}	
-					}}
-				>
-					<object3D>
-						<mesh>
-							<meshBasicMaterial toneMapped={false}>
-								<videoTexture
-									attach="map"
-									args={[video]}
-									encoding={THREE.sRGBEncoding}
-								/>
-							</meshBasicMaterial>
-							<planeGeometry
-								args={[
-									threeVideo.aspectWidth / 12,
-									threeVideo.aspectHeight / 12
-								]}
+		<group
+			name="video"
+			scale={[threeVideo.scaleX, threeVideo.scaleY, threeVideo.scaleZ]}
+			position={[
+				threeVideo.positionX,
+				threeVideo.positionY,
+				threeVideo.positionZ
+			]}
+			rotation={[
+				threeVideo.rotationX,
+				threeVideo.rotationY,
+				threeVideo.rotationZ
+			]}
+		>
+			<RigidBody
+				type="fixed"
+				colliders={"cuboid"}
+				ccd={true}
+				onCollisionExit={(manifold, target, other) => {
+					setClickEvent(!clicked);
+					if (clicked) {
+						video.play();
+						triangle.material.visible = false;
+						circle.material.visible = false;
+					} else {
+						video.pause();
+						triangle.material.visible = true;
+						circle.material.visible = true;
+					}
+				}}
+			>
+				<object3D>
+					<mesh>
+						<meshBasicMaterial toneMapped={false}>
+							<videoTexture
+								attach="map"
+								args={[video]}
+								encoding={THREE.sRGBEncoding}
 							/>
-						</mesh>
-					</object3D>
-				</RigidBody>
-				<primitive	position={[-1.5, 0, 0.1]} object={triangle} />
-				<primitive	position={[0, 0, 0.05]} object={circle} />
-				</group>
+						</meshBasicMaterial>
+						<planeGeometry
+							args={[
+								threeVideo.aspectWidth / 12,
+								threeVideo.aspectHeight / 12
+							]}
+						/>
+					</mesh>
+				</object3D>
+			</RigidBody>
+			<primitive position={[-1.5, 0, 0.1]} object={triangle} />
+			<primitive position={[0, 0, 0.05]} object={circle} />
+		</group>
 		// </Select>
 	);
 }
@@ -681,7 +673,7 @@ function TextObject(model) {
 				ref={htmlObj}
 			>
 				<Text
-					font={(threeObjectPlugin + defaultFont)}
+					font={threeObjectPlugin + defaultFont}
 					className="content"
 					scale={[4, 4, 4]}
 					// rotation-y={-Math.PI / 2}
@@ -979,7 +971,7 @@ export default function EnvironmentFront(props) {
 							<Physics>
 								<RigidBody></RigidBody>
 								{/* Debug physics */}
-								<Debug />
+								{/* <Debug sleepColor="blue" /> */}
 								{props.threeUrl && (
 									<>
 										<TeleportTravel useNormal={false}>

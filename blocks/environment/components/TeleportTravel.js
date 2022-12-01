@@ -53,11 +53,9 @@ export default function TeleportTravel(props) {
 	useEffect(() => {
 		// Remove the reticle when the controllers are registered.
 		const reticle = scene.getObjectByName("reticle");
-		if ( controllers.length > 0 && reticle ) {
+		if (controllers.length > 0 && reticle) {
 			reticle.visible = false;
-		} 
-	
-
+		}
 	}, [controllers]);
 
 	useFrame(() => {
@@ -76,14 +74,14 @@ export default function TeleportTravel(props) {
 			const [intersection] = ray.current.intersectObject(target.current);
 
 			if (intersection && intersection.distance < 100) {
-				var intersectionObject = intersection.object;
+				const intersectionObject = intersection.object;
 				let containsInteractiveObject = false;
 				intersectionObject.traverseAncestors((parent) => {
-					if(parent.name === "video") {
+					if (parent.name === "video") {
 						containsInteractiveObject = true;
 					}
 				});
-				if(containsInteractiveObject) {
+				if (containsInteractiveObject) {
 					setCanInteract(true);
 					setCanTeleport(false);
 				} else {
@@ -118,44 +116,48 @@ export default function TeleportTravel(props) {
 				targetLoc.current.position.y + 1.1,
 				targetLoc.current.position.z
 			);
-			if(canTeleport){
+			if (canTeleport) {
 				player.position.copy(targetLoc.current.position);
 			}
 		}
-		if (isHovered && canInteract){
-			if(controllers.length > 0) {
-				console.log("targetloc1", targetLoc);
-
-				let rigidBodyDesc = new rapier.RigidBodyDesc(rapier.RigidBodyType.Dynamic)
-				// The rigid body translation.
-				// Default: zero vector.
-				.setTranslation(targetLoc.current.position.x, targetLoc.current.position.y, targetLoc.current.position.z )
-				// The linear velocity of this body.
-				// .setLinvel(targetLoc.current.position.x, targetLoc.current.position.y - 1.1, targetLoc.current.position.z)
-				// Default: zero vector.
-				.setGravityScale(1)
-				// Default: zero velocity.
-				.setCanSleep(false)
-				// Whether or not CCD is enabled for this rigid-body.
-				// Default: false
-				.setCcdEnabled(true);
+		if (isHovered && canInteract) {
+			if (controllers.length > 0) {
+				const rigidBodyDesc = new rapier.RigidBodyDesc(
+					rapier.RigidBodyType.Dynamic
+				)
+					// The rigid body translation.
+					// Default: zero vector.
+					.setTranslation(
+						targetLoc.current.position.x,
+						targetLoc.current.position.y,
+						targetLoc.current.position.z
+					)
+					// The linear velocity of this body.
+					// .setLinvel(targetLoc.current.position.x, targetLoc.current.position.y - 1.1, targetLoc.current.position.z)
+					// Default: zero vector.
+					.setGravityScale(1)
+					// Default: zero velocity.
+					.setCanSleep(false)
+					// Whether or not CCD is enabled for this rigid-body.
+					// Default: false
+					.setCcdEnabled(true);
 				const rigidBody = world.createRigidBody(rigidBodyDesc);
 
 				const collider = world.createCollider(
-					rapier.ColliderDesc.cuboid(0.05, 0.05, 0.05), rigidBody
+					rapier.ColliderDesc.cuboid(0.05, 0.05, 0.05),
+					rigidBody
 					// rapier.ColliderDesc.capsule(0.5, 0.5), rigidBody
 				);
 				collider.setFriction(0.1);
 				collider.setRestitution(0);
+				// collider.setSensor(true);
 				// collider.setTranslation(intersects[0].point);
 				setTimeout(() => {
-					// console.log("removing collider", collider);
 					world.removeCollider(collider);
 					world.removeRigidBody(rigidBody);
-				}, 50);				
+				}, 50);
 			}
-			console.log("you can touch this", targetLoc);
-		} 
+		}
 	}, [isHovered, canTeleport, canInteract]);
 
 	return (
@@ -166,20 +168,19 @@ export default function TeleportTravel(props) {
 				</group>
 			)}
 			{isHovered && canInteract && (
-					<group ref={targetLoc}>
-						<ClickIndicator />
-					</group>
+				<group ref={targetLoc}>
+					<ClickIndicator />
+				</group>
 			)}
 			<Interactive
 				onSelect={click}
 				onHover={(e) => {
-					setIsHovered(true)
-				}
-				}
+					setIsHovered(true);
+				}}
 				onBlur={() => {
-					setIsHovered(false)
-					setCanTeleport(true)
-					setCanInteract(false)
+					setIsHovered(false);
+					setCanTeleport(true);
+					setCanInteract(false);
 				}}
 			>
 				<group ref={target}>{props.children}</group>
