@@ -20,6 +20,7 @@ import { GLTFAudioEmitterExtension } from "three-omi";
 import { Perf } from "r3f-perf";
 // import EditControls from "./EditControls";
 import { Resizable } from "re-resizable";
+import defaultFont from "../../../inc/fonts/roboto.woff";
 
 function TextObject(text) {
 	const textObj = useRef();
@@ -86,7 +87,11 @@ function TextObject(text) {
 							]}
 							scale={[text.scaleX, text.scaleY, text.scaleZ]}
 						>
-							<Text scale={[4, 4, 4]} color={text.textColor}>
+							<Text
+								font={(threeObjectPlugin + defaultFont)}
+								scale={[4, 4, 4]}
+								color={text.textColor}
+							>
 								{text.textContent}
 							</Text>
 						</group>
@@ -697,6 +702,7 @@ function PortalObject(model) {
 							]}
 						>
 							<Text
+								font={(threeObjectPlugin + defaultFont)}
 								scale={[2, 2, 2]}
 								color={portalBlockAttributes.labelTextColor}
 								maxWidth={1}

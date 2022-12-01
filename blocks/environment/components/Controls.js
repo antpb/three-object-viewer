@@ -118,15 +118,11 @@ const Controls = (props) => {
 							world.removeCollider(collider);
 							world.removeRigidBody(rigidBody);
 						}, 50);
-						
 
 						// world.removeCollider(collider.handle);
 
-
 					}
-	
-
-					}
+				}
 			}
 			setClick(false);
 		}

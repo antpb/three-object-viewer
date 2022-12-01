@@ -1,7 +1,8 @@
 import { Raycaster, Vector3 } from "three";
 import { useXR, Interactive } from "@react-three/xr";
-import { useFrame } from "@react-three/fiber";
-import { useCallback, useRef, useState } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
+import { useCallback, useRef, useState, useEffect } from "react";
+import { useRapier, useRigidBody, RigidBody } from "@react-three/rapier";
 
 export function TeleportIndicator(props) {
 	return (
@@ -14,17 +15,33 @@ export function TeleportIndicator(props) {
 		</>
 	);
 }
+export function ClickIndicatorObject(props) {
+	return (
+		<>
+			<mesh position={[0, 0, 0]}>
+				<boxGeometry args={[0.2, 0.2, 0.2]} attach="geometry" />
+				<meshBasicMaterial attach="material" color={0x26ff00} />
+			</mesh>
+		</>
+	);
+}
 
 export default function TeleportTravel(props) {
+	const { scene } = useThree();
 	const {
 		centerOnTeleport,
 		Indicator = TeleportIndicator,
+		ClickIndicator = ClickIndicatorObject,
 		useNormal = true
 	} = props;
 	const [isHovered, setIsHovered] = useState(false);
+	const [canTeleport, setCanTeleport] = useState(true);
+	const [canInteract, setCanInteract] = useState(false);
+	const [intersectionPoint, setIntersectionPoint] = useState();
 	const target = useRef();
 	const targetLoc = useRef();
 	const ray = useRef(new Raycaster());
+	const { world, rapier } = useRapier();
 
 	const rayDir = useRef({
 		pos: new Vector3(),
@@ -32,6 +49,16 @@ export default function TeleportTravel(props) {
 	});
 
 	const { controllers, player } = useXR();
+	// Set a variable finding an object in the three.js scene that is named reticle.
+	useEffect(() => {
+		// Remove the reticle when the controllers are registered.
+		const reticle = scene.getObjectByName("reticle");
+		if ( controllers.length > 0 && reticle ) {
+			reticle.visible = false;
+		} 
+	
+
+	}, [controllers]);
 
 	useFrame(() => {
 		if (
@@ -48,20 +75,34 @@ export default function TeleportTravel(props) {
 
 			const [intersection] = ray.current.intersectObject(target.current);
 
-			if (intersection) {
+			if (intersection && intersection.distance < 100) {
+				var intersectionObject = intersection.object;
+				let containsInteractiveObject = false;
+				intersectionObject.traverseAncestors((parent) => {
+					if(parent.name === "video") {
+						containsInteractiveObject = true;
+					}
+				});
+				if(containsInteractiveObject) {
+					setCanInteract(true);
+					setCanTeleport(false);
+				} else {
+					setCanInteract(false);
+					setCanTeleport(true);
+				}
 				if (useNormal) {
 					const p = intersection.point;
+					setIntersectionPoint(p);
+					// targetLoc.current.position.set(0, 0, 0);
 
-					targetLoc.current.position.set(0, 1, 0);
+					// const n = intersection.face.normal.clone();
+					// n.transformDirection(intersection.object.matrixWorld);
 
-					const n = intersection.face.normal.clone();
-					n.transformDirection(intersection.object.matrixWorld);
-
-					targetLoc.current.lookAt(n);
-					targetLoc.current.rotateOnAxis(
-						new Vector3(1, 0, 0),
-						Math.PI / 2
-					);
+					// targetLoc.current.lookAt(n);
+					// targetLoc.current.rotateOnAxis(
+					// 	new Vector3(1, 0, 0),
+					// 	Math.PI / 2
+					// );
 					targetLoc.current.position.copy(p);
 				} else {
 					targetLoc.current.position.copy(intersection.point);
@@ -77,21 +118,69 @@ export default function TeleportTravel(props) {
 				targetLoc.current.position.y + 1.1,
 				targetLoc.current.position.z
 			);
-			player.position.copy(targetLoc.current.position);
+			if(canTeleport){
+				player.position.copy(targetLoc.current.position);
+			}
 		}
-	}, [centerOnTeleport, isHovered, useNormal]);
+		if (isHovered && canInteract){
+			if(controllers.length > 0) {
+				console.log("targetloc1", targetLoc);
+
+				let rigidBodyDesc = new rapier.RigidBodyDesc(rapier.RigidBodyType.Dynamic)
+				// The rigid body translation.
+				// Default: zero vector.
+				.setTranslation(targetLoc.current.position.x, targetLoc.current.position.y, targetLoc.current.position.z )
+				// The linear velocity of this body.
+				// .setLinvel(targetLoc.current.position.x, targetLoc.current.position.y - 1.1, targetLoc.current.position.z)
+				// Default: zero vector.
+				.setGravityScale(1)
+				// Default: zero velocity.
+				.setCanSleep(false)
+				// Whether or not CCD is enabled for this rigid-body.
+				// Default: false
+				.setCcdEnabled(true);
+				const rigidBody = world.createRigidBody(rigidBodyDesc);
+
+				const collider = world.createCollider(
+					rapier.ColliderDesc.cuboid(0.05, 0.05, 0.05), rigidBody
+					// rapier.ColliderDesc.capsule(0.5, 0.5), rigidBody
+				);
+				collider.setFriction(0.1);
+				collider.setRestitution(0);
+				// collider.setTranslation(intersects[0].point);
+				setTimeout(() => {
+					// console.log("removing collider", collider);
+					world.removeCollider(collider);
+					world.removeRigidBody(rigidBody);
+				}, 50);				
+			}
+			console.log("you can touch this", targetLoc);
+		} 
+	}, [isHovered, canTeleport, canInteract]);
 
 	return (
 		<>
-			{isHovered && (
+			{isHovered && canTeleport && (
 				<group ref={targetLoc}>
 					<Indicator />
 				</group>
 			)}
+			{isHovered && canInteract && (
+					<group ref={targetLoc}>
+						<ClickIndicator />
+					</group>
+			)}
 			<Interactive
 				onSelect={click}
-				onHover={() => setIsHovered(true)}
-				onBlur={() => setIsHovered(false)}
+				onHover={(e) => {
+					setIsHovered(true)
+				}
+				}
+				onBlur={() => {
+					setIsHovered(false)
+					setCanTeleport(true)
+					setCanInteract(false)
+				}}
 			>
 				<group ref={target}>{props.children}</group>
 			</Interactive>

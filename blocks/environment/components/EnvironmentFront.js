@@ -26,7 +26,9 @@ import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import TeleportTravel from "./TeleportTravel";
 import Player from "./Player";
 import defaultVRM from "../../../inc/avatars/3ov_default_avatar.vrm";
+import defaultFont from "../../../inc/fonts/roboto.woff";
 import { ItemBaseUI } from "@wordpress/components/build/navigation/styles/navigation-styles";
+import { BoxGeometry } from "three";
 
 function parseMatrixUri(uri) {
 	const SegmentToSigil = {
@@ -344,6 +346,7 @@ function Portal(model) {
 					lockZ={false} // Lock the rotation on the z axis (default=false)
 				>
 					<Text
+						font={(threeObjectPlugin + defaultFont)}
 						scale={[2, 2, 2]}
 						maxWidth={1}
 						alignX="center"
@@ -446,6 +449,7 @@ function Portal(model) {
 					scale={[model.scaleX, model.scaleY, model.scaleZ]}
 				>
 					<Text
+						font={(threeObjectPlugin + defaultFont)}
 						scale={[2, 2, 2]}
 						maxWidth={1}
 						alignX="center"
@@ -610,6 +614,7 @@ function ThreeVideo(threeVideo) {
 				<RigidBody
 					type="fixed"
 					colliders={"trimesh"}
+					ccd={true}
 					onCollisionExit={(manifold, target, other) => {
 				  
 						// console.log("exit", manifold, target, other);
@@ -655,7 +660,7 @@ function ThreeVideo(threeVideo) {
 function Floor(props) {
 	return (
 		<mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} {...props}>
-			<boxBufferGeometry args={[10000, 10000, 1]} attach="geometry" />
+			<BoxGeometry args={[10000, 10000, 1]} attach="geometry" />
 			<meshBasicMaterial
 				opacity={0}
 				transparent={true}
@@ -676,6 +681,7 @@ function TextObject(model) {
 				ref={htmlObj}
 			>
 				<Text
+					font={(threeObjectPlugin + defaultFont)}
 					className="content"
 					scale={[4, 4, 4]}
 					// rotation-y={-Math.PI / 2}
@@ -973,7 +979,7 @@ export default function EnvironmentFront(props) {
 							<Physics>
 								<RigidBody></RigidBody>
 								{/* Debug physics */}
-								{/* <Debug /> */}
+								<Debug />
 								{props.threeUrl && (
 									<>
 										<TeleportTravel useNormal={false}>
