@@ -18,8 +18,8 @@ export function TeleportIndicator(props) {
 export function ClickIndicatorObject(props) {
 	return (
 		<>
-			<mesh position={[0, 0, 0]}>
-				<boxGeometry args={[0.2, 0.2, 0.2]} attach="geometry" />
+			<mesh position={[0, 0, -0.005]}>
+				<boxGeometry args={[0.08, 0.08, 0.08]} attach="geometry" />
 				<meshBasicMaterial attach="material" color={0x26ff00} />
 			</mesh>
 		</>
@@ -68,16 +68,25 @@ export default function TeleportTravel(props) {
 		) {
 			controllers[0].controller.getWorldDirection(rayDir.current.dir);
 			controllers[0].controller.getWorldPosition(rayDir.current.pos);
+			// ray.far = 0.05;
+			// ray.near = 0.01;
 			rayDir.current.dir.multiplyScalar(-1);
 			ray.current.set(rayDir.current.pos, rayDir.current.dir);
 
 			const [intersection] = ray.current.intersectObject(target.current);
 
-			if (intersection && intersection.distance < 100) {
+			if (
+				intersection &&
+				intersection.distance < 100 &&
+				intersection.distance > .5
+			) {
 				const intersectionObject = intersection.object;
 				let containsInteractiveObject = false;
 				intersectionObject.traverseAncestors((parent) => {
 					if (parent.name === "video") {
+						containsInteractiveObject = true;
+					}
+					if (parent.name === "portal") {
 						containsInteractiveObject = true;
 					}
 				});
@@ -110,7 +119,7 @@ export default function TeleportTravel(props) {
 	});
 
 	const click = useCallback(() => {
-		if (isHovered) {
+		if (isHovered && !canInteract) {
 			targetLoc.current.position.set(
 				targetLoc.current.position.x,
 				targetLoc.current.position.y + 1.1,
@@ -123,15 +132,16 @@ export default function TeleportTravel(props) {
 		if (isHovered && canInteract) {
 			if (controllers.length > 0) {
 				const rigidBodyDesc = new rapier.RigidBodyDesc(
-					rapier.RigidBodyType.Dynamic
+					rapier.RigidBodyType.Static
 				)
 					// The rigid body translation.
 					// Default: zero vector.
 					.setTranslation(
 						targetLoc.current.position.x,
 						targetLoc.current.position.y,
-						targetLoc.current.position.z
+						targetLoc.current.position.z - 0.01
 					)
+					.setLinvel(0, 0, 0)
 					// The linear velocity of this body.
 					// .setLinvel(targetLoc.current.position.x, targetLoc.current.position.y - 1.1, targetLoc.current.position.z)
 					// Default: zero vector.
@@ -148,6 +158,7 @@ export default function TeleportTravel(props) {
 					rigidBody
 					// rapier.ColliderDesc.capsule(0.5, 0.5), rigidBody
 				);
+
 				collider.setFriction(0.1);
 				collider.setRestitution(0);
 				// collider.setSensor(true);
@@ -155,7 +166,7 @@ export default function TeleportTravel(props) {
 				setTimeout(() => {
 					world.removeCollider(collider);
 					world.removeRigidBody(rigidBody);
-				}, 50);
+				}, 200);
 			}
 		}
 	}, [isHovered, canTeleport, canInteract]);

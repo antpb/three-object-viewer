@@ -422,9 +422,11 @@ function ModelObject(model) {
 	const { camera } = useThree();
 
 	const gltf = useLoader(GLTFLoader, model.url, (loader) => {
-		loader.register(
-			(parser) => new GLTFAudioEmitterExtension(parser, listener)
-		);
+		if(listener){
+			loader.register(
+				(parser) => new GLTFAudioEmitterExtension(parser, listener)
+			);	
+		}
 		loader.register((parser) => {
 			return new VRMLoaderPlugin(parser);
 		});
@@ -462,7 +464,7 @@ function ModelObject(model) {
 	}
 	gltf.scene.rotation.set(0, 0, 0);
 	const obj = useRef();
-	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene]);
+	// const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene]);
 	const [isSelected, setIsSelected] = useState();
 	const [modelBlockAttributes, setModelBlockAttributes] = useState(
 		wp.data.select("core/block-editor").getBlockAttributes(model.modelId)
@@ -550,7 +552,7 @@ function ModelObject(model) {
 								modelBlockAttributes.scaleZ
 							]}
 						>
-							<primitive object={copyGltf} />
+							<primitive object={gltf.scene} />
 						</group>
 					)}
 				</TransformController>
