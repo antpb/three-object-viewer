@@ -98,11 +98,11 @@ const Controls = (props) => {
 					true
 				);
 				if (intersects.length > 0) {
-					console.log(intersects[0].object.name);
+					// console.log(intersects[0].object.name);
 					const pointHitObject = scene.getObjectByName(
 						intersects[0].object.name
 					);
-					console.log(pointHitObject);
+					// console.log(pointHitObject);
 					// add a rigidbody at the point of intersection
 					if (intersects[0].point) {
 						const rigidBodyDesc = new rapier.RigidBodyDesc(

@@ -30,79 +30,20 @@ import defaultFont from "../../../inc/fonts/roboto.woff";
 import { ItemBaseUI } from "@wordpress/components/build/navigation/styles/navigation-styles";
 import { BoxGeometry } from "three";
 
-function parseMatrixUri(uri) {
-	const SegmentToSigil = {
-		u: "@",
-		user: "@",
-		r: "#",
-		room: "#",
-		roomid: "!"
-	};
+import { ThreeImage } from "./core/front/ThreeImage";
+import { ThreeVideo } from "./core/front/ThreeVideo";
+import { ModelObject } from "./core/front/ModelObject";
+import { Portal } from "./core/front/Portal";
+import { Sky } from "./core/front/Sky";
+import { TextObject } from "./core/front/TextObject";
 
-	const url = new URL(uri, window.location.href);
-
-	if (url.protocol === "matrix:") {
-		const matches = url.pathname.match(/^(\/\/.+\/)?(.+)$/);
-
-		let authority;
-		let path;
-
-		if (matches) {
-			if (matches.length === 3) {
-				authority = matches[1];
-				path = matches[2];
-			} else if (matches.length === 2) {
-				path = matches[1];
-			}
-		}
-
-		if (!path) {
-			throw new Error(`Invalid matrix uri "${uri}": No path provided`);
-		}
-
-		const segments = path.split("/");
-
-		if (segments.length !== 2 && segments.length !== 4) {
-			throw new Error(
-				`Invalid matrix uri "${uri}": Invalid number of segments`
-			);
-		}
-
-		const sigil1 = SegmentToSigil[segments[0]];
-
-		if (!sigil1) {
-			throw new Error(
-				`Invalid matrix uri "${uri}": Invalid segment ${segments[0]}`
-			);
-		}
-
-		if (!segments[1]) {
-			throw new Error(`Invalid matrix uri "${uri}": Empty segment`);
-		}
-
-		const mxid1 = `${sigil1}${segments[1]}`;
-
-		let mxid2;
-
-		if (segments.length === 4) {
-			if (
-				(sigil1 === "!" || sigil1 === "#") &&
-				(segments[2] === "e" || segments[2] === "event") &&
-				segments[3]
-			) {
-				mxid2 = `$${segments[3]}`;
-			} else {
-				throw new Error(
-					`Invalid matrix uri "${uri}": Invalid segment ${segments[2]}`
-				);
-			}
-		}
-		return { protocol: "matrix:", authority, mxid1, mxid2 };
-	}
-
-	return url;
-}
-
+/**
+ * Represents a participant in a virtual reality scene.
+ *
+ * @param {Object} participant - The props for the participant.
+ *
+ * @return {JSX.Element} The participant.
+ */
 function Participant(participant) {
 	// Participant VRM.
 	const fallbackURL = threeObjectPlugin + defaultVRM;
@@ -179,526 +120,13 @@ function Participant(participant) {
 	}
 }
 
-function ModelObject(model) {
-	const [clicked, setClickEvent] = useState();
-	const [url, set] = useState(model.url);
-	useEffect(() => {
-		setTimeout(() => set(model.url), 2000);
-	}, []);
-	const [listener] = useState(() => new THREE.AudioListener());
-
-	useThree(({ camera }) => {
-		camera.add(listener);
-	});
-
-	const gltf = useLoader(GLTFLoader, url, (loader) => {
-		// const dracoLoader = new DRACOLoader();
-		// dracoLoader.setDecoderPath(
-		// 	"https://www.gstatic.com/draco/v1/decoders/"
-		// );
-		// loader.setDRACOLoader(dracoLoader);
-
-		loader.register(
-			(parser) => new GLTFAudioEmitterExtension(parser, listener)
-		);
-		if (openbrushEnabled === true) {
-			loader.register(
-				(parser) =>
-					new GLTFGoogleTiltBrushMaterialExtension(
-						parser,
-						openbrushDirectory
-					)
-			);
-		}
-		loader.register((parser) => {
-			return new VRMLoaderPlugin(parser);
-		});
-	});
-
-	const audioObject = gltf.scene.getObjectByProperty('type', 'Audio');
-
-	const { actions } = useAnimations(gltf.animations, gltf.scene);
-	const animationClips = gltf.animations;
-	const animationList = model.animations ? model.animations.split(",") : "";
-	useEffect(() => {
-		if (animationList) {
-			animationList.forEach((name) => {
-				if (Object.keys(actions).includes(name)) {
-					console.log(actions[name].play());
-				}
-			});
-		}
-	}, []);
-
-	const generator = gltf.asset.generator;
-
-	// return tilt brush if tilt brush
-	if (String(generator).includes("Tilt Brush")) {
-		return (
-			<primitive
-				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
-				position={[model.positionX, model.positionY, model.positionZ]}
-				scale={[model.scaleX, model.scaleY, model.scaleZ]}
-				object={gltf.scene}
-			/>
-		);
-	}
-
-	if (gltf?.userData?.gltfExtensions?.VRM) {
-		const vrm = gltf.userData.vrm;
-		vrm.scene.position.set(
-			model.positionX,
-			model.positionY,
-			model.positionZ
-		);
-		VRMUtils.rotateVRM0(vrm);
-		const rotationVRM = vrm.scene.rotation.y + parseFloat(0);
-		vrm.scene.rotation.set(0, rotationVRM, 0);
-		vrm.scene.scale.set(1, 1, 1);
-		vrm.scene.scale.set(model.scaleX, model.scaleY, model.scaleZ);
-		return (
-			// <A11y role="content" description={model.alt} showAltText >
-			<primitive object={vrm.scene} />
-			// </A11y>
-		);
-	}
-	// gltf.scene.castShadow = true;
-	// enable shadows @todo figure this out
-	// gltf.scene.traverse(function (node) {
-	// 	if (node.isMesh) {
-	// 		node.castShadow = true;
-	// 		node.receiveShadow = true;
-	// 	}
-	// });
-
-	// @todo figure out how to clone gltf proper with extensions and animations
-	// const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene]);
-	// const modelClone = SkeletonUtils.clone(gltf.scene);
-	// modelClone.scene.castShadow = true;
-
-	//audioObject
-	// Add a triangle mesh on top of the video
-	const [triangle] = useState(() => {
-		const points = [];
-		points.push(
-			new THREE.Vector3(0, -3, 0),
-			new THREE.Vector3(0, 3, 0),
-			new THREE.Vector3(4, 0, 0)
-		);
-		const geometry = new THREE.BufferGeometry().setFromPoints(points);
-		const material = new THREE.MeshBasicMaterial({
-			color: 0x00000,
-			side: THREE.DoubleSide
-		});
-		const triangle = new THREE.Mesh(geometry, material);
-		return triangle;
-	});
-
-	const [circle] = useState(() => {
-		const geometryCircle = new THREE.CircleGeometry(5, 32);
-		const materialCircle = new THREE.MeshBasicMaterial({
-			color: 0xfffff,
-			side: THREE.DoubleSide
-		});
-		const circle = new THREE.Mesh(geometryCircle, materialCircle);
-		return circle;
-	});
-	
-	if (model.collidable === "1") {
-		return (
-			<>
-				<RigidBody
-					type="fixed"
-					colliders={"trimesh"}
-					rotation={[
-						model.rotationX,
-						model.rotationY,
-						model.rotationZ
-					]}
-					position={[
-						model.positionX,
-						model.positionY,
-						model.positionZ
-					]}
-					scale={[model.scaleX, model.scaleY, model.scaleZ]}
-					onCollisionExit={(manifold, target, other) => {
-						setClickEvent(!clicked);
-						if(audioObject){
-							if (clicked) {
-								audioObject.play();
-								triangle.material.visible = false;
-								circle.material.visible = false;
-							} else {
-								audioObject.pause();
-								triangle.material.visible = true;
-								circle.material.visible = true;
-							}
-						}
-					}}	
-					// onCollisionEnter={ ( props ) =>(
-					// 	// window.location.href = model.destinationUrl
-					// 	)
-					// }
-				>
-					<primitive
-						object={gltf.scene}
-						// castShadow
-						// receiveShadow
-						rotation={[
-							model.rotationX,
-							model.rotationY,
-							model.rotationZ
-						]}
-						position={[
-							model.positionX,
-							model.positionY,
-							model.positionZ
-						]}
-						scale={[model.scaleX, model.scaleY, model.scaleZ]}
-					/>
-				</RigidBody>
-			</>
-		);
-	}
-	return (
-		<>
-			<primitive
-				object={gltf.scene}
-				// castShadow
-				// receiveShadow
-				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
-				position={[model.positionX, model.positionY, model.positionZ]}
-				scale={[model.scaleX, model.scaleY, model.scaleZ]}
-			/>
-		</>
-	);
-}
-
-function Portal(model) {
-	
-	if (model.object) {
-		return (
-			<>
-				<Billboard
-					position={[
-						model.positionX + 0.01,
-						model.positionY + 0.01,
-						model.positionZ + 0.01
-					]}
-					follow={true}
-					lockX={false}
-					lockY={false}
-					lockZ={false} // Lock the rotation on the z axis (default=false)
-				>
-					<Text
-						font={threeObjectPlugin + defaultFont}
-						scale={[2, 2, 2]}
-						maxWidth={1}
-						alignX="center"
-						// rotation={[model.rotationX , model.rotationY, model.rotationZ]}
-						// position={[model.positionX, model.positionY, model.positionZ]}
-						color="black"
-						position={[0, 0, 0]}
-					>
-						{model.label
-							? model.label + ": "
-							: "" + model.destinationUrl}
-					</Text>
-				</Billboard>
-				<RigidBody
-					type="fixed"
-					colliders={"trimesh"}
-					onCollisionEnter={() => {
-						const url = new URL(
-							model.destinationUrl,
-							window.location.href
-						);
-						if (url.protocol === "matrix:") {
-							const destination = parseMatrixUri(
-								model.destinationUrl
-							);
-							window.location.href =
-								"https://thirdroom.io/world/" +
-								destination.mxid1;
-						} else {
-							window.location.href = model.destinationUrl;
-						}
-					}}
-				>
-					<primitive visible={false} object={model.object} />
-				</RigidBody>
-			</>
-		);
-	}
-	const [url, set] = useState(model.url);
-
-	useEffect(() => {
-		setTimeout(() => set(model.url), 2000);
-	}, []);
-	const [listener] = useState(() => new THREE.AudioListener());
-
-	useThree(({ camera }) => {
-		camera.add(listener);
-	});
-
-	const gltf = useLoader(GLTFLoader, url, (loader) => {
-		loader.register(
-			(parser) => new GLTFAudioEmitterExtension(parser, listener)
-		);
-		loader.register((parser) => {
-			return new VRMLoaderPlugin(parser);
-		});
-	});
-
-	const { actions } = useAnimations(gltf.animations, gltf.scene);
-
-	const animationList = model.animations ? model.animations.split(",") : "";
-	useEffect(() => {
-		if (animationList) {
-			animationList.forEach((name) => {
-				if (Object.keys(actions).includes(name)) {
-					actions[name].play();
-				}
-			});
-		}
-	}, []);
-	// gltf.scene.position.set( model.positionX, model.positionY, model.positionZ );
-	// gltf.scene.rotation.set( 0, 0, 0 );
-	// gltf.scene.scale.set(model.scaleX, model.scaleY, model.scaleZ);
-	// gltf.scene.rotation.set(model.rotationX , model.rotationY, model.rotationZ );
-	const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene]);
-
-	return (
-		<>
-			<RigidBody
-				type="fixed"
-				colliders={"cuboid"}
-				onCollisionExit={(props) =>
-					(window.location.href = model.destinationUrl)
-				}
-				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
-				position={[model.positionX, model.positionY, model.positionZ]}
-				scale={[model.scaleX, model.scaleY, model.scaleZ]}
-			>
-				<group
-					name="portal"
-					rotation={[
-						model.rotationX,
-						model.rotationY,
-						model.rotationZ
-					]}
-					position={[
-						model.positionX,
-						model.positionY,
-						model.positionZ
-					]}
-					scale={[model.scaleX, model.scaleY, model.scaleZ]}
-				>
-					<Text
-						font={threeObjectPlugin + defaultFont}
-						scale={[2, 2, 2]}
-						maxWidth={1}
-						alignX="center"
-						textAlign="center"
-						color={model.labelTextColor}
-						position={[
-							0 + model.labelOffsetX,
-							0 + model.labelOffsetY,
-							0 + model.labelOffsetZ
-						]}
-					>
-						{model.label + ": " + model.destinationUrl}
-					</Text>
-					<primitive object={copyGltf} />
-				</group>
-			</RigidBody>
-		</>
-	);
-}
-
-function Sky(sky) {
-	const skyUrl = sky.src[0].querySelector("p.sky-block-url")
-		? sky.src[0].querySelector("p.sky-block-url").innerText
-		: "";
-
-	const texture1 = useLoader(THREE.TextureLoader, skyUrl);
-
-	return (
-		<mesh
-			visible
-			position={[0, 0, 0]}
-			scale={[200, 200, 200]}
-			rotation={[0, 0, 0]}
-		>
-			<sphereGeometry args={[5, 10, 10]} />
-			<meshStandardMaterial side={THREE.DoubleSide} map={texture1} />
-		</mesh>
-	);
-}
-
-function ThreeImage(threeImage) {
-	const texture2 = useLoader(THREE.TextureLoader, threeImage.url);
-
-	return (
-		<mesh
-			visible
-			position={[
-				threeImage.positionX,
-				threeImage.positionY,
-				threeImage.positionZ
-			]}
-			scale={[threeImage.scaleX, threeImage.scaleY, threeImage.scaleZ]}
-			rotation={[
-				threeImage.rotationX,
-				threeImage.rotationY,
-				threeImage.rotationZ
-			]}
-		>
-			<planeGeometry
-				args={[
-					threeImage.aspectWidth / 12,
-					threeImage.aspectHeight / 12
-				]}
-			/>
-			{threeImage.transparent ? (
-				<meshBasicMaterial
-					transparent
-					side={THREE.DoubleSide}
-					map={texture2}
-				/>
-			) : (
-				<meshStandardMaterial side={THREE.DoubleSide} map={texture2} />
-			)}
-		</mesh>
-	);
-}
-
-function ThreeVideo(threeVideo) {
-	const play = threeVideo.autoPlay === "1" ? true : false;
-	const { scene } = useThree();
-	const [clicked, setClickEvent] = useState();
-	const [video] = useState(() =>
-		Object.assign(document.createElement("video"), {
-			src: threeVideo.url,
-			crossOrigin: "Anonymous",
-			loop: true,
-			muted: true
-		})
-	);
-	// Add a triangle mesh on top of the video
-	const [triangle] = useState(() => {
-		const points = [];
-		points.push(
-			new THREE.Vector3(0, -3, 0),
-			new THREE.Vector3(0, 3, 0),
-			new THREE.Vector3(4, 0, 0)
-		);
-		const geometry = new THREE.BufferGeometry().setFromPoints(points);
-		const material = new THREE.MeshBasicMaterial({
-			color: 0x00000,
-			side: THREE.DoubleSide
-		});
-		const triangle = new THREE.Mesh(geometry, material);
-		return triangle;
-	});
-
-	const [circle] = useState(() => {
-		const geometryCircle = new THREE.CircleGeometry(5, 32);
-		const materialCircle = new THREE.MeshBasicMaterial({
-			color: 0xfffff,
-			side: THREE.DoubleSide
-		});
-		const circle = new THREE.Mesh(geometryCircle, materialCircle);
-		return circle;
-	});
-
-	useEffect(() => {
-		if (play) {
-			triangle.material.visible = false;
-			circle.material.visible = false;
-			video.play();
-		} else {
-			triangle.material.visible = true;
-			circle.material.visible = true;
-		}
-	}, [video, play]);
-
-	return (
-		// <Select
-		// 	box
-		// 	multiple
-		// 	onChange={(e) => {
-		// 		if (e.length !== 0) {
-		// 			setClickEvent(!clicked);
-		// 			if (clicked) {
-		// 				video.play();
-		// 				triangle.material.visible = false;
-		// 				circle.material.visible = false;
-		// 			} else {
-		// 				video.pause();
-		// 				triangle.material.visible = true;
-		// 				circle.material.visible = true;
-		// 			}
-		// 		}
-		// 	}}
-		// 	filter={(items) => items}
-		// >
-		<group
-			name="video"
-			scale={[threeVideo.scaleX, threeVideo.scaleY, threeVideo.scaleZ]}
-			position={[
-				threeVideo.positionX,
-				threeVideo.positionY,
-				threeVideo.positionZ
-			]}
-			rotation={[
-				threeVideo.rotationX,
-				threeVideo.rotationY,
-				threeVideo.rotationZ
-			]}
-		>
-			<RigidBody
-				type="fixed"
-				colliders={"cuboid"}
-				ccd={true}
-				onCollisionExit={(manifold, target, other) => {
-					setClickEvent(!clicked);
-					if (clicked) {
-						video.play();
-						triangle.material.visible = false;
-						circle.material.visible = false;
-					} else {
-						video.pause();
-						triangle.material.visible = true;
-						circle.material.visible = true;
-					}
-				}}
-			>
-				<object3D>
-					<mesh>
-						<meshBasicMaterial toneMapped={false}>
-							<videoTexture
-								attach="map"
-								args={[video]}
-								encoding={THREE.sRGBEncoding}
-							/>
-						</meshBasicMaterial>
-						<planeGeometry
-							args={[
-								threeVideo.aspectWidth / 12,
-								threeVideo.aspectHeight / 12
-							]}
-						/>
-					</mesh>
-				</object3D>
-			</RigidBody>
-			<primitive position={[-1.5, 0, 0.1]} object={triangle} />
-			<primitive position={[0, 0, 0.05]} object={circle} />
-		</group>
-		// </Select>
-	);
-}
-
+/**
+ * The default boring floor.
+ *
+ * @param {Object} props - The props for the text object.
+ *
+ * @return {JSX.Element} The text object.
+ */
 function Floor(props) {
 	return (
 		<mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} {...props}>
@@ -709,33 +137,6 @@ function Floor(props) {
 				attach="material"
 			/>
 		</mesh>
-	);
-}
-
-function TextObject(model) {
-	const htmlObj = useRef();
-	return (
-		<>
-			<group
-				position={[model.positionX, model.positionY, model.positionZ]}
-				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
-				scale={[model.scaleX, model.scaleY, model.scaleZ]}
-				ref={htmlObj}
-			>
-				<Text
-					font={threeObjectPlugin + defaultFont}
-					className="content"
-					scale={[4, 4, 4]}
-					// rotation-y={-Math.PI / 2}
-					width={10}
-					height={10}
-					color={model.textColor}
-					transform
-				>
-					{model.textContent}
-				</Text>
-			</group>
-		</>
 	);
 }
 
@@ -766,6 +167,13 @@ function Participants(props) {
 	);
 }
 
+/**
+ * Represents a saved object in a virtual reality world.
+ *
+ * @param {Object} props - The props for the saved object.
+ *
+ * @return {JSX.Element} The saved object.
+ */
 function SavedObject(props) {
 	const meshRef = useRef();
 	const [url, set] = useState(props.url);
@@ -908,6 +316,8 @@ function SavedObject(props) {
 							rotationZ={finalRotation.z}
 							object={item.parent}
 							label={props.label}
+							defaultFont={defaultFont}
+							threeObjectPlugin={threeObjectPlugin}
 							destinationUrl={
 								item.userData.gltfExtensions.OMI_link.uri
 							}
@@ -1604,6 +1014,8 @@ export default function EnvironmentFront(props) {
 															scaleX={scaleX}
 															scaleY={scaleY}
 															scaleZ={scaleZ}
+															defaultFont={defaultFont}
+															threeObjectPlugin={threeObjectPlugin}
 															textColor={
 																textColor
 															}
@@ -1783,6 +1195,8 @@ export default function EnvironmentFront(props) {
 														destinationUrl={
 															destinationUrl
 														}
+														defaultFont={defaultFont}
+														threeObjectPlugin={threeObjectPlugin}							
 														positionX={modelPosX}
 														positionY={modelPosY}
 														animations={animations}
