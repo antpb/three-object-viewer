@@ -1,4 +1,5 @@
 import * as THREE from "three";
+// import { Reflector } from 'three/examples/jsm/objects/Reflector';
 import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
 import { useLoader, useThree } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
@@ -212,6 +213,7 @@ function SavedObject(props) {
 		const collidersToAdd = [];
 		const meshesToAdd = [];
 		const portalsToAdd = [];
+		const spawnPointsToAdd = [];
 		let omiColliders;
 
 		gltf.scene.scale.set(props.scale, props.scale, props.scale);
@@ -242,10 +244,23 @@ function SavedObject(props) {
 			}
 			if (child.userData.gltfExtensions?.OMI_link) {
 				portalsToAdd.push(child);
+			} else if (child.userData.gltfExtensions?.OMI_spawn_point) {
+				spawnPointsToAdd.push(child);
 			} else {
 				meshesToAdd.push(child);
 			}
 		});
+
+		// Mirror logic.
+		// const mirror = new Reflector(
+		// 	new THREE.PlaneGeometry(10, 10),
+		// 	{
+		// 		color: new THREE.Color(0x7f7f7f),
+		// 		textureWidth: window.innerWidth * window.devicePixelRatio,
+		// 		textureHeight: window.innerHeight * window.devicePixelRatio
+		// 	}
+		// )
+		// gltf.scene.add(mirror);
 
 		meshesToAdd.forEach((mesh) => {
 			meshesScene.attach(mesh);
@@ -259,6 +274,7 @@ function SavedObject(props) {
 		setColliders(collidersToAdd);
 		setMeshes(meshesScene);
 		setPortals(portalsToAdd);
+		props.setSpawnPoints(spawnPointsToAdd);
 		// End OMI_collider logic.
 	}, []);
 
@@ -384,6 +400,8 @@ function SavedObject(props) {
 
 export default function EnvironmentFront(props) {
 	const [loaded, setLoaded] = useState(false);
+	const [spawnPoints, setSpawnPoints] = useState();
+
 	if (loaded === true) {
 		if (props.deviceTarget === "vr") {
 			return (
@@ -413,18 +431,18 @@ export default function EnvironmentFront(props) {
 						<directionalLight
 							intensity={0.6}
 							position={[0, 2, 2]}
-							// shadow-mapSize-width={512}
-							// shadow-mapSize-height={512}
-							// shadow-camera-far={5000}
-							// shadow-camera-fov={15}
-							// shadow-camera-near={0.5}
-							// shadow-camera-left={-50}
-							// shadow-camera-bottom={-50}
-							// shadow-camera-right={50}
-							// shadow-camera-top={50}
-							// shadow-radius={1}
-							// shadow-bias={-0.001}
-							// castShadow
+						// shadow-mapSize-width={512}
+						// shadow-mapSize-height={512}
+						// shadow-camera-far={5000}
+						// shadow-camera-fov={15}
+						// shadow-camera-near={0.5}
+						// shadow-camera-left={-50}
+						// shadow-camera-bottom={-50}
+						// shadow-camera-right={50}
+						// shadow-camera-top={50}
+						// shadow-radius={1}
+						// shadow-bias={-0.001}
+						// castShadow
 						/>
 						<Suspense fallback={null}>
 							<Physics
@@ -434,8 +452,13 @@ export default function EnvironmentFront(props) {
 								{/* <Debug /> */}
 								{props.threeUrl && (
 									<>
-										<TeleportTravel useNormal={false}>
+										<TeleportTravel
+											spawnPointsToAdd={props.spawnPointsToAdd}
+											spawnPoint={props.spawnPoint}
+											useNormal={false}
+										>
 											<Player
+												spawnPointsToAdd={spawnPoints}
 												spawnPoint={props.spawnPoint}
 											/>
 											<Participants />
@@ -449,6 +472,7 @@ export default function EnvironmentFront(props) {
 												hasTip={props.hasTip}
 												animations={props.animations}
 												playerData={props.userData}
+												setSpawnPoints={setSpawnPoints}
 											/>
 											{Object.values(props.sky).map(
 												(item, index) => {
@@ -469,7 +493,7 @@ export default function EnvironmentFront(props) {
 														"p.image-block-positionX"
 													)
 														? item.querySelector(
-																"p.image-block-positionX"
+															"p.image-block-positionX"
 														).innerText
 														: "";
 
@@ -478,7 +502,7 @@ export default function EnvironmentFront(props) {
 														"p.image-block-positionY"
 													)
 														? item.querySelector(
-																"p.image-block-positionY"
+															"p.image-block-positionY"
 														).innerText
 														: "";
 
@@ -487,7 +511,7 @@ export default function EnvironmentFront(props) {
 														"p.image-block-positionZ"
 													)
 														? item.querySelector(
-																"p.image-block-positionZ"
+															"p.image-block-positionZ"
 														).innerText
 														: "";
 
@@ -496,7 +520,7 @@ export default function EnvironmentFront(props) {
 														"p.image-block-scaleX"
 													)
 														? item.querySelector(
-																"p.image-block-scaleX"
+															"p.image-block-scaleX"
 														).innerText
 														: "";
 
@@ -505,7 +529,7 @@ export default function EnvironmentFront(props) {
 														"p.image-block-scaleY"
 													)
 														? item.querySelector(
-																"p.image-block-scaleY"
+															"p.image-block-scaleY"
 														).innerText
 														: "";
 
@@ -514,7 +538,7 @@ export default function EnvironmentFront(props) {
 														"p.image-block-scaleZ"
 													)
 														? item.querySelector(
-																"p.image-block-scaleZ"
+															"p.image-block-scaleZ"
 														).innerText
 														: "";
 
@@ -523,7 +547,7 @@ export default function EnvironmentFront(props) {
 														"p.image-block-rotationX"
 													)
 														? item.querySelector(
-																"p.image-block-rotationX"
+															"p.image-block-rotationX"
 														).innerText
 														: "";
 
@@ -532,7 +556,7 @@ export default function EnvironmentFront(props) {
 														"p.image-block-rotationY"
 													)
 														? item.querySelector(
-																"p.image-block-rotationY"
+															"p.image-block-rotationY"
 														).innerText
 														: "";
 
@@ -541,7 +565,7 @@ export default function EnvironmentFront(props) {
 														"p.image-block-rotationZ"
 													)
 														? item.querySelector(
-																"p.image-block-rotationZ"
+															"p.image-block-rotationZ"
 														).innerText
 														: "";
 
@@ -550,7 +574,7 @@ export default function EnvironmentFront(props) {
 														"p.image-block-url"
 													)
 														? item.querySelector(
-																"p.image-block-url"
+															"p.image-block-url"
 														).innerText
 														: "";
 
@@ -559,7 +583,7 @@ export default function EnvironmentFront(props) {
 														"p.image-block-aspect-height"
 													)
 														? item.querySelector(
-																"p.image-block-aspect-height"
+															"p.image-block-aspect-height"
 														).innerText
 														: "";
 
@@ -568,7 +592,7 @@ export default function EnvironmentFront(props) {
 														"p.image-block-aspect-width"
 													)
 														? item.querySelector(
-																"p.image-block-aspect-width"
+															"p.image-block-aspect-width"
 														).innerText
 														: "";
 
@@ -577,7 +601,7 @@ export default function EnvironmentFront(props) {
 														"p.image-block-transparent"
 													)
 														? item.querySelector(
-																"p.image-block-transparent"
+															"p.image-block-transparent"
 														).innerText
 														: false;
 												return (
@@ -619,7 +643,7 @@ export default function EnvironmentFront(props) {
 														"p.video-block-positionX"
 													)
 														? item.querySelector(
-																"p.video-block-positionX"
+															"p.video-block-positionX"
 														).innerText
 														: "";
 
@@ -628,7 +652,7 @@ export default function EnvironmentFront(props) {
 														"p.video-block-positionY"
 													)
 														? item.querySelector(
-																"p.video-block-positionY"
+															"p.video-block-positionY"
 														).innerText
 														: "";
 
@@ -637,7 +661,7 @@ export default function EnvironmentFront(props) {
 														"p.video-block-positionZ"
 													)
 														? item.querySelector(
-																"p.video-block-positionZ"
+															"p.video-block-positionZ"
 														).innerText
 														: "";
 
@@ -646,7 +670,7 @@ export default function EnvironmentFront(props) {
 														"p.video-block-scaleX"
 													)
 														? item.querySelector(
-																"p.video-block-scaleX"
+															"p.video-block-scaleX"
 														).innerText
 														: "";
 
@@ -655,7 +679,7 @@ export default function EnvironmentFront(props) {
 														"p.video-block-scaleY"
 													)
 														? item.querySelector(
-																"p.video-block-scaleY"
+															"p.video-block-scaleY"
 														).innerText
 														: "";
 
@@ -664,7 +688,7 @@ export default function EnvironmentFront(props) {
 														"p.video-block-scaleZ"
 													)
 														? item.querySelector(
-																"p.video-block-scaleZ"
+															"p.video-block-scaleZ"
 														).innerText
 														: "";
 
@@ -673,7 +697,7 @@ export default function EnvironmentFront(props) {
 														"p.video-block-rotationX"
 													)
 														? item.querySelector(
-																"p.video-block-rotationX"
+															"p.video-block-rotationX"
 														).innerText
 														: "";
 
@@ -682,7 +706,7 @@ export default function EnvironmentFront(props) {
 														"p.video-block-rotationY"
 													)
 														? item.querySelector(
-																"p.video-block-rotationY"
+															"p.video-block-rotationY"
 														).innerText
 														: "";
 
@@ -691,7 +715,7 @@ export default function EnvironmentFront(props) {
 														"p.video-block-rotationZ"
 													)
 														? item.querySelector(
-																"p.video-block-rotationZ"
+															"p.video-block-rotationZ"
 														).innerText
 														: "";
 
@@ -700,7 +724,7 @@ export default function EnvironmentFront(props) {
 														"div.video-block-url"
 													)
 														? item.querySelector(
-																"div.video-block-url"
+															"div.video-block-url"
 														).innerText
 														: "";
 
@@ -709,7 +733,7 @@ export default function EnvironmentFront(props) {
 														"p.video-block-aspect-height"
 													)
 														? item.querySelector(
-																"p.video-block-aspect-height"
+															"p.video-block-aspect-height"
 														).innerText
 														: "";
 
@@ -718,7 +742,7 @@ export default function EnvironmentFront(props) {
 														"p.video-block-aspect-width"
 													)
 														? item.querySelector(
-																"p.video-block-aspect-width"
+															"p.video-block-aspect-width"
 														).innerText
 														: "";
 
@@ -727,7 +751,7 @@ export default function EnvironmentFront(props) {
 														"p.video-block-autoplay"
 													)
 														? item.querySelector(
-																"p.video-block-autoplay"
+															"p.video-block-autoplay"
 														).innerText
 														: false;
 
@@ -769,7 +793,7 @@ export default function EnvironmentFront(props) {
 														"p.model-block-position-x"
 													)
 														? model.querySelector(
-																"p.model-block-position-x"
+															"p.model-block-position-x"
 														).innerText
 														: "";
 
@@ -778,7 +802,7 @@ export default function EnvironmentFront(props) {
 														"p.model-block-position-y"
 													)
 														? model.querySelector(
-																"p.model-block-position-y"
+															"p.model-block-position-y"
 														).innerText
 														: "";
 
@@ -787,7 +811,7 @@ export default function EnvironmentFront(props) {
 														"p.model-block-position-z"
 													)
 														? model.querySelector(
-																"p.model-block-position-z"
+															"p.model-block-position-z"
 														).innerText
 														: "";
 
@@ -796,7 +820,7 @@ export default function EnvironmentFront(props) {
 														"p.model-block-scale-x"
 													)
 														? model.querySelector(
-																"p.model-block-scale-x"
+															"p.model-block-scale-x"
 														).innerText
 														: "";
 
@@ -805,7 +829,7 @@ export default function EnvironmentFront(props) {
 														"p.model-block-scale-y"
 													)
 														? model.querySelector(
-																"p.model-block-scale-y"
+															"p.model-block-scale-y"
 														).innerText
 														: "";
 
@@ -814,7 +838,7 @@ export default function EnvironmentFront(props) {
 														"p.model-block-scale-z"
 													)
 														? model.querySelector(
-																"p.model-block-scale-z"
+															"p.model-block-scale-z"
 														).innerText
 														: "";
 
@@ -823,7 +847,7 @@ export default function EnvironmentFront(props) {
 														"p.model-block-rotation-x"
 													)
 														? model.querySelector(
-																"p.model-block-rotation-x"
+															"p.model-block-rotation-x"
 														).innerText
 														: "";
 
@@ -832,7 +856,7 @@ export default function EnvironmentFront(props) {
 														"p.model-block-rotation-y"
 													)
 														? model.querySelector(
-																"p.model-block-rotation-y"
+															"p.model-block-rotation-y"
 														).innerText
 														: "";
 
@@ -841,7 +865,7 @@ export default function EnvironmentFront(props) {
 														"p.model-block-rotation-z"
 													)
 														? model.querySelector(
-																"p.model-block-rotation-z"
+															"p.model-block-rotation-z"
 														).innerText
 														: "";
 
@@ -849,7 +873,7 @@ export default function EnvironmentFront(props) {
 													"p.model-block-url"
 												)
 													? model.querySelector(
-															"p.model-block-url"
+														"p.model-block-url"
 													).innerText
 													: "";
 
@@ -858,7 +882,7 @@ export default function EnvironmentFront(props) {
 														"p.model-block-animations"
 													)
 														? model.querySelector(
-																"p.model-block-animations"
+															"p.model-block-animations"
 														).innerText
 														: "";
 
@@ -866,7 +890,7 @@ export default function EnvironmentFront(props) {
 													"p.model-block-alt"
 												)
 													? model.querySelector(
-															"p.model-block-alt"
+														"p.model-block-alt"
 													).innerText
 													: "";
 
@@ -875,7 +899,7 @@ export default function EnvironmentFront(props) {
 														"p.model-block-collidable"
 													)
 														? model.querySelector(
-																"p.model-block-collidable"
+															"p.model-block-collidable"
 														).innerText
 														: false;
 
@@ -911,7 +935,7 @@ export default function EnvironmentFront(props) {
 															"p.three-text-content"
 														)
 															? model.querySelector(
-																	"p.three-text-content"
+																"p.three-text-content"
 															).innerText
 															: "";
 													const rotationX =
@@ -919,7 +943,7 @@ export default function EnvironmentFront(props) {
 															"p.three-text-rotationX"
 														)
 															? model.querySelector(
-																	"p.three-text-rotationX"
+																"p.three-text-rotationX"
 															).innerText
 															: "";
 													const rotationY =
@@ -927,7 +951,7 @@ export default function EnvironmentFront(props) {
 															"p.three-text-rotationY"
 														)
 															? model.querySelector(
-																	"p.three-text-rotationY"
+																"p.three-text-rotationY"
 															).innerText
 															: "";
 													const rotationZ =
@@ -935,7 +959,7 @@ export default function EnvironmentFront(props) {
 															"p.three-text-rotationZ"
 														)
 															? model.querySelector(
-																	"p.three-text-rotationZ"
+																"p.three-text-rotationZ"
 															).innerText
 															: "";
 													const positionX =
@@ -943,7 +967,7 @@ export default function EnvironmentFront(props) {
 															"p.three-text-positionX"
 														)
 															? model.querySelector(
-																	"p.three-text-positionX"
+																"p.three-text-positionX"
 															).innerText
 															: "";
 													const positionY =
@@ -951,7 +975,7 @@ export default function EnvironmentFront(props) {
 															"p.three-text-positionY"
 														)
 															? model.querySelector(
-																	"p.three-text-positionY"
+																"p.three-text-positionY"
 															).innerText
 															: "";
 													const positionZ =
@@ -959,7 +983,7 @@ export default function EnvironmentFront(props) {
 															"p.three-text-positionZ"
 														)
 															? model.querySelector(
-																	"p.three-text-positionZ"
+																"p.three-text-positionZ"
 															).innerText
 															: "";
 													const scaleX =
@@ -967,7 +991,7 @@ export default function EnvironmentFront(props) {
 															"p.three-text-scaleX"
 														)
 															? model.querySelector(
-																	"p.three-text-scaleX"
+																"p.three-text-scaleX"
 															).innerText
 															: "";
 													const scaleY =
@@ -975,7 +999,7 @@ export default function EnvironmentFront(props) {
 															"p.three-text-scaleY"
 														)
 															? model.querySelector(
-																	"p.three-text-scaleY"
+																"p.three-text-scaleY"
 															).innerText
 															: "";
 													const scaleZ =
@@ -983,7 +1007,7 @@ export default function EnvironmentFront(props) {
 															"p.three-text-scaleZ"
 														)
 															? model.querySelector(
-																	"p.three-text-scaleZ"
+																"p.three-text-scaleZ"
 															).innerText
 															: "";
 
@@ -992,7 +1016,7 @@ export default function EnvironmentFront(props) {
 															"p.three-text-color"
 														)
 															? model.querySelector(
-																	"p.three-text-color"
+																"p.three-text-color"
 															).innerText
 															: "";
 
@@ -1028,8 +1052,8 @@ export default function EnvironmentFront(props) {
 															rotationZ={
 																rotationZ
 															}
-															// alt={alt}
-															// animations={animations}
+														// alt={alt}
+														// animations={animations}
 														/>
 													);
 												}
@@ -1042,7 +1066,7 @@ export default function EnvironmentFront(props) {
 														"p.three-portal-block-position-x"
 													)
 														? model.querySelector(
-																"p.three-portal-block-position-x"
+															"p.three-portal-block-position-x"
 														).innerText
 														: "";
 
@@ -1051,7 +1075,7 @@ export default function EnvironmentFront(props) {
 														"p.three-portal-block-position-y"
 													)
 														? model.querySelector(
-																"p.three-portal-block-position-y"
+															"p.three-portal-block-position-y"
 														).innerText
 														: "";
 
@@ -1060,7 +1084,7 @@ export default function EnvironmentFront(props) {
 														"p.three-portal-block-position-z"
 													)
 														? model.querySelector(
-																"p.three-portal-block-position-z"
+															"p.three-portal-block-position-z"
 														).innerText
 														: "";
 
@@ -1069,7 +1093,7 @@ export default function EnvironmentFront(props) {
 														"p.three-portal-block-scale-x"
 													)
 														? model.querySelector(
-																"p.three-portal-block-scale-x"
+															"p.three-portal-block-scale-x"
 														).innerText
 														: "";
 
@@ -1078,7 +1102,7 @@ export default function EnvironmentFront(props) {
 														"p.three-portal-block-scale-y"
 													)
 														? model.querySelector(
-																"p.three-portal-block-scale-y"
+															"p.three-portal-block-scale-y"
 														).innerText
 														: "";
 
@@ -1087,7 +1111,7 @@ export default function EnvironmentFront(props) {
 														"p.three-portal-block-scale-z"
 													)
 														? model.querySelector(
-																"p.three-portal-block-scale-z"
+															"p.three-portal-block-scale-z"
 														).innerText
 														: "";
 
@@ -1096,7 +1120,7 @@ export default function EnvironmentFront(props) {
 														"p.three-portal-block-rotation-x"
 													)
 														? model.querySelector(
-																"p.three-portal-block-rotation-x"
+															"p.three-portal-block-rotation-x"
 														).innerText
 														: "";
 
@@ -1105,7 +1129,7 @@ export default function EnvironmentFront(props) {
 														"p.three-portal-block-rotation-y"
 													)
 														? model.querySelector(
-																"p.three-portal-block-rotation-y"
+															"p.three-portal-block-rotation-y"
 														).innerText
 														: "";
 
@@ -1114,7 +1138,7 @@ export default function EnvironmentFront(props) {
 														"p.three-portal-block-rotation-z"
 													)
 														? model.querySelector(
-																"p.three-portal-block-rotation-z"
+															"p.three-portal-block-rotation-z"
 														).innerText
 														: "";
 
@@ -1122,7 +1146,7 @@ export default function EnvironmentFront(props) {
 													"p.three-portal-block-url"
 												)
 													? model.querySelector(
-															"p.three-portal-block-url"
+														"p.three-portal-block-url"
 													).innerText
 													: "";
 
@@ -1131,7 +1155,7 @@ export default function EnvironmentFront(props) {
 														"p.three-portal-block-destination-url"
 													)
 														? model.querySelector(
-																"p.three-portal-block-destination-url"
+															"p.three-portal-block-destination-url"
 														).innerText
 														: "";
 
@@ -1140,7 +1164,7 @@ export default function EnvironmentFront(props) {
 														"p.three-portal-block-animations"
 													)
 														? model.querySelector(
-																"p.three-portal-block-animations"
+															"p.three-portal-block-animations"
 														).innerText
 														: "";
 
@@ -1149,7 +1173,7 @@ export default function EnvironmentFront(props) {
 														"p.three-portal-block-label"
 													)
 														? model.querySelector(
-																"p.three-portal-block-label"
+															"p.three-portal-block-label"
 														).innerText
 														: "";
 
@@ -1158,7 +1182,7 @@ export default function EnvironmentFront(props) {
 														"p.three-portal-block-label-offset-x"
 													)
 														? model.querySelector(
-																"p.three-portal-block-label-offset-x"
+															"p.three-portal-block-label-offset-x"
 														).innerText
 														: "";
 
@@ -1167,7 +1191,7 @@ export default function EnvironmentFront(props) {
 														"p.three-portal-block-label-offset-y"
 													)
 														? model.querySelector(
-																"p.three-portal-block-label-offset-y"
+															"p.three-portal-block-label-offset-y"
 														).innerText
 														: "";
 
@@ -1176,7 +1200,7 @@ export default function EnvironmentFront(props) {
 														"p.three-portal-block-label-offset-z"
 													)
 														? model.querySelector(
-																"p.three-portal-block-label-offset-z"
+															"p.three-portal-block-label-offset-z"
 														).innerText
 														: "";
 												const labelTextColor =
@@ -1184,7 +1208,7 @@ export default function EnvironmentFront(props) {
 														"p.three-portal-block-label-text-color"
 													)
 														? model.querySelector(
-																"p.three-portal-block-label-text-color"
+															"p.three-portal-block-label-text-color"
 														).innerText
 														: "";
 
@@ -1196,7 +1220,7 @@ export default function EnvironmentFront(props) {
 															destinationUrl
 														}
 														defaultFont={defaultFont}
-														threeObjectPlugin={threeObjectPlugin}							
+														threeObjectPlugin={threeObjectPlugin}
 														positionX={modelPosX}
 														positionY={modelPosY}
 														animations={animations}

@@ -6,12 +6,12 @@ import { AudioListener, Vector3, BufferGeometry, MeshBasicMaterial, DoubleSide, 
 import { RigidBody } from "@react-three/rapier";
 import {
 	useAnimations,
+	Billboard,
 	Text
 } from "@react-three/drei";
 import { GLTFAudioEmitterExtension } from "three-omi";
 import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
 import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
-
 
 /**
  * Parses a Matrix URI and returns a matrix ID.
