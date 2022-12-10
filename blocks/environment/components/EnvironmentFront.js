@@ -121,26 +121,6 @@ function Participant(participant) {
 	}
 }
 
-/**
- * The default boring floor.
- *
- * @param {Object} props - The props for the text object.
- *
- * @return {JSX.Element} The text object.
- */
-function Floor(props) {
-	return (
-		<mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} {...props}>
-			<BoxGeometry args={[10000, 10000, 1]} attach="geometry" />
-			<meshBasicMaterial
-				opacity={0}
-				transparent={true}
-				attach="material"
-			/>
-		</mesh>
-	);
-}
-
 function Participants(props) {
 	const [participants, setParticipant] = useState([]);
 	const p2pcf = window.p2pcf;
@@ -290,11 +270,6 @@ function SavedObject(props) {
 			});
 		}
 	}, []);
-	// Always seem to need to log this...
-	// console.log(gltf);
-	// const loader = new THREE.ObjectLoader();
-	// const object = await loader.loadAsync("models/json/lightmap/lightmap.json");
-	// scene.add(object);
 
 	return (
 		<>
@@ -1253,12 +1228,6 @@ export default function EnvironmentFront(props) {
 													/>
 												);
 											})}
-											{/* <RigidBody 
-												position={[0, -3, 0]}
-												type="fixed"
-											>
-													<Floor rotation={[-Math.PI / 2, 0, 0]} />
-											</RigidBody> */}
 										</TeleportTravel>
 									</>
 								)}
