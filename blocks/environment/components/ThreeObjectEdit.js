@@ -21,6 +21,7 @@ import { Perf } from "r3f-perf";
 // import EditControls from "./EditControls";
 import { Resizable } from "re-resizable";
 import defaultFont from "../../../inc/fonts/roboto.woff";
+const { registerStore } = wp.data;
 
 function TextObject(text) {
 	const textObj = useRef();
@@ -41,7 +42,7 @@ function TextObject(text) {
 				filter={(items) => items}
 			>
 				<TransformController
-					condition={isSelected}
+					condition={isSelected || text.focusID === text.htmlobjectId}
 					wrap={(children) => (
 						<TransformControls
 							mode={text.transformMode}
@@ -483,7 +484,7 @@ function ModelObject(model) {
 				filter={(items) => items}
 			>
 				<TransformController
-					condition={isSelected}
+					condition={isSelected || model.focusID === model.modelId}
 					wrap={(children) => (
 						<TransformControls
 							enabled={isSelected}
@@ -907,6 +908,7 @@ function ThreeObject(props) {
 							rotationZ={model.modelobject.rotationZ}
 							alt={model.modelobject.alt}
 							animations={model.modelobject.animations}
+							focusID ={props.focusID}
 							selected={props.selected}
 							modelId={model.modelID}
 							transformMode={props.transformMode}
@@ -934,6 +936,7 @@ function ThreeObject(props) {
 							animations={model.portalobject.animations}
 							selected={props.selected}
 							portalID={model.portalID}
+							focusID ={props.focusID}
 							transformMode={props.transformMode}
 							// setFocusPosition={props.setFocusPosition}
 							shouldFocus={props.shouldFocus}
@@ -959,6 +962,7 @@ function ThreeObject(props) {
 							animations={model.imageobject.animations}
 							selected={props.selected}
 							imageID={model.imageID}
+							focusID ={props.focusID}
 							aspectHeight={model.imageobject.aspectHeight}
 							aspectWidth={model.imageobject.aspectWidth}
 							transformMode={props.transformMode}
@@ -984,6 +988,7 @@ function ThreeObject(props) {
 							rotationZ={model.videoobject.rotationZ}
 							selected={props.selected}
 							videoID={model.videoID}
+							focusID ={props.focusID}
 							aspectHeight={model.videoobject.aspectHeight}
 							aspectWidth={model.videoobject.aspectWidth}
 							transformMode={props.transformMode}
@@ -1004,6 +1009,7 @@ function ThreeObject(props) {
 						scaleX={text.htmlobject.scaleX}
 						scaleY={text.htmlobject.scaleY}
 						scaleZ={text.htmlobject.scaleZ}
+						focusID ={props.focusID}
 						rotationX={text.htmlobject.rotationX}
 						rotationY={text.htmlobject.rotationY}
 						rotationZ={text.htmlobject.rotationZ}
@@ -1040,6 +1046,7 @@ function ThreeObject(props) {
 export default function ThreeObjectEdit(props) {
 	const [transformMode, setTransformMode] = useState("translate");
 	const [focusPosition, setFocusPosition] = useState([0, 0, 0]);
+	const [focusID, setFocusID] = useState([0, 0, 0]);
 	const [shouldFocus, setShouldFocus] = useState(false);
 	const onKeyUp = function (event) {
 		switch (event.code) {
@@ -1059,6 +1066,32 @@ export default function ThreeObjectEdit(props) {
 		}
 	};
 	document.addEventListener("keyup", onKeyUp);
+
+	useEffect(() => {
+		registerStore( 'my-custom-namespace', {
+			reducer: ( state = {}, action ) => {
+				return action;
+			},
+			actions: {
+				setFoo( foo ) {
+					return { type: 'SET_FOO', foo };
+				},
+				setBar( bar ) {
+					console.log("selected", bar);
+					setFocusID(bar);
+					return { type: 'SET_BAR', bar };
+				}
+			},		
+			selectors: {
+				getFoo() {
+					return "banana";
+				},
+				getBar() {
+					return "barnana";
+				}
+			}
+		});
+	}, []);
 
 	return (
 		<>
@@ -1119,6 +1152,7 @@ export default function ThreeObjectEdit(props) {
 								scale={props.scale}
 								animations={props.animations}
 								transformMode={transformMode}
+								focusID={focusID}
 								// setFocusPosition={setFocusPosition}
 								shouldFocus={shouldFocus}
 							/>

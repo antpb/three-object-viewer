@@ -9,6 +9,12 @@ import { TextureLoader } from "three/src/loaders/TextureLoader";
 import { Physics, RigidBody, Debug, Attractor, CuboidCollider } from "@react-three/rapier";
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
+import angry from "../../../inc/avatars/angry.fbx";
+import confused from "../../../inc/avatars/confused.fbx";
+import friendly from "../../../inc/avatars/friendly.fbx";
+import idle from "../../../inc/avatars/idle.fbx";
+import talking from "../../../inc/avatars/talking.fbx";
+import axios from "axios";
 
 // import Networking from "./Networking";
 
@@ -38,6 +44,103 @@ import { Portal } from "./core/front/Portal";
 import { Sky } from "./core/front/Sky";
 import { TextObject } from "./core/front/TextObject";
 
+function ChatBox() {
+	const [messages, setMessages] = useState(["Welcome to the room!"]);
+  
+	const handleSubmit = async (event) => {
+	  event.preventDefault();
+  
+	  // Get the value of the input element
+	  const input = event.target.elements.message;
+	  const value = input.value;
+  
+	  // Send the message to the localhost endpoint
+	  const client = "3ov";
+	  const channelId = "3ov";
+	  const entity = "tubby shark";
+	  const speaker = "antpb";
+	  const agent = "tubby shark";
+	  const channel = "homepage";
+
+	  try {
+		const spell_handler = "three";
+		const spell_version = "latest";
+		const url = encodeURI(
+			`https://localhost:8001/spells/${spell_handler}/${spell_version}`
+		  )
+		  const response = await axios.post(`${url}`, {
+			Input: {
+			  Input: value,
+			  Speaker: speaker,
+			  Agent: agent,
+			  Client: client,
+			  ChannelID: channelId,
+			  Entity: entity,
+			  Channel: channel,
+			},
+		  }).then((response) => {
+			setMessages([...messages, response]);
+		  });
+		console.log(response);
+	  } catch (error) {
+		console.error(error);
+	  }
+  
+	  // Add the message to the list of messages
+	  setMessages([...messages, speaker.concat(value)]);
+  
+	  // Clear the input field
+	  input.value = "";
+	};
+  
+	return (
+	  <div style={{ position: "absolute", top: "50%", left: "50%", width: "50%", height: "50%" }}>
+		{messages.map((message) => (
+		  <div>{message}</div>
+		))}
+  
+		<form onSubmit={handleSubmit}>
+		  <label htmlFor="message">Message:</label>
+		  <input type="text" name="message" />
+		  <button type="submit">Send</button>
+		</form>
+	  </div>
+	);
+  }
+  
+
+// function ChatBox() {
+// 	const [messages, setMessages] = useState(["Welcome to the room!"]);
+  
+// 	const handleSubmit = (event) => {
+// 	  event.preventDefault();
+  
+// 	  // Get the value of the input element
+// 	  const input = event.target.elements.message;
+// 	  const value = input.value;
+  
+// 	  // Add the message to the list of messages
+// 	  setMessages([...messages, value]);
+  
+// 	  // Clear the input field
+// 	  input.value = "";
+// 	};
+  
+// 	return (
+// 	  <div style={{ position: "absolute", top: "50%", left: "50%", width: "50%", height: "50%" }}>
+// 		{messages.map((message) => (
+// 		  <div>{message}</div>
+// 		))}
+  
+// 		<form onSubmit={handleSubmit}>
+// 		  <label htmlFor="message">Message:</label>
+// 		  <input type="text" name="message" />
+// 		  <button type="submit">Send</button>
+// 		</form>
+// 	  </div>
+// 	);
+//   }
+  
 /**
  * Represents a participant in a virtual reality scene.
  *
@@ -376,6 +479,7 @@ function SavedObject(props) {
 export default function EnvironmentFront(props) {
 	const [loaded, setLoaded] = useState(false);
 	const [spawnPoints, setSpawnPoints] = useState();
+	const [messageObject, setMessageObject] = useState({"tone": "happy", "message": "hello!"});
 
 	if (loaded === true) {
 		if (props.deviceTarget === "vr") {
@@ -900,6 +1004,11 @@ export default function EnvironmentFront(props) {
 														alt={alt}
 														animations={animations}
 														collidable={collidable}
+														message={
+															messageObject
+														}
+														threeObjectPlugin={threeObjectPlugin}
+														idle={idle}
 													/>
 												);
 											})}
@@ -1237,6 +1346,7 @@ export default function EnvironmentFront(props) {
 							enableZoom={ true }
 						/> */}
 					</VRCanvas>
+					<ChatBox />
 				</>
 			);
 		}

@@ -1,6 +1,7 @@
 import { __ } from "@wordpress/i18n";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DropZone } from "@wordpress/components";
+import { dispatch } from '@wordpress/data';
 import "./editor.scss";
 import {
 	useBlockProps,
@@ -20,7 +21,25 @@ import {
 } from "@wordpress/components";
 import { more } from "@wordpress/icons";
 
-export default function Edit({ attributes, setAttributes, isSelected }) {
+export default function Edit({ attributes, setAttributes, isSelected, clientId }) {
+
+	const { select, dispatch } = wp.data;
+
+	const { onSelectionChange, getSelectedBlock } = wp.blocks;
+	useEffect(() => {
+		if( isSelected ){
+			const foo = select( 'my-custom-namespace' ).getFoo();
+			dispatch( 'my-custom-namespace' ).setBar( clientId );
+
+			// console.log("selected");
+			// const block = getSelectedBlock();
+			// if ( block ) {
+			// 	console.log("selected");
+			// 	dispatch( myCustomStore ).setPrice( 'hammer', 9.75 );
+			// }
+		}
+	}, [isSelected]);
+
 	const onChangePositionX = (positionX) => {
 		setAttributes({ positionX });
 	};
@@ -107,7 +126,6 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 		}
 		console.log("fail", objectURL);
 	}
-
 	return (
 		<div {...useBlockProps()}>
 			<InspectorControls key="setting">
@@ -336,7 +354,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 			) : (
 				<>
 					{attributes.threeObjectUrl ? (
-						<div className="three-object-viewer-component-container">
+						<div className="three-object-viewer-component-container">							
 							<div className="three-object-viewer-inner">
 								<div className="three-object-viewer-inner-edit-container">
 									<svg
