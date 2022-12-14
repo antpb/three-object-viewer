@@ -635,7 +635,7 @@ function PortalObject(model) {
 				filter={(items) => items}
 			>
 				<TransformController
-					condition={isSelected}
+					condition={isSelected || model.focusID === model.portalID}
 					wrap={(children) => (
 						<TransformControls
 							enabled={isSelected}
