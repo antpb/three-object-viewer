@@ -44,9 +44,11 @@ import { Portal } from "./core/front/Portal";
 import { Sky } from "./core/front/Sky";
 import { TextObject } from "./core/front/TextObject";
 
-function ChatBox() {
-	const [messages, setMessages] = useState(["Welcome to the room!"]);
-  
+function ChatBox(props) {
+	const handleChange = async (event) => {
+		event.preventDefault();
+		event.stopPropagation();
+	};
 	const handleSubmit = async (event) => {
 	  event.preventDefault();
   
@@ -55,53 +57,55 @@ function ChatBox() {
 	  const value = input.value;
   
 	  // Send the message to the localhost endpoint
-	  const client = "3ov";
-	  const channelId = "3ov";
-	  const entity = "tubby shark";
+	  const client = 1;
+	  const channelId = "three";
+	  const entity = "tubbyshark";
 	  const speaker = "antpb";
-	  const agent = "tubby shark";
+	  const agent = "tubbyshark";
 	  const channel = "homepage";
 
-	  try {
-		const spell_handler = "three";
-		const spell_version = "latest";
-		const url = encodeURI(
-			`https://localhost:8001/spells/${spell_handler}/${spell_version}`
-		  )
-		  const response = await axios.post(`${url}`, {
-			Input: {
-			  Input: value,
-			  Speaker: speaker,
-			  Agent: agent,
-			  Client: client,
-			  ChannelID: channelId,
-			  Entity: entity,
-			  Channel: channel,
-			},
-		  }).then((response) => {
-			setMessages([...messages, response]);
-		  });
-		console.log(response);
-	  } catch (error) {
-		console.error(error);
-	  }
-  
-	  // Add the message to the list of messages
-	  setMessages([...messages, speaker.concat(value)]);
-  
-	  // Clear the input field
-	  input.value = "";
+	//   try {
+	// 	const spell_handler = "three";
+	// 	const spell_version = "latest";
+	// 	const url = encodeURI(
+	// 		`https://localhost:8001/spells/${spell_handler}/${spell_version}`
+	// 	  )
+	// 	const response = await axios.post(`${url}`, {
+	// 		inputs: {
+	// 		  Input: value,
+	// 		  Speaker: speaker,
+	// 		  Agent: agent,
+	// 		  Client: client,
+	// 		  ChannelID: channelId,
+	// 		  Entity: entity,
+	// 		  Channel: channel,
+	// 		},
+	// 	  }).then((response) => {
+	// 		const data = response.data;
+
+	// 		const outputs = data.outputs;
+
+	// 		const outputKey = Object.keys(outputs)[0];
+
+	// 		const output = outputs[outputKey];
+
+	// 		props.setMessages([...messages, output]);
+	// 		// setMessages([...messages, value]);
+	// 	  });
+	// 		// setMessages([...messages, value]);
+	// 	} catch (error) {
+	// 	console.error(error);
+	//   }
+		props.setMessages([...props.messages, value]);
 	};
   
 	return (
-	  <div style={{ position: "absolute", top: "50%", left: "50%", width: "50%", height: "50%" }}>
-		{messages.map((message) => (
-		  <div>{message}</div>
+	  <div style={{ marginTop: "-140px", position: "relative", bottom: "15%", left: "5%", width: "50%", height: "10%" }}>
+		{props.messages.map((message, index) => (
+		  <p key={index}>{message}</p>
 		))}
-  
-		<form onSubmit={handleSubmit}>
-		  <label htmlFor="message">Message:</label>
-		  <input type="text" name="message" />
+		<form style={{display: "flex"}} onSubmit={handleSubmit}>
+		  <input type="text" name="message" onInput={handleChange} onChange={handleChange} />
 		  <button type="submit">Send</button>
 		</form>
 	  </div>
@@ -477,6 +481,8 @@ function SavedObject(props) {
 }
 
 export default function EnvironmentFront(props) {
+	const [messages, setMessages] = useState(["Welcome to the room!"]);
+
 	const [loaded, setLoaded] = useState(false);
 	const [spawnPoints, setSpawnPoints] = useState();
 	const [messageObject, setMessageObject] = useState({"tone": "happy", "message": "hello!"});
@@ -992,6 +998,7 @@ export default function EnvironmentFront(props) {
 														scaleX={modelScaleX}
 														scaleY={modelScaleY}
 														scaleZ={modelScaleZ}
+														messages={messages}
 														rotationX={
 															modelRotationX
 														}
@@ -1008,6 +1015,7 @@ export default function EnvironmentFront(props) {
 															messageObject
 														}
 														threeObjectPlugin={threeObjectPlugin}
+														defaultFont={defaultFont}
 														idle={idle}
 													/>
 												);
@@ -1346,7 +1354,10 @@ export default function EnvironmentFront(props) {
 							enableZoom={ true }
 						/> */}
 					</VRCanvas>
-					<ChatBox />
+					<ChatBox 
+					setMessages = {setMessages}
+					messages = {messages}
+					key="something"/>
 				</>
 			);
 		}

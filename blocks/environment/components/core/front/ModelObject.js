@@ -7,6 +7,7 @@ import { AudioListener, Quaternion, VectorKeyframeTrack, QuaternionKeyframeTrack
 import { RigidBody } from "@react-three/rapier";
 import {
 	useAnimations,
+	Text
 } from "@react-three/drei";
 import { GLTFAudioEmitterExtension } from "three-omi";
 import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
@@ -77,7 +78,7 @@ const mixamoVRMRigMap = {
  *
  * @param {string} url A url of mixamo animation data
  * @param {VRM} vrm A target VRM
- * @returns {Promise<THREE.AnimationClip>} The converted AnimationClip
+ * @returns {Promise<AnimationClip>} The converted AnimationClip
  */
 function loadMixamoAnimation( url, vrm ) {
 
@@ -101,8 +102,6 @@ function loadMixamoAnimation( url, vrm ) {
 		const hipsPositionScale = vrmHipsHeight / motionHipsHeight;
 
 		clip.tracks.forEach( ( track ) => {
-			console.log("track: ", track)
-
 			// Convert each tracks for VRM use, and push to `tracks`
 			const trackSplitted = track.name.split( '.' );
 			const mixamoRigName = trackSplitted[ 0 ];
@@ -177,6 +176,7 @@ function loadMixamoAnimation( url, vrm ) {
 export function ModelObject(model) {
 	const idleFile = model.threeObjectPlugin + model.idle;
 	const [clicked, setClickEvent] = useState();
+	const [activeMessage, setActiveMessage] = useState();
 	const [url, set] = useState(model.url);
 	useEffect(() => {
 		setTimeout(() => set(model.url), 2000);
@@ -217,6 +217,12 @@ export function ModelObject(model) {
 	const { actions } = useAnimations(gltf.animations, gltf.scene);
 	const animationClips = gltf.animations;
 	const animationList = model.animations ? model.animations.split(",") : "";
+	
+
+	useEffect(() => {
+		setActiveMessage(model.messages[model.messages.length - 1]);
+	}, [model]);
+
 	useEffect(() => {
 		if (animationList) {
 			animationList.forEach((name) => {
@@ -249,6 +255,10 @@ export function ModelObject(model) {
 			model.positionY,
 			model.positionZ
 		);
+		// Disable frustum culling
+		vrm.scene.traverse( ( obj ) => {
+			obj.frustumCulled = false;
+		} );
 
 		VRMUtils.rotateVRM0(vrm);
 		const rotationVRM = vrm.scene.rotation.y + parseFloat(0);
@@ -257,32 +267,45 @@ export function ModelObject(model) {
 		vrm.scene.scale.set(model.scaleX, model.scaleY, model.scaleZ);
 
 		vrm.scene.name = "assistant";
-		// scene.add(vrm.scene);
-		console.log(vrm);
-		useEffect(() => {
-			if(vrm){
-				let currentMixer = new AnimationMixer( vrm.scene );
-				loadMixamoAnimation( idleFile, vrm ).then( ( clip ) => {
-					// console.log("clip", clip);
-					// Apply the loaded animation to mixer and play
-					console.log(currentMixer.clipAction( clip ).play());
-				} );
-			}
-		}, [vrm]);
+		// let currentVrm = vrm;
+		console.log("vrm", vrm);
+		scene.add( vrm.scene );
+		let currentVRM = vrm;
 
+		let currentMixer = new AnimationMixer( vrm.scene );
+		// Load animation
+		loadMixamoAnimation( idleFile, currentVRM ).then( ( clip ) => {
+			console.log("clip", clip)
+			// Apply the loaded animation to mixer and play
+			// currentMixer.setLoop(true);
+			currentMixer.clipAction( clip ).play();
+		
+		} );
 
-		const { actions } = useAnimations(vrm.scene.animations, vrm.scene);
-		useEffect(() => {
-			if (animationList) {
-				actions.forEach((name) => {
-						console.log(actions[name].play());
-				});
-			}
-		}, []);
-		scene.add(vrm.scene);
-		// vrm.scene.animations[0].play();
+		const testString = `{
+			"tone": "friendly",
+			"message": "No problem! Here you go: Test response complete. Is there anything else I can help you with?"
+		  }`;
+		const testObject = JSON.parse(testString);
 		return (
-			<></>
+			<group
+				position={[model.positionX, Number(model.positionY) + 3.8, model.positionZ]}
+				rotation={[0, 0, 0]}
+			>
+				<Text
+					font={model.threeObjectPlugin + model.defaultFont}
+					className="content"
+					scale={[2, 2, 2]}
+					// rotation-y={-Math.PI / 2}
+					width={0.1}
+					wrap={0.1}
+					height={0.1}
+					color={0x000000}
+					transform
+				>
+					{testObject.message}
+				</Text>
+			</group>
 			// <A11y role="content" description={model.alt} showAltText >
 			// <primitive object={vrm.scene} />
 			// </A11y>
