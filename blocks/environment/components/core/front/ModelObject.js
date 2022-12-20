@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useLoader, useThree } from "@react-three/fiber";
+import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
-import { AudioListener, Quaternion, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, BufferGeometry, MeshBasicMaterial, DoubleSide, Mesh, CircleGeometry, sRGBEncoding } from "three";
+import { AudioListener, Group, Quaternion, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, BufferGeometry, MeshBasicMaterial, DoubleSide, Mesh, CircleGeometry, sRGBEncoding } from "three";
 import { RigidBody } from "@react-three/rapier";
 import {
 	useAnimations,
@@ -11,7 +11,7 @@ import {
 } from "@react-three/drei";
 import { GLTFAudioEmitterExtension } from "three-omi";
 import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
-import { VRMUtils, VRMLoaderPlugin, VRMExpressionPresetName } from "@pixiv/three-vrm";
+import { VRMUtils, VRMSchema, VRMLoaderPlugin, VRMExpressionPresetName } from "@pixiv/three-vrm";
 
 /**
  * A map from Mixamo rig name to VRM Humanoid bone name
@@ -80,12 +80,12 @@ const mixamoVRMRigMap = {
  * @param {VRM} vrm A target VRM
  * @returns {Promise<AnimationClip>} The converted AnimationClip
  */
-function loadMixamoAnimation( url, vrm ) {
+function loadMixamoAnimation(url, vrm, positionY, positionX, positionZ, scaleX, scaleY, scaleZ, rotationX, rotationY, rotationZ, rotationW) {
 
 	const loader = new FBXLoader(); // A loader which loads FBX
-	return loader.loadAsync( url ).then( ( asset ) => {
-
-		const clip = AnimationClip.findByName( asset.animations, 'mixamo.com' ); // extract the AnimationClip
+	return loader.loadAsync(url).then((asset) => {
+		console.log("vrm", vrm);
+		const clip = AnimationClip.findByName(asset.animations, 'mixamo.com'); // extract the AnimationClip
 
 		const tracks = []; // KeyframeTracks compatible with VRM will be added here
 
@@ -95,49 +95,48 @@ function loadMixamoAnimation( url, vrm ) {
 		const _vec3 = new Vector3();
 
 		// Adjust with reference to hips height.
-		const motionHipsHeight = asset.getObjectByName( 'mixamorigHips' ).position.y;
-		const vrmHipsY = vrm.humanoid?.getNormalizedBoneNode( 'hips' ).getWorldPosition( _vec3 ).y;
-		const vrmRootY = vrm.scene.getWorldPosition( _vec3 ).y;
-		const vrmHipsHeight = Math.abs( vrmHipsY - vrmRootY );
+		const motionHipsHeight = asset.getObjectByName('mixamorigHips').position.y;
+		const vrmHipsY = vrm.humanoid?.getNormalizedBoneNode('hips').getWorldPosition(_vec3).y;
+		const vrmRootY = vrm.scene.getWorldPosition(_vec3).y;
+		const vrmHipsHeight = Math.abs(vrmHipsY - vrmRootY);
 		const hipsPositionScale = vrmHipsHeight / motionHipsHeight;
 
-		clip.tracks.forEach( ( track ) => {
+		clip.tracks.forEach((track) => {
 			// Convert each tracks for VRM use, and push to `tracks`
-			const trackSplitted = track.name.split( '.' );
-			const mixamoRigName = trackSplitted[ 0 ];
-			const vrmBoneName = mixamoVRMRigMap[ mixamoRigName ];
-			const vrmNodeName = vrm.humanoid?.getNormalizedBoneNode( vrmBoneName )?.name;
-			const mixamoRigNode = asset.getObjectByName( mixamoRigName );
+			const trackSplitted = track.name.split('.');
+			const mixamoRigName = trackSplitted[0];
+			const vrmBoneName = mixamoVRMRigMap[mixamoRigName];
+			const vrmNodeName = vrm.humanoid?.getNormalizedBoneNode(vrmBoneName)?.name;
+			const mixamoRigNode = asset.getObjectByName(mixamoRigName);
 
-			if ( vrmNodeName != null ) {
+			if (vrmNodeName != null) {
 
-				const propertyName = trackSplitted[ 1 ];
+				const propertyName = trackSplitted[1];
 
 				// Store rotations of rest-pose.
-				mixamoRigNode.getWorldQuaternion( restRotationInverse ).invert();
-				mixamoRigNode.parent.getWorldQuaternion( parentRestWorldRotation );
+				mixamoRigNode.getWorldQuaternion(restRotationInverse).invert();
+				mixamoRigNode.parent.getWorldQuaternion(parentRestWorldRotation);
 
-				if ( track instanceof QuaternionKeyframeTrack ) {
+				if (track instanceof QuaternionKeyframeTrack) {
 
 					// Retarget rotation of mixamoRig to NormalizedBone.
-					for ( let i = 0; i < track.values.length; i += 4 ) {
+					for (let i = 0; i < track.values.length; i += 4) {
 
-						const flatQuaternion = track.values.slice( i, i + 4 );
+						const flatQuaternion = track.values.slice(i, i + 4);
 
-						_quatA.fromArray( flatQuaternion );
+						_quatA.fromArray(flatQuaternion);
 
-						// 親のレスト時ワールド回転 * トラックの回転 * レスト時ワールド回転の逆
 						_quatA
-							.premultiply( parentRestWorldRotation )
-							.multiply( restRotationInverse );
+							.premultiply(parentRestWorldRotation)
+							.multiply(restRotationInverse);
 
-						_quatA.toArray( flatQuaternion );
+						_quatA.toArray(flatQuaternion);
 
-						flatQuaternion.forEach( ( v, index ) => {
+						flatQuaternion.forEach((v, index) => {
 
-							track.values[ index + i ] = v;
+							track.values[index + i] = v;
 
-						} );
+						});
 
 					}
 
@@ -145,24 +144,23 @@ function loadMixamoAnimation( url, vrm ) {
 						new QuaternionKeyframeTrack(
 							`${vrmNodeName}.${propertyName}`,
 							track.times,
-							track.values.map( ( v, i ) => ( vrm.meta?.metaVersion === '0' && i % 2 === 0 ? - v : v ) ),
+							track.values.map((v, i) => (vrm.meta?.metaVersion === '0' && i % 2 === 0 ? - v : v)),
 						),
 					);
 
-				} else if ( track instanceof VectorKeyframeTrack ) {
-
-					const value = track.values.map( ( v, i ) => ( vrm.meta?.metaVersion === '0' && i % 3 !== 1 ? - v : v ) * hipsPositionScale );
-					tracks.push( new VectorKeyframeTrack( `${vrmNodeName}.${propertyName}`, track.times, value ) );
+				} else if (track instanceof VectorKeyframeTrack) {
+					const value = track.values.map((v, i) => (vrm.meta?.metaVersion === '0' && i % 3 !== 1 ? - v : v) * hipsPositionScale);
+					tracks.push(new VectorKeyframeTrack(`${vrmNodeName}.${propertyName}`, track.times, value));
 
 				}
 
 			}
 
-		} );
+		});
 
-		return new AnimationClip( 'vrmAnimation', clip.duration, tracks );
+		return new AnimationClip('vrmAnimation', clip.duration, tracks);
 
-	} );
+	});
 
 }
 
@@ -176,7 +174,7 @@ function loadMixamoAnimation( url, vrm ) {
 export function ModelObject(model) {
 	const idleFile = model.threeObjectPlugin + model.idle;
 	const [clicked, setClickEvent] = useState();
-	const [activeMessage, setActiveMessage] = useState();
+	const [activeMessage, setActiveMessage] = useState([]);
 	const [url, set] = useState(model.url);
 	useEffect(() => {
 		setTimeout(() => set(model.url), 2000);
@@ -186,6 +184,10 @@ export function ModelObject(model) {
 	useThree(({ camera }) => {
 		camera.add(listener);
 	});
+	// vrm helpers
+	// const helperRoot = new Group();
+	// helperRoot.renderOrder = 10000;
+	// scene.add(helperRoot);
 
 	const gltf = useLoader(GLTFLoader, url, (loader) => {
 		// const dracoLoader = new DRACOLoader();
@@ -207,21 +209,20 @@ export function ModelObject(model) {
 			);
 		}
 		loader.register((parser) => {
-			return new VRMLoaderPlugin(parser, {autoUpdateHumanBones: true});
+			return new VRMLoaderPlugin(parser);
 		});
 	});
-	
 
 	const audioObject = gltf.scene.getObjectByProperty('type', 'Audio');
 
 	const { actions } = useAnimations(gltf.animations, gltf.scene);
 	const animationClips = gltf.animations;
 	const animationList = model.animations ? model.animations.split(",") : "";
-	
+
 
 	useEffect(() => {
 		setActiveMessage(model.messages[model.messages.length - 1]);
-	}, [model]);
+	}, [model.messages]);
 
 	useEffect(() => {
 		if (animationList) {
@@ -248,67 +249,67 @@ export function ModelObject(model) {
 	}
 
 	if (gltf?.userData?.gltfExtensions?.VRM) {
+
 		const vrm = gltf.userData.vrm;
-	
-		vrm.scene.position.set(
-			model.positionX,
-			model.positionY,
-			model.positionZ
-		);
-		// Disable frustum culling
-		vrm.scene.traverse( ( obj ) => {
-			obj.frustumCulled = false;
-		} );
-
 		VRMUtils.rotateVRM0(vrm);
-		const rotationVRM = vrm.scene.rotation.y + parseFloat(0);
-		vrm.scene.rotation.set(0, rotationVRM, 0);
-		vrm.scene.scale.set(1, 1, 1);
-		vrm.scene.scale.set(model.scaleX, model.scaleY, model.scaleZ);
-
+		// Disable frustum culling
+		vrm.scene.traverse((obj) => {
+			obj.frustumCulled = false;
+		});
 		vrm.scene.name = "assistant";
-		// let currentVrm = vrm;
+		vrm.scene.scale.set(2, 2, 2);
+		scene.add(vrm.scene);
+		const currentVrm = vrm;
 		console.log("vrm", vrm);
-		scene.add( vrm.scene );
-		let currentVRM = vrm;
-
-		let currentMixer = new AnimationMixer( vrm.scene );
+		const currentMixer = new AnimationMixer(currentVrm.scene);
 		// Load animation
-		loadMixamoAnimation( idleFile, currentVRM ).then( ( clip ) => {
-			console.log("clip", clip)
-			// Apply the loaded animation to mixer and play
-			// currentMixer.setLoop(true);
-			currentMixer.clipAction( clip ).play();
-		
-		} );
+		useFrame((state, delta) => {
+			if (currentVrm) {
+				currentVrm.update(delta);
+			}
+			if (currentMixer) {
+				currentMixer.update(delta);
+			}
+		});
 
-		const testString = `{
+		loadMixamoAnimation(idleFile, currentVrm, model.positionX, model.positionY, model.positionZ, model.scaleX, model.scaleY, model.scaleZ).then((clip) => {
+			currentMixer.clipAction(clip).play();
+			currentMixer.update(clock.getDelta());
+		});
+
+		const testJsonString = `{
 			"tone": "friendly",
 			"message": "No problem! Here you go: Test response complete. Is there anything else I can help you with?"
 		  }`;
-		const testObject = JSON.parse(testString);
+		const testString = `Hey there! It's nice to meet you: Is there anything else I can help you with? I know a wide range of topics.`;
+		let testObject;
+		if (activeMessage.length > 0) {
+			testObject = activeMessage;
+		}
+
 		return (
 			<group
-				position={[model.positionX, Number(model.positionY) + 3.8, model.positionZ]}
-				rotation={[0, 0, 0]}
+				position={[model.positionX, model.positionY, model.positionZ]}
+				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
+				scale={[3, 3, 3]}
 			>
 				<Text
 					font={model.threeObjectPlugin + model.defaultFont}
+					position={[1.5, 3.6, 3]}
 					className="content"
 					scale={[2, 2, 2]}
 					// rotation-y={-Math.PI / 2}
 					width={0.1}
+					maxWidth={1}
 					wrap={0.1}
 					height={0.1}
 					color={0x000000}
 					transform
 				>
-					{testObject.message}
+					{testString}
 				</Text>
+				{/* <primitive object={vrm.scene} /> */}
 			</group>
-			// <A11y role="content" description={model.alt} showAltText >
-			// <primitive object={vrm.scene} />
-			// </A11y>
 		);
 	}
 	// gltf.scene.castShadow = true;
@@ -352,7 +353,7 @@ export function ModelObject(model) {
 		const circle = new Mesh(geometryCircle, materialCircle);
 		return circle;
 	});
-	
+
 	if (model.collidable === "1") {
 		return (
 			<>
@@ -372,7 +373,7 @@ export function ModelObject(model) {
 					scale={[model.scaleX + 0.01, model.scaleY + 0.01, model.scaleZ + 0.01]}
 					onCollisionEnter={(manifold, target, other) => {
 						setClickEvent(!clicked);
-						if(audioObject){
+						if (audioObject) {
 							if (clicked) {
 								audioObject.play();
 								triangle.material.visible = false;
@@ -383,11 +384,11 @@ export function ModelObject(model) {
 								circle.material.visible = true;
 							}
 						}
-					}}	
-					// onCollisionEnter={ ( props ) =>(
-					// 	// window.location.href = model.destinationUrl
-					// 	)
-					// }
+					}}
+				// onCollisionEnter={ ( props ) =>(
+				// 	// window.location.href = model.destinationUrl
+				// 	)
+				// }
 				>
 					<primitive
 						object={gltf.scene}

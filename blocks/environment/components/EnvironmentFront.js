@@ -11,8 +11,8 @@ import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
 import angry from "../../../inc/avatars/angry.fbx";
 import confused from "../../../inc/avatars/confused.fbx";
-import friendly from "../../../inc/avatars/friendly.fbx";
-import idle from "../../../inc/avatars/idle.fbx";
+import idle from "../../../inc/avatars/friendly.fbx";
+import friendly from "../../../inc/avatars/idle.fbx";
 import talking from "../../../inc/avatars/talking.fbx";
 import axios from "axios";
 
@@ -59,52 +59,108 @@ function ChatBox(props) {
 	  // Send the message to the localhost endpoint
 	  const client = 1;
 	  const channelId = "three";
-	  const entity = "tubbyshark";
+	  const entity = 11;
 	  const speaker = "antpb";
-	  const agent = "tubbyshark";
+	  const agent = "aiko";
 	  const channel = "homepage";
+	  
 
-	//   try {
-	// 	const spell_handler = "three";
-	// 	const spell_version = "latest";
-	// 	const url = encodeURI(
-	// 		`https://localhost:8001/spells/${spell_handler}/${spell_version}`
-	// 	  )
-	// 	const response = await axios.post(`${url}`, {
-	// 		inputs: {
-	// 		  Input: value,
-	// 		  Speaker: speaker,
-	// 		  Agent: agent,
-	// 		  Client: client,
-	// 		  ChannelID: channelId,
-	// 		  Entity: entity,
-	// 		  Channel: channel,
-	// 		},
-	// 	  }).then((response) => {
-	// 		const data = response.data;
+	  try {
+		const spell_handler = "four";
+		const spell_version = "latest";
+		const url = encodeURI(
+			`https://localhost:8001/spells/${spell_handler}/${spell_version}`
+		)
+		const response = await axios.post(`${url}`, {
+			inputs: {
+			  Input: value,
+			  Speaker: speaker,
+			  Agent: agent,
+			  Client: client,
+			  ChannelID: channelId,
+			  Entity: entity,
+			  Channel: channel,
+			},
+		  }).then((response) => {
+			const data = response.data;
 
-	// 		const outputs = data.outputs;
+			const outputs = data.outputs;
 
-	// 		const outputKey = Object.keys(outputs)[0];
+			const outputKey = Object.keys(outputs)[0];
 
-	// 		const output = outputs[outputKey];
+			const output = outputs[outputKey];
 
-	// 		props.setMessages([...messages, output]);
-	// 		// setMessages([...messages, value]);
-	// 	  });
-	// 		// setMessages([...messages, value]);
-	// 	} catch (error) {
-	// 	console.error(error);
-	//   }
-		props.setMessages([...props.messages, value]);
+			props.setMessages([...props.messages, output]);
+			// setMessages([...messages, value]);
+		  });
+			// setMessages([...messages, value]);
+		} catch (error) {
+		console.error(error);
+	  }
+		// props.setMessages([...props.messages, value]);
 	};
+ 
+	const handleDummySubmit = async (event) => {
+		event.preventDefault();
+	
+		// Get the value of the input element
+		const input = event.target.elements.message;
+		const value = input.value;
+	
+		// Send the message to the localhost endpoint
+		const client = 1;
+		const channelId = "three";
+		const entity = "tubbyshark";
+		const speaker = "antpb";
+		const agent = "aiko";
+		const channel = "homepage";
+		const testString = `{
+			"tone": "friendly",
+			"message": "No problem! Here you go: Test response complete. Is there anything else I can help you with?"
+		  }`;
+
+		// try {
+		//   const spell_handler = "main";
+		//   const spell_version = "latest";
+		//   const url = encodeURI(
+		// 	  `https://localhost:8001/spells/${spell_handler}/${spell_version}`
+		//   )
+		//   const response = await axios.post(`${url}`, {
+		// 	  inputs: {
+		// 		Input: value,
+		// 		Speaker: speaker,
+		// 		Agent: agent,
+		// 		Client: client,
+		// 		ChannelID: channelId,
+		// 		Entity: entity,
+		// 		Channel: channel,
+		// 	  },
+		// 	}).then((response) => {
+		// 	  const data = response.data;
+  
+		// 	  const outputs = data.outputs;
+  
+		// 	  const outputKey = Object.keys(outputs)[0];
+  
+		// 	  const output = outputs[outputKey];
+  
+		// 	  props.setMessages([...props.messages, output]);
+		// 	});
+		// 	  // setMessages([...messages, value]);
+		//   } catch (error) {
+		//   console.error(error);
+		// }
+		  // props.setMessages([...props.messages, value]);
+		  props.setMessages([...props.messages, testString]);
+
+		};
   
 	return (
 	  <div style={{ marginTop: "-140px", position: "relative", bottom: "15%", left: "5%", width: "50%", height: "10%" }}>
-		{props.messages.map((message, index) => (
+		{/* {props.messages.map((message, index) => (
 		  <p key={index}>{message}</p>
-		))}
-		<form style={{display: "flex"}} onSubmit={handleSubmit}>
+		))} */}
+		<form style={{display: "flex"}} onSubmit={handleDummySubmit}>
 		  <input type="text" name="message" onInput={handleChange} onChange={handleChange} />
 		  <button type="submit">Send</button>
 		</form>
@@ -481,7 +537,10 @@ function SavedObject(props) {
 }
 
 export default function EnvironmentFront(props) {
-	const [messages, setMessages] = useState(["Welcome to the room!"]);
+	const [messages, setMessages] = useState([`{
+		"tone": "friendly",
+		"message": "Howdy! Feel free to ask me questions about 3OV!"
+	  }`]);
 
 	const [loaded, setLoaded] = useState(false);
 	const [spawnPoints, setSpawnPoints] = useState();

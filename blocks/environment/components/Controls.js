@@ -97,7 +97,7 @@ const Controls = (props) => {
 		ray.origin.x = playerThing.translation().x;
 		ray.origin.y = playerThing.translation().y;
 		ray.origin.z = playerThing.translation().z;
-		const velocity = 0.25;
+		const velocity = 0.15;
 		world.raw().step();
 		const maxToi = 14;
 		const solid = true;
