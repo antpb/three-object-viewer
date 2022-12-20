@@ -86,7 +86,6 @@ function loadMixamoAnimation(url, vrm, positionY, positionX, positionZ, scaleX, 
 	return loader.loadAsync(url).then((asset) => {
 		console.log("vrm", vrm);
 		const clip = AnimationClip.findByName(asset.animations, 'mixamo.com'); // extract the AnimationClip
-
 		const tracks = []; // KeyframeTracks compatible with VRM will be added here
 
 		const restRotationInverse = new Quaternion();
@@ -100,6 +99,7 @@ function loadMixamoAnimation(url, vrm, positionY, positionX, positionZ, scaleX, 
 		const vrmRootY = vrm.scene.getWorldPosition(_vec3).y;
 		const vrmHipsHeight = Math.abs(vrmHipsY - vrmRootY);
 		const hipsPositionScale = vrmHipsHeight / motionHipsHeight;
+		console.log("hipsPositionScale", hipsPositionScale);
 
 		clip.tracks.forEach((track) => {
 			// Convert each tracks for VRM use, and push to `tracks`
@@ -151,7 +151,6 @@ function loadMixamoAnimation(url, vrm, positionY, positionX, positionZ, scaleX, 
 				} else if (track instanceof VectorKeyframeTrack) {
 					const value = track.values.map((v, i) => (vrm.meta?.metaVersion === '0' && i % 3 !== 1 ? - v : v) * hipsPositionScale);
 					tracks.push(new VectorKeyframeTrack(`${vrmNodeName}.${propertyName}`, track.times, value));
-
 				}
 
 			}
@@ -257,8 +256,9 @@ export function ModelObject(model) {
 			obj.frustumCulled = false;
 		});
 		vrm.scene.name = "assistant";
-		vrm.scene.scale.set(2, 2, 2);
-		scene.add(vrm.scene);
+
+		// scene.add(vrm.scene);
+
 		const currentVrm = vrm;
 		console.log("vrm", vrm);
 		const currentMixer = new AnimationMixer(currentVrm.scene);
@@ -281,7 +281,7 @@ export function ModelObject(model) {
 			"tone": "friendly",
 			"message": "No problem! Here you go: Test response complete. Is there anything else I can help you with?"
 		  }`;
-		const testString = `Hey there! It's nice to meet you: Is there anything else I can help you with? I know a wide range of topics.`;
+		const testString = `Hey there! It's nice to meet you: Is there anything else I can help you with? I know a wide range of topics.  I know a wide range of topics.  I know a wide range of topics.  I know a wide range of topics.`;
 		let testObject;
 		if (activeMessage.length > 0) {
 			testObject = activeMessage;
@@ -291,13 +291,12 @@ export function ModelObject(model) {
 			<group
 				position={[model.positionX, model.positionY, model.positionZ]}
 				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
-				scale={[3, 3, 3]}
 			>
 				<Text
 					font={model.threeObjectPlugin + model.defaultFont}
-					position={[1.5, 3.6, 3]}
+					position={[0.5, 1.5, 0]}
 					className="content"
-					scale={[2, 2, 2]}
+					scale={[0.5, 0.5, 0.5]}
 					// rotation-y={-Math.PI / 2}
 					width={0.1}
 					maxWidth={1}
@@ -305,10 +304,14 @@ export function ModelObject(model) {
 					height={0.1}
 					color={0x000000}
 					transform
-				>
+				>	
 					{testString}
 				</Text>
-				{/* <primitive object={vrm.scene} /> */}
+				<mesh position={[0.5, 1.5, -0.01]}>
+					<planeGeometry attach="geometry" args={[0.65, 0.65]} />
+					<meshBasicMaterial attach="material" color={0xffffff} />
+				</mesh>
+				<primitive object={vrm.scene} />
 			</group>
 		);
 	}
