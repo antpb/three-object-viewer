@@ -12,6 +12,11 @@ import {
 import { GLTFAudioEmitterExtension } from "three-omi";
 import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
 import { VRMUtils, VRMSchema, VRMLoaderPlugin, VRMExpressionPresetName } from "@pixiv/three-vrm";
+import angry from "../../../../../inc/avatars/angry.fbx";
+import confused from "../../../../../inc/avatars/confused.fbx";
+import idle from "../../../../../inc/avatars/friendly.fbx";
+import friendly from "../../../../../inc/avatars/idle.fbx";
+import talking from "../../../../../inc/avatars/talking.fbx";
 
 /**
  * A map from Mixamo rig name to VRM Humanoid bone name
@@ -81,10 +86,8 @@ const mixamoVRMRigMap = {
  * @returns {Promise<AnimationClip>} The converted AnimationClip
  */
 function loadMixamoAnimation(url, vrm, positionY, positionX, positionZ, scaleX, scaleY, scaleZ, rotationX, rotationY, rotationZ, rotationW) {
-
 	const loader = new FBXLoader(); // A loader which loads FBX
 	return loader.loadAsync(url).then((asset) => {
-		console.log("vrm", vrm);
 		const clip = AnimationClip.findByName(asset.animations, 'mixamo.com'); // extract the AnimationClip
 		const tracks = []; // KeyframeTracks compatible with VRM will be added here
 
@@ -99,7 +102,6 @@ function loadMixamoAnimation(url, vrm, positionY, positionX, positionZ, scaleX, 
 		const vrmRootY = vrm.scene.getWorldPosition(_vec3).y;
 		const vrmHipsHeight = Math.abs(vrmHipsY - vrmRootY);
 		const hipsPositionScale = vrmHipsHeight / motionHipsHeight;
-		console.log("hipsPositionScale", hipsPositionScale);
 
 		clip.tracks.forEach((track) => {
 			// Convert each tracks for VRM use, and push to `tracks`
@@ -171,13 +173,36 @@ function loadMixamoAnimation(url, vrm, positionY, positionX, positionZ, scaleX, 
  * @return {JSX.Element} The model object.
  */
 export function ModelObject(model) {
-	const idleFile = model.threeObjectPlugin + model.idle;
+	const [idleFile, setIdleFile] = useState(model.threeObjectPlugin + idle);
 	const [clicked, setClickEvent] = useState();
 	const [activeMessage, setActiveMessage] = useState([]);
 	const [url, set] = useState(model.url);
 	useEffect(() => {
 		setTimeout(() => set(model.url), 2000);
-	}, []);
+	}, []);	
+
+	useEffect(() => {
+		if ( activeMessage.tone === "neutral" || activeMessage.tone === "idle" ){
+			currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 0 );
+			currentVrm.update(clock.getDelta());
+		}
+		else if ( activeMessage.tone === "confused" ){
+			currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 1 );
+			currentVrm.update(clock.getDelta());
+	
+		} else if ( activeMessage.tone === "friendly" ){
+			currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 1 );
+			currentVrm.update(clock.getDelta());
+	
+		} else if ( activeMessage.tone === "angry" ){
+			currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 1 );
+			currentVrm.update(clock.getDelta());
+	
+		}
+
+		// create variable that converts activeMessage to json
+	}, [activeMessage]);
+
 	const [listener] = useState(() => new AudioListener());
 	const { scene, clock } = useThree();
 	useThree(({ camera }) => {
@@ -247,8 +272,7 @@ export function ModelObject(model) {
 		);
 	}
 
-	if (gltf?.userData?.gltfExtensions?.VRM) {
-
+	if (gltf?.userData?.gltfExtensions?.VRM) {	
 		const vrm = gltf.userData.vrm;
 		VRMUtils.rotateVRM0(vrm);
 		// Disable frustum culling
@@ -260,11 +284,28 @@ export function ModelObject(model) {
 		// scene.add(vrm.scene);
 
 		const currentVrm = vrm;
-		console.log("vrm", vrm);
 		const currentMixer = new AnimationMixer(currentVrm.scene);
 		// Load animation
 		useFrame((state, delta) => {
 			if (currentVrm) {
+				var emotion = JSON.parse(activeMessage);
+				if(emotion.tone === "idle" ){
+					currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 0 );
+					currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 0 );
+					currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 0 );
+				} else if (emotion.tone === "confused" ){
+					currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 1 );
+					currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 1 );
+					currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 0 );
+				} else if (emotion.tone === "friendly" ){
+					currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 0 );
+					currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 1 );
+					currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 0 );
+				} else if (emotion.tone === "angry" ){
+					currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 0 );
+					currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 0 );
+					currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 1 );
+				}
 				currentVrm.update(delta);
 			}
 			if (currentMixer) {
@@ -272,6 +313,7 @@ export function ModelObject(model) {
 			}
 		});
 
+		// retarget the animations from mixamo to the current vrm 
 		loadMixamoAnimation(idleFile, currentVrm, model.positionX, model.positionY, model.positionZ, model.scaleX, model.scaleY, model.scaleZ).then((clip) => {
 			currentMixer.clipAction(clip).play();
 			currentMixer.update(clock.getDelta());
@@ -281,7 +323,7 @@ export function ModelObject(model) {
 			"tone": "friendly",
 			"message": "No problem! Here you go: Test response complete. Is there anything else I can help you with?"
 		  }`;
-		const testString = `Hey there! It's nice to meet you: Is there anything else I can help you with? I know a wide range of topics.  I know a wide range of topics.  I know a wide range of topics.  I know a wide range of topics.`;
+		const testString = `Hey there! Is there anything else I can help you with? I know a wide range of topics.`;
 		let testObject;
 		if (activeMessage.length > 0) {
 			testObject = activeMessage;
@@ -302,14 +344,14 @@ export function ModelObject(model) {
 					maxWidth={1}
 					wrap={0.1}
 					height={0.1}
-					color={0x000000}
+					color={0xffffff}
 					transform
 				>	
-					{testString}
+					{testObject}
 				</Text>
 				<mesh position={[0.5, 1.5, -0.01]}>
-					<planeGeometry attach="geometry" args={[0.65, 0.65]} />
-					<meshBasicMaterial attach="material" color={0xffffff} />
+					<planeGeometry attach="geometry" args={[0.65, 0.85]} />
+					<meshBasicMaterial attach="material" color={0x000000} opacity={0.5}	transparent={ true } />
 				</mesh>
 				<primitive object={vrm.scene} />
 			</group>

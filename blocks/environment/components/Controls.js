@@ -17,6 +17,7 @@ const Controls = (props) => {
 	const isLocked = useRef(false);
 	const [lock, setLock] = useState(false);
 	const [click, setClick] = useState(false);
+	const [shiftActive, setShift] = useState(false);
 	const [moveForward, setMoveForward] = useState(false);
 	const [moveBackward, setMoveBackward] = useState(false);
 	const [moveLeft, setMoveLeft] = useState(false);
@@ -97,7 +98,7 @@ const Controls = (props) => {
 		ray.origin.x = playerThing.translation().x;
 		ray.origin.y = playerThing.translation().y;
 		ray.origin.z = playerThing.translation().z;
-		const velocity = 0.15;
+		const velocity = shiftActive ? 0.36 : 0.1;
 		world.raw().step();
 		const maxToi = 14;
 		const solid = true;
@@ -356,6 +357,11 @@ const Controls = (props) => {
 		return
 		} else {
 			switch (event.code) {
+				// case when both shift and the w key are pressed
+				case "ShiftLeft":
+					setShift(true);
+					setLock(false);
+					break;
 				case "ArrowUp":
 				case "KeyW":
 					setMoveForward(true);
@@ -439,6 +445,10 @@ const Controls = (props) => {
 
 	const onKeyUp = function (event) {
 		switch (event.code) {
+			case "ShiftLeft":
+				setShift(false);
+				setLock(true);
+				break;
 			case "ArrowUp":
 			case "KeyW":
 				setMoveForward(false);

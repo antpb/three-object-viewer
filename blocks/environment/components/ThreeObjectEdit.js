@@ -445,6 +445,15 @@ function ModelObject(model) {
 			});
 		}
 	}, []);
+	const obj = useRef();
+	// const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene]);
+	const [isSelected, setIsSelected] = useState();
+	const [modelBlockAttributes, setModelBlockAttributes] = useState(
+		wp.data.select("core/block-editor").getBlockAttributes(model.modelId)
+	);
+	const TransformController = ({ condition, wrap, children }) =>
+		condition ? wrap(children) : children;
+
 	if (gltf?.userData?.gltfExtensions?.VRM) {
 		const vrm = gltf.userData.vrm;
 		vrm.scene.position.set(
@@ -458,20 +467,94 @@ function ModelObject(model) {
 		vrm.scene.scale.set(1, 1, 1);
 		vrm.scene.scale.set(model.scaleX, model.scaleY, model.scaleZ);
 		return (
-			// <A11y role="content" description={model.alt} >
-			<primitive object={vrm.scene} />
-			// </A11y>
-		);
+			<>
+				<Select
+					box
+					multiple
+					onChange={(e) => {
+						e.length !== 0 ? setIsSelected(true) : setIsSelected(false);
+					}}
+					filter={(items) => items}
+				>
+					<TransformController
+						condition={isSelected || model.focusID === model.modelId}
+						wrap={(children) => (
+							<TransformControls
+								enabled={isSelected}
+								mode={
+									model.transformMode
+										? model.transformMode
+										: "translate"
+								}
+								object={obj}
+								size={0.5}
+								onMouseUp={(e) => {
+									const rot = new THREE.Euler(0, 0, 0, "XYZ");
+									const scale = e?.target.worldScale;
+									rot.setFromQuaternion(
+										e?.target.worldQuaternion
+									);
+									wp.data
+										.dispatch("core/block-editor")
+										.updateBlockAttributes(model.modelId, {
+											positionX: e?.target.worldPosition.x,
+											positionY: e?.target.worldPosition.y,
+											positionZ: e?.target.worldPosition.z,
+											rotationX: rot.x,
+											rotationY: rot.y,
+											rotationZ: rot.z,
+											scaleX: scale.x,
+											scaleY: scale.y,
+											scaleZ: scale.z
+										});
+									setModelBlockAttributes(
+										wp.data
+											.select("core/block-editor")
+											.getBlockAttributes(model.modelId)
+									);
+	
+									// if (model.shouldFocus) {
+									// 	setFocusPosition([
+									// 		e?.target.worldPosition.x,
+									// 		e?.target.worldPosition.y,
+									// 		e?.target.worldPosition.z
+									// 	]);
+									// 	camera.position.set(model.focusPosition);
+									// }
+								}}
+							>
+								{children}
+							</TransformControls>
+						)}
+					>
+						{modelBlockAttributes && (
+							<group
+								ref={obj}
+								position={[
+									modelBlockAttributes.positionX,
+									modelBlockAttributes.positionY,
+									modelBlockAttributes.positionZ
+								]}
+								rotation={[
+									modelBlockAttributes.rotationX,
+									modelBlockAttributes.rotationY,
+									modelBlockAttributes.rotationZ
+								]}
+								scale={[
+									modelBlockAttributes.scaleX,
+									modelBlockAttributes.scaleY,
+									modelBlockAttributes.scaleZ
+								]}
+							>
+								<primitive object={vrm.scene} />
+							</group>
+						)}
+					</TransformController>
+				</Select>
+			</>
+		);	
 	}
 	gltf.scene.rotation.set(0, 0, 0);
-	const obj = useRef();
-	// const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene]);
-	const [isSelected, setIsSelected] = useState();
-	const [modelBlockAttributes, setModelBlockAttributes] = useState(
-		wp.data.select("core/block-editor").getBlockAttributes(model.modelId)
-	);
-	const TransformController = ({ condition, wrap, children }) =>
-		condition ? wrap(children) : children;
 
 	return (
 		<>

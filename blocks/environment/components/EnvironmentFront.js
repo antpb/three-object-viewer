@@ -9,11 +9,6 @@ import { TextureLoader } from "three/src/loaders/TextureLoader";
 import { Physics, RigidBody, Debug, Attractor, CuboidCollider } from "@react-three/rapier";
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
-import angry from "../../../inc/avatars/angry.fbx";
-import confused from "../../../inc/avatars/confused.fbx";
-import idle from "../../../inc/avatars/friendly.fbx";
-import friendly from "../../../inc/avatars/idle.fbx";
-import talking from "../../../inc/avatars/talking.fbx";
 import axios from "axios";
 
 // import Networking from "./Networking";
@@ -61,45 +56,54 @@ function ChatBox(props) {
 	  const channelId = "three";
 	  const entity = 11;
 	  const speaker = "antpb";
-	  const agent = "aiko";
+	  const agent = "tubbyshark";
 	  const channel = "homepage";
 	  
 
 	  try {
-		const spell_handler = "four";
-		const spell_version = "latest";
-		const url = encodeURI(
-			`https://localhost:8001/spells/${spell_handler}/${spell_version}`
-		)
-		const response = await axios.post(`${url}`, {
+		const apiEndpoint = '/wp-json/wp/v2/callapi';
+
+		const postData = {
 			inputs: {
-			  Input: value,
-			  Speaker: speaker,
-			  Agent: agent,
-			  Client: client,
-			  ChannelID: channelId,
-			  Entity: entity,
-			  Channel: channel,
+				Input: value,
+				Speaker: speaker,
+				Agent: agent,
+				Client: client,
+				ChannelID: channelId,
+				Entity: entity,
+				Channel: channel,
+			}
+		};
+	
+		const response = axios.post(apiEndpoint, postData, {
+			headers: {
+				Authorization: 'Bearer bearertoken',
 			},
-		  }).then((response) => {
-			const data = response.data;
+			})
+			.then((response) => {
+				const data = JSON.parse(response.data);
+				// turn data from raw json to object
+				console.log("data", data.outputs);
 
-			const outputs = data.outputs;
+				const outputs = data.outputs;
 
-			const outputKey = Object.keys(outputs)[0];
+				// const outputs = data.outputs;
 
-			const output = outputs[outputKey];
+				const outputKey = Object.keys(outputs)[0];
+	
+				const output = outputs[outputKey];
 
-			props.setMessages([...props.messages, output]);
-			// setMessages([...messages, value]);
-		  });
-			// setMessages([...messages, value]);
+				props.setMessages([...props.messages, output]);
+				// setMessages([...messages, value]);
+			})
+			.catch((error) => {
+				console.error(error);
+			});
 		} catch (error) {
-		console.error(error);
-	  }
-		// props.setMessages([...props.messages, value]);
+			console.error(error);
+		}
 	};
- 
+	 
 	const handleDummySubmit = async (event) => {
 		event.preventDefault();
 	
@@ -115,8 +119,8 @@ function ChatBox(props) {
 		const agent = "aiko";
 		const channel = "homepage";
 		const testString = `{
-			"tone": "friendly",
-			"message": "No problem! Here you go: Test response complete. Is there anything else I can help you with?"
+			"message": "Welcome! Here you go: Test response complete. Is there anything else I can help you with?",
+			"tone": "friendly"
 		  }`;
 
 		// try {
@@ -160,7 +164,7 @@ function ChatBox(props) {
 		{/* {props.messages.map((message, index) => (
 		  <p key={index}>{message}</p>
 		))} */}
-		<form style={{display: "flex"}} onSubmit={handleDummySubmit}>
+		<form style={{display: "flex"}} onSubmit={handleSubmit}>
 		  <input type="text" name="message" onInput={handleChange} onChange={handleChange} />
 		  <button type="submit">Send</button>
 		</form>
@@ -1075,7 +1079,7 @@ export default function EnvironmentFront(props) {
 														}
 														threeObjectPlugin={threeObjectPlugin}
 														defaultFont={defaultFont}
-														idle={idle}
+														// idle={idle}
 													/>
 												);
 											})}
