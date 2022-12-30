@@ -1,5 +1,5 @@
 import { __ } from "@wordpress/i18n";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DropZone } from "@wordpress/components";
 import "./editor.scss";
 import {
@@ -19,7 +19,24 @@ import {
 } from "@wordpress/components";
 import { more } from "@wordpress/icons";
 
-export default function Edit({ attributes, setAttributes, isSelected }) {
+export default function Edit({ attributes, setAttributes, isSelected, clientId }) {
+
+	const { select, dispatch } = wp.data;
+	const { onSelectionChange, getSelectedBlock } = wp.blocks;
+	useEffect(() => {
+		if( isSelected ){
+					const foo = select( 'my-custom-namespace' ).getFoo();
+					dispatch( 'my-custom-namespace' ).setBar( clientId );
+
+					// console.log("selected");
+					// const block = getSelectedBlock();
+					// if ( block ) {
+					//      console.log("selected");
+					//      dispatch( myCustomStore ).setPrice( 'hammer', 9.75 );
+					// }
+			}
+	}, [isSelected]);
+
 	const onImageSelect = (imageObject) => {
 		setAttributes({ imageUrl: null });
 		setAttributes({
@@ -28,6 +45,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 			aspectWidth: imageObject.width
 		});
 	};
+
 	const onChangePositionX = (positionX) => {
 		setAttributes({ positionX });
 	};
