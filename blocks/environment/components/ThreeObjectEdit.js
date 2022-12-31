@@ -1174,7 +1174,7 @@ export default function ThreeObjectEdit(props) {
 		<>
 			<Resizable
 				defaultSize={{
-					height: 550
+					height: 770
 				}}
 				enable={{
 					top: false,
@@ -1184,7 +1184,10 @@ export default function ThreeObjectEdit(props) {
 					topRight: false,
 					bottomRight: false,
 					bottomLeft: false,
-					topLeft: false
+					topLeft: false,
+				}}
+				style={{
+					flex: 1,
 				}}
 			>
 				<Canvas

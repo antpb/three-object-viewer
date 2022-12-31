@@ -294,7 +294,6 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 				<>
 					{attributes.threeObjectUrl ? (
 						//Not selected
-						<div className="three-object-viewer-component-container">
 							<div className="three-object-viewer-inner">
 								<div className="three-object-viewer-inner-edit-container">
 									<svg
@@ -315,7 +314,6 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									{attributes.name}
 								</p>
 							</div>
-						</div>
 					) : (
 						<div className="three-object-viewer-inner">
 							<div className="three-object-viewer-inner-edit-container">
@@ -354,7 +352,6 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 			) : (
 				<>
 					{attributes.threeObjectUrl ? (
-						<div className="three-object-viewer-component-container">							
 							<div className="three-object-viewer-inner">
 								<div className="three-object-viewer-inner-edit-container">
 									<svg
@@ -375,7 +372,6 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									{attributes.name}
 								</p>
 							</div>
-						</div>
 					) : (
 						<div className="three-object-viewer-inner">
 							<div className="three-object-viewer-inner-edit-container">

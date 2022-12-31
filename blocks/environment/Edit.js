@@ -216,7 +216,8 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 				</Panel>
 			</InspectorControls>
 			{isSelected ? (
-				<>
+				<>					
+				<InnerBlocks allowedBlocks={ALLOWED_BLOCKS} />
 					{attributes.threeObjectUrl ? (
 						<ThreeObjectEdit
 							url={attributes.threeObjectUrl}
@@ -270,10 +271,10 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 							</div>
 						</div>
 					)}
-					<InnerBlocks allowedBlocks={ALLOWED_BLOCKS} />
 				</>
 			) : (
 				<>
+					<InnerBlocks allowedBlocks={ALLOWED_BLOCKS} />
 					{attributes.threeObjectUrl ? (
 						<ThreeObjectEdit
 							url={attributes.threeObjectUrl}
@@ -324,7 +325,6 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 							/>
 						</div>
 					)}
-					<InnerBlocks allowedBlocks={ALLOWED_BLOCKS} />
 				</>
 			)}
 		</div>
