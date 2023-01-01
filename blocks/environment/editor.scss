@@ -63,12 +63,16 @@
 .wp-block-three-object-viewer-environment .block-editor-inner-blocks {
     background-color: #2a2a2a;
     height: 210px;
-    overflow: scroll;
-    position: relative;
-	flex: 1;
+    // overflow: scroll;
+    position: absolute;
+	// flex: 1;
     top: 0px;
     max-width: 220px;
-    height: 773px;	
+	width: 220px !important;
+    height: 773px;
+	max-height: 773px;
+	overflow-y: scroll;
+	z-index: 1;
 }
 
 .three-object-environment-edit-container .components-panel__row {
@@ -100,12 +104,12 @@
 	background-color: #3f3f3f;
 	color: white;
 	box-sizing: border-box;
-	margin-bottom: 5px;
-	margin-top: 5px;
+	margin-bottom: 1px;
+	margin-top: 1px;
 	max-width: 180px;
 	width: 180px;
-	max-height: 50px;
-	height: 50px;
+	max-height: 30px;
+	height: 30px;
 	font-size: 0.8em;
 	text-align: center;
 	border-radius: 8px;
@@ -144,10 +148,14 @@ div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner
 }
 .wp-block-three-object-viewer-environment .block-editor-inner-blocks .block-editor-button-block-appender{
 	margin: 0px 0px -60px;
+	right: 0;
+	position: absolute;
+    background-color: #8e00f2;
+    color: white;
 }
 
 .wp-block-three-object-viewer-environment:has(> .block-editor-inner-blocks) {
-	display: flex !important;
+	// display: flex !important;
 }
 
 .wp-block-three-object-viewer-environment {

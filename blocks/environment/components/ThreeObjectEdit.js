@@ -1188,6 +1188,7 @@ export default function ThreeObjectEdit(props) {
 				}}
 				style={{
 					flex: 1,
+					paddingLeft: "220px",
 				}}
 			>
 				<Canvas
@@ -1204,7 +1205,8 @@ export default function ThreeObjectEdit(props) {
 					style={{
 						margin: "0 Auto",
 						height: "100%",
-						width: "100%"
+						width: "100%",
+						boxSizing: "border-box"
 					}}
 				>
 					{/* <Perf className="stats" /> */}

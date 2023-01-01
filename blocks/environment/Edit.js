@@ -217,7 +217,10 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 			</InspectorControls>
 			{isSelected ? (
 				<>					
-				<InnerBlocks allowedBlocks={ALLOWED_BLOCKS} />
+				<InnerBlocks
+					renderAppender={ InnerBlocks.ButtonBlockAppender }
+					allowedBlocks={ALLOWED_BLOCKS}
+				/>
 					{attributes.threeObjectUrl ? (
 						<ThreeObjectEdit
 							url={attributes.threeObjectUrl}
@@ -274,7 +277,10 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 				</>
 			) : (
 				<>
-					<InnerBlocks allowedBlocks={ALLOWED_BLOCKS} />
+				<InnerBlocks 
+					renderAppender={ InnerBlocks.ButtonBlockAppender } 
+					allowedBlocks={ALLOWED_BLOCKS}
+				/>
 					{attributes.threeObjectUrl ? (
 						<ThreeObjectEdit
 							url={attributes.threeObjectUrl}
