@@ -28,15 +28,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 	const { onSelectionChange, getSelectedBlock } = wp.blocks;
 	useEffect(() => {
 		if( isSelected ){
-			const foo = select( 'my-custom-namespace' ).getFoo();
-			dispatch( 'my-custom-namespace' ).setBar( clientId );
-
-			// console.log("selected");
-			// const block = getSelectedBlock();
-			// if ( block ) {
-			// 	console.log("selected");
-			// 	dispatch( myCustomStore ).setPrice( 'hammer', 9.75 );
-			// }
+			dispatch( 'three-object-environment-events' ).setFocusEvent( clientId );
 		}
 	}, [isSelected]);
 

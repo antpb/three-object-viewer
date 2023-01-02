@@ -13,9 +13,9 @@ import { useXR } from "@react-three/xr";
 function Reticle() {
 	const { camera } = useThree();
 	var reticle = new THREE.Mesh(
-	new THREE.RingGeometry( 0.85 * 5, 5, 32),
-	new THREE.MeshBasicMaterial( {color: 0xffffff, side: THREE.DoubleSide })
-		);
+		new THREE.RingGeometry( 0.85 * 5, 5, 32),
+		new THREE.MeshBasicMaterial( {color: 0xffffff, side: THREE.DoubleSide })
+	);
 	reticle.position.z = -1000;
 	reticle.name = "reticle";
 	reticle.frustumCulled = false;
