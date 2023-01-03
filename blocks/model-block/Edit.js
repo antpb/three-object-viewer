@@ -302,9 +302,9 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 										<b>Model block</b>
 									</p>
 								</div>
-								<p className="three-object-viewer-model-name">
+								{/* <p className="three-object-viewer-model-name">
 									{attributes.name}
-								</p>
+								</p> */}
 							</div>
 					) : (
 						<div className="three-object-viewer-inner">
@@ -360,9 +360,9 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 										<b>Model block</b>
 									</p>
 								</div>
-								<p className="three-object-viewer-model-name">
+								{/* <p className="three-object-viewer-model-name">
 									{attributes.name}
-								</p>
+								</p> */}
 							</div>
 					) : (
 						<div className="three-object-viewer-inner">

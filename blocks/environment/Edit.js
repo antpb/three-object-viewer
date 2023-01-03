@@ -268,7 +268,8 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 										Use URL
 									</button>
 								</div> */}
-								<MediaUpload
+							</div>
+							<MediaUpload
 									onSelect={(imageObject) =>
 										onImageSelect(imageObject)
 									}
@@ -286,7 +287,6 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 										</button>
 									)}
 								/>
-							</div>
 						</div>
 					)}
 				</>
