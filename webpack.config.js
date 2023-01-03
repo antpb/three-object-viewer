@@ -56,6 +56,14 @@ module.exports = {
 						loader: "file-loader"
 					}
 				]
+			},
+			{
+				test: /\.fbx$/,
+				use: [
+					{
+						loader: "file-loader"
+					}
+				]
 			}
 		]
 	},

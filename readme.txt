@@ -46,6 +46,13 @@ It can also be installed manually using a zip file.
 
 
 == Changelog ==
+= 1.2.0 =
+Fixed: Controller was loading characters too high. Scale has changed so scenes may need to be verified to be as previously saved.
+Fixed: VRM objects will load with an idle animation.
+Added: New editor sidebar for selecting objects in the editor.
+Added: Press F now when in the editor
+Added: Hold shift while moving to run.
+
 = 1.0.9 =
 Fixed: Spawn - Spawn block now properly loads a player in the spawn location.
 Added: Initial support for OMI_spawn_point.
