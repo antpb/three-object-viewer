@@ -1208,6 +1208,7 @@ export default function ThreeObjectEdit(props) {
 				style={{
 					flex: 1,
 					paddingLeft: "220px",
+					backgroundColor: "#cbcbcb",
 				}}
 			>
 				<Canvas
