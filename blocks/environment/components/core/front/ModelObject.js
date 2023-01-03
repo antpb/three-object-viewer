@@ -12,8 +12,6 @@ import {
 import { GLTFAudioEmitterExtension } from "three-omi";
 import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
 import { VRMUtils, VRMSchema, VRMLoaderPlugin, VRMExpressionPresetName } from "@pixiv/three-vrm";
-import angry from "../../../../../inc/avatars/angry.fbx";
-import confused from "../../../../../inc/avatars/confused.fbx";
 import idle from "../../../../../inc/avatars/friendly.fbx";
 import friendly from "../../../../../inc/avatars/idle.fbx";
 import talking from "../../../../../inc/avatars/talking.fbx";
