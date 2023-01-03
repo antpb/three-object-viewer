@@ -46,7 +46,7 @@ It can also be installed manually using a zip file.
 
 
 == Changelog ==
-= 1.2.0 =
+= 1.1.0 =
 Fixed: Controller was loading characters too high. Scale has changed so scenes may need to be verified to be as previously saved.
 Fixed: VRM objects will load with an idle animation.
 Added: New editor sidebar for selecting objects in the editor.
