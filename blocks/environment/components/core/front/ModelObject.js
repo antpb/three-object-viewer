@@ -173,16 +173,43 @@ function loadMixamoAnimation(url, vrm, positionY, positionX, positionZ, scaleX, 
 export function ModelObject(model) {
 	const [idleFile, setIdleFile] = useState(model.threeObjectPlugin + idle);
 	const [clicked, setClickEvent] = useState();
+	const [activeMessage, setActiveMessage] = useState([]);
 	const [url, set] = useState(model.url);
 	useEffect(() => {
 		setTimeout(() => set(model.url), 2000);
 	}, []);	
+
+	useEffect(() => {
+		if ( activeMessage.tone === "neutral" || activeMessage.tone === "idle" ){
+			currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 0 );
+			currentVrm.update(clock.getDelta());
+		}
+		else if ( activeMessage.tone === "confused" ){
+			currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 1 );
+			currentVrm.update(clock.getDelta());
+	
+		} else if ( activeMessage.tone === "friendly" ){
+			currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 1 );
+			currentVrm.update(clock.getDelta());
+	
+		} else if ( activeMessage.tone === "angry" ){
+			currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 1 );
+			currentVrm.update(clock.getDelta());
+	
+		}
+
+		// create variable that converts activeMessage to json
+	}, [activeMessage]);
 
 	const [listener] = useState(() => new AudioListener());
 	const { scene, clock } = useThree();
 	useThree(({ camera }) => {
 		camera.add(listener);
 	});
+	// vrm helpers
+	// const helperRoot = new Group();
+	// helperRoot.renderOrder = 10000;
+	// scene.add(helperRoot);
 
 	const gltf = useLoader(GLTFLoader, url, (loader) => {
 		// const dracoLoader = new DRACOLoader();
@@ -213,6 +240,11 @@ export function ModelObject(model) {
 	const { actions } = useAnimations(gltf.animations, gltf.scene);
 	const animationClips = gltf.animations;
 	const animationList = model.animations ? model.animations.split(",") : "";
+
+
+	useEffect(() => {
+		setActiveMessage(model.messages[model.messages.length - 1]);
+	}, [model.messages]);
 
 	useEffect(() => {
 		if (animationList) {
@@ -245,6 +277,7 @@ export function ModelObject(model) {
 		vrm.scene.traverse((obj) => {
 			obj.frustumCulled = false;
 		});
+		vrm.scene.name = "assistant";
 
 		// scene.add(vrm.scene);
 
@@ -253,6 +286,35 @@ export function ModelObject(model) {
 		// Load animation
 		useFrame((state, delta) => {
 			if (currentVrm) {
+				let messageObject;
+				let outputJson;
+				if (activeMessage) {
+					messageObject = JSON.parse(activeMessage);
+					const outputString = messageObject.outputs.Output;
+					const outputJSON = JSON.parse(outputString);
+
+					//convert outputJSON.tone to lowercase
+					outputJSON.tone = outputJSON.tone.toLowerCase();
+
+					// Extract the Output parameter
+					if(outputJSON.tone.toLowerCase() === "neutral" ){
+						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 0 );
+						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 0 );
+						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 0 );
+					} else if (outputJSON.tone.toLowerCase() === "confused" ){
+						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 1 );
+						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 1 );
+						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 0 );
+					} else if (outputJSON.tone.toLowerCase() === "friendly" ){
+						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 0 );
+						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 1 );
+						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 0 );
+					} else if (outputJSON.tone.toLowerCase() === "angry" ){
+						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 0 );
+						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 0 );
+						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 1 );
+					}
+				}
 				currentVrm.update(delta);
 			}
 			if (currentMixer) {
@@ -266,11 +328,48 @@ export function ModelObject(model) {
 			currentMixer.update(clock.getDelta());
 		});
 
+		const testJsonString = `{
+			"tone": "friendly",
+			"message": "No problem! Here you go: Test response complete. Is there anything else I can help you with?"
+		  }`;
+		const testString = `Hey there! Is there anything else I can help you with? I know a wide range of topics.`;
+		let testObject;
+		let outputJSON;
+		if (activeMessage.length > 0) {
+			testObject = JSON.parse(activeMessage);
+			const outputString = testObject.outputs.Output;
+			outputJSON = JSON.parse(outputString);
+
+			// Extract the Output parameter
+			// console.log("that obj", outputJSON);
+
+		}
+
 		return (
 			<group
 				position={[model.positionX, model.positionY, model.positionZ]}
 				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
 			>
+				<Text
+					font={model.threeObjectPlugin + model.defaultFont}
+					position={[1, 1.5, 0]}
+					className="content"
+					scale={[0.5, 0.5, 0.5]}
+					// rotation-y={-Math.PI / 2}
+					width={0.1}
+					maxWidth={1}
+					wrap={0.1}
+					height={0.1}
+					color={0xffffff}
+					transform
+				>
+					{outputJSON && String(outputJSON.message)}
+					{outputJSON && ("Tone: " + String(outputJSON.tone))}
+				</Text>
+				<mesh position={[1, 1.5, -0.01]}>
+					<planeGeometry attach="geometry" args={[0.65, 0.85]} />
+					<meshBasicMaterial attach="material" color={0x000000} opacity={0.5}	transparent={ true } />
+				</mesh>
 				<primitive object={vrm.scene} />
 			</group>
 		);

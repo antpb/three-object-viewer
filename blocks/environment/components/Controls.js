@@ -36,6 +36,84 @@ const Controls = (props) => {
 	const { camera, scene } = useThree();
 
 	useEffect(() => {
+		console.log("controls", props.mobileControls);
+
+		if(props.mobileControls !== null && props.mobileControls?.direction !== undefined){
+			if(props.mobileControls.direction.angle === "down"){
+				setMoveForward(false);
+				setMoveBackward(true);
+				setMoveLeft(false);
+				setMoveRight(false);
+			} else if(props.mobileControls.direction.angle === "up"){
+				setMoveBackward(false);
+				setMoveForward(true);
+				setMoveLeft(false);
+				setMoveRight(false);
+			} else if(props.mobileControls.direction.angle === "left"){
+				setMoveLeft(true);
+				setMoveForward(false);
+				setMoveBackward(false);
+				setMoveRight(false);
+			} else if(props.mobileControls.direction.angle === "right"){
+				setMoveRight(true);
+				setMoveLeft(false);
+				setMoveForward(false);
+				setMoveBackward(false);
+			} else {
+				setMoveForward(false);
+				setMoveBackward(false);
+				setMoveLeft(false);
+				setMoveRight(false);
+			}
+		} else {
+			setMoveForward(false);
+			setMoveBackward(false);
+			setMoveLeft(false);
+			setMoveRight(false);
+		}
+
+	}, [props.mobileControls]);
+
+	// useEffect(() => {
+	// 	console.log("rot controls", props.mobileRotControls);
+
+	// 	if(props.mobileRotControls !== null && props.mobileRotControls?.direction !== undefined){
+	// 		if(props.mobileRotControls.direction.angle === "down"){
+	// 			setMoveForward(false);
+	// 			setMoveBackward(true);
+	// 			setMoveLeft(false);
+	// 			setMoveRight(false);
+	// 		} else if(props.mobileRotControls.direction.angle === "up"){
+	// 			setMoveBackward(false);
+	// 			setMoveForward(true);
+	// 			setMoveLeft(false);
+	// 			setMoveRight(false);
+	// 		} else if(props.mobileRotControls.direction.angle === "left"){
+	// 			setMoveLeft(true);
+	// 			setMoveForward(false);
+	// 			setMoveBackward(false);
+	// 			setMoveRight(false);
+	// 		} else if(props.mobileRotControls.direction.angle === "right"){
+	// 			setMoveRight(true);
+	// 			setMoveLeft(false);
+	// 			setMoveForward(false);
+	// 			setMoveBackward(false);
+	// 		} else {
+	// 			setMoveForward(false);
+	// 			setMoveBackward(false);
+	// 			setMoveLeft(false);
+	// 			setMoveRight(false);
+	// 		}
+	// 	} else {
+	// 		setMoveForward(false);
+	// 		setMoveBackward(false);
+	// 		setMoveLeft(false);
+	// 		setMoveRight(false);
+	// 	}
+
+	// }, [props.mobileRotControls]);
+
+	useEffect(() => {
 		const playerThing = world.getRigidBody(props.something.current.handle);
 		const x = Number(spawnPos[0]);
 		const y = Number(spawnPos[1]);
@@ -154,6 +232,28 @@ const Controls = (props) => {
 			}
 			setClick(false);
 		}
+		if (props.mobileRotControls) {
+			const rotationSpeed = 0.03;
+			const threshold = 45;
+
+			switch (props.mobileRotControls.direction.angle) {
+				case 'left':
+				  controlsRef.current.camera.rotation.y += rotationSpeed;
+				  break;
+				case 'right':
+				  controlsRef.current.camera.rotation.y -= rotationSpeed;
+				  break;
+				//   case 'down':
+				// 	controlsRef.current.camera.rotation.x -= rotationSpeed;
+				// 	break;
+				//   case 'up':
+				// 	controlsRef.current.camera.rotation.x += rotationSpeed;
+				// 	break;
+				  default:
+				  break;
+			  }		
+			}
+		  
 		if (moveForward) {
 			if (playerThing) {
 				controlsRef.current.moveForward(velocity);
@@ -489,54 +589,58 @@ const Controls = (props) => {
 		document.addEventListener("keyup", onKeyUp);
 
 	return (
-		<PointerLockControls
-			position={[props.spawnPoint[0], props.spawnPoint[1], props.spawnPoint[2]]}
-			onUpdate={() => {
-				if (controlsRef.current) {
-					controlsRef.current.addEventListener("lock", () => {
-						console.log("lock");
-						isLocked.current = true;
-					});
-					controlsRef.current.addEventListener("unlock", () => {
-						console.log("unlock");
-						isLocked.current = false;
-					});
-				}
-			}}
-			onChange={() => {
-				if (p2pcf && controlsRef) {
-					const position = [
-						controlsRef.current.camera.position.x,
-						controlsRef.current.camera.position.y,
-						controlsRef.current.camera.position.z
-					];
-					const rotation = [
-						controlsRef.current.camera.rotation.x,
-						controlsRef.current.camera.rotation.y,
-						controlsRef.current.camera.rotation.z
-					];
-					const message =
-						`{ "${p2pcf.clientId}": [{ "position" : [` +
-						position +
-						`]},{ "rotation" : [` +
-						rotation +
-						`]},{ "profileImage" : ["` +
-						userData.profileImage +
-						`"]}]}`;
-					p2pcf.broadcast(new TextEncoder().encode(message));
-				}
-				const rotatingPlayer = scene.getObjectByName("playerOne");
-				const euler = new Euler();
-				const rotation = euler.setFromQuaternion(
-					controlsRef.current.camera.quaternion
-				);
-				const radians =
-					rotation.z > 0 ? rotation.z : 2 * Math.PI + rotation.z;
-				const degrees = MathUtils.radToDeg(radians);
-				rotatingPlayer.rotation.set(0, radians, 0);
-			}}
-			ref={controlsRef}
-		/>
+		<>
+			<PointerLockControls
+				position={[props.spawnPoint[0], props.spawnPoint[1], props.spawnPoint[2]]}
+				onUpdate={() => {
+					if (controlsRef.current) {
+						controlsRef.current.addEventListener("lock", () => {
+							console.log("lock");
+							isLocked.current = true;
+						});
+						controlsRef.current.addEventListener("unlock", () => {
+							console.log("unlock");
+							isLocked.current = false;
+						});
+					}
+				}}
+				onChange={() => {
+					if (p2pcf && controlsRef) {
+						const position = [
+							controlsRef.current.camera.position.x,
+							controlsRef.current.camera.position.y,
+							controlsRef.current.camera.position.z
+						];
+						const rotation = [
+							controlsRef.current.camera.rotation.x,
+							controlsRef.current.camera.rotation.y,
+							controlsRef.current.camera.rotation.z
+						];
+						const message =
+							`{ "${p2pcf.clientId}": [{ "position" : [` +
+							position +
+							`]},{ "rotation" : [` +
+							rotation +
+							`]},{ "profileImage" : ["` +
+							userData.profileImage +
+							`"]}]}`;
+						p2pcf.broadcast(new TextEncoder().encode(message));
+					}
+					const rotatingPlayer = scene.getObjectByName("playerOne");
+					const euler = new Euler();
+					const rotation = euler.setFromQuaternion(
+						controlsRef.current.camera.quaternion
+					);
+					const radians =
+						rotation.z > 0 ? rotation.z : 2 * Math.PI + rotation.z;
+					const degrees = MathUtils.radToDeg(radians);
+					rotatingPlayer.rotation.set(0, radians, 0);
+				}}
+				maxPolarAngle={Math.PI / 6}
+				minPolarAngle={Math.PI / 6}
+				ref={controlsRef}
+			/>
+	</>
 	);
 };
 
