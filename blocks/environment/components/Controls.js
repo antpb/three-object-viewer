@@ -636,8 +636,6 @@ const Controls = (props) => {
 					const degrees = MathUtils.radToDeg(radians);
 					rotatingPlayer.rotation.set(0, radians, 0);
 				}}
-				maxPolarAngle={Math.PI / 6}
-				minPolarAngle={Math.PI / 6}
 				ref={controlsRef}
 			/>
 	</>

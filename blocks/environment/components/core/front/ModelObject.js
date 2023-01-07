@@ -367,7 +367,7 @@ export function ModelObject(model) {
 					{outputJSON && ("Tone: " + String(outputJSON.tone))}
 				</Text>
 				<mesh position={[1, 1.5, -0.01]}>
-					<planeGeometry attach="geometry" args={[0.65, 0.85]} />
+					<planeGeometry attach="geometry" args={[0.65, 1.5]} />
 					<meshBasicMaterial attach="material" color={0x000000} opacity={0.5}	transparent={ true } />
 				</mesh>
 				<primitive object={vrm.scene} />

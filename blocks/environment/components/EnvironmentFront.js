@@ -154,7 +154,7 @@ function ChatBox(props) {
 		};
   
 	return (
-	  <div style={{ marginTop: "-140px", position: "relative", bottom: "15%", left: "5%", width: "50%", height: "10%" }}>
+	  <div style={{ zIndex:100, marginTop: "-140px", position: "relative", bottom: "15%", left: "5%", width: "50%", height: "10%" }}>
 		{/* {props.messages.map((message, index) => (
 		  <p key={index}>{message}</p>
 		))} */}
@@ -1417,8 +1417,9 @@ export default function EnvironmentFront(props) {
 					<ChatBox 
 					setMessages = {setMessages}
 					messages = {messages}
+					style = {{					zIndex: 100,				}}
 					key="something"/>
-					<ReactNipple
+					{/* <ReactNipple
 						// supports all nipplejs options
 						// see https://github.com/yoannmoinet/nipplejs#options
 						options={{ mode: 'static', position: { top: '50%', left: '50%' } }}
@@ -1453,7 +1454,7 @@ export default function EnvironmentFront(props) {
 						// see https://github.com/yoannmoinet/nipplejs#start
 						onMove={(evt, data) => setMobileRotControls(data)}
 						onEnd={(evt, data) => setMobileRotControls(null)}
-					/>
+					/> */}
 				</>
 			);
 		}
