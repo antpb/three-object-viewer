@@ -10,6 +10,9 @@ const threeApp = document.querySelectorAll(
 const modelsToAdd = document.querySelectorAll(
 	".three-object-three-app-model-block"
 );
+const npcsToAdd = document.querySelectorAll(
+	".three-object-three-app-npc-block"
+);
 const htmlToAdd = document.querySelectorAll(
 	".three-object-three-app-three-text-block"
 );

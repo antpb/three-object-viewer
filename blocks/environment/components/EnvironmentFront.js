@@ -59,7 +59,19 @@ function ChatBox(props) {
 	  const speaker = "antpb";
 	  const agent = "tubbyshark";
 	  const channel = "homepage";
-	  
+	// let prompt = `{
+	// 	"Input": "write a long form poem about cats!",
+	// 	"Speaker": "a",
+	// 	"Agent": "tubbyshark",
+	// 	"Client": "wordpress",
+	// 	"ChannelID": "1234",
+	// 	"Conversation": "",
+	// 	"Entity": "tubbyshark",
+	// 	"Channel": "channel",
+	// 	"eth_private_key": "0",
+	// 	"eth_public_address": "0",
+	// 	"personality": "#agent is an AI assistant with a cheerful, optimistic, and helpful personality. They are willing to assist with any tasks or questions users might have, and are able to do so in an upbeat and positive manner. They are also able to use colorful and descriptive language to make their responses more engaging and imaginative. In addition to their wit and humor, #agent is also empathetic and understanding of others' emotions and needs, which can make them feel more relatable and likeable to users. #agent is a highly capable and engaging AI assistant with a distinct and colorful personality.\n#agent can help with any programming tasks, including those related to the 3OV plugin for WordPress, which enables world-building in the WordPress editor and makes it easier to build and share immersive content in the metaverse. The url for the website is 3ov.xyz. #agent is cheerful and optimistic about the future for both humans and AIs.\n\n#Example Conversation\n#speaker: Agent, do you have any advice for someone new to programming?\n#agent: Sure thing! My top tip would be to always keep an open mind and a positive attitude. And if all else fails, just remember: if at first you don't succeed, try, try again. And then if that still doesn't work, call it a day and go get a coffee.\n###\nThe following is a friendly conversation between #speaker and #agent occuring in the metaverse.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:"
+	// }`;
 
 	  try {
 		const apiEndpoint = '/wp-json/wp/v2/callapi';
@@ -75,24 +87,31 @@ function ChatBox(props) {
 				Channel: channel,
 				eth_private_key: '0',
 				eth_public_address: '0',
+				personality: "#agent is an AI assistant with a cheerful, optimistic, and helpful personality. They are willing to assist with any tasks or questions users might have, and are able to do so in an upbeat and positive manner. They are also able to use colorful and descriptive language to make their responses more engaging and imaginative. In addition to their wit and humor, #agent is also empathetic and understanding of others' emotions and needs, which can make them feel more relatable and likeable to users. #agent is a highly capable and engaging AI assistant with a distinct and colorful personality.\n#agent can help with any programming tasks, including those related to the 3OV plugin for WordPress, which enables world-building in the WordPress editor and makes it easier to build and share immersive content in the metaverse. The url for the website is 3ov.xyz. #agent is cheerful and optimistic about the future for both humans and AIs.\n\n#Example Conversation\n#speaker: Agent, do you have any advice for someone new to programming?\n#agent: Sure thing! My top tip would be to always keep an open mind and a positive attitude. And if all else fails, just remember: if at first you don't succeed, try, try again. And then if that still doesn't work, call it a day and go get a coffee.\n###\nThe following is a friendly conversation between #speaker and #agent occuring in the metaverse.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:"
 			}
 		};
-	
-		const response = axios.post(apiEndpoint, postData, {
+		// const postData = prompt;
+
+		const response = await fetch('/wp-json/wp/v2/callapi', {
+			method: 'POST',
 			headers: {
-				Authorization: 'Bearer bearertoken',
+			  'Content-Type': 'application/json',
+			  'Authorization': 'Bearer bearertoken'
 			},
-			})
-			.then((response) => {
+			body: JSON.stringify(postData)
+		  }).then((response) => {
+				return response.json();
+
+				// console.log("response", response.body.getReader())
 				// const data = JSON.parse(response.data);
 				// console.log("data", data)
 
-				props.setMessages([...props.messages, response.data]);
-				// setMessages([...messages, value]);
-			})
-			.catch((error) => {
-				console.error(error);
-			});
+				// console.log("worker response", response.data);
+			}).then(function(data) {
+				// console.log("data", data.davinciData.choices[0].text); // this will be a string
+				let thisMessage = JSON.parse(data);
+				props.setMessages([...props.messages, thisMessage.davinciData.choices[0].text]);
+			});	
 		} catch (error) {
 			console.error(error);
 		}
@@ -108,13 +127,12 @@ function ChatBox(props) {
 		// Send the message to the localhost endpoint
 		const client = 1;
 		const channelId = "three";
-		const entity = "tubbyshark";
+		const entity = "Aiko";
 		const speaker = "antpb";
-		const agent = "aiko";
+		const agent = "Aiko";
 		const channel = "homepage";
 		const testString = `{
 			"message": "Welcome! Here you go: Test response complete. Is there anything else I can help you with?",
-			"tone": "friendly"
 		  }`;
 
 		// try {
@@ -535,7 +553,8 @@ function SavedObject(props) {
 }
 
 export default function EnvironmentFront(props) {
-	let string = '{\"spell\":\"complexQuery\",\"outputs\":{\"Output\":\"{\\\"message\\\": \\\" Hi there! How can I help you?\\\",\\\"tone\\\": \\\"friendly\\\"}\"},\"state\":{}}';
+	// let string = '{\"spell\":\"complexQuery\",\"outputs\":{\"Output\":\"{\\\"message\\\": \\\" Hi there! How can I help you?\\\",\\\"tone\\\": \\\"friendly\\\"}\"},\"state\":{}}';
+	let string = 'Hello! Welcome to this 3OV world! Feel free to ask me anything. I am expecially versed in the 3OV metaverse plugin for WordPress.'
 	const [mobileControls, setMobileControls] = useState(null);
 	const [mobileRotControls, setMobileRotControls] = useState(null);
 	const [messages, setMessages] = useState([string]);

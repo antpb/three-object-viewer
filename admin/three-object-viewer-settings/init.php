@@ -1,5 +1,5 @@
 <?php
-//Register assets for Model Viewer Settings
+//Register assets for 3OV Settings
 add_action('init', function () {
     wp_enqueue_media();
     $handle = 'three-object-viewer-settings';
@@ -25,31 +25,38 @@ add_action('rest_api_init', function (){
         //Endpoint to get settings from
         [
             'methods' => ['GET'],
-            'callback' => function($request){
-                return rest_ensure_response( [
-                    'data' => [
-                        'enabled' => false,
-                    ]
-                ], 200);
-            },
-            'permission_callback' => function(){
+			'callback' => function($request){
+				$enabled = get_option( 'enabled', false );
+				$networkWorker = get_option( 'networkWorker', '' );
+				$openApiKey = get_option( 'openApiKey', '' );
+				return rest_ensure_response( [
+					'enabled' => $enabled,
+					'networkWorker' => $networkWorker,
+					'openApiKey' => $openApiKey,
+				], 200);
+			},
+					'permission_callback' => function(){
                 return current_user_can('manage_options');
             }
         ],
         //Endpoint to update settings at
         [
             'methods' => ['POST'],
-            'callback' => function($request){
-                return rest_ensure_response( $request->get_params(), 200);
-            },
-            'permission_callback' => function(){
+			'callback' => function($request){
+				$data = $request->get_json_params();
+				update_option( 'enabled', $data['enabled'] );
+				update_option( 'networkWorker', $data['networkWorker'] );
+				update_option( 'openApiKey', $data['openApiKey'] );
+				return rest_ensure_response( $data, 200);
+			},
+			'permission_callback' => function(){
                 return current_user_can('manage_options');
             }
         ]
     ]);
 });
 
-//Enqueue assets for Model Viewer Settings on admin page only
+//Enqueue assets for 3OV Settings on admin page only
 add_action('admin_enqueue_scripts', function ($hook) {
     if ('toplevel_page_three-object-viewer-settings' != $hook) {
         return;
@@ -57,11 +64,11 @@ add_action('admin_enqueue_scripts', function ($hook) {
     wp_enqueue_script('three-object-viewer-settings');
 });
 
-//Register Model Viewer Settings menu page
+//Register 3OV Settings menu page
 add_action('admin_menu', function () {
     add_menu_page(
-        __('Model Viewer Settings', 'three-object-viewer'),
-        __('Model Viewer Settings', 'three-object-viewer'),
+        __('3OV Settings', 'three-object-viewer'),
+        __('3OV Settings', 'three-object-viewer'),
         'manage_options',
         'three-object-viewer-settings',
         function () {

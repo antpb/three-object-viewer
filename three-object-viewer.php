@@ -23,6 +23,9 @@ include_once dirname( __FILE__ ) . '/blocks/environment/init.php';
 // Include model
 include_once dirname( __FILE__ ) . '/blocks/model-block/init.php';
 
+// Include npc
+include_once dirname( __FILE__ ) . '/blocks/npc-block/init.php';
+
 // Include sky
 include_once dirname( __FILE__ ) . '/blocks/sky-block/init.php';
 
@@ -55,4 +58,4 @@ add_action( 'plugins_loaded', function () {
 
 include_once dirname( __FILE__ ). '/inc/functions.php';
 include_once dirname( __FILE__ ). '/inc/hooks.php';
-// include_once dirname( __FILE__ ) . '/admin/three-object-viewer-settings/init.php';
+include_once dirname( __FILE__ ) . '/admin/three-object-viewer-settings/init.php';

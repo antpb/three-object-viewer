@@ -164,6 +164,7 @@ function threeobjectviewer_editor_assets() {
 						'three-object-viewer/three-portal-block',
 						'three-object-viewer/three-text-block',
 						'three-object-viewer/model-block',
+						'three-object-viewer/npc-block',
 						'three-object-viewer/sky-block',
 						'three-object-viewer/npc-block',
 						'three-object-viewer/three-image-block',

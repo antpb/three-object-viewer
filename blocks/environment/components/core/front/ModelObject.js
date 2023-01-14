@@ -180,24 +180,25 @@ export function ModelObject(model) {
 	}, []);	
 
 	useEffect(() => {
-		if ( activeMessage.tone === "neutral" || activeMessage.tone === "idle" ){
-			currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 0 );
-			currentVrm.update(clock.getDelta());
+		if (activeMessage?.tone){
+			if ( activeMessage.tone === "neutral" || activeMessage.tone === "idle" ){
+				currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 0 );
+				currentVrm.update(clock.getDelta());
+			}
+			else if ( activeMessage.tone === "confused" ){
+				currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 1 );
+				currentVrm.update(clock.getDelta());
+		
+			} else if ( activeMessage.tone === "friendly" ){
+				currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 1 );
+				currentVrm.update(clock.getDelta());
+		
+			} else if ( activeMessage.tone === "angry" ){
+				currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 1 );
+				currentVrm.update(clock.getDelta());
+		
+			}	
 		}
-		else if ( activeMessage.tone === "confused" ){
-			currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 1 );
-			currentVrm.update(clock.getDelta());
-	
-		} else if ( activeMessage.tone === "friendly" ){
-			currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 1 );
-			currentVrm.update(clock.getDelta());
-	
-		} else if ( activeMessage.tone === "angry" ){
-			currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 1 );
-			currentVrm.update(clock.getDelta());
-	
-		}
-
 		// create variable that converts activeMessage to json
 	}, [activeMessage]);
 
@@ -243,7 +244,10 @@ export function ModelObject(model) {
 
 
 	useEffect(() => {
+		console.log("allmessages", model)
+
 		setActiveMessage(model.messages[model.messages.length - 1]);
+		console.log("activemessage", activeMessage)
 	}, [model.messages]);
 
 	useEffect(() => {
@@ -286,33 +290,39 @@ export function ModelObject(model) {
 		// Load animation
 		useFrame((state, delta) => {
 			if (currentVrm) {
-				let messageObject;
+				// let messageObject;
 				let outputJson;
 				if (activeMessage) {
-					messageObject = JSON.parse(activeMessage);
-					const outputString = messageObject.outputs.Output;
-					const outputJSON = JSON.parse(outputString);
+					// messageObject = JSON.parse(activeMessage);
+					// const outputString = messageObject.outputs.Output;
+					try {
+						const outputJSON = JSON.parse(activeMessage);
+					} catch (e) {
+						const outputJSON = JSON.parse("null");
+					}
+				
+					if(outputJSON.tone){
+						//convert outputJSON.tone to lowercase
+						outputJSON.tone = outputJSON.tone.toLowerCase();
 
-					//convert outputJSON.tone to lowercase
-					outputJSON.tone = outputJSON.tone.toLowerCase();
-
-					// Extract the Output parameter
-					if(outputJSON.tone.toLowerCase() === "neutral" ){
-						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 0 );
-						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 0 );
-						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 0 );
-					} else if (outputJSON.tone.toLowerCase() === "confused" ){
-						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 1 );
-						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 1 );
-						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 0 );
-					} else if (outputJSON.tone.toLowerCase() === "friendly" ){
-						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 0 );
-						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 1 );
-						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 0 );
-					} else if (outputJSON.tone.toLowerCase() === "angry" ){
-						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 0 );
-						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 0 );
-						currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 1 );
+						// Extract the Output parameter
+						if(outputJSON.tone.toLowerCase() === "neutral" ){
+							currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 0 );
+							currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 0 );
+							currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 0 );
+						} else if (outputJSON.tone.toLowerCase() === "confused" ){
+							currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 1 );
+							currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 1 );
+							currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 0 );
+						} else if (outputJSON.tone.toLowerCase() === "friendly" ){
+							currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 0 );
+							currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 1 );
+							currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 0 );
+						} else if (outputJSON.tone.toLowerCase() === "angry" ){
+							currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 0 );
+							currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 0 );
+							currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 1 );
+						}
 					}
 				}
 				currentVrm.update(delta);
@@ -335,10 +345,11 @@ export function ModelObject(model) {
 		const testString = `Hey there! Is there anything else I can help you with? I know a wide range of topics.`;
 		let testObject;
 		let outputJSON;
-		if (activeMessage.length > 0) {
-			testObject = JSON.parse(activeMessage);
-			const outputString = testObject.outputs.Output;
-			outputJSON = JSON.parse(outputString);
+		if (activeMessage && activeMessage?.length > 0) {
+			testObject = activeMessage;
+			const outputString = testObject;
+			outputJSON = outputString;
+			// outputJSON = outputString;
 
 			// Extract the Output parameter
 			// console.log("that obj", outputJSON);
@@ -352,7 +363,7 @@ export function ModelObject(model) {
 			>
 				<Text
 					font={model.threeObjectPlugin + model.defaultFont}
-					position={[1, 1.5, 0]}
+					position={[0.5, 1.5, 0]}
 					className="content"
 					scale={[0.5, 0.5, 0.5]}
 					// rotation-y={-Math.PI / 2}
@@ -363,10 +374,10 @@ export function ModelObject(model) {
 					color={0xffffff}
 					transform
 				>
-					{outputJSON && String(outputJSON.message)}
-					{outputJSON && ("Tone: " + String(outputJSON.tone))}
+					{outputJSON && String(outputJSON)}
+					{/* {outputJSON && ("Tone: " + String(outputJSON.tone))} */}
 				</Text>
-				<mesh position={[1, 1.5, -0.01]}>
+				<mesh position={[0.5, 1.5, -0.01]}>
 					<planeGeometry attach="geometry" args={[0.65, 1.5]} />
 					<meshBasicMaterial attach="material" color={0x000000} opacity={0.5}	transparent={ true } />
 				</mesh>
