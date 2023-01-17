@@ -122,6 +122,7 @@ threeApp.forEach((threeApp) => {
 					videosToAdd={videosToAdd}
 					spawnPoint={spawnPoint ? spawnPoint : null}
 					htmlToAdd={htmlToAdd}
+					npcsToAdd={npcsToAdd}
 					sky={sky ? sky : ""}
 					previewImage={threePreviewImage}
 				/>

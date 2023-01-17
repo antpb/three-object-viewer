@@ -36,6 +36,7 @@ import { BoxGeometry } from "three";
 import { ThreeImage } from "./core/front/ThreeImage";
 import { ThreeVideo } from "./core/front/ThreeVideo";
 import { ModelObject } from "./core/front/ModelObject";
+import { NPCObject } from "./core/front/NPCObject";
 import { Portal } from "./core/front/Portal";
 import { Sky } from "./core/front/Sky";
 import { TextObject } from "./core/front/TextObject";
@@ -57,7 +58,7 @@ function ChatBox(props) {
 	  const channelId = "three";
 	  const entity = 1;
 	  const speaker = "antpb";
-	  const agent = "tubbyshark";
+	  const agent = "Aikonaut";
 	  const channel = "homepage";
 	// let prompt = `{
 	// 	"Input": "write a long form poem about cats!",
@@ -75,7 +76,14 @@ function ChatBox(props) {
 
 	  try {
 		const apiEndpoint = '/wp-json/wp/v2/callapi';
-
+		let finalPersonality = props.personality;
+		let newString = props.objectsInRoom.join(", ");
+		console.log("objects in room", newString);
+		if (finalPersonality.includes("ITEMS IN WORLD:")) {
+			finalPersonality = finalPersonality.replace("ITEMS IN WORLD:", "ITEMS IN WORLD: " + newString);
+		}
+		console.log("Final Personality", finalPersonality);
+		
 		const postData = {
 			inputs: {
 				Input: value,
@@ -87,7 +95,8 @@ function ChatBox(props) {
 				Channel: channel,
 				eth_private_key: '0',
 				eth_public_address: '0',
-				personality: "#agent is an AI assistant with a cheerful, optimistic, and helpful personality. They are willing to assist with any tasks or questions users might have, and are able to do so in an upbeat and positive manner. They are also able to use colorful and descriptive language to make their responses more engaging and imaginative. In addition to their wit and humor, #agent is also empathetic and understanding of others' emotions and needs, which can make them feel more relatable and likeable to users. #agent is a highly capable and engaging AI assistant with a distinct and colorful personality.\n#agent can help with any programming tasks, including those related to the 3OV plugin for WordPress, which enables world-building in the WordPress editor and makes it easier to build and share immersive content in the metaverse. The url for the website is 3ov.xyz. #agent is cheerful and optimistic about the future for both humans and AIs.\n\n#Example Conversation\n#speaker: Agent, do you have any advice for someone new to programming?\n#agent: Sure thing! My top tip would be to always keep an open mind and a positive attitude. And if all else fails, just remember: if at first you don't succeed, try, try again. And then if that still doesn't work, call it a day and go get a coffee.\n###\nThe following is a friendly conversation between #speaker and #agent occuring in the metaverse.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:"
+				personality: finalPersonality
+				// personality: "#agent is an AI assistant with a cheerful, optimistic, and helpful personality. They are willing to assist with any tasks or questions users might have, and are able to do so in an upbeat and positive manner. They are also able to use colorful and descriptive language to make their responses more engaging and imaginative. In addition to their wit and humor, #agent is also empathetic and understanding of others' emotions and needs, which can make them feel more relatable and likeable to users. #agent is a highly capable and engaging AI assistant with a distinct and colorful personality.\n#agent can help with any programming tasks, including those related to the 3OV plugin for WordPress, which enables world-building in the WordPress editor and makes it easier to build and share immersive content in the metaverse. The url for the website is 3ov.xyz. #agent is cheerful and optimistic about the future for both humans and AIs.\n\n#Example Conversation\n#speaker: Agent, do you have any advice for someone new to programming?\n#agent: Sure thing! My top tip would be to always keep an open mind and a positive attitude. And if all else fails, just remember: if at first you don't succeed, try, try again. And then if that still doesn't work, call it a day and go get a coffee.\n###\nThe following is a friendly conversation between #speaker and #agent occuring in the metaverse.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:"
 			}
 		};
 		// const postData = prompt;
@@ -373,6 +382,7 @@ function SavedObject(props) {
 		const meshesToAdd = [];
 		const portalsToAdd = [];
 		const spawnPointsToAdd = [];
+		const npcToAdd = [];
 		let omiColliders;
 
 		gltf.scene.scale.set(props.scale, props.scale, props.scale);
@@ -554,13 +564,14 @@ function SavedObject(props) {
 
 export default function EnvironmentFront(props) {
 	// let string = '{\"spell\":\"complexQuery\",\"outputs\":{\"Output\":\"{\\\"message\\\": \\\" Hi there! How can I help you?\\\",\\\"tone\\\": \\\"friendly\\\"}\"},\"state\":{}}';
-	let string = 'Hello! Welcome to this 3OV world! Feel free to ask me anything. I am expecially versed in the 3OV metaverse plugin for WordPress.'
+	let string = 'Hello! Welcome to this 3OV world! Feel free to ask me anything. I am especially versed in the 3OV metaverse plugin for WordPress.'
 	const [mobileControls, setMobileControls] = useState(null);
 	const [mobileRotControls, setMobileRotControls] = useState(null);
 	const [messages, setMessages] = useState([string]);
 	const [loaded, setLoaded] = useState(false);
 	const [spawnPoints, setSpawnPoints] = useState();
 	const [messageObject, setMessageObject] = useState({"tone": "happy", "message": "hello!"});
+	const [objectsInRoom, setObjectsInRoom] = useState([]);
 
 	if (loaded === true) {
 		if (props.deviceTarget === "vr") {
@@ -948,7 +959,165 @@ export default function EnvironmentFront(props) {
 													/>
 												);
 											})}
+											{Object.values(
+												props.npcsToAdd
+											).map((npc, index) => {
+												const modelPosX =
+													npc.querySelector(
+														"p.npc-block-position-x"
+													)
+														? npc.querySelector(
+															"p.npc-block-position-x"
+														).innerText
+														: "";
 
+												const modelPosY =
+													npc.querySelector(
+														"p.npc-block-position-y"
+													)
+														? npc.querySelector(
+															"p.npc-block-position-y"
+														).innerText
+														: "";
+
+												const modelPosZ =
+													npc.querySelector(
+														"p.npc-block-position-z"
+													)
+														? npc.querySelector(
+															"p.npc-block-position-z"
+														).innerText
+														: "";
+
+												const modelScaleX =
+													npc.querySelector(
+														"p.npc-block-scale-x"
+													)
+														? npc.querySelector(
+															"p.npc-block-scale-x"
+														).innerText
+														: "";
+
+												const modelScaleY =
+													npc.querySelector(
+														"p.npc-block-scale-y"
+													)
+														? npc.querySelector(
+															"p.npc-block-scale-y"
+														).innerText
+														: "";
+
+												const modelScaleZ =
+													npc.querySelector(
+														"p.npc-block-scale-z"
+													)
+														? npc.querySelector(
+															"p.npc-block-scale-z"
+														).innerText
+														: "";
+
+												const modelRotationX =
+													npc.querySelector(
+														"p.npc-block-rotation-x"
+													)
+														? npc.querySelector(
+															"p.npc-block-rotation-x"
+														).innerText
+														: "";
+
+												const modelRotationY =
+													npc.querySelector(
+														"p.npc-block-rotation-y"
+													)
+														? npc.querySelector(
+															"p.npc-block-rotation-y"
+														).innerText
+														: "";
+
+												const modelRotationZ =
+													npc.querySelector(
+														"p.npc-block-rotation-z"
+													)
+														? npc.querySelector(
+															"p.npc-block-rotation-z"
+														).innerText
+														: "";
+
+												const url = npc.querySelector(
+													"p.npc-block-url"
+												)
+													? npc.querySelector(
+														"p.npc-block-url"
+													).innerText
+													: "";
+
+												const animations =
+													npc.querySelector(
+														"p.npc-block-animations"
+													)
+														? npc.querySelector(
+															"p.npc-block-animations"
+														).innerText
+														: "";
+
+												const alt = npc.querySelector(
+													"p.npc-block-alt"
+												)
+													? npc.querySelector(
+														"p.npc-block-alt"
+													).innerText
+													: "";
+
+												const personality = npc.querySelector(
+													"p.npc-block-personality"
+												)
+													? npc.querySelector(
+														"p.npc-block-personality"
+													).innerText
+													: "";
+												
+												const collidable =
+													npc.querySelector(
+														"p.npc-block-collidable"
+													)
+														? npc.querySelector(
+															"p.npc-block-collidable"
+														).innerText
+														: false;
+
+												return (
+													<NPCObject
+														key={index}
+														url={url}
+														positionX={modelPosX}
+														positionY={modelPosY}
+														positionZ={modelPosZ}
+														scaleX={modelScaleX}
+														scaleY={modelScaleY}
+														scaleZ={modelScaleZ}
+														messages={messages}
+														rotationX={
+															modelRotationX
+														}
+														rotationY={
+															modelRotationY
+														}
+														rotationZ={
+															modelRotationZ
+														}
+														alt={alt}
+														animations={animations}
+														collidable={collidable}
+														message={
+															messageObject
+														}
+														threeObjectPlugin={threeObjectPlugin}
+														defaultFont={defaultFont}
+														personality={personality}
+														// idle={idle}
+													/>
+												);
+											})}
 											{Object.values(
 												props.modelsToAdd
 											).map((model, index) => {
@@ -1058,6 +1227,10 @@ export default function EnvironmentFront(props) {
 													).innerText
 													: "";
 
+													if (!objectsInRoom.includes(alt)) {
+														setObjectsInRoom([...objectsInRoom, alt]);
+													}
+													
 												const collidable =
 													model.querySelector(
 														"p.model-block-collidable"
@@ -1066,7 +1239,6 @@ export default function EnvironmentFront(props) {
 															"p.model-block-collidable"
 														).innerText
 														: false;
-
 												return (
 													<ModelObject
 														key={index}
@@ -1433,11 +1605,28 @@ export default function EnvironmentFront(props) {
 							enableZoom={ true }
 						/> */}
 					</VRCanvas>
-					<ChatBox 
-					setMessages = {setMessages}
-					messages = {messages}
-					style = {{					zIndex: 100,				}}
-					key="something"/>
+					{Object.values(
+						props.npcsToAdd
+					).map((npc, index) => {
+ 
+					const personality = npc.querySelector(
+						"p.npc-block-personality"
+					)
+						? npc.querySelector(
+							"p.npc-block-personality"
+						).innerText
+						: "";
+					
+					return (
+						<ChatBox 
+						setMessages = {setMessages}
+						objectsInRoom = {objectsInRoom}
+						personality = {personality}
+						messages = {messages}
+						style = {{zIndex: 100}}
+						key="something"/>
+					)
+					})}	
 					{/* <ReactNipple
 						// supports all nipplejs options
 						// see https://github.com/yoannmoinet/nipplejs#options

@@ -830,6 +830,10 @@ function ThreeObject(props) {
 	let modelID;
 	const editorModelsToAdd = [];
 
+	let npcObject;
+	let npcID;
+	const editorNPCsToAdd = [];
+
 	let portalobject;
 	let portalID;
 	const editorPortalsToAdd = [];
@@ -874,6 +878,15 @@ function ThreeObject(props) {
 							modelID = innerBlock.clientId;
 							const something = [{ modelobject, modelID }];
 							editorModelsToAdd.push({ modelobject, modelID });
+						}
+						if (
+							innerBlock.name ===
+							"three-object-viewer/npc-block"
+						) {
+							npcObject = innerBlock.attributes;
+							npcID = innerBlock.clientId;
+							const something = [{ npcObject, npcID }];
+							editorNPCsToAdd.push({ npcObject, npcID });
 						}
 						if (
 							innerBlock.name ===
@@ -1006,6 +1019,35 @@ function ThreeObject(props) {
 							focusPosition={props.focusPosition}
 							selected={props.selected}
 							modelID={model.modelID}
+							changeFocusPoint={props.changeFocusPoint}
+							transformMode={props.transformMode}
+							// setFocusPosition={props.setFocusPosition}
+							shouldFocus={props.shouldFocus}
+						/>
+					);
+				}
+			})}
+			{Object.values(editorNPCsToAdd).map((npc, index) => {
+				if (npc.npcObject.threeObjectUrl) {
+					return (
+						<ModelObject
+							url={npc.npcObject.threeObjectUrl}
+							positionX={npc.npcObject.positionX}
+							positionY={npc.npcObject.positionY}
+							positionZ={npc.npcObject.positionZ}
+							scaleX={npc.npcObject.scaleX}
+							scaleY={npc.npcObject.scaleY}
+							scaleZ={npc.npcObject.scaleZ}
+							rotationX={npc.npcObject.rotationX}
+							rotationY={npc.npcObject.rotationY}
+							rotationZ={npc.npcObject.rotationZ}
+							alt={npc.npcObject.alt}
+							animations={npc.npcObject.animations}
+							focusID ={props.focusID}
+							setFocusPosition={props.setFocusPosition}
+							focusPosition={props.focusPosition}
+							selected={props.selected}
+							modelID={npc.npcID}
 							changeFocusPoint={props.changeFocusPoint}
 							transformMode={props.transformMode}
 							// setFocusPosition={props.setFocusPosition}
