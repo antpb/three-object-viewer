@@ -1,7 +1,8 @@
 import * as THREE from "three";
+import { Fog } from 'three/src/scenes/Fog'
 // import { Reflector } from 'three/examples/jsm/objects/Reflector';
 import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
-import { useLoader, useThree } from "@react-three/fiber";
+import { useLoader, useThree, useFrame } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import { TextureLoader } from "three/src/loaders/TextureLoader";
@@ -75,7 +76,7 @@ function ChatBox(props) {
 	// }`;
 
 	  try {
-		const apiEndpoint = '/wp-json/wp/v2/callapi';
+		const apiEndpoint = '/wp-json/wp/v2/callAlchemy';
 		let finalPersonality = props.personality;
 		let newString = props.objectsInRoom.join(", ");
 		console.log("objects in room", newString);
@@ -101,7 +102,7 @@ function ChatBox(props) {
 		};
 		// const postData = prompt;
 
-		const response = await fetch('/wp-json/wp/v2/callapi', {
+		const response = await fetch('/wp-json/wp/v2/callAlchemy', {
 			method: 'POST',
 			headers: {
 			  'Content-Type': 'application/json',
@@ -144,38 +145,6 @@ function ChatBox(props) {
 			"message": "Welcome! Here you go: Test response complete. Is there anything else I can help you with?",
 		  }`;
 
-		// try {
-		//   const spell_handler = "main";
-		//   const spell_version = "latest";
-		//   const url = encodeURI(
-		// 	  `https://localhost:8001/spells/${spell_handler}/${spell_version}`
-		//   )
-		//   const response = await axios.post(`${url}`, {
-		// 	  inputs: {
-		// 		Input: value,
-		// 		Speaker: speaker,
-		// 		Agent: agent,
-		// 		Client: client,
-		// 		ChannelID: channelId,
-		// 		Entity: entity,
-		// 		Channel: channel,
-		// 	  },
-		// 	}).then((response) => {
-		// 	  const data = response.data;
-  
-		// 	  const outputs = data.outputs;
-  
-		// 	  const outputKey = Object.keys(outputs)[0];
-  
-		// 	  const output = outputs[outputKey];
-  
-		// 	  props.setMessages([...props.messages, output]);
-		// 	});
-		// 	  // setMessages([...messages, value]);
-		//   } catch (error) {
-		//   console.error(error);
-		// }
-		  // props.setMessages([...props.messages, value]);
 		  props.setMessages([...props.messages, testString]);
 
 		};
@@ -191,40 +160,7 @@ function ChatBox(props) {
 		</form>
 	  </div>
 	);
-  }
-  
-
-// function ChatBox() {
-// 	const [messages, setMessages] = useState(["Welcome to the room!"]);
-  
-// 	const handleSubmit = (event) => {
-// 	  event.preventDefault();
-  
-// 	  // Get the value of the input element
-// 	  const input = event.target.elements.message;
-// 	  const value = input.value;
-  
-// 	  // Add the message to the list of messages
-// 	  setMessages([...messages, value]);
-  
-// 	  // Clear the input field
-// 	  input.value = "";
-// 	};
-  
-// 	return (
-// 	  <div style={{ position: "absolute", top: "50%", left: "50%", width: "50%", height: "50%" }}>
-// 		{messages.map((message) => (
-// 		  <div>{message}</div>
-// 		))}
-  
-// 		<form onSubmit={handleSubmit}>
-// 		  <label htmlFor="message">Message:</label>
-// 		  <input type="text" name="message" />
-// 		  <button type="submit">Send</button>
-// 		</form>
-// 	  </div>
-// 	);
-//   }
+  }  
   
 /**
  * Represents a participant in a virtual reality scene.
@@ -357,7 +293,7 @@ function SavedObject(props) {
 	useThree(({ camera }) => {
 		camera.add(listener);
 	});
-
+	
 	const gltf = useLoader(GLTFLoader, url, (loader) => {
 		const dracoLoader = new DRACOLoader();
 		dracoLoader.setDecoderPath(
@@ -567,17 +503,52 @@ export default function EnvironmentFront(props) {
 	let string = 'Hello! Welcome to this 3OV world! Feel free to ask me anything. I am especially versed in the 3OV metaverse plugin for WordPress.'
 	const [mobileControls, setMobileControls] = useState(null);
 	const [mobileRotControls, setMobileRotControls] = useState(null);
+	const [isTouching, setIsTouching] = useState(false);
+	const [isVisible, setIsVisible] = useState(false);
+	const [isHolding, setIsHolding] = useState(false);
+
+	const handleTouchStart = (e) => {
+		e.preventDefault();
+		setIsVisible(true);
+		setIsHolding(true);
+		clearTimeout(timeoutId);
+	  }
+	  
+	  const handleTouchMove = (e) => {
+		e.preventDefault();
+		if (e.touches.length === 0) {
+		  setIsHolding(false);
+		}
+	  }
+	  
+	  const handleTouchEnd = (e) => {
+		e.preventDefault();
+		setIsHolding(false);
+		timeoutId = setTimeout(() => {
+		  if (!isHolding) {
+			setIsVisible(false);
+		  }
+		}, 2000);
+	  }
+	  
+	  let timeoutId;
+	  
+	  
+
 	const [messages, setMessages] = useState([string]);
 	const [loaded, setLoaded] = useState(false);
 	const [spawnPoints, setSpawnPoints] = useState();
 	const [messageObject, setMessageObject] = useState({"tone": "happy", "message": "hello!"});
 	const [objectsInRoom, setObjectsInRoom] = useState([]);
-
+	
 	if (loaded === true) {
 		if (props.deviceTarget === "vr") {
 			return (
 				<>
 					<VRCanvas
+					onTouchStart={handleTouchStart}
+					onTouchMove={handleTouchMove}
+					onTouchEnd={handleTouchEnd}
 						camera={{
 							fov: 50,
 							zoom: 1,
@@ -1626,43 +1597,53 @@ export default function EnvironmentFront(props) {
 						style = {{zIndex: 100}}
 						key="something"/>
 					)
-					})}	
-					{/* <ReactNipple
-						// supports all nipplejs options
-						// see https://github.com/yoannmoinet/nipplejs#options
-						options={{ mode: 'static', position: { top: '50%', left: '50%' } }}
-						// any unknown props will be passed to the container element, e.g. 'title', 'style' etc
-						style={{
-							outline: '1px dashed red',
-							width: 150,
-							height: 150,
-							position: "absolute",
-							bottom: 30,
-							left: 30
-						}}
-						// all events supported by nipplejs are available as callbacks
-						// see https://github.com/yoannmoinet/nipplejs#start
-						onMove={(evt, data) => setMobileControls(data)}
-						onEnd={(evt, data) => setMobileControls(null)}
-					/>
-					<ReactNipple
-						// supports all nipplejs options
-						// see https://github.com/yoannmoinet/nipplejs#options
-						options={{ mode: 'static', position: { top: '50%', left: '50%' } }}
-						// any unknown props will be passed to the container element, e.g. 'title', 'style' etc
-						style={{
-							outline: '1px dashed red',
-							width: 150,
-							height: 150,
-							position: "absolute",
-							bottom: 30,
-							right: 30
-						}}
-						// all events supported by nipplejs are available as callbacks
-						// see https://github.com/yoannmoinet/nipplejs#start
-						onMove={(evt, data) => setMobileRotControls(data)}
-						onEnd={(evt, data) => setMobileRotControls(null)}
-					/> */}
+					})}
+					{isVisible && (
+						<>
+						<ReactNipple
+							// supports all nipplejs options
+							// see https://github.com/yoannmoinet/nipplejs#options
+							options={{ mode: 'static', position: { top: '50%', left: '50%' } }}
+							// any unknown props will be passed to the container element, e.g. 'title', 'style' etc
+							style={{
+								outline: '1px dashed red',
+								width: 150,
+								height: 150,
+								position: "absolute",
+								bottom: 30,
+								left: 30,
+								userSelect: "none",
+								opacity: isVisible ? 1 : 0,
+								transition: "opacity 0.5s"
+							}}
+							// all events supported by nipplejs are available as callbacks
+							// see https://github.com/yoannmoinet/nipplejs#start
+							onMove={(evt, data) => setMobileControls(data)}
+							onEnd={(evt, data) => setMobileControls(null)}
+						/>
+						<ReactNipple
+							// supports all nipplejs options
+							// see https://github.com/yoannmoinet/nipplejs#options
+							options={{ mode: 'static', position: { top: '50%', left: '50%' } }}
+							// any unknown props will be passed to the container element, e.g. 'title', 'style' etc
+							style={{
+								outline: '1px dashed red',
+								width: 150,
+								height: 150,
+								position: "absolute",
+								bottom: 30,
+								right: 30,
+								userSelect: "none",
+								opacity: isVisible ? 1 : 0,
+								transition: "opacity 0.5s" 
+							}}
+							// all events supported by nipplejs are available as callbacks
+							// see https://github.com/yoannmoinet/nipplejs#start
+							onMove={(evt, data) => setMobileRotControls(data)}
+							onEnd={(evt, data) => setMobileRotControls(null)}
+						/>
+					</>
+					)}
 				</>
 			);
 		}
