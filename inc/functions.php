@@ -177,6 +177,19 @@ function callAlchemy() {
 	  ),
 	) );
   }
+  function rest_three_decrypt($value = ""){
+    if( empty( $value ) ) {
+        return $value;
+    }
+
+    $output = null;
+    $secret_key = defined('AUTH_KEY') ? AUTH_KEY : "";
+    $secret_iv = defined('SECURE_AUTH_KEY') ? SECURE_AUTH_KEY : "";
+    $key = hash('sha256',$secret_key);
+    $iv = substr(hash('sha256',$secret_iv),0,16);
+
+    return openssl_decrypt(base64_decode($value),"AES-256-CBC",$key,0,$iv);
+}
   add_action( 'rest_api_init', __NAMESPACE__ . '\callAlchemy' );
 
   // The function that is called when the endpoint is hit
@@ -195,10 +208,11 @@ function callAlchemy() {
 	// 	}
 	// }
 
-	$worker_url = get_option( 'networkWorker', '' );
-    $api_key = get_option( 'openApiKey', '' );
+	$worker_url = get_option( '3ov_mp_networkWorker', '' );
+    $api_key = rest_three_decrypt( get_option( '3ov_ai_openApiKey', '' ) );
 	$json_blob = $request->get_params();
 
+	
 	// turn $json_blob into json
 	$new_blob = json_encode($json_blob);
 
