@@ -11,7 +11,7 @@ import {
 } from "@react-three/drei";
 import { GLTFAudioEmitterExtension } from "three-omi";
 import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
-import { VRMUtils, VRMSchema, VRMLoaderPlugin, VRMExpressionPresetName } from "@pixiv/three-vrm";
+import { VRMUtils, VRMSchema, VRMLoaderPlugin, VRMExpressionPresetName, VRMHumanBoneName } from "@pixiv/three-vrm";
 import idle from "../../../../../inc/avatars/friendly.fbx";
 import friendly from "../../../../../inc/avatars/idle.fbx";
 import talking from "../../../../../inc/avatars/talking.fbx";
@@ -83,7 +83,7 @@ const mixamoVRMRigMap = {
  * @param {VRM} vrm A target VRM
  * @returns {Promise<AnimationClip>} The converted AnimationClip
  */
-function loadMixamoAnimation(url, vrm, positionY, positionX, positionZ, scaleX, scaleY, scaleZ, rotationX, rotationY, rotationZ, rotationW) {
+function loadMixamoAnimation(url, vrm) {
 	const loader = new FBXLoader(); // A loader which loads FBX
 	return loader.loadAsync(url).then((asset) => {
 		const clip = AnimationClip.findByName(asset.animations, 'mixamo.com'); // extract the AnimationClip
@@ -174,6 +174,7 @@ export function NPCObject(model) {
 	const [idleFile, setIdleFile] = useState(model.threeObjectPlugin + idle);
 	const [clicked, setClickEvent] = useState();
 	const [activeMessage, setActiveMessage] = useState([]);
+	const [headPositionY, setHeadPositionY] = useState([]);
 	const [url, set] = useState(model.url);
 	useEffect(() => {
 		setTimeout(() => set(model.url), 2000);
@@ -284,22 +285,41 @@ export function NPCObject(model) {
 
 		// scene.add(vrm.scene);
 
+
 		const currentVrm = vrm;
 		const currentMixer = new AnimationMixer(currentVrm.scene);
+
+		useEffect(() => {
+			// if (currentVrm) {
+			// 	setHeadPositionY(currentVrm.humanoid.getRawBoneNode(VRMHumanBoneName.Head).position.y);
+			// }
+			if (currentVrm) {
+				let head = currentVrm.humanoid.getRawBoneNode(VRMHumanBoneName.Head);
+				let worldPos = new Vector3();
+				head.getWorldPosition(worldPos);
+				setHeadPositionY(worldPos.y);
+			}
+		}, [currentVrm]);
+
 		// Load animation
 		useFrame((state, delta) => {
 			if (currentVrm) {
-				// let messageObject;
+
 				let outputJson;
 				if (activeMessage) {
 					// messageObject = JSON.parse(activeMessage);
 					// const outputString = messageObject.outputs.Output;
 					try {
 						const outputJSON = JSON.parse(activeMessage);
+						console.log(outputJSON);
 					} catch (e) {
 						const outputJSON = JSON.parse("null");
 					}
-				
+
+					currentVrm.expressionManager.setValue( VRMExpressionPresetName.Neutral, 0 );
+					currentVrm.expressionManager.setValue( VRMExpressionPresetName.Relaxed, 0.8 );
+						currentVrm.update(clock.getDelta());
+			
 					if(outputJSON.tone){
 						//convert outputJSON.tone to lowercase
 						outputJSON.tone = outputJSON.tone.toLowerCase();
@@ -332,10 +352,17 @@ export function NPCObject(model) {
 		});
 
 		// retarget the animations from mixamo to the current vrm 
-		loadMixamoAnimation(idleFile, currentVrm, model.positionX, model.positionY, model.positionZ, model.scaleX, model.scaleY, model.scaleZ).then((clip) => {
-			currentMixer.clipAction(clip).play();
-			currentMixer.update(clock.getDelta());
-		});
+		if (model.defaultAvatarAnimation){
+			loadMixamoAnimation(model.defaultAvatarAnimation, currentVrm).then((clip) => {
+				currentMixer.clipAction(clip).play();
+				currentMixer.update(clock.getDelta());
+			});	
+		} else {
+			loadMixamoAnimation(idleFile, currentVrm).then((clip) => {
+				currentMixer.clipAction(clip).play();
+				currentMixer.update(clock.getDelta());
+			});	
+		}
 
 		const testJsonString = `{
 			"tone": "friendly",
@@ -362,7 +389,7 @@ export function NPCObject(model) {
 			>
 				<Text
 					font={model.threeObjectPlugin + model.defaultFont}
-					position={[0.5, 1.5, 0]}
+					position={[0.6, headPositionY, 0]}
 					className="content"
 					scale={[0.5, 0.5, 0.5]}
 					// rotation-y={-Math.PI / 2}
@@ -376,7 +403,7 @@ export function NPCObject(model) {
 					{outputJSON && String(outputJSON)}
 					{/* {outputJSON && ("Tone: " + String(outputJSON.tone))} */}
 				</Text>
-				<mesh position={[0.5, 1.5, -0.01]}>
+				<mesh position={[0.6, headPositionY, -0.01]}>
 					<planeGeometry attach="geometry" args={[0.65, 1.5]} />
 					<meshBasicMaterial attach="material" color={0x000000} opacity={0.5}	transparent={ true } />
 				</mesh>

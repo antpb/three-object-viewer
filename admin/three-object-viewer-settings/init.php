@@ -28,11 +28,13 @@ add_action('rest_api_init', function (){
 			'callback' => function($request){
 				$enabled = get_option( 'enabled', false );
 				$networkWorker = get_option( 'networkWorker', '' );
+				$defaultVRM = get_option( 'defaultVRM', '' );
 				$openApiKey = get_option( 'openApiKey', '' );
 				return rest_ensure_response( [
 					'enabled' => $enabled,
 					'networkWorker' => $networkWorker,
 					'openApiKey' => $openApiKey,
+					'defaultVRM' => $defaultVRM,
 				], 200);
 			},
 					'permission_callback' => function(){
@@ -46,6 +48,7 @@ add_action('rest_api_init', function (){
 				$data = $request->get_json_params();
 				update_option( 'enabled', $data['enabled'] );
 				update_option( 'networkWorker', $data['networkWorker'] );
+				update_option( 'defaultVRM', $data['defaultVRM'] );
 				update_option( 'openApiKey', $data['openApiKey'] );
 				return rest_ensure_response( $data, 200);
 			},

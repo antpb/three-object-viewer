@@ -13,8 +13,6 @@ import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
 import axios from "axios";
 import ReactNipple from 'react-nipple';
 
-// import Networking from "./Networking";
-
 import {
 	useAnimations,
 	Stats,
@@ -59,7 +57,7 @@ function ChatBox(props) {
 	  const channelId = "three";
 	  const entity = 1;
 	  const speaker = "antpb";
-	  const agent = "Aikonaut";
+	  const agent = "Pixel";
 	  const channel = "homepage";
 	// let prompt = `{
 	// 	"Input": "write a long form poem about cats!",
@@ -75,7 +73,7 @@ function ChatBox(props) {
 	// 	"personality": "#agent is an AI assistant with a cheerful, optimistic, and helpful personality. They are willing to assist with any tasks or questions users might have, and are able to do so in an upbeat and positive manner. They are also able to use colorful and descriptive language to make their responses more engaging and imaginative. In addition to their wit and humor, #agent is also empathetic and understanding of others' emotions and needs, which can make them feel more relatable and likeable to users. #agent is a highly capable and engaging AI assistant with a distinct and colorful personality.\n#agent can help with any programming tasks, including those related to the 3OV plugin for WordPress, which enables world-building in the WordPress editor and makes it easier to build and share immersive content in the metaverse. The url for the website is 3ov.xyz. #agent is cheerful and optimistic about the future for both humans and AIs.\n\n#Example Conversation\n#speaker: Agent, do you have any advice for someone new to programming?\n#agent: Sure thing! My top tip would be to always keep an open mind and a positive attitude. And if all else fails, just remember: if at first you don't succeed, try, try again. And then if that still doesn't work, call it a day and go get a coffee.\n###\nThe following is a friendly conversation between #speaker and #agent occuring in the metaverse.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:"
 	// }`;
 
-	  try {
+	try {
 		const apiEndpoint = '/wp-json/wp/v2/callAlchemy';
 		let finalPersonality = props.personality;
 		let newString = props.objectsInRoom.join(", ");
@@ -189,42 +187,46 @@ function Participant(participant) {
 
 		const theScene = useThree();
 
-		participant.p2pcf.on("msg", (peer, data) => {
-			const finalData = new TextDecoder("utf-8").decode(data);
-			const participantData = JSON.parse(finalData);
-			const participantObject = theScene.scene.getObjectByName(
-				peer.client_id
-			);
-			if (participantObject) {
-				const loadedProfile = useLoader(
-					TextureLoader,
-					participantData[peer.client_id][2].profileImage
+		useEffect(() => {
+			participant.p2pcf.on("msg", (peer, data) => {
+				// console.log(peer, data);
+				const finalData = new TextDecoder("utf-8").decode(data);
+				const participantData = JSON.parse(finalData);
+				const participantObject = theScene.scene.getObjectByName(
+					peer.client_id
 				);
-				if (loadedProfile) {
-					participantObject.traverse((obj) => {
-						if (
-							obj.name === "profile" &&
-							obj.material.map === null
-						) {
-							const newMat = obj.material.clone();
-							newMat.map = loadedProfile;
-							obj.material = newMat;
-							obj.material.map.needsUpdate = true;
-						}
-					});
+				console.log("someparticipant", participantObject)
+				if (participantObject) {
+					// const loadedProfile = useLoader(
+					// 	TextureLoader,
+					// 	participantData[peer.client_id][2].profileImage
+					// );
+					// if (loadedProfile) {
+					// 	participantObject.traverse((obj) => {
+					// 		if (
+					// 			obj.name === "profile" &&
+					// 			obj.material.map === null
+					// 		) {
+					// 			const newMat = obj.material.clone();
+					// 			newMat.map = loadedProfile;
+					// 			obj.material = newMat;
+					// 			obj.material.map.needsUpdate = true;
+					// 		}
+					// 	});
+					// }
+					participantObject.position.set(
+						participantData[peer.client_id][0].position[0],
+						participantData[peer.client_id][0].position[1],
+						participantData[peer.client_id][0].position[2]
+					);
+					participantObject.rotation.set(
+						participantData[peer.client_id][1].rotation[0],
+						participantData[peer.client_id][1].rotation[1],
+						participantData[peer.client_id][1].rotation[2]
+					);
 				}
-				participantObject.position.set(
-					participantData[peer.client_id][0].position[0],
-					participantData[peer.client_id][0].position[1],
-					participantData[peer.client_id][0].position[2]
-				);
-				participantObject.rotation.set(
-					participantData[peer.client_id][1].rotation[0],
-					participantData[peer.client_id][1].rotation[1],
-					participantData[peer.client_id][1].rotation[2]
-				);
-			}
-		});
+			});
+		}, []);
 
 		// participant.p2pcf.on('peerclose', peer => {
 		// 	const participantObject = theScene.scene.getObjectByName(peer.client_id);
@@ -234,6 +236,8 @@ function Participant(participant) {
 		// })
 
 		const modelClone = SkeletonUtils.clone(playerController.scene);
+		// set modelClone visible to true
+		modelClone.visible = true;
 
 		return (
 			<>
@@ -246,18 +250,22 @@ function Participant(participant) {
 }
 
 function Participants(props) {
-	const [participants, setParticipant] = useState([]);
-	const p2pcf = window.p2pcf;
-	if (p2pcf) {
-		p2pcf.on("peerconnect", (peer) => {
-			console.log("connected peer", peer);
-			setParticipant((current) => [...current, peer.client_id]);
-		});
-	}
+
+	useEffect(() => {
+		const p2pcf = window.p2pcf;
+		if (p2pcf) {
+			p2pcf.on("peerconnect", (peer) => {
+				// console.log("connected peer", peer);
+				// add peer.client_id to participants
+				props.setParticipant([...props.participants, peer.client_id]);
+			});
+		}
+	}, []);
+	console.log("participants", props.participants)
 	return (
 		<>
-			{participants &&
-				participants.map((item, index) => {
+			{props.participants &&
+				props.participants.map((item, index) => {
 					return (
 						<>
 							<Participant
@@ -269,7 +277,8 @@ function Participants(props) {
 					);
 				})}
 		</>
-	);
+	);	
+
 }
 
 /**
@@ -280,6 +289,7 @@ function Participants(props) {
  * @return {JSX.Element} The saved object.
  */
 function SavedObject(props) {
+
 	const meshRef = useRef();
 	const [url, set] = useState(props.url);
 	useEffect(() => {
@@ -499,43 +509,16 @@ function SavedObject(props) {
 }
 
 export default function EnvironmentFront(props) {
+	const [participants, setParticipant] = useState([]);
+
 	// let string = '{\"spell\":\"complexQuery\",\"outputs\":{\"Output\":\"{\\\"message\\\": \\\" Hi there! How can I help you?\\\",\\\"tone\\\": \\\"friendly\\\"}\"},\"state\":{}}';
 	let string = 'Hello! Welcome to this 3OV world! Feel free to ask me anything. I am especially versed in the 3OV metaverse plugin for WordPress.'
 	const [mobileControls, setMobileControls] = useState(null);
-	const [mobileRotControls, setMobileRotControls] = useState(null);
-	const [isTouching, setIsTouching] = useState(false);
-	const [isVisible, setIsVisible] = useState(false);
-	const [isHolding, setIsHolding] = useState(false);
-
-	const handleTouchStart = (e) => {
-		e.preventDefault();
-		setIsVisible(true);
-		setIsHolding(true);
-		clearTimeout(timeoutId);
-	  }
-	  
-	  const handleTouchMove = (e) => {
-		e.preventDefault();
-		if (e.touches.length === 0) {
-		  setIsHolding(false);
-		}
-	  }
-	  
-	  const handleTouchEnd = (e) => {
-		e.preventDefault();
-		setIsHolding(false);
-		timeoutId = setTimeout(() => {
-		  if (!isHolding) {
-			setIsVisible(false);
-		  }
-		}, 2000);
-	  }
-	  
-	  let timeoutId;
-	  
+	const [mobileRotControls, setMobileRotControls] = useState(null);	  
 	  
 
 	const [messages, setMessages] = useState([string]);
+	const [messageHistory, setMessageHistory] = useState([string]);
 	const [loaded, setLoaded] = useState(false);
 	const [spawnPoints, setSpawnPoints] = useState();
 	const [messageObject, setMessageObject] = useState({"tone": "happy", "message": "hello!"});
@@ -546,9 +529,6 @@ export default function EnvironmentFront(props) {
 			return (
 				<>
 					<VRCanvas
-					onTouchStart={handleTouchStart}
-					onTouchMove={handleTouchMove}
-					onTouchEnd={handleTouchEnd}
 						camera={{
 							fov: 50,
 							zoom: 1,
@@ -569,6 +549,7 @@ export default function EnvironmentFront(props) {
 						  }}
 					>
 						{/* <Perf className="stats" /> */}
+						{/* <fog attach="fog" color="hotpink" near={100} far={20} /> */}
 						<Hands />
 						<DefaultXRControllers />
 						<ambientLight intensity={0.5} />
@@ -607,7 +588,10 @@ export default function EnvironmentFront(props) {
 												mobileControls={mobileControls}
 												mobileRotControls={mobileRotControls}
 											/>
-											<Participants />
+											<Participants 
+											setParticipant={setParticipant}
+											participants={participants}
+											/>
 											<SavedObject
 												positionY={props.positionY}
 												rotationY={props.rotationY}
@@ -1083,6 +1067,7 @@ export default function EnvironmentFront(props) {
 															messageObject
 														}
 														threeObjectPlugin={threeObjectPlugin}
+														defaultAvatarAnimation={defaultAvatarAnimation}
 														defaultFont={defaultFont}
 														personality={personality}
 														// idle={idle}
@@ -1598,8 +1583,7 @@ export default function EnvironmentFront(props) {
 						key="something"/>
 					)
 					})}
-					{isVisible && (
-						<>
+						{/* <>
 						<ReactNipple
 							// supports all nipplejs options
 							// see https://github.com/yoannmoinet/nipplejs#options
@@ -1613,7 +1597,6 @@ export default function EnvironmentFront(props) {
 								bottom: 30,
 								left: 30,
 								userSelect: "none",
-								opacity: isVisible ? 1 : 0,
 								transition: "opacity 0.5s"
 							}}
 							// all events supported by nipplejs are available as callbacks
@@ -1634,7 +1617,6 @@ export default function EnvironmentFront(props) {
 								bottom: 30,
 								right: 30,
 								userSelect: "none",
-								opacity: isVisible ? 1 : 0,
 								transition: "opacity 0.5s" 
 							}}
 							// all events supported by nipplejs are available as callbacks
@@ -1642,8 +1624,7 @@ export default function EnvironmentFront(props) {
 							onMove={(evt, data) => setMobileRotControls(data)}
 							onEnd={(evt, data) => setMobileRotControls(null)}
 						/>
-					</>
-					)}
+					</> */}
 				</>
 			);
 		}

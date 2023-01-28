@@ -2,7 +2,7 @@ const { Component, render } = wp.element;
 import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
 
 import EnvironmentFront from "./components/EnvironmentFront";
-// import Networking from "./components/Networking";
+import Networking from "./components/Networking";
 
 const threeApp = document.querySelectorAll(
 	".three-object-three-app-environment"
@@ -89,13 +89,12 @@ threeApp.forEach((threeApp) => {
 
 		render(
 			<>
-				{/* <div id="networking">
+				{/* <div id="networking" style={{position: "absolute", top: 50, zIndex: 100}}>
 					<div id="session-id"></div>
 					<p>Peers</p>
 					<div id="peers"></div>
 					<p>Messages</p>
 					<div id="messages" style={{display: "none"}}></div>
-					<div class="button" id="send-button">Send Button</div>
 					<button class="button" id="audio-button">Connect Audio</button>
 					<div id="videos"></div>
 				</div> */}
@@ -116,6 +115,7 @@ threeApp.forEach((threeApp) => {
 					backgroundColor={backgroundColor}
 					userData={userData}
 					postSlug={postSlug}
+					defaultAvatarAnimation={defaultAvatarAnimation}
 					modelsToAdd={modelsToAdd}
 					portalsToAdd={portalsToAdd}
 					imagesToAdd={imagesToAdd}

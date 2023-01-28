@@ -10,6 +10,9 @@ export default function App({ getSettings, updateSettings }) {
 	//Use to show loading spinner
 	const [isLoading, setIsLoading] = useState(true);
 	const [isOpenApiKeyVisible, setIsOpenApiKeyVisible] = useState(false);
+
+	const [defaultVRM, setDefaultVRM] = useState();
+
 	//When app loads, get settings
 	useEffect(() => {
 		getSettings().then((r) => {
@@ -23,20 +26,81 @@ export default function App({ getSettings, updateSettings }) {
 		let response = await updateSettings(settings)
 		setSettings(response);
 	};
+
+	const runUploader = (event) => {
+		event.preventDefault()
 	
+		// If the media frame already exists, reopen it.
+		if (frame) {
+			frame.open()
+			return
+		}
+	
+		// Create a new media frame
+		frame = wp.media({
+			title: 'Select or Upload Media',
+			button: {
+				text: 'Use this media',
+			},
+			multiple: false, // Set to true to allow multiple files to be selected
+		})
+		frame.on( 'select', function() {
+      
+			// Get media attachment details from the frame state
+			var attachment = frame.state().get('selection').first().toJSON();
+			setSettings({ ...settings, defaultVRM: attachment.url });
+			// Send the attachment URL to our custom image input field.
+		  });
+	  
+		  
+		// Finally, open the modal on click
+		frame.open()
+	}
+
 	//Show a spinner if loading
 	if (isLoading) {
 		return <div className="spinner" style={{ visibility: "visible" }} />;
 	}
-
+	const clearDefaultAnimation = () => {
+		setSettings({ ...settings, defaultVRM: "" });
+	  }
+	  
 	//Show settings if not loading
 	return (
+		<>
 		<table class="form-table">
 			<tbody>
 				<tr>
 					<td>
 						<div><h2>3OV Settings</h2></div>
 						<div><p>Here you can manage the settings for 3OV to tweak global configuration options and save your API keys for connected serivces.</p></div>
+					</td>
+				</tr>
+				<tr>
+					<td><h3>Avatar Settings</h3></td>
+				</tr>
+				<tr>
+					<td>
+						<label htmlFor="defaultVRM"><b>Default animation</b></label>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						{ settings.defaultVRM ? settings.defaultVRM : "No custom default animation set"}
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<button type='button' onClick={runUploader}>
+							Set Default Animation
+						</button>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<button type='button' onClick={clearDefaultAnimation}>
+							Clear Default Animation
+						</button>
 					</td>
 				</tr>
 				<tr>
@@ -109,5 +173,6 @@ export default function App({ getSettings, updateSettings }) {
 				</tr>
 			</tbody>
 		</table>
+		</>	
 	);
 }

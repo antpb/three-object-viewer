@@ -260,12 +260,15 @@ export function ModelObject(model) {
 			}
 		});
 
-		// retarget the animations from mixamo to the current vrm 
-		loadMixamoAnimation(idleFile, currentVrm, model.positionX, model.positionY, model.positionZ, model.scaleX, model.scaleY, model.scaleZ).then((clip) => {
-			currentMixer.clipAction(clip).play();
-			currentMixer.update(clock.getDelta());
-		});
-
+		// retarget the animations from mixamo to the current vrm
+		useEffect(() => {
+		if (currentVrm) {
+			loadMixamoAnimation(idleFile, currentVrm, model.positionX, model.positionY, model.positionZ, model.scaleX, model.scaleY, model.scaleZ).then((clip) => {
+				currentMixer.clipAction(clip).play();
+				currentMixer.update(clock.getDelta());
+			});
+		}
+		}, []);
 		return (
 			<group
 				position={[model.positionX, model.positionY, model.positionZ]}
