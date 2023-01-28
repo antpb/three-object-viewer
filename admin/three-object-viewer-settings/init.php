@@ -26,15 +26,11 @@ add_action('rest_api_init', function (){
         [
             'methods' => ['GET'],
 			'callback' => function($request){
-				$enabled = get_option( 'enabled', false );
-				$networkWorker = get_option( 'networkWorker', '' );
-				$defaultVRM = get_option( 'defaultVRM', '' );
-				$openApiKey = get_option( 'openApiKey', '' );
 				return rest_ensure_response( [
-					'enabled' => $enabled,
-					'networkWorker' => $networkWorker,
-					'openApiKey' => $openApiKey,
-					'defaultVRM' => $defaultVRM,
+					'enabled' => get_option( '3ov_ai_enabled', false ),
+					'networkWorker' => get_option( '3ov_mp_networkWorker', '' ),
+					'openApiKey' => three_decrypt ( get_option( '3ov_ai_openApiKey', '' ) ),
+					'defaultVRM' => get_option( '3ov_defaultVRM', '' ),
 				], 200);
 			},
 					'permission_callback' => function(){
@@ -46,10 +42,10 @@ add_action('rest_api_init', function (){
             'methods' => ['POST'],
 			'callback' => function($request){
 				$data = $request->get_json_params();
-				update_option( 'enabled', $data['enabled'] );
-				update_option( 'networkWorker', $data['networkWorker'] );
-				update_option( 'defaultVRM', $data['defaultVRM'] );
-				update_option( 'openApiKey', $data['openApiKey'] );
+				update_option( '3ov_ai_enabled', $data['enabled'] );
+				update_option( '3ov_mp_networkWorker', $data['networkWorker'] );
+				update_option( '3ov_defaultVRM', $data['defaultVRM'] );
+				update_option( '3ov_ai_openApiKey', three_encrypt( $data['openApiKey'] ) );
 				return rest_ensure_response( $data, 200);
 			},
 			'permission_callback' => function(){
@@ -80,3 +76,30 @@ add_action('admin_menu', function () {
         }
     );
 });
+
+function three_encrypt($value = ""){
+    if( empty( $value ) ) {
+        return $value;
+    }
+    
+    $output = null;
+    $secret_key = defined('AUTH_KEY') ? AUTH_KEY : "";
+    $secret_iv = defined('SECURE_AUTH_KEY') ? SECURE_AUTH_KEY : "";
+    $key = hash('sha256',$secret_key);
+    $iv = substr(hash('sha256',$secret_iv),0,16);
+    return base64_encode(openssl_encrypt($value,"AES-256-CBC",$key,0,$iv));
+}
+
+function three_decrypt($value = ""){
+    if( empty( $value ) ) {
+        return $value;
+    }
+
+    $output = null;
+    $secret_key = defined('AUTH_KEY') ? AUTH_KEY : "";
+    $secret_iv = defined('SECURE_AUTH_KEY') ? SECURE_AUTH_KEY : "";
+    $key = hash('sha256',$secret_key);
+    $iv = substr(hash('sha256',$secret_iv),0,16);
+
+    return openssl_decrypt(base64_decode($value),"AES-256-CBC",$key,0,$iv);
+}
