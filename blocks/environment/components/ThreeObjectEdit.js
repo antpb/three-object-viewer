@@ -651,6 +651,194 @@ function ModelObject(props) {
 	);
 }
 
+function NPCObject(props) {
+	const [url, set] = useState(props.url);
+	useEffect(() => {
+		setTimeout(() => set(props.url), 2000);
+	}, []);
+
+	const gltf = useLoader(GLTFLoader, props.url, (loader) => {
+		loader.register((parser) => {
+			return new VRMLoaderPlugin(parser);
+		});
+	});
+
+	const { actions } = useAnimations(gltf.animations, gltf.scene);
+
+	const TransformController = ({ condition, wrap, children }) =>
+	condition ? wrap(children) : children;
+	const [isSelected, setIsSelected] = useState();
+	const [modelBlockAttributes, setModelBlockAttributes] = useState(
+		wp.data.select("core/block-editor").getBlockAttributes(props.modelID)
+	);
+	const obj = useRef();
+
+	// update id if active
+	useEffect(() => {
+		if( props.focusID === props.modelID ) {
+			const someFocus = new THREE.Vector3(Number(props.positionX), Number(props.positionY), Number(props.positionZ));
+			props.changeFocusPoint(someFocus);
+		}
+	}, [props.focusID]);
+
+	if (gltf?.userData?.gltfExtensions?.VRM) {
+		const vrm = gltf.userData.vrm;
+		VRMUtils.rotateVRM0(vrm);
+		const rotationVRM = vrm.scene.rotation.y + parseFloat(0);
+		return (
+			<>
+				<Select
+					box
+					multiple
+					onChange={(e) => {
+						e.length !== 0 ? setIsSelected(true) : setIsSelected(false);
+					}}
+					filter={(items) => items}
+				>
+					<TransformController
+						condition={props.focusID === props.modelID}
+						wrap={(children) => (
+							<TransformControls
+								enabled={props.focusID === props.modelID}
+								mode={
+									props.transformMode && props.transformMode !== "scale"
+										? props.transformMode
+										: "translate"
+								}
+								object={obj}
+								size={0.5}
+								onMouseUp={(e) => {
+									const rot = new THREE.Euler(0, 0, 0, "XYZ");
+									const scale = e?.target.worldScale;
+									rot.setFromQuaternion(
+										e?.target.worldQuaternion
+									);
+									wp.data
+										.dispatch("core/block-editor")
+										.updateBlockAttributes(props.modelID, {
+											positionX: e?.target.worldPosition.x,
+											positionY: e?.target.worldPosition.y,
+											positionZ: e?.target.worldPosition.z,
+											rotationX: rot.x,
+											rotationY: rot.y,
+											rotationZ: rot.z,
+										});
+									setModelBlockAttributes(
+										wp.data
+											.select("core/block-editor")
+											.getBlockAttributes(props.modelID)
+									);
+								}}
+							>
+								{children}
+							</TransformControls>
+						)}
+					>
+						{modelBlockAttributes && (
+							<group
+								ref={obj}
+								position={[
+									modelBlockAttributes.positionX,
+									modelBlockAttributes.positionY,
+									modelBlockAttributes.positionZ
+								]}
+								rotation={[
+									modelBlockAttributes.rotationX,
+									modelBlockAttributes.rotationY,
+									modelBlockAttributes.rotationZ
+								]}
+							>
+								<mesh position={[0.6, 0.9, -0.01]}>
+									<planeGeometry attach="geometry" args={[0.65, 1.5]} />
+									<meshBasicMaterial attach="material" color={0x000000} opacity={0.5}	transparent={ true } />
+								</mesh>
+								<primitive object={vrm.scene} />
+							</group>
+						)}
+					</TransformController>
+				</Select>
+			</>
+		);
+	}
+	gltf.scene.rotation.set(0, 0, 0);
+	// const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene]);
+
+	return (
+		<>
+			<Select
+				box
+				multiple
+				onChange={(e) => {
+					e.length !== 0 ? setIsSelected(true) : setIsSelected(false);
+				}}
+				filter={(items) => items}
+			>
+				<TransformController
+					condition={props.focusID === props.modelID}
+					wrap={(children) => (
+						<TransformControls
+							enabled={props.focusID === props.modelID}
+							mode={
+								props.transformMode
+									? props.transformMode
+									: "translate"
+							}
+							object={obj}
+							size={0.5}
+							onMouseUp={(e) => {
+								const rot = new THREE.Euler(0, 0, 0, "XYZ");
+								const scale = e?.target.worldScale;
+								rot.setFromQuaternion(
+									e?.target.worldQuaternion
+								);
+								wp.data
+									.dispatch("core/block-editor")
+									.updateBlockAttributes(props.modelID, {
+										positionX: e?.target.worldPosition.x,
+										positionY: e?.target.worldPosition.y,
+										positionZ: e?.target.worldPosition.z,
+										rotationX: rot.x,
+										rotationY: rot.y,
+										rotationZ: rot.z,
+									});
+								setModelBlockAttributes(
+									wp.data
+										.select("core/block-editor")
+										.getBlockAttributes(props.modelID)
+								);
+							}}
+						>
+							{children}
+						</TransformControls>
+					)}
+				>
+					{modelBlockAttributes && (
+						<group
+							ref={obj}
+							position={[
+								modelBlockAttributes.positionX,
+								modelBlockAttributes.positionY,
+								modelBlockAttributes.positionZ
+							]}
+							rotation={[
+								modelBlockAttributes.rotationX,
+								modelBlockAttributes.rotationY,
+								modelBlockAttributes.rotationZ
+							]}
+							scale={[
+							1,1,1
+							]}
+						>
+							<primitive object={gltf.scene} />
+						</group>
+					)}
+				</TransformController>
+			</Select>
+		</>
+	);
+}
+
+
 function PortalObject(model) {
 	const [isSelected, setIsSelected] = useState();
 	const [portalBlockAttributes, setPortalBlockAttributes] = useState(
@@ -1030,14 +1218,11 @@ function ThreeObject(props) {
 			{Object.values(editorNPCsToAdd).map((npc, index) => {
 				if (npc.npcObject.threeObjectUrl) {
 					return (
-						<ModelObject
+						<NPCObject
 							url={npc.npcObject.threeObjectUrl}
 							positionX={npc.npcObject.positionX}
 							positionY={npc.npcObject.positionY}
 							positionZ={npc.npcObject.positionZ}
-							scaleX={npc.npcObject.scaleX}
-							scaleY={npc.npcObject.scaleY}
-							scaleZ={npc.npcObject.scaleZ}
 							rotationX={npc.npcObject.rotationX}
 							rotationY={npc.npcObject.rotationY}
 							rotationZ={npc.npcObject.rotationZ}

@@ -180,27 +180,27 @@ export function NPCObject(model) {
 		setTimeout(() => set(model.url), 2000);
 	}, []);	
 
-	useEffect(() => {
-		if (activeMessage?.tone){
-			if ( activeMessage.tone === "neutral" || activeMessage.tone === "idle" ){
-				currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 0 );
-				currentVrm.update(clock.getDelta());
-			}
-			else if ( activeMessage.tone === "confused" ){
-				currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 1 );
-				currentVrm.update(clock.getDelta());
+	// useEffect(() => {
+	// 	if (activeMessage?.tone){
+	// 		if ( activeMessage.tone === "neutral" || activeMessage.tone === "idle" ){
+	// 			currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 0 );
+	// 			currentVrm.update(clock.getDelta());
+	// 		}
+	// 		else if ( activeMessage.tone === "confused" ){
+	// 			currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 1 );
+	// 			currentVrm.update(clock.getDelta());
 		
-			} else if ( activeMessage.tone === "friendly" ){
-				currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 1 );
-				currentVrm.update(clock.getDelta());
-			} else if ( activeMessage.tone === "angry" ){
-				currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 1 );
-				currentVrm.update(clock.getDelta());
+	// 		} else if ( activeMessage.tone === "friendly" ){
+	// 			currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 1 );
+	// 			currentVrm.update(clock.getDelta());
+	// 		} else if ( activeMessage.tone === "angry" ){
+	// 			currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 1 );
+	// 			currentVrm.update(clock.getDelta());
 		
-			}	
-		}
-		// create variable that converts activeMessage to json
-	}, [activeMessage]);
+	// 		}	
+	// 	}
+	// 	// create variable that converts activeMessage to json
+	// }, [activeMessage]);
 
 	const [listener] = useState(() => new AudioListener());
 	const { scene, clock } = useThree();
@@ -261,18 +261,6 @@ export function NPCObject(model) {
 	}, []);
 
 	const generator = gltf.asset.generator;
-
-	// return tilt brush if tilt brush
-	if (String(generator).includes("Tilt Brush")) {
-		return (
-			<primitive
-				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
-				position={[model.positionX, model.positionY, model.positionZ]}
-				scale={[model.scaleX, model.scaleY, model.scaleZ]}
-				object={gltf.scene}
-			/>
-		);
-	}
 
 	if (gltf?.userData?.gltfExtensions?.VRM) {	
 		const vrm = gltf.userData.vrm;
@@ -364,11 +352,6 @@ export function NPCObject(model) {
 			});	
 		}
 
-		const testJsonString = `{
-			"tone": "friendly",
-			"message": "No problem! Here you go: Test response complete. Is there anything else I can help you with?"
-		  }`;
-		const testString = `Hey there! Is there anything else I can help you with? I know a wide range of topics.`;
 		let testObject;
 		let outputJSON;
 		if (activeMessage && activeMessage?.length > 0) {
@@ -401,7 +384,6 @@ export function NPCObject(model) {
 					transform
 				>
 					{outputJSON && String(outputJSON)}
-					{/* {outputJSON && ("Tone: " + String(outputJSON.tone))} */}
 				</Text>
 				<mesh position={[0.6, headPositionY, -0.01]}>
 					<planeGeometry attach="geometry" args={[0.65, 1.5]} />
@@ -453,72 +435,46 @@ export function NPCObject(model) {
 		return circle;
 	});
 
-	if (model.collidable === "1") {
-		return (
-			<>
-				<RigidBody
-					type="fixed"
-					colliders={audioObject ? "cuboid" : "trimesh"}
-					rotation={[
-						model.rotationX,
-						model.rotationY,
-						model.rotationZ
-					]}
-					position={[
-						model.positionX,
-						model.positionY,
-						model.positionZ
-					]}
-					scale={[model.scaleX + 0.01, model.scaleY + 0.01, model.scaleZ + 0.01]}
-					onCollisionEnter={(manifold, target, other) => {
-						setClickEvent(!clicked);
-						if (audioObject) {
-							if (clicked) {
-								audioObject.play();
-								triangle.material.visible = false;
-								circle.material.visible = false;
-							} else {
-								audioObject.pause();
-								triangle.material.visible = true;
-								circle.material.visible = true;
-							}
-						}
-					}}
-				// onCollisionEnter={ ( props ) =>(
-				// 	// window.location.href = model.destinationUrl
-				// 	)
-				// }
-				>
-					<primitive
-						object={gltf.scene}
-						// castShadow
-						// receiveShadow
-						rotation={[
-							model.rotationX,
-							model.rotationY,
-							model.rotationZ
-						]}
-						position={[
-							model.positionX,
-							model.positionY,
-							model.positionZ
-						]}
-						scale={[model.scaleX, model.scaleY, model.scaleZ]}
-					/>
-				</RigidBody>
-			</>
-		);
+	let outputJSON;
+	let testObject;
+	if (activeMessage && activeMessage?.length > 0) {
+		testObject = activeMessage;
+		const outputString = testObject;
+		outputJSON = outputString;
+		// outputJSON = outputString;
+
+		// Extract the Output parameter
+		// console.log("that obj", outputJSON);
 	}
+
 	return (
 		<>
-			<primitive
-				object={gltf.scene}
-				// castShadow
-				// receiveShadow
-				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
+			<group
 				position={[model.positionX, model.positionY, model.positionZ]}
-				scale={[model.scaleX, model.scaleY, model.scaleZ]}
-			/>
+				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
+			>
+				<Text
+					font={model.threeObjectPlugin + model.defaultFont}
+					position={[0.6, 0.9, 0]}
+					className="content"
+					scale={[0.5, 0.5, 0.5]}
+					// rotation-y={-Math.PI / 2}
+					width={0.1}
+					maxWidth={1}
+					wrap={0.1}
+					height={0.1}
+					color={0xffffff}
+					transform
+				>
+					{outputJSON && String(outputJSON)}
+					{/* {outputJSON && ("Tone: " + String(outputJSON.tone))} */}
+				</Text>
+				<mesh position={[0.6, 0.9, -0.01]}>
+					<planeGeometry attach="geometry" args={[0.65, 1.5]} />
+					<meshBasicMaterial attach="material" color={0x000000} opacity={0.5}	transparent={ true } />
+				</mesh>
+				<primitive object={gltf.scene} />
+			</group>
 		</>
 	);
 }

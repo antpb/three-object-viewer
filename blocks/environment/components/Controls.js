@@ -157,8 +157,8 @@ const Controls = (props) => {
 		const playerThingColliders = world.getCollider(
 			props.something.current.handle
 		);
-
-		// playerThing.restrictRotations({enableX: false, enableY: false, enableZ: false}, true);
+		//lock rotations.
+		playerThing.restrictRotations({enableX: false, enableY: false, enableZ: false}, true);
 		//maybebringthemback
 		// playerThing.lockRotations(true, true);
 		if (lock) {
@@ -275,7 +275,7 @@ const Controls = (props) => {
 						y: hitPoint.y,
 						z: controlsRef.current.camera.position.z
 					});
-					camera.position.setY(hitPoint.y + 0.001);
+					camera.position.setY(hitPoint.y + 0.007);
 				}
 				if (p2pcf) {
 					const position = [

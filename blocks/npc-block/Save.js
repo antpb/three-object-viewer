@@ -9,9 +9,6 @@ export default function save({ attributes }) {
 					<p className="npc-block-url">
 						{attributes.threeObjectUrl}
 					</p>
-					<p className="npc-block-scale-x">{attributes.scaleX}</p>
-					<p className="npc-block-scale-y">{attributes.scaleY}</p>
-					<p className="npc-block-scale-z">{attributes.scaleZ}</p>
 					<p className="npc-block-position-x">
 						{attributes.positionX}
 					</p>
@@ -33,16 +30,15 @@ export default function save({ attributes }) {
 					<p className="npc-block-name">
 						{attributes.name}
 					</p>
+					<p className="npc-block-default-message">
+						{attributes.defaultMessage}
+					</p>
 					<p className="npc-block-personality">
 						{attributes.personality}
 					</p>
-					<p className="npc-block-animations">
-						{attributes.animations}
+					<p className="npc-block-object-awareness">
+						{attributes.objectAwareness ? 1 : 0}
 					</p>
-					<p className="npc-block-collidable">
-						{attributes.collidable ? 1 : 0}
-					</p>
-					<p className="npc-block-alt">{attributes.alt}</p>
 				</div>
 			</>
 		</div>

@@ -171,7 +171,7 @@ function callAlchemy() {
 	  'callback' => 'call_alchemy_request',
 	  'permission_callback' => 'check_bearer_token',
 	  'args' => array(
-		'inputs' => array(
+		'Input' => array(
 		  'required' => true,
 		),
 	  ),

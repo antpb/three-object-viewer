@@ -3,23 +3,14 @@
     "title": "NPC Block",
     "description": "A NPC to live in your environment",
     "attributes": {
-        "scaleX": {
-            "type": "int",
-            "default":1
-        },
         "name": {
             "type": "string"
         },
         "personality": {
             "type": "string"
         },
-        "scaleY": {
-            "type": "int",
-            "default":1
-        },
-        "scaleZ": {
-            "type": "int",
-            "default":1
+        "defaultMessage": {
+            "type": "string"
         },
         "positionX": {
             "type": "int",
@@ -49,15 +40,7 @@
             "type": "string",
             "default": null
         },
-        "animations": {
-            "type": "string",
-            "default": ""
-        },
-        "alt": {
-            "type": "string",
-            "default": ""
-        },
-        "collidable": {
+        "objectAwareness": {
             "type": "boolean",
             "default": false
         }

@@ -42,10 +42,6 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 		setAttributes({ positionZ });
 	};
 
-	const onChangeAlt = (altValue) => {
-		setAttributes({ alt: altValue });
-	};
-
 	const onChangeRotationX = (rotationX) => {
 		setAttributes({ rotationX });
 	};
@@ -56,20 +52,6 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 		setAttributes({ rotationZ });
 	};
 
-	const onChangeScaleX = (scaleX) => {
-		setAttributes({ scaleX });
-	};
-	const onChangeScaleY = (scaleY) => {
-		setAttributes({ scaleY });
-	};
-	const onChangeScaleZ = (scaleZ) => {
-		setAttributes({ scaleZ });
-	};
-
-	const onChangeAnimations = (animations) => {
-		setAttributes({ animations });
-	};
-
 	const onChangeName = (name) => {
 		setAttributes({ name });
 	};
@@ -77,13 +59,17 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 		setAttributes({ personality });
 	};
 
+	const onChangeDefaultMessage = (defaultMessage) => {
+		setAttributes({ defaultMessage });
+	};
+
 	const onImageSelect = (imageObject) => {
 		setAttributes({ threeObjectUrl: null });
 		setAttributes({ threeObjectUrl: imageObject.url });
 	};
 
-	const onChangeCollidable = (collidableSetting) => {
-		setAttributes({ collidable: collidableSetting });
+	const onChangeObjectAwareness = (objectAwarenessSetting) => {
+		setAttributes({ objectAwareness: objectAwarenessSetting });
 	};
 
 	const [enteredURL, setEnteredURL] = useState("");
@@ -126,7 +112,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 			<InspectorControls key="setting">
 				<Panel header="Settings">
 					<PanelBody
-						title="GLB Object"
+						title="NPC Options"
 						icon={more}
 						initialOpen={true}
 					>
@@ -141,15 +127,24 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 						<PanelRow>
 							<TextareaControl
 								label="Personality"
-								help="Give your avatar a personality in 200 characters."
+								help="Give your avatar a personality in 600 characters."
 								value={attributes.personality}
 								onChange={(value) => onChangePersonality(value)}
+								maxLength={600}
+							/>
+						</PanelRow>
+						<PanelRow>
+							<TextareaControl
+								label="Default Message"
+								help="Give your avatar a default message to initialize with."
+								value={attributes.defaultMessage}
+								onChange={(value) => onChangeDefaultMessage(value)}
+								maxLength={600}
 							/>
 						</PanelRow>
 						<PanelRow>
 							<span>
-								select a glb file from your media library to
-								render an object in the canvas:
+								Select a VRM file to be used as your NPC in world:
 							</span>
 						</PanelRow>
 						<PanelRow>
@@ -164,46 +159,26 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 								render={({ open }) => (
 									<button onClick={open}>
 										{attributes.threeObjectUrl
-											? "Replace Object"
-											: "Select Object"}
+											? "Replace NPC"
+											: "Select NPC"}
 									</button>
 								)}
 							/>
 						</PanelRow>
 					</PanelBody>
 					<PanelBody
-						title="Model Attributes"
+						title="Advanced Settings"
 						icon={more}
 						initialOpen={true}
 					>
 						<PanelRow>
 							<ToggleControl
-								label="Collidable"
-								help={
-									attributes.collidable
-										? "Item is currently collidable."
-										: "Item is not collidable. Users will walk through it."
-								}
-								checked={attributes.collidable}
+								label="Include World Objects in Prompt"
+								help={"If enabled, will result in higher token costs with your AI service provider. Use with caution."}
+								checked={attributes.objectAwareness}
 								onChange={(e) => {
-									onChangeCollidable(e);
+									onChangeObjectAwareness(e);
 								}}
-							/>
-						</PanelRow>
-						<PanelRow>
-							<TextControl
-								label="Loop Animations"
-								help="Separate each animation name you wish to loop with a comma"
-								value={attributes.animations}
-								onChange={(value) => onChangeAnimations(value)}
-							/>
-						</PanelRow>
-						<PanelRow>
-							<TextareaControl
-								label="Model Alt Text"
-								help="Describe your model to provide context for screen readers."
-								value={attributes.alt}
-								onChange={(value) => onChangeAlt(value)}
 							/>
 						</PanelRow>
 						<PanelRow>
@@ -262,34 +237,6 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 								onChange={(value) => onChangeRotationZ(value)}
 							/>
 						</PanelRow>
-						<PanelRow>
-							<legend className="blocks-base-control__label">
-								{__("Scale", "three-object-viewer")}
-							</legend>
-						</PanelRow>
-						<PanelRow>
-							<TextControl
-								className="position-inputs"
-								label="X"
-								// help="position x"
-								value={attributes.scaleX}
-								onChange={(value) => onChangeScaleX(value)}
-							/>
-							<TextControl
-								className="position-inputs"
-								label="Y"
-								// help="position y"
-								value={attributes.scaleY}
-								onChange={(value) => onChangeScaleY(value)}
-							/>
-							<TextControl
-								className="position-inputs"
-								label="Z"
-								// help="position z"
-								value={attributes.scaleZ}
-								onChange={(value) => onChangeScaleZ(value)}
-							/>
-						</PanelRow>
 					</PanelBody>
 				</Panel>
 			</InspectorControls>
@@ -343,8 +290,8 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 											onClick={open}
 										>
 											{attributes.threeObjectUrl
-												? "Replace Model"
-												: "Select Model"}
+												? "Replace NPC"
+												: "Select NPC"}
 										</button>
 									)}
 								/>
@@ -401,8 +348,8 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 											onClick={open}
 										>
 											{attributes.threeObjectUrl
-												? "Replace Model"
-												: "Select Model"}
+												? "Replace NPC"
+												: "Select NPC"}
 										</button>
 									)}
 								/>

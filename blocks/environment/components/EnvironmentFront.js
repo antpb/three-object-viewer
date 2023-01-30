@@ -45,20 +45,29 @@ function ChatBox(props) {
 		event.preventDefault();
 		event.stopPropagation();
 	};
+
+	useEffect(() => {
+		let finalDefault = props.name + ': ' + props.defaultMessage;
+		props.setMessages([finalDefault]);
+	},[])
+
 	const handleSubmit = async (event) => {
 	  event.preventDefault();
   
 	  // Get the value of the input element
 	  const input = event.target.elements.message;
 	  const value = input.value;
+	  const inputMessageLog = 'Guest: ' + String(input.value);
+	//   props.setMessages([...props.messages, inputMessageLog]);
+
   
 	  // Send the message to the localhost endpoint
 	  const client = 1;
-	  const channelId = "three";
+	  const channelId = "wordpress";
 	  const entity = 1;
-	  const speaker = "antpb";
-	  const agent = "Pixel";
-	  const channel = "homepage";
+	  const speaker = "guest";
+	  const agent = props.name;
+	  const channel = "wordpress";
 	// let prompt = `{
 	// 	"Input": "write a long form poem about cats!",
 	// 	"Speaker": "a",
@@ -76,15 +85,15 @@ function ChatBox(props) {
 	try {
 		const apiEndpoint = '/wp-json/wp/v2/callAlchemy';
 		let finalPersonality = props.personality;
+		finalPersonality = finalPersonality + "###\nThe following is a friendly conversation between #speaker and #agent\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:";
 		let newString = props.objectsInRoom.join(", ");
-		console.log("objects in room", newString);
-		if (finalPersonality.includes("ITEMS IN WORLD:")) {
-			finalPersonality = finalPersonality.replace("ITEMS IN WORLD:", "ITEMS IN WORLD: " + newString);
+		if (props.objectAwareness === 1) {
+			finalPersonality = finalPersonality.replace("###\nThe following is a", "ITEMS IN WORLD: " + newString + "\n###\nThe following is a");
 		}
 		console.log("Final Personality", finalPersonality);
 		
 		const postData = {
-			inputs: {
+			Input: {
 				Input: value,
 				Speaker: speaker,
 				Agent: agent,
@@ -118,7 +127,14 @@ function ChatBox(props) {
 			}).then(function(data) {
 				// console.log("data", data.davinciData.choices[0].text); // this will be a string
 				let thisMessage = JSON.parse(data);
-				props.setMessages([...props.messages, thisMessage.davinciData.choices[0].text]);
+				if(thisMessage?.outputs){
+					let formattedMessage = props.name +': ' + Object.values(thisMessage.outputs)[0];
+					props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
+				} else {
+					let formattedMessage = props.name +': ' + thisMessage.davinciData.choices[0].text;
+					// add formattedMessage and inputMessageLog to state
+					props.setMessages([...props.messages, inputMessageLog, formattedMessage]);	
+				}
 			});	
 		} catch (error) {
 			console.error(error);
@@ -148,14 +164,21 @@ function ChatBox(props) {
 		};
   
 	return (
-	  <div style={{ zIndex:100, marginTop: "-140px", position: "relative", bottom: "15%", left: "5%", width: "50%", height: "10%" }}>
-		{/* {props.messages.map((message, index) => (
-		  <p key={index}>{message}</p>
-		))} */}
-		<form style={{display: "flex"}} onSubmit={handleSubmit}>
-		  <input type="text" name="message" onInput={handleChange} onChange={handleChange} />
-		  <button type="submit">Send</button>
-		</form>
+		<div style={{pointerEvents: "none", position: "absolute", paddingTop: "14px", paddingLeft: "5px", paddingRight: "5px", paddingBottom: "5px", boxSizing: "border-box", zIndex:100, marginTop: "-140px", width: "350px", height: "350px", fontSize: ".8em", color: "#FFFFFF", bottom: "4%", left: "2%", backgroundColor: "black"}}>
+				<ul>
+					{props.messages && props.messages.length > 0 && props.messages.map((message, index) => (
+						<li key={index}>{message}</li>
+					))}
+				</ul>
+				<div style={{ width: "100%", height: "5%", position: "absolute", bottom: "30px", boxSizing: "border-box", padding: "15px" }}>
+				{/* {props.messages.map((message, index) => (
+				<p key={index}>{message}</p>
+				))} */}
+				<form style={{display: "flex"}} onSubmit={handleSubmit}>
+				<input style={{maxHeight: "15px", pointerEvents: "auto"} } type="text" name="message" onInput={handleChange} onChange={handleChange} />
+				<button style={{height: "32px", fontSize: ".9em", lineHeight: ".3em", pointerEvents: "none"} } type="submit">Send</button>
+				</form>
+			</div>
 	  </div>
 	);
   }  
@@ -352,7 +375,14 @@ function SavedObject(props) {
 			// 	child.castShadow = true;
 			// 	child.receiveShadow = true;
 			// }
-
+			if (child.isMesh) {
+				if (child.userData.gltfExtensions?.MX_lightmap) {
+					const extension = child.userData.gltfExtensions?.MX_lightmap;
+					// @todo implement MX_lightmap
+				}
+				// add the mesh to the scene
+				// meshesScene.add(child);
+			}
 			if (child.userData.gltfExtensions?.OMI_collider) {
 				childrenToParse.push(child);
 				// child.parent.remove(child.name);
@@ -512,13 +542,13 @@ export default function EnvironmentFront(props) {
 	const [participants, setParticipant] = useState([]);
 
 	// let string = '{\"spell\":\"complexQuery\",\"outputs\":{\"Output\":\"{\\\"message\\\": \\\" Hi there! How can I help you?\\\",\\\"tone\\\": \\\"friendly\\\"}\"},\"state\":{}}';
-	let string = 'Hello! Welcome to this 3OV world! Feel free to ask me anything. I am especially versed in the 3OV metaverse plugin for WordPress.'
+	// let string = 'Hello! Welcome to this 3OV world! Feel free to ask me anything. I am especially versed in the 3OV metaverse plugin for WordPress.'
 	const [mobileControls, setMobileControls] = useState(null);
 	const [mobileRotControls, setMobileRotControls] = useState(null);	  
 	  
 
-	const [messages, setMessages] = useState([string]);
-	const [messageHistory, setMessageHistory] = useState([string]);
+	const [messages, setMessages] = useState();
+	const [messageHistory, setMessageHistory] = useState();
 	const [loaded, setLoaded] = useState(false);
 	const [spawnPoints, setSpawnPoints] = useState();
 	const [messageObject, setMessageObject] = useState({"tone": "happy", "message": "hello!"});
@@ -944,33 +974,6 @@ export default function EnvironmentFront(props) {
 														).innerText
 														: "";
 
-												const modelScaleX =
-													npc.querySelector(
-														"p.npc-block-scale-x"
-													)
-														? npc.querySelector(
-															"p.npc-block-scale-x"
-														).innerText
-														: "";
-
-												const modelScaleY =
-													npc.querySelector(
-														"p.npc-block-scale-y"
-													)
-														? npc.querySelector(
-															"p.npc-block-scale-y"
-														).innerText
-														: "";
-
-												const modelScaleZ =
-													npc.querySelector(
-														"p.npc-block-scale-z"
-													)
-														? npc.querySelector(
-															"p.npc-block-scale-z"
-														).innerText
-														: "";
-
 												const modelRotationX =
 													npc.querySelector(
 														"p.npc-block-rotation-x"
@@ -1006,15 +1009,6 @@ export default function EnvironmentFront(props) {
 													).innerText
 													: "";
 
-												const animations =
-													npc.querySelector(
-														"p.npc-block-animations"
-													)
-														? npc.querySelector(
-															"p.npc-block-animations"
-														).innerText
-														: "";
-
 												const alt = npc.querySelector(
 													"p.npc-block-alt"
 												)
@@ -1023,20 +1017,36 @@ export default function EnvironmentFront(props) {
 													).innerText
 													: "";
 
-												const personality = npc.querySelector(
-													"p.npc-block-personality"
-												)
-													? npc.querySelector(
+													const personality = npc.querySelector(
 														"p.npc-block-personality"
-													).innerText
-													: "";
-												
-												const collidable =
-													npc.querySelector(
-														"p.npc-block-collidable"
 													)
 														? npc.querySelector(
-															"p.npc-block-collidable"
+															"p.npc-block-personality"
+														).innerText
+														: "";
+
+													const defaultMessage = npc.querySelector(
+														"p.npc-block-default-message"
+													)
+														? npc.querySelector(
+															"p.npc-block-default-message"
+														).innerText
+														: "";
+	
+														const name = npc.querySelector(
+														"p.npc-block-name"
+													)
+														? npc.querySelector(
+															"p.npc-block-name"
+														).innerText
+														: "";
+		
+												const objectAwareness =
+													npc.querySelector(
+														"p.npc-block-object-awareness"
+													)
+														? npc.querySelector(
+															"p.npc-block-object-awareness"
 														).innerText
 														: false;
 
@@ -1047,9 +1057,6 @@ export default function EnvironmentFront(props) {
 														positionX={modelPosX}
 														positionY={modelPosY}
 														positionZ={modelPosZ}
-														scaleX={modelScaleX}
-														scaleY={modelScaleY}
-														scaleZ={modelScaleZ}
 														messages={messages}
 														rotationX={
 															modelRotationX
@@ -1060,15 +1067,15 @@ export default function EnvironmentFront(props) {
 														rotationZ={
 															modelRotationZ
 														}
-														alt={alt}
-														animations={animations}
-														collidable={collidable}
+														objectAwareness={objectAwareness}
+														name={name}
 														message={
 															messageObject
 														}
 														threeObjectPlugin={threeObjectPlugin}
 														defaultAvatarAnimation={defaultAvatarAnimation}
 														defaultFont={defaultFont}
+														defaultMessage={defaultMessage}
 														personality={personality}
 														// idle={idle}
 													/>
@@ -1564,6 +1571,7 @@ export default function EnvironmentFront(props) {
 					{Object.values(
 						props.npcsToAdd
 					).map((npc, index) => {
+						console.log(npc, "npc");
  
 					const personality = npc.querySelector(
 						"p.npc-block-personality"
@@ -1572,12 +1580,38 @@ export default function EnvironmentFront(props) {
 							"p.npc-block-personality"
 						).innerText
 						: "";
+					const defaultMessage = npc.querySelector(
+						"p.npc-block-default-message"
+					)
+						? npc.querySelector(
+							"p.npc-block-default-message"
+						).innerText
+						: "";
+	
+					const objectAwareness = npc.querySelector(
+						"p.npc-block-object-awareness"
+					)
+						? npc.querySelector(
+							"p.npc-block-object-awareness"
+						).innerText
+						: "";
+
+					const name = npc.querySelector(
+						"p.npc-block-name"
+					)
+						? npc.querySelector(
+							"p.npc-block-name"
+						).innerText
+						: "";
 					
 					return (
 						<ChatBox 
 						setMessages = {setMessages}
 						objectsInRoom = {objectsInRoom}
 						personality = {personality}
+						objectAwareness = {objectAwareness}
+						name = {name}
+						defaultMessage = {defaultMessage}
 						messages = {messages}
 						style = {{zIndex: 100}}
 						key="something"/>
