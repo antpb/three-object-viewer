@@ -118,10 +118,13 @@ function ChatBox(props) {
 			method: 'POST',
 			headers: {
 			  'Content-Type': 'application/json',
-			  'Authorization': 'Bearer bearertoken'
+			  'X-WP-Nonce': props.nonce,
+			  'Authorization': ('Bearer ' + String(props.nonce))
 			},
 			body: JSON.stringify(postData)
 		  }).then((response) => {
+				console.log('nonce', props.nonce);
+
 				return response.json();
 
 				// console.log("response", response.body.getReader())
@@ -1639,6 +1642,7 @@ export default function EnvironmentFront(props) {
 							messages = {messages}
 							showUI = {showUI}
 							style = {{zIndex: 100}}
+							nonce={props.userData.nonce}
 							key="something"/>
 					)
 					})}

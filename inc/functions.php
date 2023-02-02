@@ -93,15 +93,25 @@ function threeobjectviewer_frontend_assets() {
 
     $current_user = wp_get_current_user();
     $vrm = wp_get_attachment_url($current_user->avatar);
-    $user_data_passed = array(
-        'userId' => $current_user->user_login,
-        'inWorldName' => $current_user->in_world_name,
-        'banner' => $current_user->custom_banner,
-        'vrm' => $vrm,
-        'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] )
-     );
-    
-    $three_object_plugin = plugins_url() . '/three-object-viewer/build/';
+	if ( is_user_logged_in() ) {
+		$user_data_passed = array(
+		  'userId' => $current_user->user_login,
+		  'inWorldName' => $current_user->in_world_name,
+		  'banner' => $current_user->custom_banner,
+		  'vrm' => $vrm,
+		  'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
+		  'nonce' => wp_create_nonce( 'wp_rest' )
+		);
+	} else {
+		$user_data_passed = array(
+		  'userId' => $current_user->user_login,
+		  'inWorldName' => $current_user->in_world_name,
+		  'banner' => $current_user->custom_banner,
+		  'vrm' => $vrm,
+		  'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
+		);
+	}
+	$three_object_plugin = plugins_url() . '/three-object-viewer/build/';
 
 	// new variable named default_animation that checks if the wp_option for '3ov_defaultVRM' is available.
 	// if it is, it will use that value, if not, it will use the default value of 'default.vrm'
@@ -258,16 +268,23 @@ function callAlchemy() {
 	return $body;
 }
 
-  // The function that checks the bearer token. Make the bearer token a secret using get_option(). This is a crude example.
-  function check_bearer_token() {
-	$headers = getallheaders();
-	if ( isset( $headers['Authorization'] ) && $headers['Authorization'] === 'Bearer bearertoken' ) {
-	  return true;
+//   function check_bearer_token() {
+// 	$headers = getallheaders();
+// 	if ( isset( $headers['Authorization'] ) && $headers['Authorization'] === 'Bearer bearertoken' ) {
+// 	  return true;
+// 	}
+// 	return new WP_Error( 'invalid_token', 'Invalid bearer token', array( 'status' => 401 ) );
+//   }
+
+// The function that checks the bearer token. Make the bearer token a secret using get_option(). This is a crude example.
+  function check_bearer_token( $request ) {
+	$nonce = $request->get_header( 'X-WP-Nonce' );
+	if ( ! $nonce || ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+	  return new WP_Error( 'invalid_nonce', 'The nonce provided in the X-WP-Nonce header is invalid', array( 'status' => 401 ) );
 	}
-	return new WP_Error( 'invalid_token', 'Invalid bearer token', array( 'status' => 401 ) );
+	return true;
   }
-
-
+  
 add_action('enqueue_block_assets', __NAMESPACE__ . '\threeobjectviewer_editor_assets');
 
 /**
