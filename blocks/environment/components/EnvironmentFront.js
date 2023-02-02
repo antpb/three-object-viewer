@@ -12,6 +12,8 @@ import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
 import axios from "axios";
 import ReactNipple from 'react-nipple';
+import ScrollableFeed from 'react-scrollable-feed'
+import { Resizable } from "re-resizable";
 
 import {
 	useAnimations,
@@ -87,10 +89,13 @@ function ChatBox(props) {
 		let finalPersonality = props.personality;
 		finalPersonality = finalPersonality + "###\nThe following is a friendly conversation between #speaker and #agent\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:";
 		let newString = props.objectsInRoom.join(", ");
-		if (props.objectAwareness === 1) {
-			finalPersonality = finalPersonality.replace("###\nThe following is a", "ITEMS IN WORLD: " + newString + "\n###\nThe following is a");
+		console.log("New String", newString);
+		console.log("awareness", props.objectAwareness)
+		if (props.objectAwareness === "1") {
+			finalPersonality = finalPersonality.replace("###\nThe following is a", ("ITEMS IN WORLD: " + String(newString) + "\n###\nThe following is a"));
+			console.log("final personality", finalPersonality);
 		}
-		console.log("Final Personality", finalPersonality);
+		// console.log("Final Personality", finalPersonality);
 		
 		const postData = {
 			Input: {
@@ -130,6 +135,9 @@ function ChatBox(props) {
 				if(thisMessage?.outputs){
 					let formattedMessage = props.name +': ' + Object.values(thisMessage.outputs)[0];
 					props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
+				} else if(thisMessage?.name === "Server"){
+					let formattedMessage = thisMessage.name +': ' + thisMessage.message;
+					props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
 				} else {
 					let formattedMessage = props.name +': ' + thisMessage.davinciData.choices[0].text;
 					// add formattedMessage and inputMessageLog to state
@@ -140,7 +148,11 @@ function ChatBox(props) {
 			console.error(error);
 		}
 	};
-	 
+
+	const ClickMuncher = ({ children }) => {
+		return <div onClick={e => e.stopPropagation()}>{children}</div>;
+	};
+
 	const handleDummySubmit = async (event) => {
 		event.preventDefault();
 	
@@ -162,24 +174,34 @@ function ChatBox(props) {
 		  props.setMessages([...props.messages, testString]);
 
 		};
-  
+console.log("showui", props.showUI);
 	return (
-		<div style={{pointerEvents: "none", position: "absolute", paddingTop: "14px", paddingLeft: "5px", paddingRight: "5px", paddingBottom: "5px", boxSizing: "border-box", zIndex:100, marginTop: "-140px", width: "350px", height: "350px", fontSize: ".8em", color: "#FFFFFF", bottom: "4%", left: "2%", backgroundColor: "black"}}>
-				<ul>
-					{props.messages && props.messages.length > 0 && props.messages.map((message, index) => (
-						<li key={index}>{message}</li>
-					))}
-				</ul>
-				<div style={{ width: "100%", height: "5%", position: "absolute", bottom: "30px", boxSizing: "border-box", padding: "15px" }}>
-				{/* {props.messages.map((message, index) => (
-				<p key={index}>{message}</p>
-				))} */}
-				<form style={{display: "flex"}} onSubmit={handleSubmit}>
-				<input style={{maxHeight: "15px", pointerEvents: "auto"} } type="text" name="message" onInput={handleChange} onChange={handleChange} />
-				<button style={{height: "32px", fontSize: ".9em", lineHeight: ".3em", pointerEvents: "none"} } type="submit">Send</button>
-				</form>
-			</div>
-	  </div>
+		<>
+		<ClickMuncher>
+			<Resizable>
+				<div style={{pointerEvents: "auto", position: "relative", paddingTop: "14px", paddingLeft: "5px", paddingRight: "5px", overflyY: "scroll", paddingBottom: "5px", boxSizing: "border-box", zIndex:100, marginTop: "-330px", width: "300px", height: "280px", fontSize: ".8em", color: "#FFFFFF", bottom: "0", left: "2%", backgroundColor: "transparent"}}>
+					<div style={{pointerEvents: "auto", position: "relative", paddingTop: "14px", paddingLeft: "5px", paddingRight: "5px", overflyY: "scroll", paddingBottom: "5px", boxSizing: "border-box", zIndex:100, width: "275px", maxHeight: "250px", height: "250px", fontSize: "0.8em", color: "#FFFFFF", backgroundColor: "#"}}>
+						<ScrollableFeed>
+							<ul style={{paddingLeft: "0px", marginLeft: "5px", listStyle: "none"}}>
+								{ props.showUI && props.messages && props.messages.length > 0 && props.messages.map((message, index) => (
+									<li style={{background: "#000000db", borderRadius: "30px", padding: "10px 20px"}} key={index}>{message}</li>
+								))}
+							</ul>
+						</ScrollableFeed>
+					</div>
+						<div style={{ width: "100%", height: "5%", position: "relative", bottom: "0px", boxSizing: "border-box", padding: "15px", paddingLeft: "7px" }}>
+						{/* {props.messages.map((message, index) => (
+						<p key={index}>{message}</p>
+						))} */}
+						<form style={{display: "flex"}} onSubmit={handleSubmit}>
+							<input style={{height: "30px", pointerEvents: "auto", borderTopLeftRadius: "15px", borderBottomLeftRadius: "15px", borderTopRightRadius: "0px", borderBottomRightRadius: "0px"} } type="text" name="message" onInput={handleChange} onChange={handleChange} />
+							<button style={{ height: "30px", background: "#9100ff", color: "white", fontSize: ".9em", lineHeight: ".3em", borderTopRightRadius: "15px", borderBottomRightRadius: "15px", borderTopLeftRadius: "0px", borderBottomLeftRadius: "0px"} } type="submit">Send</button>
+						</form>
+					</div>
+				</div>
+			</Resizable>
+		</ClickMuncher>
+	  </>
 	);
   }  
   
@@ -540,6 +562,7 @@ function SavedObject(props) {
 
 export default function EnvironmentFront(props) {
 	const [participants, setParticipant] = useState([]);
+	const [showUI, setShowUI] = useState(true);
 
 	// let string = '{\"spell\":\"complexQuery\",\"outputs\":{\"Output\":\"{\\\"message\\\": \\\" Hi there! How can I help you?\\\",\\\"tone\\\": \\\"friendly\\\"}\"},\"state\":{}}';
 	// let string = 'Hello! Welcome to this 3OV world! Feel free to ask me anything. I am especially versed in the 3OV metaverse plugin for WordPress.'
@@ -617,6 +640,7 @@ export default function EnvironmentFront(props) {
 												spawnPoint={props.spawnPoint}
 												mobileControls={mobileControls}
 												mobileRotControls={mobileRotControls}
+												setShowUI={setShowUI}
 											/>
 											<Participants 
 											setParticipant={setParticipant}
@@ -1605,16 +1629,17 @@ export default function EnvironmentFront(props) {
 						: "";
 					
 					return (
-						<ChatBox 
-						setMessages = {setMessages}
-						objectsInRoom = {objectsInRoom}
-						personality = {personality}
-						objectAwareness = {objectAwareness}
-						name = {name}
-						defaultMessage = {defaultMessage}
-						messages = {messages}
-						style = {{zIndex: 100}}
-						key="something"/>
+							<ChatBox 
+							setMessages = {setMessages}
+							objectsInRoom = {objectsInRoom}
+							personality = {personality}
+							objectAwareness = {objectAwareness}
+							name = {name}
+							defaultMessage = {defaultMessage}
+							messages = {messages}
+							showUI = {showUI}
+							style = {{zIndex: 100}}
+							key="something"/>
 					)
 					})}
 						{/* <>

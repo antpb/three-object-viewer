@@ -587,23 +587,37 @@ const Controls = (props) => {
 
 		document.addEventListener("keydown", onKeyDown);
 		document.addEventListener("keyup", onKeyUp);
-
+		  
 	return (
 		<>
 			<PointerLockControls
 				position={[props.spawnPoint[0], props.spawnPoint[1], props.spawnPoint[2]]}
-				onUpdate={() => {
-					if (controlsRef.current) {
-						controlsRef.current.addEventListener("lock", () => {
-							console.log("lock");
-							isLocked.current = true;
-						});
-						controlsRef.current.addEventListener("unlock", () => {
-							console.log("unlock");
-							isLocked.current = false;
-						});
-					}
+				onUpdate={(e) => {
+					console.log("pointer lock change");
+					console.log(e);
 				}}
+				// onUpdate={() => {
+				// 	if (controlsRef.current) {
+				// 		controlsRef.current.addEventListener("lock", () => {
+				// 			console.log("lock");
+				// 			isLocked.current = true;
+				// 			props.setShowUI(true);
+				// 			console.log("should be true")
+				// 		});
+				// 		controlsRef.current.addEventListener("unlock", () => {
+				// 			console.log("unlock");
+				// 			isLocked.current = false;
+				// 			props.setShowUI(false);
+				// 			console.log("should be false")
+				// 		});
+				// 	}
+				// 	// prevent default click
+				// 	window.addEventListener("click", (e) => {
+				// 		if (e.target === document.body) {
+				// 			e.preventDefault();
+				// 		}
+				// 	});
+				// }}
 				onChange={() => {
 					if (p2pcf && controlsRef) {
 						const position = [

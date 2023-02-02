@@ -103,9 +103,9 @@ function threeobjectviewer_frontend_assets() {
     
     $three_object_plugin = plugins_url() . '/three-object-viewer/build/';
 
-	// new variable named default_animation that checks if the wp_option for 'defaultVRM' is available.
+	// new variable named default_animation that checks if the wp_option for '3ov_defaultVRM' is available.
 	// if it is, it will use that value, if not, it will use the default value of 'default.vrm'
-	$default_animation = get_option('defaultVRM');
+	$default_animation = get_option('3ov_defaultVRM');
 
     // $user_data_passed = array(
     //     'userId' => 'something',
@@ -225,6 +225,7 @@ function callAlchemy() {
 			'Referer' => $_SERVER['HTTP_REFERER'],
             'Authorization' => "Bearer $api_key"
         ),
+		'timeout'     => 45,
         'body' => $new_blob,
 		//TEMPORARY, REMOVE BEFORE PRODUCTION
 		'sslverify' => false,
@@ -235,6 +236,7 @@ function callAlchemy() {
 				'Content-Type' => 'application/json',
 				'Referer' => $_SERVER['HTTP_REFERER'],
 			),
+			'timeout'     => 45,
 			'body' => $new_blob,
 			//TEMPORARY, REMOVE BEFORE PRODUCTION
 			'sslverify' => false,

@@ -137,6 +137,7 @@ export default function Player(props) {
 								spawnPointsToAdd={props.spawnPointsToAdd}
 								mobileControls={props.mobileControls}
 								mobileRotControls={props.mobileRotControls}
+								setShowUI={props.setShowUI}
 							/>
 							<primitive
 								visible={false}

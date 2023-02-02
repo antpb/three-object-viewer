@@ -84,6 +84,7 @@ const mixamoVRMRigMap = {
  * @returns {Promise<AnimationClip>} The converted AnimationClip
  */
 function loadMixamoAnimation(url, vrm) {
+	console.log("url", url);
 	const loader = new FBXLoader(); // A loader which loads FBX
 	return loader.loadAsync(url).then((asset) => {
 		const clip = AnimationClip.findByName(asset.animations, 'mixamo.com'); // extract the AnimationClip
