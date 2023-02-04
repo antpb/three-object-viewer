@@ -592,10 +592,6 @@ const Controls = (props) => {
 		<>
 			<PointerLockControls
 				position={[props.spawnPoint[0], props.spawnPoint[1], props.spawnPoint[2]]}
-				onUpdate={(e) => {
-					console.log("pointer lock change");
-					console.log(e);
-				}}
 				// onUpdate={() => {
 				// 	if (controlsRef.current) {
 				// 		controlsRef.current.addEventListener("lock", () => {

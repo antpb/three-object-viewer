@@ -13,6 +13,34 @@
 * Text Domain:       three-object-viewer
 * Domain Path:       /languages
 */
+namespace threeObjectViewer;
+require_once 'php/Plugin.php';
+use threeObjectViewer\Core\Plugin;
+$main = new Plugin();
+$main->init();
+register_activation_hook( __FILE__, array( 'threeObjectViewer\MainOptions', 'my_plugin_activate' ) );
+register_deactivation_hook( __FILE__,  array( 'threeObjectViewer\MainOptions', 'my_plugin_deactivate' ));
+
+class MainOptions
+{
+	public static function my_plugin_deactivate() {
+		delete_option( '3ov_ai_enabled' );
+		delete_option( '3ov_mp_networkWorker' );
+		delete_option( '3ov_ai_openApiKey' );
+		delete_option( '3ov_ai_allow' );
+	}
+	
+	public static function my_plugin_activate() {
+		update_option( '3ov_ai_enabled', true );
+		update_option( '3ov_mp_networkWorker', 'https://alchemy.sxp.digital' );
+		update_option( '3ov_ai_openApiKey', '' );
+		update_option( '3ov_ai_allow', 'loggedIn' );
+		update_option( '3ov_defaultVRM', '' );
+	}
+}
+
+
+
 
 // Include three-object-block
 include_once dirname( __FILE__ ) . '/blocks/three-object-block/init.php';
@@ -59,3 +87,4 @@ add_action( 'plugins_loaded', function () {
 include_once dirname( __FILE__ ). '/inc/functions.php';
 include_once dirname( __FILE__ ). '/inc/hooks.php';
 include_once dirname( __FILE__ ) . '/admin/three-object-viewer-settings/init.php';
+include_once dirname( __FILE__ ) . '/php/Plugin.php';

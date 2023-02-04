@@ -168,6 +168,23 @@ export default function App({ getSettings, updateSettings }) {
 						</button>
 					</td>
 				</tr>
+				{/* Select element with three options for AI type public, or logged in */}
+				<tr>
+					<td>
+						<label htmlFor="aiType">AI Access Level</label>
+						<select
+							id="aiType"
+							name="aiType"
+							value={settings.allowPublicAI}
+							onChange={(event) => {
+								setSettings({ ...settings, allowPublicAI: event.target.value });
+							}}
+						>
+							<option value="public">Public</option>
+							<option value="loggedIn">Logged In</option>
+						</select>
+					</td>
+				</tr>
 				<tr>
 					<td><input id="save" className="button button-small button-primary" type="submit" name="enabled" onClick={onSave} /></td>
 				</tr>

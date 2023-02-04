@@ -43,6 +43,7 @@ import { Sky } from "./core/front/Sky";
 import { TextObject } from "./core/front/TextObject";
 
 function ChatBox(props) {
+	
 	const handleChange = async (event) => {
 		event.preventDefault();
 		event.stopPropagation();
@@ -89,8 +90,6 @@ function ChatBox(props) {
 		let finalPersonality = props.personality;
 		finalPersonality = finalPersonality + "###\nThe following is a friendly conversation between #speaker and #agent\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:";
 		let newString = props.objectsInRoom.join(", ");
-		console.log("New String", newString);
-		console.log("awareness", props.objectAwareness)
 		if (props.objectAwareness === "1") {
 			finalPersonality = finalPersonality.replace("###\nThe following is a", ("ITEMS IN WORLD: " + String(newString) + "\n###\nThe following is a"));
 			console.log("final personality", finalPersonality);
@@ -182,7 +181,7 @@ console.log("showui", props.showUI);
 		<>
 		<ClickMuncher>
 			<Resizable>
-				<div style={{pointerEvents: "auto", position: "relative", paddingTop: "14px", paddingLeft: "5px", paddingRight: "5px", overflyY: "scroll", paddingBottom: "5px", boxSizing: "border-box", zIndex:100, marginTop: "-330px", width: "300px", height: "280px", fontSize: ".8em", color: "#FFFFFF", bottom: "0", left: "2%", backgroundColor: "transparent"}}>
+				<div style={{pointerEvents: "auto", position: "relative", paddingTop: "14px", paddingLeft: "5px", paddingRight: "5px", overflyY: "scroll", paddingBottom: "5px", boxSizing: "border-box", zIndex:100, marginTop: "-350px", width: "300px", height: "280px", fontSize: ".8em", color: "#FFFFFF", bottom: "0", left: "2%", backgroundColor: "transparent"}}>
 					<div style={{pointerEvents: "auto", position: "relative", paddingTop: "14px", paddingLeft: "5px", paddingRight: "5px", overflyY: "scroll", paddingBottom: "5px", boxSizing: "border-box", zIndex:100, width: "275px", maxHeight: "250px", height: "250px", fontSize: "0.8em", color: "#FFFFFF", backgroundColor: "#"}}>
 						<ScrollableFeed>
 							<ul style={{paddingLeft: "0px", marginLeft: "5px", listStyle: "none"}}>
