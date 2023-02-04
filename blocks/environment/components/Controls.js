@@ -36,7 +36,6 @@ const Controls = (props) => {
 	const { camera, scene } = useThree();
 
 	useEffect(() => {
-		console.log("controls", props.mobileControls);
 
 		if(props.mobileControls !== null && props.mobileControls?.direction !== undefined){
 			if(props.mobileControls.direction.angle === "down"){

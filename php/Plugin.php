@@ -6,16 +6,18 @@ class Plugin
 {
 	public function init() {
         // Add actions and filters
-		register_activation_hook( __FILE__, array( $this, 'my_plugin_activate' ) );
-		register_deactivation_hook( __FILE__,  array( $this, 'my_plugin_deactivate' ));
 		add_filter( 'run_wptexturize', '__return_false' );
 		add_filter('upload_mimes', array( $this, 'threeobjectviewer_add_file_types_to_uploads'), 10, 4);
 		add_filter( 'wp_check_filetype_and_ext',  array( $this, 'three_object_viewer_check_for_usdz'), 10, 4 );
 		add_action('wp_enqueue_scripts',  array( $this, 'threeobjectviewer_frontend_assets'));
 		add_action( 'rest_api_init',  array( $this, 'callAlchemy' ));
 		add_action('enqueue_block_assets',  array( $this, 'threeobjectviewer_editor_assets'));
+		//Register JavaScript and CSS for threeobjectloaderinit
+		add_action( 'wp_enqueue_scripts',  array( $this, 'threeobjectviewer_register_threeobjectloaderinit'), 5 );
+		//Enqueue JavaScript and CSS for threeobjectloaderinit
+		add_action( 'wp_enqueue_scripts',  array( $this, 'threeobjectviewer_enqueue_threeobjectloaderinit'), 10 );
     }
-	
+
 	/**
 	* Registers JavaScript and CSS for threeobjectloaderinit
 	* @uses "wp_enqueue_script" action
@@ -195,8 +197,8 @@ class Plugin
 	function callAlchemy() {
 		register_rest_route( 'wp/v2', '/callAlchemy', array(
 		  'methods' => 'POST',
-		  'callback' => 'call_alchemy_request',
-		  'permission_callback' => 'check_bearer_token',
+		  'callback' => array( $this, 'call_alchemy_request'),
+		  'permission_callback' => array( $this, 'check_bearer_token'),
 		  'args' => array(
 			'Input' => array(
 			  'required' => true,
@@ -235,7 +237,7 @@ class Plugin
 		// }
 	
 		$worker_url = get_option( '3ov_mp_networkWorker', '' );
-		$api_key = rest_three_decrypt( get_option( '3ov_ai_openApiKey', '' ) );
+		$api_key = $this->rest_three_decrypt( get_option( '3ov_ai_openApiKey', '' ) );
 		$json_blob = $request->get_params();
 	
 		

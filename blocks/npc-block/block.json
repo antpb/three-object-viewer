@@ -50,7 +50,7 @@
     "apiVersion": 2,
     "supports": {
         "html": false,
-        "multiple": true
+        "multiple": false
     },
     "editorScript": "file:../../build/block-npc-block.js",
 	"editorStyle": "file:../../build/block-npc-block.css",

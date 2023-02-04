@@ -22,7 +22,8 @@ export default function App({ getSettings, updateSettings }) {
 	}, [getSettings, setSettings]);
 
     //Function to update settings via API
-	const onSave = async () => {
+	const onSave = async (event) => {
+		event.preventDefault();
 		let response = await updateSettings(settings)
 		setSettings(response);
 	};
@@ -68,6 +69,7 @@ export default function App({ getSettings, updateSettings }) {
 	//Show settings if not loading
 	return (
 		<>
+		<form autocomplete="off">
 		<table class="form-table">
 			<tbody>
 				<tr>
@@ -132,6 +134,7 @@ export default function App({ getSettings, updateSettings }) {
 							type="input"
 							className="regular-text"
 							name="networkWorker"
+							autoComplete="off"
 							value={settings.networkWorker}
 							onChange={(event) => {
 								setSettings({ ...settings, networkWorker: event.target.value });
@@ -147,6 +150,7 @@ export default function App({ getSettings, updateSettings }) {
 							id="openApiKey"
 							type="text"
 							name="openApiKey"
+							autoComplete="off"
 							value={settings.openApiKey}
 							onChange={(event) => {
 								setSettings({ ...settings, openApiKey: event.target.value });
@@ -157,13 +161,14 @@ export default function App({ getSettings, updateSettings }) {
 							id="openApiKey"
 							type="password"
 							name="openApiKey"
+							autoComplete="off"
 							value={settings.openApiKey}
 							onChange={(event) => {
 								setSettings({ ...settings, openApiKey: event.target.value });
 							}}
 							/>
 						)}
-						<button onClick={() => setIsOpenApiKeyVisible(!isOpenApiKeyVisible)}>
+						<button type="button" onClick={() => setIsOpenApiKeyVisible(!isOpenApiKeyVisible)}>
 						{isOpenApiKeyVisible ? 'Hide' : 'Show'} Key
 						</button>
 					</td>
@@ -190,6 +195,7 @@ export default function App({ getSettings, updateSettings }) {
 				</tr>
 			</tbody>
 		</table>
+		</form>
 		</>	
 	);
 }

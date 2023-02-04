@@ -48,11 +48,10 @@ export default function Player(props) {
 
 	useFrame(() => {
 		if (participantObject) {
-			console.log(participantObject.userData);
 			const posY = participantObject.parent.position.y;
 			// var posY = participantObject.userData.vrm.firstPerson.humanoid.humanBones.head.position.y;
 			// camera.position.setY( posY + 1.5 );
-			camera.position.setY(posY + 0.33);
+			camera.position.setY(posY + 0.23);
 			// participantObject.rotation.set([0, camera.rotation.y, 0]);
 			// participantObject.rotation.set(camera.rotation);
 		}

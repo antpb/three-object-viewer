@@ -308,7 +308,7 @@ function Participants(props) {
 			});
 		}
 	}, []);
-	console.log("participants", props.participants)
+
 	return (
 		<>
 			{props.participants &&
