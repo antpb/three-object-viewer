@@ -57,6 +57,7 @@
         "r3f-perf": "4.9.1",
         "re-resizable": "^6.9.9",
         "react-nipple": "^1.0.2",
+        "react-scrollable-feed": "^1.3.1",
         "sass-loader": "^13.2.0",
         "style-loader": "2.0.0",
         "three": "0.146.0",
