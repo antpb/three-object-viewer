@@ -18,8 +18,9 @@ import {
 	TextControl,
 	DropZone
 } from "@wordpress/components";
-import { more } from "@wordpress/icons";
+import { Icon, moveTo, more, rotateLeft, resizeCornerNE } from "@wordpress/icons";
 import * as THREE from "three";
+import defaultEnvironment from "../../inc/assets/default_grid.glb";
 
 import ThreeObjectEdit from "./components/ThreeObjectEdit";
 
@@ -28,7 +29,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 	const ALLOWED_BLOCKS = allowed_blocks;
 	const [focusPosition, setFocusPosition] = useState(new THREE.Vector3());
 	const [focusPoint, setFocus] = useState(new THREE.Vector3());
-
+	const [mainModel, setMainModel] = useState(attributes.threeObjectUrl ? attributes.threeObjectUrl : (threeObjectPlugin + defaultEnvironment));
 	const changeFocusPoint = (newValue) => {
 		setFocusPosition(newValue);
 	}
@@ -40,6 +41,8 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 
 	const onImageSelect = (imageObject) => {
 		setAttributes({ threeObjectUrl: null });
+		setMainModel(null);
+		setMainModel(imageObject.url);
 		setAttributes({ threeObjectUrl: imageObject.url });
 	};
 
@@ -72,6 +75,39 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 		"model/gltf-binary",
 		"application/octet-stream"
 	];
+
+	const TEMPLATE = [            
+		['three-object-viewer/spawn-point-block', { positionX: "0", positionY: "1.3", positionZ: "-5", rotationX: "0", rotationY: "0", rotationZ: "0"}],
+	];
+
+	const ThreeButtonToggle = () => {
+		const [label, setLabel] = useState("transform");
+	  
+		const handleClick = (newLabel) => {
+		  setLabel(newLabel);
+		};
+	  
+		return (
+		  <div style={{ position: "relative", zIndex: 100 }}>
+			<div
+			  style={{
+				display: "flex",
+				justifyContent: "flex-end",
+				position: "absolute",
+				top: "0",
+				right: "0",
+			  }}
+			>
+			  <div style={{ display: "flex", justifyContent: "space-between" }}>
+				<button onClick={() => handleClick("transform")}><Icon icon={moveTo}/></button>
+				<button onClick={() => handleClick("rotate")}><Icon icon={rotateLeft}/></button>
+				<button onClick={() => handleClick("scale")}><Icon icon={resizeCornerNE}/></button>
+			  </div>
+			</div>
+		  </div>
+		);
+	  };
+	  
 
 	const MyDropZone = () => {
 		const [hasDropped, setHasDropped] = useState(false);
@@ -230,10 +266,12 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 				<InnerBlocks
 					renderAppender={ InnerBlocks.ButtonBlockAppender }
 					allowedBlocks={ALLOWED_BLOCKS}
+					template={TEMPLATE}
 				/>
-					{attributes.threeObjectUrl ? (
+				<ThreeButtonToggle/>
+					{mainModel ? (
 						<ThreeObjectEdit
-							url={attributes.threeObjectUrl}
+							url={mainModel}
 							deviceTarget={attributes.deviceTarget}
 							backgroundColor={attributes.bg_color}
 							zoom={attributes.zoom}
@@ -252,42 +290,25 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 							selected={isSelected}
 						/>
 					) : (
-						<div className="glb-preview-container">
-							<MyDropZone />
-
-							<div>
-								<span>
-									Select a glb file to render in the canvas:
-								</span>
-								{/* <div className="three-object-block-url-input"> 
-									<input onChange={(e) => setEnteredURL(e.target.value)}></input> 
-									<button 
-										className="three-object-viewer-button" 
-										onClick={	handleClick(enteredURL) }
-									>
-										Use URL
-									</button>
-								</div> */}
-							</div>
-							<MediaUpload
-									onSelect={(imageObject) =>
-										onImageSelect(imageObject)
-									}
-									type="image"
-									allowedTypes={ALLOWED_MEDIA_TYPES}
-									value={attributes.threeObjectUrl}
-									render={({ open }) => (
-										<button
-											className="three-object-viewer-button"
-											onClick={open}
-										>
-											{attributes.threeObjectUrl
-												? "Replace Object"
-												: "Select From Media Library"}
-										</button>
-									)}
-								/>
-						</div>
+						<ThreeObjectEdit
+							url={(threeObjectPlugin + defaultEnvironment)}
+							deviceTarget={"vr"}
+							backgroundColor={attributes.bg_color}
+							zoom={1}
+							scale={1}
+							hasZoom={0}
+							hasTip={0}
+							positionX={0}
+							positionY={0}
+							animations={""}
+							rotationY={0}
+							setFocusPosition={setFocusPosition}
+							setFocus={setFocus}
+							changeFocusPoint={changeFocusPoint}
+							focusPosition={focusPosition}
+							focusPoint={focusPoint}
+							selected={isSelected}
+						/>
 					)}
 				</>
 			) : (
@@ -295,10 +316,12 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 				<InnerBlocks 
 					renderAppender={ InnerBlocks.ButtonBlockAppender } 
 					allowedBlocks={ALLOWED_BLOCKS}
+					template={TEMPLATE}
 				/>
-					{attributes.threeObjectUrl ? (
+				<ThreeButtonToggle/>
+					{mainModel !== null ? (
 						<ThreeObjectEdit
-							url={attributes.threeObjectUrl}
+							url={mainModel}
 							backgroundColor={attributes.bg_color}
 							deviceTarget={attributes.deviceTarget}
 							zoom={attributes.zoom}
@@ -317,40 +340,26 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 							selected={isSelected}
 						/>
 					) : (
-						<div className="glb-preview-container">
-							<MyDropZone />
-							<div>
-								<span>
-									Select a glb file to render in the canvas:
-								</span>
-								{/* <div className="three-object-block-url-input"> 
-								<input onChange={(e) => console.log(e.target.value) && setEnteredURL(e.target.value)}></input> 
-									<button 
-										className="three-object-viewer-button" 
-										onClick={	handleClick(enteredURL) }
-									>
-										Use URL
-									</button>
-								</div> */}
-							</div>
-							<MediaUpload
-								onSelect={(imageObject) =>
-									onImageSelect(imageObject)
-								}
-								type="image"
-								allowedTypes={ALLOWED_MEDIA_TYPES}
-								value={attributes.threeObjectUrl}
-								// unstableSidebarImageFlow
-								render={({ open }) => (
-									<button
-										className="three-object-viewer-button"
-										onClick={open}
-									>
-										Select From Media Library
-									</button>
-								)}
-							/>
-						</div>
+
+						<ThreeObjectEdit
+							url={(threeObjectPlugin + defaultEnvironment)}
+							deviceTarget={"vr"}
+							backgroundColor={attributes.bg_color}
+							zoom={1}
+							scale={1}
+							hasZoom={0}
+							hasTip={0}
+							positionX={0}
+							positionY={0}
+							animations={""}
+							rotationY={0}
+							setFocusPosition={setFocusPosition}
+							setFocus={setFocus}
+							changeFocusPoint={changeFocusPoint}
+							focusPosition={focusPosition}
+							focusPoint={focusPoint}
+							selected={isSelected}
+						/>
 					)}
 				</>
 			)}

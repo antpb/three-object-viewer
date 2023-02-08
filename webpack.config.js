@@ -58,6 +58,14 @@ module.exports = {
 				]
 			},
 			{
+				test: /\.glb$/,
+				use: [
+					{
+						loader: "file-loader"
+					}
+				]
+			},
+			{
 				test: /\.fbx$/,
 				use: [
 					{
