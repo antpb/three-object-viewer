@@ -1396,31 +1396,43 @@ export default function ThreeObjectEdit(props) {
 			  }}
 			>
 			  <div style={{ display: "flex", justifyContent: "space-between" }}>
-				<button 
+				<button
+					title="translate"
 					style={{
 						backgroundColor:
 							props.transformMode === "translate" ? "lightgray" : "white",
+							borderRadius: "10px",
+							paddingTop: "5px",
+							marginRight: "5px",
 						}}
 					active={true}
 					onClick={() => props.setTransformMode("translate")}>
-						<Icon icon={moveTo}/>
+						<Icon size={20} icon={moveTo}/>
 				</button>
-				<button 
+				<button
+					title="rotate"
 					style={{
 						backgroundColor:
 							props.transformMode === "rotate" ? "lightgray" : "white",
+							borderRadius: "10px",
+							paddingTop: "5px",
+							marginRight: "5px",
 					}}
 					onClick={() => props.setTransformMode("rotate")}
 				>
-						<Icon icon={rotateLeft}/>
+						<Icon size={20} icon={rotateLeft}/>
 				</button>
-				<button 
+				<button
+					title="scale"
 					style={{
 						backgroundColor:
 							props.transformMode === "scale" ? "lightgray" : "white",
+							borderRadius: "10px",
+							paddingTop: "5px",
+							marginRight: "5px",
 						}}
 					onClick={() => props.setTransformMode("scale")}>
-						<Icon icon={resizeCornerNE}/>
+						<Icon size={20} icon={resizeCornerNE}/>
 				</button>
 			  </div>
 			</div>
