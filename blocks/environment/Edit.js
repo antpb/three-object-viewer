@@ -35,6 +35,13 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 	}
 
 
+	// useEffect to initialize the value of the threeObjectUrl attribute if it is not set
+	useEffect(() => {
+		if (!attributes.threeObjectUrl) {
+			setAttributes({ threeObjectUrl: (threeObjectPlugin + defaultEnvironment) });
+		}
+	}, []);
+
 	const onChangeAnimations = (animations) => {
 		setAttributes({ animations });
 	};
@@ -78,36 +85,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 
 	const TEMPLATE = [            
 		['three-object-viewer/spawn-point-block', { positionX: "0", positionY: "1.3", positionZ: "-5", rotationX: "0", rotationY: "0", rotationZ: "0"}],
-	];
-
-	const ThreeButtonToggle = () => {
-		const [label, setLabel] = useState("transform");
-	  
-		const handleClick = (newLabel) => {
-		  setLabel(newLabel);
-		};
-	  
-		return (
-		  <div style={{ position: "relative", zIndex: 100 }}>
-			<div
-			  style={{
-				display: "flex",
-				justifyContent: "flex-end",
-				position: "absolute",
-				top: "0",
-				right: "0",
-			  }}
-			>
-			  <div style={{ display: "flex", justifyContent: "space-between" }}>
-				<button onClick={() => handleClick("transform")}><Icon icon={moveTo}/></button>
-				<button onClick={() => handleClick("rotate")}><Icon icon={rotateLeft}/></button>
-				<button onClick={() => handleClick("scale")}><Icon icon={resizeCornerNE}/></button>
-			  </div>
-			</div>
-		  </div>
-		);
-	  };
-	  
+	];	  
 
 	const MyDropZone = () => {
 		const [hasDropped, setHasDropped] = useState(false);
@@ -261,15 +239,13 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 					</PanelBody>
 				</Panel>
 			</InspectorControls>
-			{isSelected ? (
 				<>					
 				<InnerBlocks
 					renderAppender={ InnerBlocks.ButtonBlockAppender }
 					allowedBlocks={ALLOWED_BLOCKS}
 					template={TEMPLATE}
 				/>
-				<ThreeButtonToggle/>
-					{mainModel ? (
+					{mainModel && (
 						<ThreeObjectEdit
 							url={mainModel}
 							deviceTarget={attributes.deviceTarget}
@@ -289,80 +265,8 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 							focusPoint={focusPoint}
 							selected={isSelected}
 						/>
-					) : (
-						<ThreeObjectEdit
-							url={(threeObjectPlugin + defaultEnvironment)}
-							deviceTarget={"vr"}
-							backgroundColor={attributes.bg_color}
-							zoom={1}
-							scale={1}
-							hasZoom={0}
-							hasTip={0}
-							positionX={0}
-							positionY={0}
-							animations={""}
-							rotationY={0}
-							setFocusPosition={setFocusPosition}
-							setFocus={setFocus}
-							changeFocusPoint={changeFocusPoint}
-							focusPosition={focusPosition}
-							focusPoint={focusPoint}
-							selected={isSelected}
-						/>
 					)}
 				</>
-			) : (
-				<>
-				<InnerBlocks 
-					renderAppender={ InnerBlocks.ButtonBlockAppender } 
-					allowedBlocks={ALLOWED_BLOCKS}
-					template={TEMPLATE}
-				/>
-				<ThreeButtonToggle/>
-					{mainModel !== null ? (
-						<ThreeObjectEdit
-							url={mainModel}
-							backgroundColor={attributes.bg_color}
-							deviceTarget={attributes.deviceTarget}
-							zoom={attributes.zoom}
-							scale={attributes.scale}
-							hasZoom={attributes.hasZoom}
-							hasTip={attributes.hasTip}
-							positionX={attributes.positionX}
-							positionY={attributes.positionY}
-							animations={attributes.animations}
-							rotationY={attributes.rotationY}
-							setFocusPosition={setFocusPosition}
-							setFocus={setFocus}
-							changeFocusPoint={changeFocusPoint}
-							focusPosition={focusPosition}
-							focusPoint={focusPoint}
-							selected={isSelected}
-						/>
-					) : (
-
-						<ThreeObjectEdit
-							url={(threeObjectPlugin + defaultEnvironment)}
-							deviceTarget={"vr"}
-							backgroundColor={attributes.bg_color}
-							zoom={1}
-							scale={1}
-							hasZoom={0}
-							hasTip={0}
-							positionX={0}
-							positionY={0}
-							animations={""}
-							rotationY={0}
-							setFocusPosition={setFocusPosition}
-							setFocus={setFocus}
-							changeFocusPoint={changeFocusPoint}
-							focusPosition={focusPosition}
-							focusPoint={focusPoint}
-							selected={isSelected}
-						/>
-					)}
-				</>
-			)}
 		</div>
 	);
 }
