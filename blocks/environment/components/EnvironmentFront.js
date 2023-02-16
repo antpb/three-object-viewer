@@ -95,7 +95,6 @@ function ChatBox(props) {
 		if (props.objectAwareness === "1") {
 			finalPersonality = finalPersonality.replace("###\nThe following is a", ("ITEMS IN WORLD: " + String(newString) + "\n###\nThe following is a"));
 		}
-		
 		const postData = {
 			Input: {
 				Input: value,

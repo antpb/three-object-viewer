@@ -1121,7 +1121,7 @@ function ThreeObject(props) {
 	const [url, set] = useState(props.url);
 	useEffect(() => {
 		setTimeout(() => set(props.url), 2000);
-	}, []);
+	}, [props.url]);
 	const [listener] = useState(() => new THREE.AudioListener());
 
 	useThree(({ camera }) => {
