@@ -24,41 +24,31 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 		setAttributes({ skyUrl: null });
 		setAttributes({ skyUrl: imageObject.url });
 	};
-
-	const onChangeCollidable = (zoomSetting) => {
-		setAttributes({ hasZoom: zoomSetting });
+	const onChangeDistance = (distance) => {
+		setAttributes({ distance });
+	};
+	const onChangeRayleigh = (rayleigh) => {
+		setAttributes({ rayleigh });
+	};
+	const onChangeSunPositionX = (sunPositionX) => {
+		setAttributes({ sunPositionX });
+	};
+	const onChangeSunPositionY = (sunPositionY) => {
+		setAttributes({ sunPositionY });
+	};
+	const onChangeSunPositionZ = (sunPositionZ) => {
+		setAttributes({ sunPositionZ });
+	};
+	const onChangeInclination = (inclination) => {
+		setAttributes({ inclination });
+	};
+	const onChangeAzimuth = (azimuth) => {
+		setAttributes({ azimuth });
 	};
 
 	const { mediaUpload } = wp.editor;
 
 	const ALLOWED_MEDIA_TYPES = ["image"];
-
-	const MyDropZone = () => {
-		const [hasDropped, setHasDropped] = useState(false);
-		return (
-			<div>
-				{hasDropped ? "Dropped!" : "Drop an image here or"}
-				<DropZone
-					onFilesDrop={(files) =>
-						mediaUpload({
-							allowedTypes: ALLOWED_MEDIA_TYPES,
-							filesList: files,
-							onFileChange: ([images]) => {
-								onImageSelect(images);
-							}
-						})
-					}
-				/>
-			</div>
-		);
-	};
-
-	function handleClick(objectURL) {
-		if (objectURL) {
-			onImageSelect(objectURL);
-		}
-		console.log("fail", objectURL);
-	}
 
 	return (
 		<div {...useBlockProps()}>
@@ -93,6 +83,63 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 								)}
 							/>
 						</PanelRow>
+						<PanelRow>
+							<TextControl
+								label="distance"
+								value={ attributes.distance }
+								onChange={ onChangeDistance }
+							/>
+						</PanelRow>
+						<PanelRow>
+							<TextControl
+								label="inclination"
+								value={ attributes.inclination }
+								onChange={ onChangeInclination }
+							/>
+						</PanelRow>
+						<PanelRow>
+							<TextControl
+								label="rayleigh"
+								value={ attributes.rayleigh }
+								onChange={ onChangeRayleigh }
+							/>
+						</PanelRow>
+						<PanelRow>
+							<TextControl
+								label="azimuth"
+								value={ attributes.azimuth }
+								onChange={ onChangeAzimuth }
+							/>
+						</PanelRow>
+						<PanelRow>
+							<legend className="blocks-base-control__label">
+								{__("Position", "three-object-viewer")}
+							</legend>
+						</PanelRow>
+						<PanelRow>
+							<TextControl
+								className="position-inputs"
+								label="X"
+								// help="position x"
+								value={attributes.sunPositionX}
+								onChange={(value) => onChangeSunPositionX(value)}
+							/>
+							<TextControl
+								className="position-inputs"
+								label="Y"
+								// help="position y"
+								value={attributes.sunPositionY}
+								onChange={(value) => onChangeSunPositionY(value)}
+							/>
+							<TextControl
+								className="position-inputs"
+								label="Z"
+								// help="position z"
+								value={attributes.sunPositionZ}
+								onChange={(value) => onChangeSunPositionZ(value)}
+							/>
+						</PanelRow>
+
 					</PanelBody>
 				</Panel>
 			</InspectorControls>

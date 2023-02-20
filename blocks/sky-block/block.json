@@ -6,6 +6,38 @@
         "skyUrl": {
             "type": "string",
             "default": null
+        },
+        "distance": {
+            "type": "int",
+            "default": 1000
+        },
+		"azimuth": {
+			"type": "int",
+			"default": 0
+		},
+		"rayleigh": {
+			"type": "int",
+			"default": 0.2
+		},
+		"inclination": {
+			"type": "int",
+			"default": 1
+		},
+		"sunPositionX": {
+			"type": "int",
+			"default": 0
+		},
+		"sunPositionY": {
+			"type": "int",
+			"default": 1
+		},
+		"sunPositionZ": {
+			"type": "int",
+			"default": 0
+		},
+		"skyColor": {
+            "type": "string",
+            "default": "0x000000"
         }
     },
     "category": "design",

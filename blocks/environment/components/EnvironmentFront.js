@@ -582,7 +582,7 @@ export default function EnvironmentFront(props) {
 				<>
 					<VRCanvas
 						camera={{
-							fov: 50,
+							fov: 70,
 							zoom: 1,
 							far: 2000,
 							position: [0, 0, 20]
