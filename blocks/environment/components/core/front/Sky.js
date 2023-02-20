@@ -17,14 +17,16 @@ export function Sky(sky) {
 	const texture1 = useLoader(TextureLoader, skyUrl);
 
 	return (
-		<mesh
-			visible
-			position={[0, 0, 0]}
-			scale={[1, 1, 1]}
-			rotation={[0, 0, 0]}
-		>
-			<sphereGeometry args={[300, 100, 100]} />
-			<meshBasicMaterial overdraw= {true} side={DoubleSide} map={texture1} />
-		</mesh>
+		<>
+			<mesh
+				visible
+				position={[0, 0, 0]}
+				scale={[1, 1, 1]}
+				rotation={[0, 0, 0]}
+			>
+				<sphereGeometry args={[300, 100, 100]} />
+				<meshBasicMaterial side={DoubleSide} map={texture1} />
+			</mesh>
+		</>
 	);
 }

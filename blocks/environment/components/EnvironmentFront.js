@@ -17,10 +17,6 @@ import { Resizable } from "re-resizable";
 
 import {
 	useAnimations,
-	Stats,
-	Text,
-	Billboard,
-	Select
 } from "@react-three/drei";
 // import { A11y } from "@react-three/a11y";
 import { GLTFAudioEmitterExtension } from "three-omi";
@@ -561,6 +557,7 @@ function SavedObject(props) {
 export default function EnvironmentFront(props) {
 	const [participants, setParticipant] = useState([]);
 	const [showUI, setShowUI] = useState(true);
+	const canvasRef = useRef(null);
 
 	// let string = '{\"spell\":\"complexQuery\",\"outputs\":{\"Output\":\"{\\\"message\\\": \\\" Hi there! How can I help you?\\\",\\\"tone\\\": \\\"friendly\\\"}\"},\"state\":{}}';
 	// let string = 'Hello! Welcome to this 3OV world! Feel free to ask me anything. I am especially versed in the 3OV metaverse plugin for WordPress.'
@@ -1689,6 +1686,7 @@ export default function EnvironmentFront(props) {
 	} else {
 		return (
 			<div
+				ref={canvasRef}
 				style={{
 					backgroundColor: props.backgroundColor,
 					backgroundImage: `url(${props.previewImage})`,
@@ -1712,7 +1710,10 @@ export default function EnvironmentFront(props) {
 					}}
 				>
 					<button
-						onClick={() => setLoaded(true)}
+						onClick={() => {
+							canvasRef.current.scrollIntoView({ behavior: 'smooth' });
+							setLoaded(true);
+						}}
 						style={{
 							margin: "0 auto",
 							padding: "10px"
