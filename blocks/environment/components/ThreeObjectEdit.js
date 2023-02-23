@@ -123,10 +123,10 @@ function ThreeSky(sky) {
 			<mesh
 				visible
 				position={[0, 0, 0]}
-				scale={[200, 200, 200]}
+				scale={[1, 1, 1]}
 				rotation={[0, 0, 0]}
 			>
-				<sphereGeometry args={[5, 10, 10]} />
+				<sphereGeometry args={[300, 50, 50]} />
 				<meshStandardMaterial side={THREE.DoubleSide} map={texture_1} />
 			</mesh>
 		);
@@ -134,8 +134,6 @@ function ThreeSky(sky) {
 		return(
 			<Sky
 				distance={sky.src.distance}
-				inclination={sky.src.inclination}
-				azimuth={sky.src.azimuth}
 				sunPosition={[sky.src.sunPositionX, sky.src.sunPositionY, sky.src.sunPositionZ]}
 				rayleigh={sky.src.rayleigh}
 			/>

@@ -9,17 +9,9 @@
         },
         "distance": {
             "type": "int",
-            "default": 1000
+            "default": 170000
         },
-		"azimuth": {
-			"type": "int",
-			"default": 0
-		},
 		"rayleigh": {
-			"type": "int",
-			"default": 0.2
-		},
-		"inclination": {
 			"type": "int",
 			"default": 1
 		},
@@ -29,16 +21,12 @@
 		},
 		"sunPositionY": {
 			"type": "int",
-			"default": 1
+			"default": 10000
 		},
 		"sunPositionZ": {
 			"type": "int",
-			"default": 0
-		},
-		"skyColor": {
-            "type": "string",
-            "default": "0x000000"
-        }
+			"default": -10000
+		}
     },
     "category": "design",
     "parent":  [ "three-object-viewer/environment" ],

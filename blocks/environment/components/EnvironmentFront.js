@@ -36,7 +36,7 @@ import { ThreeVideo } from "./core/front/ThreeVideo";
 import { ModelObject } from "./core/front/ModelObject";
 import { NPCObject } from "./core/front/NPCObject";
 import { Portal } from "./core/front/Portal";
-import { Sky } from "./core/front/Sky";
+import { ThreeSky } from "./core/front/ThreeSky";
 import { TextObject } from "./core/front/TextObject";
 
 function ChatBox(props) {
@@ -190,7 +190,7 @@ function ChatBox(props) {
 						))} */}
 						<form style={{display: "flex"}} onSubmit={handleSubmit}>
 							<input style={{height: "30px", pointerEvents: "auto", borderTopLeftRadius: "15px", borderBottomLeftRadius: "15px", borderTopRightRadius: "0px", borderBottomRightRadius: "0px"} } type="text" name="message" onInput={handleChange} onChange={handleChange} />
-							<button style={{ height: "30px", background: "#9100ff", color: "white", fontSize: ".9em", lineHeight: ".3em", borderTopRightRadius: "15px", borderBottomRightRadius: "15px", borderTopLeftRadius: "0px", borderBottomLeftRadius: "0px"} } type="submit">Send</button>
+							<button className="threeov-chat-button-send" style={{ height: "30px", background: "#9100ff", color: "white", fontSize: ".9em", lineHeight: ".3em", borderTopRightRadius: "15px", borderBottomRightRadius: "15px", borderTopLeftRadius: "0px", borderBottomLeftRadius: "0px"} } type="submit">Send</button>
 						</form>
 					</div>
 				</div>
@@ -658,7 +658,7 @@ export default function EnvironmentFront(props) {
 												(item, index) => {
 													return (
 														<>
-															<Sky
+															<ThreeSky
 																src={props.sky}
 															/>
 														</>
@@ -1710,6 +1710,7 @@ export default function EnvironmentFront(props) {
 					}}
 				>
 					<button
+						class="threeov-load-world-button"
 						onClick={() => {
 							canvasRef.current.scrollIntoView({ behavior: 'smooth' });
 							setLoaded(true);
