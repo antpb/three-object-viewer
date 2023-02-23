@@ -82,11 +82,14 @@ module.exports = {
 	},
 	externals: {
 		react: "React",
-		"react-dom": "ReactDOM"
+		"react-dom": "ReactDOM",
 	},
 	resolve: {
+		modules: ['node_modules'],
+		extensions: ['.js', '.jsx', '.json', '.ts', '.tsx'],	  
 		alias: {
-			Brushes: path.resolve(__dirname, "brushes")
+			Brushes: path.resolve(__dirname, "brushes"),
+			'@magickml/editor': path.resolve(__dirname, 'node_modules/@magickml/editor'),
 		}
 	}
 };
