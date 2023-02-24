@@ -11,7 +11,6 @@ import { Physics, RigidBody, Debug, Attractor, CuboidCollider } from "@react-thr
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
 import axios from "axios";
-import ReactNipple from 'react-nipple';
 import ScrollableFeed from 'react-scrollable-feed'
 import { Resizable } from "re-resizable";
 
@@ -561,10 +560,6 @@ export default function EnvironmentFront(props) {
 
 	// let string = '{\"spell\":\"complexQuery\",\"outputs\":{\"Output\":\"{\\\"message\\\": \\\" Hi there! How can I help you?\\\",\\\"tone\\\": \\\"friendly\\\"}\"},\"state\":{}}';
 	// let string = 'Hello! Welcome to this 3OV world! Feel free to ask me anything. I am especially versed in the 3OV metaverse plugin for WordPress.'
-	const [mobileControls, setMobileControls] = useState(null);
-	const [mobileRotControls, setMobileRotControls] = useState(null);	  
-	  
-
 	const [messages, setMessages] = useState();
 	const [messageHistory, setMessageHistory] = useState();
 	const [loaded, setLoaded] = useState(false);
@@ -572,7 +567,7 @@ export default function EnvironmentFront(props) {
 	const [messageObject, setMessageObject] = useState({"tone": "happy", "message": "hello!"});
 	const [objectsInRoom, setObjectsInRoom] = useState([]);
 	const [url, setURL] = useState(props.threeUrl ? props.threeUrl : (threeObjectPlugin + defaultEnvironment));
-	
+
 	if (loaded === true) {
 		if (props.deviceTarget === "vr") {
 			return (
@@ -634,8 +629,6 @@ export default function EnvironmentFront(props) {
 											<Player
 												spawnPointsToAdd={spawnPoints}
 												spawnPoint={props.spawnPoint}
-												mobileControls={mobileControls}
-												mobileRotControls={mobileRotControls}
 												setShowUI={setShowUI}
 											/>
 											<Participants 
@@ -1638,48 +1631,9 @@ export default function EnvironmentFront(props) {
 							key="something"/>
 					)
 					})}
-						{/* <>
-						<ReactNipple
-							// supports all nipplejs options
-							// see https://github.com/yoannmoinet/nipplejs#options
-							options={{ mode: 'static', position: { top: '50%', left: '50%' } }}
-							// any unknown props will be passed to the container element, e.g. 'title', 'style' etc
-							style={{
-								outline: '1px dashed red',
-								width: 150,
-								height: 150,
-								position: "absolute",
-								bottom: 30,
-								left: 30,
-								userSelect: "none",
-								transition: "opacity 0.5s"
-							}}
-							// all events supported by nipplejs are available as callbacks
-							// see https://github.com/yoannmoinet/nipplejs#start
-							onMove={(evt, data) => setMobileControls(data)}
-							onEnd={(evt, data) => setMobileControls(null)}
-						/>
-						<ReactNipple
-							// supports all nipplejs options
-							// see https://github.com/yoannmoinet/nipplejs#options
-							options={{ mode: 'static', position: { top: '50%', left: '50%' } }}
-							// any unknown props will be passed to the container element, e.g. 'title', 'style' etc
-							style={{
-								outline: '1px dashed red',
-								width: 150,
-								height: 150,
-								position: "absolute",
-								bottom: 30,
-								right: 30,
-								userSelect: "none",
-								transition: "opacity 0.5s" 
-							}}
-							// all events supported by nipplejs are available as callbacks
-							// see https://github.com/yoannmoinet/nipplejs#start
-							onMove={(evt, data) => setMobileRotControls(data)}
-							onEnd={(evt, data) => setMobileRotControls(null)}
-						/>
-					</> */}
+					<>
+							<div id="threeov-controls-container"></div>
+					</>
 				</>
 			);
 		}
