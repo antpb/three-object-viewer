@@ -59,7 +59,7 @@ export default function Player(props) {
 	});
 
 	// Participant VRM.
-	const fallbackURL = threeObjectPlugin + defaultVRM;
+	const fallbackURL = defaultVRM;
 	const playerURL = userData.vrm ? userData.vrm : fallbackURL;
 
 	const someSceneState = useLoader(GLTFLoader, playerURL, (loader) => {

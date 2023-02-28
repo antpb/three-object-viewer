@@ -38,6 +38,7 @@ import { NPCObject } from "./core/front/NPCObject";
 import { Portal } from "./core/front/Portal";
 import { ThreeSky } from "./core/front/ThreeSky";
 import { TextObject } from "./core/front/TextObject";
+console.log("React version:", React.version);
 
 function ChatBox(props) {
 	

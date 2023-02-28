@@ -80,10 +80,10 @@ module.exports = {
 		filename: "[name].js",
 		path: path.join(__dirname, "./build")
 	},
-	externals: {
-		react: "React",
-		"react-dom": "ReactDOM",
-	},
+	// externals: {
+	// 	react: "React",
+	// 	"react-dom": "ReactDOM",
+	// },
 	resolve: {
 		modules: ['node_modules'],
 		extensions: ['.js', '.jsx', '.json', '.ts', '.tsx'],	  
