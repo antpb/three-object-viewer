@@ -38,8 +38,11 @@ import { Portal } from "./core/front/Portal";
 import { ThreeSky } from "./core/front/ThreeSky";
 import { TextObject } from "./core/front/TextObject";
 
+function isMobile() {
+	return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
 function ChatBox(props) {
-	
 	const handleChange = async (event) => {
 		event.preventDefault();
 		event.stopPropagation();
@@ -79,13 +82,13 @@ function ChatBox(props) {
 	// 	"Channel": "channel",
 	// 	"eth_private_key": "0",
 	// 	"eth_public_address": "0",
-	// 	"personality": "#agent is an AI assistant with a cheerful, optimistic, and helpful personality. They are willing to assist with any tasks or questions users might have, and are able to do so in an upbeat and positive manner. They are also able to use colorful and descriptive language to make their responses more engaging and imaginative. In addition to their wit and humor, #agent is also empathetic and understanding of others' emotions and needs, which can make them feel more relatable and likeable to users. #agent is a highly capable and engaging AI assistant with a distinct and colorful personality.\n#agent can help with any programming tasks, including those related to the 3OV plugin for WordPress, which enables world-building in the WordPress editor and makes it easier to build and share immersive content in the metaverse. The url for the website is 3ov.xyz. #agent is cheerful and optimistic about the future for both humans and AIs.\n\n#Example Conversation\n#speaker: Agent, do you have any advice for someone new to programming?\n#agent: Sure thing! My top tip would be to always keep an open mind and a positive attitude. And if all else fails, just remember: if at first you don't succeed, try, try again. And then if that still doesn't work, call it a day and go get a coffee.\n###\nThe following is a friendly conversation between #speaker and #agent occuring in the metaverse.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:"
+	// 	"personality": "#agent is an AI assistant"
 	// }`;
 
 	try {
 		const apiEndpoint = '/wp-json/wp/v2/callAlchemy';
 		let finalPersonality = props.personality;
-		finalPersonality = finalPersonality + "###\nThe following is a friendly conversation between #speaker and #agent\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:";
+		finalPersonality = finalPersonality + "###\nThe following is a conversation between #speaker and #agent\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:";
 		let newString = props.objectsInRoom.join(", ");
 		if (props.objectAwareness === "1") {
 			finalPersonality = finalPersonality.replace("###\nThe following is a", ("ITEMS IN WORLD: " + String(newString) + "\n###\nThe following is a"));
@@ -102,7 +105,6 @@ function ChatBox(props) {
 				eth_private_key: '0',
 				eth_public_address: '0',
 				personality: finalPersonality
-				// personality: "#agent is an AI assistant with a cheerful, optimistic, and helpful personality. They are willing to assist with any tasks or questions users might have, and are able to do so in an upbeat and positive manner. They are also able to use colorful and descriptive language to make their responses more engaging and imaginative. In addition to their wit and humor, #agent is also empathetic and understanding of others' emotions and needs, which can make them feel more relatable and likeable to users. #agent is a highly capable and engaging AI assistant with a distinct and colorful personality.\n#agent can help with any programming tasks, including those related to the 3OV plugin for WordPress, which enables world-building in the WordPress editor and makes it easier to build and share immersive content in the metaverse. The url for the website is 3ov.xyz. #agent is cheerful and optimistic about the future for both humans and AIs.\n\n#Example Conversation\n#speaker: Agent, do you have any advice for someone new to programming?\n#agent: Sure thing! My top tip would be to always keep an open mind and a positive attitude. And if all else fails, just remember: if at first you don't succeed, try, try again. And then if that still doesn't work, call it a day and go get a coffee.\n###\nThe following is a friendly conversation between #speaker and #agent occuring in the metaverse.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:"
 			}
 		};
 		// const postData = prompt;
@@ -145,7 +147,11 @@ function ChatBox(props) {
 	};
 
 	const ClickStop = ({ children }) => {
-		return <div onClick={e => e.stopPropagation()}>{children}</div>;
+		return <div onClick={e => {
+			e.stopPropagation()
+		}}>
+			{children}
+		</div>;
 	};
 
 	const handleDummySubmit = async (event) => {
@@ -166,37 +172,76 @@ function ChatBox(props) {
 			"message": "Welcome! Here you go: Test response complete. Is there anything else I can help you with?",
 		  }`;
 
-		  props.setMessages([...props.messages, testString]);
+			props.setMessages([...props.messages, testString]);
 
 		};
+
+		const [open, setOpen] = useState(false);
+		const onSwitch = (e) => {
+			e.preventDefault();
+			e.stopPropagation();	
+			setOpen(prevOpen => !prevOpen);
+		};
+				
+	if(isMobile()){
 	return (
 		<>
-		<ClickStop>
-			<Resizable>
-				<div style={{pointerEvents: "auto", position: "relative", paddingTop: "14px", paddingLeft: "5px", paddingRight: "5px", overflyY: "scroll", paddingBottom: "5px", boxSizing: "border-box", zIndex:100, marginTop: "-350px", width: "300px", height: "280px", fontSize: ".8em", color: "#FFFFFF", bottom: "0", left: "2%", backgroundColor: "transparent"}}>
-					<div style={{pointerEvents: "auto", position: "relative", paddingTop: "14px", paddingLeft: "5px", paddingRight: "5px", overflyY: "scroll", paddingBottom: "5px", boxSizing: "border-box", zIndex:100, width: "275px", maxHeight: "250px", height: "250px", fontSize: "0.8em", color: "#FFFFFF", backgroundColor: "#"}}>
-						<ScrollableFeed>
-							<ul style={{paddingLeft: "0px", marginLeft: "5px", listStyle: "none"}}>
-								{ props.showUI && props.messages && props.messages.length > 0 && props.messages.map((message, index) => (
-									<li style={{background: "#000000db", borderRadius: "30px", padding: "10px 20px"}} key={index}>{message}</li>
-								))}
-							</ul>
-						</ScrollableFeed>
+        <button className="threeov-chat-button" onClick={onSwitch}>Chat</button>
+		{open && (
+			<ClickStop>
+				    <button className="threeov-chat-button" onClick={onSwitch}>Close</button>
+					<div className="threeov-chat-container" style={{ pointerEvents: "auto", position: "relative", paddingTop: "14px", paddingLeft: "5px", paddingRight: "5px", overflyY: "scroll", paddingBottom: "5px", boxSizing: "border-box", zIndex:100, marginTop: "-350px", width: "300px", height: "280px", fontSize: ".8em", color: "#FFFFFF", bottom: "0", left: "2%", backgroundColor: "transparent"}}>
+						<div style={{pointerEvents: "auto", position: "relative", paddingTop: "14px", paddingLeft: "5px", paddingRight: "5px", overflyY: "scroll", paddingBottom: "5px", boxSizing: "border-box", zIndex:100, width: "275px", maxHeight: "250px", height: "250px", fontSize: "0.8em", color: "#FFFFFF", backgroundColor: "#"}}>
+							<ScrollableFeed>
+								<ul style={{paddingLeft: "0px", marginLeft: "5px", listStyle: "none"}}>
+									{ props.showUI && props.messages && props.messages.length > 0 && props.messages.map((message, index) => (
+										<li style={{background: "#000000db", borderRadius: "30px", padding: "10px 20px"}} key={index}>{message}</li>
+									))}
+								</ul>
+							</ScrollableFeed>
+						</div>
+							<div style={{ width: "100%", height: "5%", position: "relative", bottom: "0px", boxSizing: "border-box", padding: "15px", paddingLeft: "7px" }}>
+							{/* {props.messages.map((message, index) => (
+							<p key={index}>{message}</p>
+							))} */}
+							<form style={{display: "flex"}} onSubmit={handleSubmit}>
+								<input style={{height: "30px", pointerEvents: "auto", borderTopLeftRadius: "15px", borderBottomLeftRadius: "15px", borderTopRightRadius: "0px", borderBottomRightRadius: "0px"} } type="text" name="message" onInput={handleChange} onChange={handleChange} onfocus={(e) => { e.preventDefault()} }/>
+								<button className="threeov-chat-button-send" style={{ height: "30px", background: "#9100ff", color: "white", fontSize: ".9em", lineHeight: ".3em", borderTopRightRadius: "15px", borderBottomRightRadius: "15px", borderTopLeftRadius: "0px", borderBottomLeftRadius: "0px"} } type="submit">Send</button>
+							</form>
+						</div>
 					</div>
-						<div style={{ width: "100%", height: "5%", position: "relative", bottom: "0px", boxSizing: "border-box", padding: "15px", paddingLeft: "7px" }}>
-						{/* {props.messages.map((message, index) => (
-						<p key={index}>{message}</p>
-						))} */}
-						<form style={{display: "flex"}} onSubmit={handleSubmit}>
-							<input style={{height: "30px", pointerEvents: "auto", borderTopLeftRadius: "15px", borderBottomLeftRadius: "15px", borderTopRightRadius: "0px", borderBottomRightRadius: "0px"} } type="text" name="message" onInput={handleChange} onChange={handleChange} />
-							<button className="threeov-chat-button-send" style={{ height: "30px", background: "#9100ff", color: "white", fontSize: ".9em", lineHeight: ".3em", borderTopRightRadius: "15px", borderBottomRightRadius: "15px", borderTopLeftRadius: "0px", borderBottomLeftRadius: "0px"} } type="submit">Send</button>
-						</form>
-					</div>
-				</div>
-			</Resizable>
-		</ClickStop>
+			</ClickStop>
+		)}
 	  </>
 	);
+	} else {
+		return (
+			<>
+				<ClickStop>
+						<div style={{pointerEvents: "auto", position: "relative", paddingTop: "14px", paddingLeft: "5px", paddingRight: "5px", overflyY: "scroll", paddingBottom: "5px", boxSizing: "border-box", zIndex:100, marginTop: "-350px", width: "300px", height: "280px", fontSize: ".8em", color: "#FFFFFF", bottom: "0", left: "2%", backgroundColor: "transparent"}}>
+							<div style={{pointerEvents: "auto", position: "relative", paddingTop: "14px", paddingLeft: "5px", paddingRight: "5px", overflyY: "scroll", paddingBottom: "5px", boxSizing: "border-box", zIndex:100, width: "275px", maxHeight: "250px", height: "250px", fontSize: "0.8em", color: "#FFFFFF", backgroundColor: "#"}}>
+								<ScrollableFeed>
+									<ul style={{paddingLeft: "0px", marginLeft: "5px", listStyle: "none"}}>
+										{ props.showUI && props.messages && props.messages.length > 0 && props.messages.map((message, index) => (
+											<li style={{background: "#000000db", borderRadius: "30px", padding: "10px 20px"}} key={index}>{message}</li>
+										))}
+									</ul>
+								</ScrollableFeed>
+							</div>
+								<div style={{ width: "100%", height: "5%", position: "relative", bottom: "0px", boxSizing: "border-box", padding: "15px", paddingLeft: "7px" }}>
+								{/* {props.messages.map((message, index) => (
+								<p key={index}>{message}</p>
+								))} */}
+								<form style={{display: "flex"}} onSubmit={handleSubmit}>
+									<input style={{height: "30px", pointerEvents: "auto", borderTopLeftRadius: "15px", borderBottomLeftRadius: "15px", borderTopRightRadius: "0px", borderBottomRightRadius: "0px"} } type="text" name="message" onInput={handleChange} onChange={handleChange} />
+									<button className="threeov-chat-button-send" style={{ height: "30px", background: "#9100ff", color: "white", fontSize: ".9em", lineHeight: ".3em", borderTopRightRadius: "15px", borderBottomRightRadius: "15px", borderTopLeftRadius: "0px", borderBottomLeftRadius: "0px"} } type="submit">Send</button>
+								</form>
+							</div>
+						</div>
+				</ClickStop>
+		  </>
+		);
+	}	
   }  
   
 /**
@@ -567,18 +612,37 @@ export default function EnvironmentFront(props) {
 	const [messageObject, setMessageObject] = useState({"tone": "happy", "message": "hello!"});
 	const [objectsInRoom, setObjectsInRoom] = useState([]);
 	const [url, setURL] = useState(props.threeUrl ? props.threeUrl : (threeObjectPlugin + defaultEnvironment));
+    const [isOpen, setIsOpen] = useState(false)
+    const toggleDrawer = () => {
+        setIsOpen((prevState) => !prevState)
+    }
+	const cameraProps = isMobile
+    ? {
+        fov: 50,
+        zoom: 1,
+        far: 1000,
+        position: [0, 0, 15]
+      }
+    : {
+        fov: 70,
+        zoom: 1,
+        far: 2000,
+        position: [0, 0, 20]
+      };
+
+  const glProps = isMobile()
+    ? { antialias: true, alpha: false, pixelRatio: 0.5 }
+    : {};
 
 	if (loaded === true) {
 		if (props.deviceTarget === "vr") {
 			return (
 				<>
 					<VRCanvas
-						camera={{
-							fov: 70,
-							zoom: 1,
-							far: 2000,
-							position: [0, 0, 20]
-						}}
+					    ref={canvasRef}
+						camera={cameraProps}
+						gl={glProps}
+						performance={{ min: 0.02 }}
 						// shadowMap
 						// linear={true}
 						// shadows={{ type: "PCFSoftShadowMap" }}
@@ -614,8 +678,7 @@ export default function EnvironmentFront(props) {
 						// castShadow
 						/>
 						<Suspense fallback={null}>
-							<Physics
-							>
+							<Physics>
 								<RigidBody></RigidBody>
 								{/* Debug physics */}
 								{/* <Debug /> */}
@@ -1617,23 +1680,26 @@ export default function EnvironmentFront(props) {
 						: "";
 					
 					return (
-							<ChatBox 
-							setMessages = {setMessages}
-							objectsInRoom = {objectsInRoom}
-							personality = {personality}
-							objectAwareness = {objectAwareness}
-							name = {name}
-							defaultMessage = {defaultMessage}
-							messages = {messages}
-							showUI = {showUI}
-							style = {{zIndex: 100}}
-							nonce={props.userData.nonce}
-							key="something"/>
+						<>
+								<ChatBox 
+								setMessages = {setMessages}
+								objectsInRoom = {objectsInRoom}
+								personality = {personality}
+								objectAwareness = {objectAwareness}
+								name = {name}
+								defaultMessage = {defaultMessage}
+								messages = {messages}
+								showUI = {showUI}
+								style = {{zIndex: 100}}
+								nonce={props.userData.nonce}
+								key="something"/>
+						</>
 					)
 					})}
-					<>
-							<div id="threeov-controls-container"></div>
-					</>
+						<div style={{ 
+							pointerEvents: "auto", 
+							userSelect: "none"							
+						 }} id="threeov-controls-container"></div>
 				</>
 			);
 		}

@@ -110,10 +110,10 @@ function loadMixamoAnimation(url, vrm) {
 		const regularHips = asset.getObjectByName('hips');
 		let mainHip;
 		if (mixamoHips) {
-			console.log("mixamo hips");
+			// console.log("mixamo hips");
 			mainHip = mixamoHips.position.y;
 		} else if (regularHips) {
-			console.log("reg hips");
+			// console.log("reg hips");
 			mainHip = regularHips.position.y;
 		}
 		const vrmHipsY = vrm.humanoid?.getNormalizedBoneNode('hips').getWorldPosition(_vec3).y;
@@ -328,29 +328,6 @@ export function NPCObject(model) {
 					currentVrm.expressionManager.setValue( VRMExpressionPresetName.Relaxed, 0.8 );
 						currentVrm.update(clock.getDelta());
 			
-					// if(outputJSON.tone){
-					// 	//convert outputJSON.tone to lowercase
-					// 	outputJSON.tone = outputJSON.tone.toLowerCase();
-
-					// 	// Extract the Output parameter
-					// 	if(outputJSON.tone.toLowerCase() === "neutral" ){
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 0 );
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 0 );
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 0 );
-					// 	} else if (outputJSON.tone.toLowerCase() === "confused" ){
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 1 );
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 1 );
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 0 );
-					// 	} else if (outputJSON.tone.toLowerCase() === "friendly" ){
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 0 );
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 1 );
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 0 );
-					// 	} else if (outputJSON.tone.toLowerCase() === "angry" ){
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 0 );
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 0 );
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 1 );
-					// 	}
-					// }
 				}
 				currentVrm.update(delta);
 			}

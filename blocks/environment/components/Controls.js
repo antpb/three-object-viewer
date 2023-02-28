@@ -13,12 +13,12 @@ import { useRapier, useRigidBody } from "@react-three/rapier";
 function isMobile() {
 	return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
-  
+ 
 function Nipples(props){
+
 	return(
 		<>
 			<ReactNipple
-			// supports all nipplejs options
 			// see https://github.com/yoannmoinet/nipplejs#options
 			options={{ mode: 'static', position: { top: '50%', left: '50%' } }}
 			// any unknown props will be passed to the container element, e.g. 'title', 'style' etc
@@ -30,18 +30,18 @@ function Nipples(props){
 				bottom: 30,
 				left: 30,
 				userSelect: "none",
-				transition: "opacity 0.5s"
+				transition: "opacity 0.5s",
+				pointerEvents: 'auto',
 			}}
-			// all events supported by nipplejs are available as callbacks
-			// see https://github.com/yoannmoinet/nipplejs#start
-			onMove={(evt, data) => props.setMobileControls(data)}
-			onEnd={(evt, data) => props.setMobileControls(null)}
+			onMove={(evt, data) => {
+				props.setMobileControls(data);
+			}}
+			onEnd={(evt, data) => {
+				props.setMobileControls(null);
+			}}
 		/>
 		<ReactNipple
-			// supports all nipplejs options
-			// see https://github.com/yoannmoinet/nipplejs#options
 			options={{ mode: 'static', position: { top: '50%', left: '50%' } }}
-			// any unknown props will be passed to the container element, e.g. 'title', 'style' etc
 			style={{
 				outline: '1px dashed red',
 				width: 150,
@@ -50,16 +50,43 @@ function Nipples(props){
 				bottom: 30,
 				right: 30,
 				userSelect: "none",
-				transition: "opacity 0.5s" 
+				transition: "opacity 0.5s",
+				pointerEvents: 'auto',
 			}}
-			// all events supported by nipplejs are available as callbacks
-			// see https://github.com/yoannmoinet/nipplejs#start
-			onMove={(evt, data) => props.setMobileRotControls(data)}
-			onEnd={(evt, data) => props.setMobileRotControls(null)}
+			onMove={(evt, data) => {
+				props.setMobileRotControls(data);
+			}}
+			onEnd={(evt, data) => {
+				props.setMobileRotControls(null);
+			}}
 		/>
 	</>
 	)
 }
+
+const ClickStop = ({ children }) => {
+	return (
+		<div
+			className="threeov-mobile-controls"
+			style={{
+				pointerEvents: "auto", 
+				userSelect: "none",
+				zIndex: 1000,
+				position: "relative"
+			}}
+			// onClick={e => {
+			// 	e.stopPropagation();
+			// 	e.preventDefault();
+			// }}
+			// onMouseUp={e => {
+			// 	e.stopPropagation();
+			// 	e.preventDefault();
+			// }}
+		>
+				{children}
+		</div>
+	);
+};
 
 const Controls = (props) => {
 	const [mobileControls, setMobileControls] = useState(null);
@@ -86,7 +113,7 @@ const Controls = (props) => {
 	const [moveRight, setMoveRight] = useState(false);
 	const [spawnPos, setSpawnPos] = useState(props.spawnPoint);
 	const [jump, setJump] = useState(false);
-	const [thirdPerson, setThirdPerson] = useState(false); // Add this line
+	const [thirdPerson, setThirdPerson] = useState(false);
 	const currentRigidbody = useRigidBody();
 	const { world, rapier } = useRapier();
 	const ray = new rapier.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
@@ -98,7 +125,6 @@ const Controls = (props) => {
 	const { camera, scene } = useThree();
 
 	useEffect(() => {
-
 		if(mobileControls !== null && mobileControls?.direction !== undefined){
 			if(mobileControls.direction.angle === "down"){
 				setMoveForward(false);
@@ -132,7 +158,6 @@ const Controls = (props) => {
 			setMoveLeft(false);
 			setMoveRight(false);
 		}
-
 	}, [mobileControls]);
 
 	// useEffect(() => {
@@ -646,8 +671,8 @@ const Controls = (props) => {
 		}
 	};
 
-		document.addEventListener("keydown", onKeyDown);
-		document.addEventListener("keyup", onKeyUp);
+	document.addEventListener("keydown", onKeyDown);
+	document.addEventListener("keyup", onKeyUp);
 		  
 	return (
 		<>
