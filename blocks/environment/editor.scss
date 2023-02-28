@@ -73,6 +73,18 @@
     padding-right: 10px !important;
     // background-color: rgb(42, 42, 42);
 }
+.threeov-chat-button {
+	position: absolute !important;
+	top: 0px !important;
+	z-index: 100;
+}
+.threeov-chat-container {
+    background-color: rgba(0,0,0,.8) !important;
+    z-index: 1001 !important;
+    width: 100% !important;
+    padding: 0px !important;
+    margin-left: -8px !important;
+}
 
 .wp-block-three-object-viewer-environment .block-editor-inner-blocks {
     background-color: #2a2a2a;

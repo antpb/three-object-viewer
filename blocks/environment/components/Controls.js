@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 // import { Raycaster, Vector3, Math, Euler } from 'three';
 import { Euler, Raycaster, MathUtils } from "three";
-
+import ReactNipple from 'react-nipple';
 import { useFrame, useThree } from "@react-three/fiber";
 import { PointerLockControls } from "@react-three/drei";
 // import previewOptions from "@wordpress/block-editor/build/components/preview-options";
@@ -10,8 +10,97 @@ import { useRapier, useRigidBody } from "@react-three/rapier";
 // function touchStarted() {
 // 	getAudioContext().resume();
 // }
+function isMobile() {
+	return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+ 
+function Nipples(props){
+
+	return(
+		<>
+			<ReactNipple
+			// see https://github.com/yoannmoinet/nipplejs#options
+			options={{ mode: 'static', position: { top: '50%', left: '50%' } }}
+			// any unknown props will be passed to the container element, e.g. 'title', 'style' etc
+			style={{
+				outline: '1px dashed red',
+				width: 150,
+				height: 150,
+				position: "absolute",
+				bottom: 30,
+				left: 30,
+				userSelect: "none",
+				transition: "opacity 0.5s",
+				pointerEvents: 'auto',
+			}}
+			onMove={(evt, data) => {
+				props.setMobileControls(data);
+			}}
+			onEnd={(evt, data) => {
+				props.setMobileControls(null);
+			}}
+		/>
+		<ReactNipple
+			options={{ mode: 'static', position: { top: '50%', left: '50%' } }}
+			style={{
+				outline: '1px dashed red',
+				width: 150,
+				height: 150,
+				position: "absolute",
+				bottom: 30,
+				right: 30,
+				userSelect: "none",
+				transition: "opacity 0.5s",
+				pointerEvents: 'auto',
+			}}
+			onMove={(evt, data) => {
+				props.setMobileRotControls(data);
+			}}
+			onEnd={(evt, data) => {
+				props.setMobileRotControls(null);
+			}}
+		/>
+	</>
+	)
+}
+
+const ClickStop = ({ children }) => {
+	return (
+		<div
+			className="threeov-mobile-controls"
+			style={{
+				pointerEvents: "auto", 
+				userSelect: "none",
+				zIndex: 1000,
+				position: "relative"
+			}}
+			// onClick={e => {
+			// 	e.stopPropagation();
+			// 	e.preventDefault();
+			// }}
+			// onMouseUp={e => {
+			// 	e.stopPropagation();
+			// 	e.preventDefault();
+			// }}
+		>
+				{children}
+		</div>
+	);
+};
 
 const Controls = (props) => {
+	const [mobileControls, setMobileControls] = useState(null);
+	const [mobileRotControls, setMobileRotControls] = useState(null); 	
+
+	useEffect(() => {
+		const container = document.createElement('div');
+		if(isMobile()){
+				ReactDOM.render(<Nipples setMobileControls={setMobileControls} setMobileRotControls={setMobileRotControls} />, container);
+				const controlsContainer = document.getElementById('threeov-controls-container');
+				controlsContainer.appendChild(container);		
+		}
+	}, []);
+
 	const p2pcf = window.p2pcf;
 	const controlsRef = useRef();
 	const isLocked = useRef(false);
@@ -24,7 +113,7 @@ const Controls = (props) => {
 	const [moveRight, setMoveRight] = useState(false);
 	const [spawnPos, setSpawnPos] = useState(props.spawnPoint);
 	const [jump, setJump] = useState(false);
-	const [thirdPerson, setThirdPerson] = useState(false); // Add this line
+	const [thirdPerson, setThirdPerson] = useState(false);
 	const currentRigidbody = useRigidBody();
 	const { world, rapier } = useRapier();
 	const ray = new rapier.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
@@ -36,24 +125,23 @@ const Controls = (props) => {
 	const { camera, scene } = useThree();
 
 	useEffect(() => {
-
-		if(props.mobileControls !== null && props.mobileControls?.direction !== undefined){
-			if(props.mobileControls.direction.angle === "down"){
+		if(mobileControls !== null && mobileControls?.direction !== undefined){
+			if(mobileControls.direction.angle === "down"){
 				setMoveForward(false);
 				setMoveBackward(true);
 				setMoveLeft(false);
 				setMoveRight(false);
-			} else if(props.mobileControls.direction.angle === "up"){
+			} else if(mobileControls.direction.angle === "up"){
 				setMoveBackward(false);
 				setMoveForward(true);
 				setMoveLeft(false);
 				setMoveRight(false);
-			} else if(props.mobileControls.direction.angle === "left"){
+			} else if(mobileControls.direction.angle === "left"){
 				setMoveLeft(true);
 				setMoveForward(false);
 				setMoveBackward(false);
 				setMoveRight(false);
-			} else if(props.mobileControls.direction.angle === "right"){
+			} else if(mobileControls.direction.angle === "right"){
 				setMoveRight(true);
 				setMoveLeft(false);
 				setMoveForward(false);
@@ -70,8 +158,7 @@ const Controls = (props) => {
 			setMoveLeft(false);
 			setMoveRight(false);
 		}
-
-	}, [props.mobileControls]);
+	}, [mobileControls]);
 
 	// useEffect(() => {
 	// 	console.log("rot controls", props.mobileRotControls);
@@ -231,11 +318,11 @@ const Controls = (props) => {
 			}
 			setClick(false);
 		}
-		if (props.mobileRotControls) {
+		if (mobileRotControls) {
 			const rotationSpeed = 0.03;
 			const threshold = 45;
 
-			switch (props.mobileRotControls.direction.angle) {
+			switch (mobileRotControls.direction.angle) {
 				case 'left':
 				  controlsRef.current.camera.rotation.y += rotationSpeed;
 				  break;
@@ -584,8 +671,8 @@ const Controls = (props) => {
 		}
 	};
 
-		document.addEventListener("keydown", onKeyDown);
-		document.addEventListener("keyup", onKeyUp);
+	document.addEventListener("keydown", onKeyDown);
+	document.addEventListener("keyup", onKeyUp);
 		  
 	return (
 		<>
