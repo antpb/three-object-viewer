@@ -29,7 +29,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 	const ALLOWED_BLOCKS = allowed_blocks;
 	const [focusPosition, setFocusPosition] = useState(new THREE.Vector3());
 	const [focusPoint, setFocus] = useState(new THREE.Vector3());
-	const [mainModel, setMainModel] = useState(attributes.threeObjectUrl ? attributes.threeObjectUrl : (threeObjectPlugin + defaultEnvironment));
+	const [mainModel, setMainModel] = useState(attributes.threeObjectUrl ? attributes.threeObjectUrl : (defaultEnvironment));
 	const changeFocusPoint = (newValue) => {
 		setFocusPosition(newValue);
 	}
@@ -38,7 +38,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 	// useEffect to initialize the value of the threeObjectUrl attribute if it is not set
 	useEffect(() => {
 		if (!attributes.threeObjectUrl) {
-			setAttributes({ threeObjectUrl: (threeObjectPlugin + defaultEnvironment) });
+			setAttributes({ threeObjectUrl: (defaultEnvironment) });
 		}
 	}, []);
 
@@ -245,7 +245,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 					allowedBlocks={ALLOWED_BLOCKS}
 					template={TEMPLATE}
 				/>
-					{mainModel && (
+				{mainModel && (
 						<ThreeObjectEdit
 							url={mainModel}
 							deviceTarget={attributes.deviceTarget}

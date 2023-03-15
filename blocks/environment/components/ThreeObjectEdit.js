@@ -100,7 +100,7 @@ function TextObject(text) {
 							scale={[text.scaleX, text.scaleY, text.scaleZ]}
 						>
 							<Text
-								font={(threeObjectPlugin + defaultFont)}
+								font={(defaultFont)}
 								scale={[4, 4, 4]}
 								color={text.textColor}
 							>
@@ -992,7 +992,7 @@ function PortalObject(model) {
 							]}
 						>
 							<Text
-								font={(threeObjectPlugin + defaultFont)}
+								font={(defaultFont)}
 								scale={[2, 2, 2]}
 								color={portalBlockAttributes.labelTextColor}
 								maxWidth={1}
@@ -1133,7 +1133,12 @@ function ThreeObject(props) {
 	}, [props.url]);
 	const [listener] = useState(() => new THREE.AudioListener());
 
-	useThree(({ camera }) => {
+	useThree(({ camera, gl }) => {
+		if (gl?.capabilities.isWebGL2) {
+			console.log('WebGL2 context is being used!', gl);
+		  } else {
+			console.log('WebGL1 context is being used!', gl);
+		  }
 		camera.add(listener);
 	});
 
@@ -1385,7 +1390,7 @@ function ThreeObject(props) {
 
 export default function ThreeObjectEdit(props) {
 	const [transformMode, setTransformMode] = useState("translate");
-
+	const iframe = document.querySelector('iframe[name="editor-canvas"]');
 	const ObjectControls = (props) => {
 		const [label, setLabel] = useState("transform");
 	  
@@ -1488,7 +1493,8 @@ export default function ThreeObjectEdit(props) {
 			}
 		});
 	}, []);
-
+	const canvasRef = useRef(null);
+	
 	return (
 		<>
 			<ObjectControls transformMode={transformMode} setTransformMode={setTransformMode}/>
@@ -1521,6 +1527,7 @@ export default function ThreeObjectEdit(props) {
 						zoom: props.zoom,
 						position: [0, 0, 20]
 					}}
+					ref={canvasRef}
 					shadowMap
 					performance={{ min: 0.5 }}
 					style={{
@@ -1546,8 +1553,6 @@ export default function ThreeObjectEdit(props) {
 						castShadow
 					/>
 					{props.url && (
-						<Suspense fallback={null}>
-							{/* <EditControls/> */}
 							<ThreeObject
 								url={props.url}
 								positionY={props.positionY}
@@ -1562,7 +1567,6 @@ export default function ThreeObjectEdit(props) {
 								shouldFocus={shouldFocus}
 								changeFocusPoint={props.changeFocusPoint}
 							/>
-						</Suspense>
 					)}
 					<OrbitControls makeDefault enableZoom={props.selected} target={props.focusPoint}/>
 				</Canvas>

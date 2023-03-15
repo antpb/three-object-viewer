@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Fog } from 'three/src/scenes/Fog'
 // import { Reflector } from 'three/examples/jsm/objects/Reflector';
 import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
-import { useLoader, useThree, useFrame } from "@react-three/fiber";
+import { useLoader, useThree, useFrame, Canvas } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import { TextureLoader } from "three/src/loaders/TextureLoader";
@@ -16,10 +16,14 @@ import { Resizable } from "re-resizable";
 
 import {
 	useAnimations,
+	AdaptiveDpr,
+	AdaptiveEvents
 } from "@react-three/drei";
 // import { A11y } from "@react-three/a11y";
 import { GLTFAudioEmitterExtension } from "three-omi";
-import { VRCanvas, DefaultXRControllers, Hands, XRButton } from "@react-three/xr";
+// import { VRCanvas, DefaultXRControllers, Hands, XRButton } from "@react-three/xr";
+import { VRButton, ARButton, XR, Controllers, Hands } from '@react-three/xr'
+
 import { Perf } from "r3f-perf";
 import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import TeleportTravel from "./TeleportTravel";
@@ -37,7 +41,10 @@ import { NPCObject } from "./core/front/NPCObject";
 import { Portal } from "./core/front/Portal";
 import { ThreeSky } from "./core/front/ThreeSky";
 import { TextObject } from "./core/front/TextObject";
+
 console.log("React version:", React.version);
+console.log("ReactDOM version:", ReactDOM.version);
+
 
 function isMobile() {
 	return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -119,7 +126,6 @@ function ChatBox(props) {
 			},
 			body: JSON.stringify(postData)
 		  }).then((response) => {
-
 				return response.json();
 
 				// console.log("response", response.body.getReader())
@@ -130,16 +136,23 @@ function ChatBox(props) {
 			}).then(function(data) {
 				// console.log("data", data.davinciData.choices[0].text); // this will be a string
 				let thisMessage = JSON.parse(data);
-				if(thisMessage?.outputs){
-					let formattedMessage = props.name +': ' + Object.values(thisMessage.outputs)[0];
-					props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
-				} else if(thisMessage?.name === "Server"){
-					let formattedMessage = thisMessage.name +': ' + thisMessage.message;
+				console.log("thisMessage", thisMessage);
+				if(thisMessage?.model === "gpt-3.5-turbo-0301"){
+					let formattedMessage = props.name +': ' + Object.values(thisMessage.choices)[0].message.content;
+					console.log("turbotime", );
 					props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
 				} else {
-					let formattedMessage = props.name +': ' + thisMessage.davinciData.choices[0].text;
-					// add formattedMessage and inputMessageLog to state
-					props.setMessages([...props.messages, inputMessageLog, formattedMessage]);	
+					if(thisMessage?.outputs){
+						let formattedMessage = props.name +': ' + Object.values(thisMessage.outputs)[0];
+						props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
+					} else if(thisMessage?.name === "Server"){
+						let formattedMessage = thisMessage.name +': ' + thisMessage.message;
+						props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
+					} else {
+						let formattedMessage = props.name +': ' + thisMessage.davinciData.choices[0].text;
+						// add formattedMessage and inputMessageLog to state
+						props.setMessages([...props.messages, inputMessageLog, formattedMessage]);	
+					}
 				}
 			});	
 		} catch (error) {
@@ -254,7 +267,7 @@ function ChatBox(props) {
  */
 function Participant(participant) {
 	// Participant VRM.
-	const fallbackURL = threeObjectPlugin + defaultVRM;
+	const fallbackURL = defaultVRM;
 	const playerURL = userData.vrm ? userData.vrm : fallbackURL;
 
 	const someSceneState = useLoader(GLTFLoader, playerURL, (loader) => {
@@ -612,7 +625,7 @@ export default function EnvironmentFront(props) {
 	const [spawnPoints, setSpawnPoints] = useState();
 	const [messageObject, setMessageObject] = useState({"tone": "happy", "message": "hello!"});
 	const [objectsInRoom, setObjectsInRoom] = useState([]);
-	const [url, setURL] = useState(props.threeUrl ? props.threeUrl : (threeObjectPlugin + defaultEnvironment));
+	const [url, setURL] = useState(props.threeUrl ? props.threeUrl : (defaultEnvironment));
     const [isOpen, setIsOpen] = useState(false)
     const toggleDrawer = () => {
         setIsOpen((prevState) => !prevState)
@@ -639,10 +652,12 @@ export default function EnvironmentFront(props) {
 		if (props.deviceTarget === "vr") {
 			return (
 				<>
-					<VRCanvas
+					{ ! isMobile() && <VRButton />}
+					<Canvas
 					    ref={canvasRef}
 						camera={cameraProps}
 						gl={glProps}
+						// dpr={1}
 						performance={{ min: 0.02 }}
 						// shadowMap
 						// linear={true}
@@ -657,10 +672,13 @@ export default function EnvironmentFront(props) {
 							zIndex: 1
 						  }}
 					>
+						<XR>
 						{/* <Perf className="stats" /> */}
 						{/* <fog attach="fog" color="hotpink" near={100} far={20} /> */}
+						<AdaptiveDpr />
+						<AdaptiveEvents />
 						<Hands />
-						<DefaultXRControllers />
+						<Controllers />
 						<ambientLight intensity={0.5} />
 						<directionalLight
 							intensity={0.6}
@@ -1644,7 +1662,8 @@ export default function EnvironmentFront(props) {
 						{/* <OrbitControls
 							enableZoom={ true }
 						/> */}
-					</VRCanvas>
+						</XR>
+					</Canvas>
 					{Object.values(
 						props.npcsToAdd
 					).map((npc, index) => {

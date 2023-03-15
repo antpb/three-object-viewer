@@ -21,7 +21,7 @@ export function TextObject(model) {
 				ref={htmlObj}
 			>
 				<Text
-					font={model.threeObjectPlugin + model.defaultFont}
+					font={model.defaultFont}
 					className="content"
 					scale={[4, 4, 4]}
 					// rotation-y={-Math.PI / 2}

@@ -89,7 +89,11 @@ module.exports = {
 		extensions: ['.js', '.jsx', '.json', '.ts', '.tsx'],	  
 		alias: {
 			Brushes: path.resolve(__dirname, "brushes"),
-			'@magickml/editor': path.resolve(__dirname, 'node_modules/@magickml/editor'),
+			// React: path.resolve(__dirname, 'node_modules/react'),
+			// react: path.resolve(__dirname, 'node_modules/react'),
+			// ReactDOM: path.resolve(__dirname, 'node_modules/react-dom'),
+			// "react-dom": path.resolve(__dirname, 'node_modules/react-dom'),
+			// "React-dom": path.resolve(__dirname, 'node_modules/react-dom'),
 		}
 	}
 };

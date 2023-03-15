@@ -1,8 +1,8 @@
 const { Component, render } = wp.element;
-import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
+// import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
 
 import EnvironmentFront from "./components/EnvironmentFront";
-import Networking from "./components/Networking";
+// import Networking from "./components/Networking";
 
 const threeApp = document.querySelectorAll(
 	".three-object-three-app-environment"

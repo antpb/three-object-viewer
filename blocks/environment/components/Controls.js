@@ -321,7 +321,6 @@ const Controls = (props) => {
 		if (mobileRotControls) {
 			const rotationSpeed = 0.03;
 			const threshold = 45;
-
 			switch (mobileRotControls.direction.angle) {
 				case 'left':
 				  controlsRef.current.camera.rotation.y += rotationSpeed;

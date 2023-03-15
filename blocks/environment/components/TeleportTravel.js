@@ -7,7 +7,6 @@ import { useRapier, useRigidBody, RigidBody } from "@react-three/rapier";
 export function TeleportIndicator(props) {
 	return (
 		<>
-			<pointLight position={[0, 0.5, 0]} args={[0xff00ff, 2, 0.6]} />
 			<mesh position={[0, 0.25, 0]}>
 				<coneBufferGeometry args={[0.1, 0.5, 6]} attach="geometry" />
 				<meshBasicMaterial attach="material" color={0xff00ff} />
