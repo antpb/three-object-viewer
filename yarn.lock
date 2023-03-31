@@ -17314,10 +17314,10 @@ three@*:
   resolved "https://registry.yarnpkg.com/three/-/three-0.145.0.tgz#a613d71e75effc2aed88be630027ca01e2b6502e"
   integrity sha512-EKoHQEtEJ4CB6b2BGMBgLZrfwLjXcSUfoI/MiIXUuRpeYsfK5aPWbYhdtIVWOH+x6X0TouldHKHBuc/LAiFzAw==
 
-three@0.146.0:
-  version "0.146.0"
-  resolved "https://registry.yarnpkg.com/three/-/three-0.146.0.tgz#fd80f0d128ab4bb821a02191ae241e4e6326f17a"
-  integrity sha512-1lvNfLezN6OJ9NaFAhfX4sm5e9YCzHtaRgZ1+B4C+Hv6TibRMsuBAM5/wVKzxjpYIlMymvgsHEFrrigEfXnb2A==
+three@0.151.1:
+  version "0.151.1"
+  resolved "https://registry.yarnpkg.com/three/-/three-0.151.1.tgz#1dbb330db1e78fba4f0b0dc3ea7080099abbfdc1"
+  integrity sha512-9xfF6FIaQmdG5kAUhVNDEJwOF1Ss39g2N9FSvAJNk9zBkaMhfyNqD9cDBxiR7OOA7oKhEdneeSU1qq0ZUbb0FQ==
 
 throat@^5.0.0:
   version "5.0.0"
