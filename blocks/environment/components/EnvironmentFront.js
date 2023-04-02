@@ -128,7 +128,6 @@ function ChatBox(props) {
 					props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
 				} else if (thisMessage?.model === "gpt-3.5-turbo-0301"){
 					let formattedMessage = props.name +': ' + Object.values(thisMessage.choices)[0].message.content;
-					console.log("turbotime", );
 					props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
 				} else {
 					if(thisMessage?.outputs){
