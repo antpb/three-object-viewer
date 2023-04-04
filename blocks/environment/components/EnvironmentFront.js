@@ -929,16 +929,33 @@ export default function EnvironmentFront(props) {
 														).innerText
 														: "";
 
-												const autoPlay =
+														const autoPlay =
+														item.querySelector(
+															"p.video-block-autoplay"
+														)
+															? item.querySelector(
+																"p.video-block-autoplay"
+															).innerText
+															: false;
+	
+													const customModel =
 													item.querySelector(
-														"p.video-block-autoplay"
+														"p.video-block-custom-model"
 													)
 														? item.querySelector(
-															"p.video-block-autoplay"
+															"p.video-block-custom-model"
 														).innerText
 														: false;
+													const videoModelUrl =
+													item.querySelector(
+														"div.video-block-model-url"
+													)
+													? item.querySelector(
+														"div.video-block-model-url"
+													).innerText
+													: "";
 
-												return (
+															return (
 													<ThreeVideo
 														key={index}
 														url={videoUrl}
@@ -964,6 +981,8 @@ export default function EnvironmentFront(props) {
 															aspectWidth
 														}
 														autoPlay={autoPlay}
+														customModel={customModel}
+														modelUrl={videoModelUrl}
 													/>
 												);
 											})}

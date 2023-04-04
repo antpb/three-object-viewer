@@ -37,6 +37,10 @@ export default function save({ attributes }) {
 					<p className="video-block-autoplay">
 						{attributes.autoPlay ? 1 : 0}
 					</p>
+					<p className="video-block-custom-model">
+						{attributes.customModel ? 1 : 0}
+					</p>
+					<div className="video-block-model-url">{attributes.modelUrl}</div>
 				</div>
 			</>
 		</div>

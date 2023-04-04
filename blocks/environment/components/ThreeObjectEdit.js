@@ -328,6 +328,44 @@ function ImageObject(threeImage) {
 }
 
 function VideoObject(threeVideo) {
+
+	const [url, set] = useState(threeVideo.modelUrl);
+	const [screen, setScreen] = useState(null);
+	const [screenParent, setScreenParent] = useState(null);
+  
+	useEffect(() => {
+	  setTimeout(() => set(threeVideo.modelUrl), 2000);
+	}, []);
+  
+	const gltf = useLoader(GLTFLoader, threeVideo.modelUrl, (loader) => {
+	  loader.register((parser) => {
+		return new VRMLoaderPlugin(parser);
+	  });
+	});
+  
+	useEffect(() => {
+		if (gltf.scene) {
+		  let foundScreen;
+		  gltf.scene.traverse((child) => {
+			if (child.name === "screen") {
+			  console.log("found it", child);
+			  foundScreen = child;
+			}
+		  });
+	  
+		  if (foundScreen) {
+			setScreen(foundScreen);
+			setScreenParent(foundScreen.parent);
+			// Update screen's material with video texture
+			const videoTexture = new THREE.VideoTexture(video);
+			videoTexture.encoding = THREE.sRGBEncoding;
+			const material = new THREE.MeshBasicMaterial({ map: videoTexture, toneMapped: false });
+			foundScreen.material = material;
+		  }
+		}  
+	}, [gltf, video]);
+	// log the video object
+	console.log(threeVideo, "threeVideo");
 	const clicked = true;
 	const [video] = useState(() =>
 		Object.assign(document.createElement("video"), {
@@ -406,13 +444,15 @@ function VideoObject(threeVideo) {
 				)}
 			>
 				{threeVideoBlockAttributes && (
-					<mesh
+					<group>
+						{threeVideoBlockAttributes.customModel ? (
+						<group
 						ref={videoObj}
 						scale={[
 							threeVideoBlockAttributes.scaleX,
 							threeVideoBlockAttributes.scaleY,
 							threeVideoBlockAttributes.scaleZ
-						]}
+						]}					
 						position={[
 							threeVideoBlockAttributes.positionX,
 							threeVideoBlockAttributes.positionY,
@@ -422,22 +462,44 @@ function VideoObject(threeVideo) {
 							threeVideoBlockAttributes.rotationX,
 							threeVideoBlockAttributes.rotationY,
 							threeVideoBlockAttributes.rotationZ
-						]}
-					>
-						<meshBasicMaterial toneMapped={false}>
-							<videoTexture
-								attach="map"
-								args={[video]}
-								encoding={THREE.sRGBEncoding}
-							/>
-						</meshBasicMaterial>
-						<planeGeometry
-							args={[
-								threeVideoBlockAttributes.aspectWidth / 12,
-								threeVideoBlockAttributes.aspectHeight / 12
+						]}>
+						{gltf.scene && <primitive object={gltf.scene} />}
+						</group>
+						) : (
+						<mesh
+							ref={videoObj}
+							scale={[
+								threeVideoBlockAttributes.scaleX,
+								threeVideoBlockAttributes.scaleY,
+								threeVideoBlockAttributes.scaleZ
 							]}
-						/>
-					</mesh>
+							position={[
+								threeVideoBlockAttributes.positionX,
+								threeVideoBlockAttributes.positionY,
+								threeVideoBlockAttributes.positionZ
+							]}
+							rotation={[
+								threeVideoBlockAttributes.rotationX,
+								threeVideoBlockAttributes.rotationY,
+								threeVideoBlockAttributes.rotationZ
+							]}
+						>
+							<meshBasicMaterial toneMapped={false}>
+								<videoTexture
+									attach="map"
+									args={[video]}
+									encoding={THREE.sRGBEncoding}
+								/>
+							</meshBasicMaterial>
+							<planeGeometry
+								args={[
+									threeVideoBlockAttributes.aspectWidth / 12,
+									threeVideoBlockAttributes.aspectHeight / 12
+								]}
+							/>
+						</mesh>
+						)}
+					</group>
 				)}
 			</TransformController>
 		</Select>
@@ -1314,6 +1376,8 @@ function ThreeObject(props) {
 					return (
 						<VideoObject
 							url={model.videoobject.videoUrl}
+							customModel={model.videoobject.customModel}
+							modelUrl={model.videoobject.modelUrl}
 							positionX={model.videoobject.positionX}
 							positionY={model.videoobject.positionY}
 							positionZ={model.videoobject.positionZ}
@@ -1500,7 +1564,7 @@ export default function ThreeObjectEdit(props) {
 			<Resizable
 				defaultSize={{
 					height: "90vh",
-					width: "100vw",
+					width: "100%",
 				}}
 				enable={{
 					top: false,
