@@ -90,6 +90,7 @@ module.exports = {
 		alias: {
 			Brushes: path.resolve(__dirname, "brushes"),
 			'@magickml/editor': path.resolve(__dirname, 'node_modules/@magickml/editor'),
+			'draco-decoder': path.resolve(__dirname, 'node_modules/draco3d/')
 		}
 	}
 };

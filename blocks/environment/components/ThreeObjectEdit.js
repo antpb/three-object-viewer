@@ -2,7 +2,7 @@ import * as THREE from "three";
 import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
 import { Canvas, useLoader, useFrame, useThree } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-// import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import {
 	PerspectiveCamera,
 	OrbitControls,
@@ -23,6 +23,7 @@ import { Perf } from "r3f-perf";
 // import EditControls from "./EditControls";
 import { Resizable } from "re-resizable";
 import defaultFont from "../../../inc/fonts/roboto.woff";
+
 const { registerStore } = wp.data;
 
 function TextObject(text) {
@@ -328,44 +329,74 @@ function ImageObject(threeImage) {
 }
 
 function VideoObject(threeVideo) {
-
-	const [url, set] = useState(threeVideo.modelUrl);
+	const [url, setUrl] = useState(threeVideo.modelUrl);
 	const [screen, setScreen] = useState(null);
 	const [screenParent, setScreenParent] = useState(null);
-  
+	const [threeVideoBlockAttributes, setThreeVideoBlockAttributes] = useState(
+		wp.data
+			.select("core/block-editor")
+			.getBlockAttributes(threeVideo.videoID)
+	);
+	const [customModel, setCustomModel] = useState(null);
 	useEffect(() => {
-	  setTimeout(() => set(threeVideo.modelUrl), 2000);
-	}, []);
-  
-	const gltf = useLoader(GLTFLoader, threeVideo.modelUrl, (loader) => {
-	  loader.register((parser) => {
-		return new VRMLoaderPlugin(parser);
-	  });
-	});
-  
-	useEffect(() => {
-		if (gltf.scene) {
-		  let foundScreen;
-		  gltf.scene.traverse((child) => {
-			if (child.name === "screen") {
-			  console.log("found it", child);
-			  foundScreen = child;
-			}
-		  });
+		setCustomModel(threeVideoBlockAttributes.customModel);
+	  }, [threeVideoBlockAttributes.customModel]);
 	  
-		  if (foundScreen) {
-			setScreen(foundScreen);
-			setScreenParent(foundScreen.parent);
-			// Update screen's material with video texture
-			const videoTexture = new THREE.VideoTexture(video);
-			videoTexture.encoding = THREE.sRGBEncoding;
-			const material = new THREE.MeshBasicMaterial({ map: videoTexture, toneMapped: false });
-			foundScreen.material = material;
+	useEffect(() => {
+		const attributes = wp.data
+			.select("core/block-editor")
+			.getBlockAttributes(threeVideo.videoID);
+		setThreeVideoBlockAttributes(attributes);
+		setCustomModel(attributes.customModel);
+	}, [threeVideo.videoID]);
+
+	useEffect(() => {
+	  setTimeout(() => setUrl(threeVideo.modelUrl), 2000);
+	}, []);
+
+	let gltf;
+	if(customModel && threeVideo.modelUrl) {
+		gltf = useLoader(GLTFLoader, threeVideo.modelUrl, (loader) => {
+		loader.register((parser) => {
+			return new VRMLoaderPlugin(parser);
+		});
+		});
+	} else {
+		gltf = null;
+	}
+
+	const [isSelected, setIsSelected] = useState();
+ 
+	useEffect(() => {
+		if (customModel) {
+		  if (customModel && threeVideo.modelUrl) {
+			gltf = useLoader(GLTFLoader, threeVideo.modelUrl, (loader) => {
+			  loader.register((parser) => {
+				return new VRMLoaderPlugin(parser);
+			  });
+			});
 		  }
-		}  
-	}, [gltf, video]);
-	// log the video object
-	console.log(threeVideo, "threeVideo");
+		  if (gltf?.scene) {
+			let foundScreen = null;
+			gltf.scene.traverse((child) => {
+			  if (child.name === "screen") {
+				foundScreen = child;
+			  }
+			});
+	  
+			if (foundScreen) {
+			  setScreen(foundScreen);
+			  setScreenParent(foundScreen.parent);
+			  // Update screen's material with video texture
+			  const videoTexture = new THREE.VideoTexture(video);
+			  videoTexture.encoding = THREE.sRGBEncoding;
+			  const material = new THREE.MeshBasicMaterial({ map: videoTexture, toneMapped: false });
+			  foundScreen.material = material;
+			}
+		  }
+		}
+	  }, [video, customModel, threeVideoBlockAttributes.customModel]);
+	  
 	const clicked = true;
 	const [video] = useState(() =>
 		Object.assign(document.createElement("video"), {
@@ -376,12 +407,6 @@ function VideoObject(threeVideo) {
 		})
 	);
 	const videoObj = useRef();
-	const [isSelected, setIsSelected] = useState();
-	const [threeVideoBlockAttributes, setThreeVideoBlockAttributes] = useState(
-		wp.data
-			.select("core/block-editor")
-			.getBlockAttributes(threeVideo.videoID)
-	);
 	const TransformController = ({ condition, wrap, children }) =>
 		condition ? wrap(children) : children;
 
@@ -442,48 +467,29 @@ function VideoObject(threeVideo) {
 						{children}
 					</TransformControls>
 				)}
-			>
-				{threeVideoBlockAttributes && (
-					<group>
-						{threeVideoBlockAttributes.customModel ? (
-						<group
-						ref={videoObj}
-						scale={[
-							threeVideoBlockAttributes.scaleX,
-							threeVideoBlockAttributes.scaleY,
-							threeVideoBlockAttributes.scaleZ
-						]}					
-						position={[
-							threeVideoBlockAttributes.positionX,
-							threeVideoBlockAttributes.positionY,
-							threeVideoBlockAttributes.positionZ
-						]}
-						rotation={[
-							threeVideoBlockAttributes.rotationX,
-							threeVideoBlockAttributes.rotationY,
-							threeVideoBlockAttributes.rotationZ
-						]}>
-						{gltf.scene && <primitive object={gltf.scene} />}
-						</group>
-						) : (
-						<mesh
-							ref={videoObj}
-							scale={[
-								threeVideoBlockAttributes.scaleX,
-								threeVideoBlockAttributes.scaleY,
-								threeVideoBlockAttributes.scaleZ
-							]}
-							position={[
-								threeVideoBlockAttributes.positionX,
-								threeVideoBlockAttributes.positionY,
-								threeVideoBlockAttributes.positionZ
-							]}
-							rotation={[
-								threeVideoBlockAttributes.rotationX,
-								threeVideoBlockAttributes.rotationY,
-								threeVideoBlockAttributes.rotationZ
-							]}
-						>
+			>					
+				<group
+					ref={videoObj}
+					scale={[
+						threeVideoBlockAttributes.scaleX,
+						threeVideoBlockAttributes.scaleY,
+						threeVideoBlockAttributes.scaleZ
+					]}					
+					position={[
+						threeVideoBlockAttributes.positionX,
+						threeVideoBlockAttributes.positionY,
+						threeVideoBlockAttributes.positionZ
+					]}
+					rotation={[
+						threeVideoBlockAttributes.rotationX,
+						threeVideoBlockAttributes.rotationY,
+						threeVideoBlockAttributes.rotationZ
+					]}
+				>
+				{threeVideoBlockAttributes && threeVideo.customModel ? (
+						gltf?.scene && <primitive object={gltf?.scene} />
+					) : (
+						<mesh>
 							<meshBasicMaterial toneMapped={false}>
 								<videoTexture
 									attach="map"
@@ -493,14 +499,14 @@ function VideoObject(threeVideo) {
 							</meshBasicMaterial>
 							<planeGeometry
 								args={[
-									threeVideoBlockAttributes.aspectWidth / 12,
-									threeVideoBlockAttributes.aspectHeight / 12
+									threeVideo.aspectWidth / 12,
+									threeVideo.aspectHeight / 12
 								]}
 							/>
 						</mesh>
-						)}
-					</group>
 				)}
+			</group>
+
 			</TransformController>
 		</Select>
 	);
@@ -519,6 +525,11 @@ function ModelObject(props) {
 	const { camera } = useThree();
 
 	const gltf = useLoader(GLTFLoader, props.url, (loader) => {
+		const dracoLoader = new DRACOLoader();
+		dracoLoader.setDecoderPath( threeObjectPluginRoot + "/inc/utils/draco/");
+		dracoLoader.setDecoderConfig({type: 'js'}); // (Optional) Override detection of WASM support.
+		loader.setDRACOLoader(dracoLoader);
+
 		if(listener){
 			loader.register(
 				(parser) => new GLTFAudioEmitterExtension(parser, listener)
@@ -1136,7 +1147,6 @@ function ThreeObject(props) {
 						) {
 							modelobject = innerBlock.attributes;
 							modelID = innerBlock.clientId;
-							const something = [{ modelobject, modelID }];
 							editorModelsToAdd.push({ modelobject, modelID });
 						}
 						if (
@@ -1145,7 +1155,6 @@ function ThreeObject(props) {
 						) {
 							npcObject = innerBlock.attributes;
 							npcID = innerBlock.clientId;
-							const something = [{ npcObject, npcID }];
 							editorNPCsToAdd.push({ npcObject, npcID });
 						}
 						if (
@@ -1154,7 +1163,6 @@ function ThreeObject(props) {
 						) {
 							imageobject = innerBlock.attributes;
 							imageID = innerBlock.clientId;
-							const something = [{ imageobject, imageID }];
 							imageElementsToAdd.push({ imageobject, imageID });
 						}
 						if (
@@ -1163,7 +1171,6 @@ function ThreeObject(props) {
 						) {
 							videoobject = innerBlock.attributes;
 							videoID = innerBlock.clientId;
-							const something = [{ videoobject, videoID }];
 							videoElementsToAdd.push({ videoobject, videoID });
 						}
 						if (
@@ -1200,9 +1207,10 @@ function ThreeObject(props) {
 	});
 
 	const gltf = useLoader(GLTFLoader, url, (loader) => {
-		// const dracoLoader = new DRACOLoader();
-		// dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
-		// loader.setDRACOLoader(dracoLoader);
+		const dracoLoader = new DRACOLoader();
+		dracoLoader.setDecoderPath( threeObjectPluginRoot + "/inc/utils/draco/");
+		dracoLoader.setDecoderConfig({type: 'js'}); // (Optional) Override detection of WASM support.
+		loader.setDRACOLoader(dracoLoader);
 
 		loader.register(
 			(parser) => new GLTFAudioEmitterExtension(parser, listener)
@@ -1423,25 +1431,6 @@ function ThreeObject(props) {
 					/>
 				);
 			})}
-			{/* {modelobject && props.transformMode && modelobject.threeObjectUrl && 
-				<ModelObject 
-					url={modelobject.threeObjectUrl} 
-					positionX={modelobject.positionX} 
-					positionY={modelobject.positionY} 
-					positionZ={modelobject.positionZ} 
-					scaleX={modelobject.scaleX} 
-					scaleY={modelobject.scaleY} 
-					scaleZ={modelobject.scaleZ} 
-					rotationX={modelobject.rotationX} 
-					rotationY={modelobject.rotationY} 
-					rotationZ={modelobject.rotationZ} 
-					alt={modelobject.alt}
-					animations={modelobject.animations}
-					selected={props.selected}
-					modelId={modelID}
-					transformMode={props.transformMode}
-				/>
-			} */}
 			<primitive object={gltf.scene} />
 		</>
 	);

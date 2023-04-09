@@ -4,6 +4,7 @@ import { VideoTexture, Vector3, BufferGeometry, MeshBasicMaterial, DoubleSide, M
 import { RigidBody } from "@react-three/rapier";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 
 /**
  * Renders a video in a three.js scene.
@@ -13,7 +14,6 @@ import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
  * @return {JSX.Element} The video.
  */
 export function ThreeVideo(threeVideo) {
-	console.log(threeVideo);
 	const play = threeVideo.autoPlay === "1" ? true : false;
 	const { scene } = useThree();
 	const [clicked, setClickEvent] = useState();
@@ -29,6 +29,11 @@ export function ThreeVideo(threeVideo) {
 		})
 	);
 		const gltf = (threeVideo.customModel === "1") ? useLoader(GLTFLoader, threeVideo.modelUrl, (loader) => {
+			const dracoLoader = new DRACOLoader();
+			dracoLoader.setDecoderPath( threeVideo.threeObjectPluginRoot + "/inc/utils/draco/");
+			dracoLoader.setDecoderConfig({type: 'js'}); // (Optional) Override detection of WASM support.
+			loader.setDRACOLoader(dracoLoader);
+	
 			loader.register((parser) => {
 			return new VRMLoaderPlugin(parser);
 			});
@@ -39,7 +44,6 @@ export function ThreeVideo(threeVideo) {
 				let foundScreen;
 				gltf.scene.traverse((child) => {
 					if (child.name === "screen") {
-					  console.log("found it", child);
 					  foundScreen = child;
 					}
 				});

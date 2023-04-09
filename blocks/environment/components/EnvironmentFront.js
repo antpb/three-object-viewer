@@ -348,9 +348,8 @@ function SavedObject(props) {
 	
 	const gltf = useLoader(GLTFLoader, url, (loader) => {
 		const dracoLoader = new DRACOLoader();
-		dracoLoader.setDecoderPath(
-			"https://www.gstatic.com/draco/v1/decoders/"
-		);
+		dracoLoader.setDecoderPath( threeObjectPluginRoot + "/inc/utils/draco/");
+		dracoLoader.setDecoderConfig({type: 'js'}); // (Optional) Override detection of WASM support.
 		loader.setDRACOLoader(dracoLoader);
 
 		loader.register(
@@ -982,6 +981,8 @@ export default function EnvironmentFront(props) {
 														}
 														autoPlay={autoPlay}
 														customModel={customModel}
+														threeObjectPlugin={threeObjectPlugin}
+														threeObjectPluginRoot={threeObjectPluginRoot}
 														modelUrl={videoModelUrl}
 													/>
 												);
@@ -1115,6 +1116,7 @@ export default function EnvironmentFront(props) {
 															messageObject
 														}
 														threeObjectPlugin={threeObjectPlugin}
+														threeObjectPluginRoot={threeObjectPluginRoot}
 														defaultAvatarAnimation={defaultAvatarAnimation}
 														defaultFont={defaultFont}
 														defaultMessage={defaultMessage}
@@ -1271,6 +1273,7 @@ export default function EnvironmentFront(props) {
 															messageObject
 														}
 														threeObjectPlugin={threeObjectPlugin}
+														threeObjectPluginRoot={threeObjectPluginRoot}
 														defaultFont={defaultFont}
 														// idle={idle}
 													/>
@@ -1598,6 +1601,7 @@ export default function EnvironmentFront(props) {
 														labelTextColor={
 															labelTextColor
 														}
+														threeObjectPluginRoot={threeObjectPluginRoot}
 													/>
 												);
 											})}

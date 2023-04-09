@@ -40,8 +40,6 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 		setAttributes({ modelUrl: null });
 		setAttributes({
 			modelUrl: modelObject.url,
-			aspectHeight: modelObject.height,
-			aspectWidth: modelObject.width
 		});
 	};
 	const onChangePositionX = (positionX) => {
@@ -79,6 +77,11 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 	};
 
 	const onChangeCustomModel = (customModelSetting) => {
+		setAttributes({ 			
+			aspectHeight: attributes.aspectHeight,
+			aspectWidth: attributes.aspectWidth
+		});
+
 		setAttributes({ customModel: customModelSetting });
 	};
 
@@ -137,14 +140,14 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									onImageSelect(imageObject)
 								}
 								type="image"
-								label="Image File"
+								label="Video File"
 								allowedTypes={ALLOWED_MEDIA_TYPES}
 								value={attributes.videoUrl}
 								render={({ open }) => (
 									<button onClick={open}>
 										{attributes.videoUrl
-											? "Replace Image"
-											: "Select Image"}
+											? "Replace Video"
+											: "Select Video"}
 									</button>
 								)}
 							/>
@@ -164,6 +167,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 							/>
 						</PanelRow>
 						<PanelRow>
+							{attributes.videoUrl && (
 							<ToggleControl
 								label="Custom Model"
 								help={
@@ -175,7 +179,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 								onChange={(e) => {
 									onChangeCustomModel(e);
 								}}
-							/>
+							/>)}
 						</PanelRow>
 						{attributes.customModel && (<PanelRow>
 							<MediaUpload
