@@ -10,27 +10,19 @@ Author: antpb
 A WordPress plugin for drag and drop 3D content creation compatible with most XR devices.
 
 == Description ==
-Welcome to the metaverse, WordPress!
-The 3OV plugin is a drag and drop way to publish virtual worlds or 3D content using your WordPress site. The plugin supports AR VR and 2D in a browser window and runs React Three Fiber under the hood with support for many interoperable extensions. Newly added is our AI features in the NPC block! Give it a try! 
+## Welcome to the metaverse, WordPress!
+Elevate your WordPress site to new dimensions with our 3OV plugin, an intuitive drag-and-drop tool for effortlessly integrating virtual worlds, 3D content, AR, and VR experiences. Built on React Three Fiber, our plugin supports a wide range of interoperable extensions and comes equipped with cutting-edge AI features implemented in a NPC block. Get ready to transform your website into an immersive metaverse destination!
 
-## Drag and drop WebXR
-The three object viewer plugin makes it possible to drag and drop 3D (glb) files into your WordPress block editor content. Wherever you can put a block, you can put a virtual world.
-Your website can truly become a virtual world when your visitors click the “Enter in VR” button. When a user enters the scene, they will have the ability to teleport throughout the environment. More exciting VR features to come!
+## Seamless WebXR Integration with Drag and Drop Functionality
+With the 3OV plugin, embedding 3D (glb) files into your WordPress block editor content has never been easier. Simply drag and drop files to create virtual worlds anywhere you can place a block. Engage your visitors with a click of the "Enter in VR" button, allowing them to teleport throughout your virtual environment. Stay tuned for even more exhilarating VR features!
 
-## Implements Open Metaverse Interoperability Extensions
-This plugin supports the three-omi package built by contributors of the Open Metaverse Interoperability group. As new extensions are added, this plugin will be updated to support those features. Some potential components in the future include physics and collision events.
-
-## Currently Supported OMI, KHR, and other Extensions
-
-KHR_audio – Play both spatial and global audio in your scenes by creating a scene here in the build.xpportal.io Spoke editor. From there you can export a glb file that supports the Three OMI Audio Emitter Extension.
-
-OMI_collider - allows for walking on surfaces
-
-OMI_link - Metaverse traversal! You can walk into an object with a omi_link extension to emulate hyperlink actions. 
-
-OMI_spawn_point - Set where your player loads in.
-
-SXP_personality - Utilize Magick ML or our Alchemy Worker to power your NPCs using the new 3OV NPC Block!
+## Embrace the Possibilities of Interoperability with Supported OMI, KHR, and Other Extensions
+KHR_audio: Immerse your audience in both spatial and global audio by designing scenes with the build.xpportal.io Spoke editor. Export glb files compatible with the Three OMI Audio Emitter Extension.
+OMI_collider: Enable walking on surfaces for a more interactive experience.
+OMI_link: Metaverse traversal at its finest! Walk into objects with the omi_link extension to simulate hyperlink actions.
+OMI_spawn_point: Customize your player's starting point in the virtual world.
+SXP_personality: Bring your NPCs to life with Magick ML or our Alchemy Worker through the innovative 3OV NPC Block.
+Elevate your WordPress site into a truly immersive virtual experience with the 3OV plugin. Try it now and unlock a whole new world of possibilities!
 
 == Installation ==
 This plugin can be installed directly from your WordPress site.
