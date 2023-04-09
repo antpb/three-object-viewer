@@ -2,7 +2,7 @@
 Requires at least: 5.7
 Tested up to: 6.2
 Requires PHP: 7.2
-Stable tag: 1.3.6
+Stable tag: 1.3.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Author: antpb
@@ -42,6 +42,9 @@ It can also be installed manually using a zip file.
 
 
 == Changelog ==
+= 1.3.7 =
+Fixed: NPC text was falling into the ground. Moved up closer to NPC head position.
+
 = 1.3.6 =
 Added: Compatibility with gltf files using Draco compression
 Added: Custom geometry options for 3D Video Block. When selecting a glb to use as your video surface, ensure that you name the object in your glb "screen". More info in this video: https://twitter.com/threeov/status/1643098207361138691?s=20
