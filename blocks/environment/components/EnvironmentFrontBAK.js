@@ -38,7 +38,6 @@ import { ModelObject } from "./core/front/ModelObject";
 import { NPCObject } from "./core/front/NPCObject";
 import { Portal } from "./core/front/Portal";
 import { ThreeSky } from "./core/front/ThreeSky";
-import { ThreeSkyThread } from "./core/front/ThreeSkyThread";
 import { TextObject } from "./core/front/TextObject";
 import { BskyAgent, AtpSessionEvent, AtpSessionData } from '@atproto/api';
 const useSubmitWithDependency = (dependency, handleSubmitFunction) => {
@@ -752,7 +751,6 @@ export default function EnvironmentFront(props) {
 	const [spawnPoints, setSpawnPoints] = useState();
 	const [messageObject, setMessageObject] = useState({"tone": "happy", "message": "hello!"});
 	const [objectsInRoom, setObjectsInRoom] = useState([]);
-	const [threadWorld, setThreadWorld] = useState();
 	const [url, setURL] = useState(props.threeUrl ? props.threeUrl : (threeObjectPlugin + defaultEnvironment));
 	const agent = new BskyAgent({
 		service: 'https://bsky.social/',
@@ -771,43 +769,10 @@ export default function EnvironmentFront(props) {
 	});
 	const [feedItems, setFeedItems] = useState([]);
 
-	const handleTimeline = async (e) => {
-		// e.preventDefault();
-		try {
-			// console.log('Attempting to create a post with text:', post);
-			console.log(props);
-			const response = await fetch('/wp-json/your_namespace/v1/unified_session/', {
-				headers: {
-					'X-WP-Nonce': props.userData.nonce,
-				},
-			});
-			const sessionData = await response.json();
-			if (!sessionData) {
-				console.error('No session data found. Please log in first.');
-				return;
-			}
-			await agent.resumeSession(sessionData);
-			const res = await agent.getPostThread({ uri: "at://did:plc:mtzlowtzs6bvwfjoarz2xwip/app.bsky.feed.post/3jtf3h5neia2r", depth: 99 });
-			console.log('res:', res);
-
-			let worldJson = res.data.thread.replies[0].post.record.text;
-			//convert to json
-			worldJson = JSON.parse(worldJson);
-			setThreadWorld(worldJson);
-			console.log('WorldJson:', worldJson);
-			// props.onGetTimeline(res.data.feed);
-		} catch (error) {
-			console.error('Post creation error:', error);
-		}
-	};
-
 	console.log(agent);
-	useEffect(() => {
-		handleTimeline();
-	}, []);
-
+	
 	if (loaded === true) {
-		if (props.deviceTarget === "vr" && threadWorld) {
+		if (props.deviceTarget === "vr") {
 			return (
 				<>
 				    <TimelineControl 							
@@ -878,59 +843,22 @@ export default function EnvironmentFront(props) {
 												setShowUI={setShowUI}
 											/>
 											<Participants 
-												setParticipant={setParticipant}
-												participants={participants}
+											setParticipant={setParticipant}
+											participants={participants}
 											/>
 											<SavedObject
-												positionY={0}
-												rotationY={0}
-												url={(threeObjectPlugin + threadWorld.env.u)}
+												positionY={props.positionY}
+												rotationY={props.rotationY}
+												url={url}
 												color={props.backgroundColor}
 												hasZoom={props.hasZoom}
-												scale={threadWorld.env.s}
+												scale={props.scale}
 												hasTip={props.hasTip}
 												animations={props.animations}
 												playerData={props.userData}
 												setSpawnPoints={setSpawnPoints}
 											/>
-											<ThreeSkyThread
-												src={("http://xppworld.local/wp-content/uploads" + threadWorld.sky.u)}
-												distance={Number(threadWorld.sky.d)}
-												rayleigh={Number(threadWorld.sky.r)}
-												sunPositionX={Number(threadWorld.sky.sX)}
-												sunPositionY={Number(threadWorld.sky.sY)}
-												sunPositionZ={Number(threadWorld.sky.sZ)}
-											/>
-											<NPCObject
-												url={("http://xppworld.local/wp-content/uploads" + threadWorld.npc.u)}
-												positionX={Number(threadWorld.npc.px)}
-												positionY={0}
-												positionZ={Number(threadWorld.npc.pz)}
-												messages={messages}
-												rotationX={
-													0
-												}
-												rotationY={
-													Number(threadWorld.npc.ry)
-												}
-												rotationZ={
-													0
-												}
-												name={threadWorld.npc.name}
-												message={
-													messageObject
-												}
-												threeObjectPlugin={threeObjectPlugin}
-												threeObjectPluginRoot={threeObjectPluginRoot}
-												defaultAvatarAnimation={defaultAvatarAnimation}
-												defaultFont={defaultFont}
-												defaultMessage={threadWorld.npc.msg}
-												personality={"#agent is helpful and cheerful."}
-												feedItems={feedItems}
-												// idle={idle}
-											/>
-
-											{/* {Object.values(props.sky).map(
+											{Object.values(props.sky).map(
 												(item, index) => {
 													return (
 														<>
@@ -940,7 +868,7 @@ export default function EnvironmentFront(props) {
 														</>
 													);
 												}
-											)} */}
+											)}
 											{Object.values(
 												props.imagesToAdd
 											).map((item, index) => {
@@ -1261,7 +1189,7 @@ export default function EnvironmentFront(props) {
 													/>
 												);
 											})}
-											{/* {Object.values(
+											{Object.values(
 												props.npcsToAdd
 											).map((npc, index) => {
 												const modelPosX =
@@ -1399,7 +1327,7 @@ export default function EnvironmentFront(props) {
 														// idle={idle}
 													/>
 												);
-											})} */}
+											})}
 											{Object.values(
 												props.modelsToAdd
 											).map((model, index) => {

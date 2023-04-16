@@ -50,6 +50,26 @@ module.exports = {
 				use: "babel-loader"
 			},
 			{
+				test: /\.js$/,
+				exclude: /node_modules\/(?!@atproto)/,
+				use: {
+				  loader: 'babel-loader',
+				  options: {
+					presets: ['@babel/preset-env']
+				  }
+				}
+			},
+			{
+				test: /\.js$/,
+				exclude: /node_modules/,
+				use: {
+				  loader: 'babel-loader',
+				  options: {
+					presets: ['@babel/preset-env']
+				  }
+				}
+			  },		
+			{
 				test: /\.vrm$/,
 				use: [
 					{

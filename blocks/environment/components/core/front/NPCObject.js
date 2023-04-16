@@ -193,9 +193,9 @@ export function NPCObject(model) {
 	const [clicked, setClickEvent] = useState();
 	const [activeMessage, setActiveMessage] = useState([]);
 	const [headPositionY, setHeadPositionY] = useState([]);
-	const [url, set] = useState(model.url);
+	const [url, setUrl] = useState(model.url);
 	useEffect(() => {
-		setTimeout(() => set(model.url), 2000);
+		setTimeout(() => setUrl(model.url), 2000);
 	}, []);	
 
 	// useEffect(() => {
