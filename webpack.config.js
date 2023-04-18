@@ -51,7 +51,7 @@ module.exports = {
 			},
 			{
 				test: /\.js$/,
-				exclude: /node_modules\/(?!@atproto)/,
+				exclude: /node_modules\/(?!file-type|@atproto)/,
 				use: {
 				  loader: 'babel-loader',
 				  options: {
@@ -110,7 +110,7 @@ module.exports = {
 		alias: {
 			Brushes: path.resolve(__dirname, "brushes"),
 			'@magickml/editor': path.resolve(__dirname, 'node_modules/@magickml/editor'),
-			'draco-decoder': path.resolve(__dirname, 'node_modules/draco3d/')
+			'draco-decoder': path.resolve(__dirname, 'node_modules/draco3d/'),
 		}
 	}
 };

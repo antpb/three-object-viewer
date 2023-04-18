@@ -38,7 +38,6 @@ import { ModelObject } from "./core/front/ModelObject";
 import { NPCObject } from "./core/front/NPCObject";
 import { Portal } from "./core/front/Portal";
 import { ThreeSky } from "./core/front/ThreeSky";
-import { ThreeSkyThread } from "./core/front/ThreeSkyThread";
 import { TextObject } from "./core/front/TextObject";
 import { BskyAgent, AtpSessionEvent, AtpSessionData } from '@atproto/api';
 const useSubmitWithDependency = (dependency, handleSubmitFunction) => {
@@ -67,14 +66,9 @@ function TimelineControl( props ) {
 				return;
 			}
 			await props.agent.resumeSession(sessionData);
-			const res = await props.agent.getPostThread({ uri: "at://did:plc:mtzlowtzs6bvwfjoarz2xwip/app.bsky.feed.post/3jtf3h5neia2r", depth: 99 });
-			console.log('res:', res);
 
-			let worldJson = res.data.thread.replies[0].post.record.text;
-			//convert to json
-			worldJson = JSON.parse(worldJson);
-
-			console.log('WorldJson:', worldJson);
+			const res = await props.agent.getTimeline();
+			console.log('Timeline here. Response:', res);
 			props.onGetTimeline(res.data.feed);
 		} catch (error) {
 			console.error('Post creation error:', error);
@@ -87,6 +81,11 @@ function TimelineControl( props ) {
 	  </form>
 	);
   }
+  function padBase64(base64String) {
+	const padding = 4 - (base64String.length % 4);
+	if (padding === 4) return base64String;
+	return base64String + '='.repeat(padding);
+  }
   
   function Timeline({ feedItems }) {
 	const numRows = 5;
@@ -94,35 +93,101 @@ function TimelineControl( props ) {
 	const xOffset = 7;
 	const yOffset = 1;
   
+	async function base64ToBlob(base64Data) {
+	  const response = await fetch(base64Data);
+	  const arrayBuffer = await response.arrayBuffer();
+	  const fileTypeResult = await FileType.fromBuffer(arrayBuffer);
+	  const blob = new Blob([arrayBuffer], { type: fileTypeResult.mime });
+	  return blob;
+	}
+  
+	const useFetchTextureLoader = (url) => {
+		const [texture, setTexture] = useState(null);
+	  
+		useEffect(() => {
+			const loadTexture = async () => {
+				try {
+				  const apiUrl = `/wp-json/custom/v1/image-proxy`;
+				  const response = await fetch(apiUrl, {
+					method: 'POST',
+					headers: {
+					  'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({ url: url }),
+				  });
+				  const jsonResponse = await response.json();
+				  const base64Image = jsonResponse.base64Image;
+				  const binaryImage = atob(base64Image.split(',')[1]);
+				  const arrayBuffer = new ArrayBuffer(binaryImage.length);
+				  const uint8Array = new Uint8Array(arrayBuffer);
+			  
+				  for (let i = 0; i < binaryImage.length; i++) {
+					uint8Array[i] = binaryImage.charCodeAt(i);
+				  }
+			  
+				  const blob = new Blob([uint8Array], { type: 'image/jpeg' });
+				  const newUrl = URL.createObjectURL(blob);
+				  const newTexture = new THREE.TextureLoader().load(newUrl);
+			  
+				  setTexture(newTexture);
+				} catch (error) {
+				  console.error('Error loading texture:', error);
+				}
+			};
+								  
+		  if (url) {
+			loadTexture();
+		  }
+		}, [url]);
+	  
+		return texture;
+	};
+		
 	return (
 	  <group>
 		{feedItems?.map((item, index) => {
-		  const row = Math.floor(index / numColumns);
-		  const col = index % numColumns;
-		  const x = col * xOffset;
-		  const y = -row * yOffset + 8;
-		  return (
-			<group 	position={[x, y, 0]}>
-				<Text
-				key={index}
-				position={[0, 0, 0]}
-				fontSize={0.1}
-				maxWidth={4}
-				lineHeight={1}
-				letterSpacing={0.02}
-				anchorX={2.3}
-				wrap={0.1}
-				height={0.1}
-				textAlign={"left"}
-				>
-				{ (item?.post?.author.displayName + ": " + item?.post?.record?.text) }
-				</Text>
-				<mesh position={ [ 0, 0, - 0.05 ] }>
-				<planeGeometry attach="geometry" args={[5, 0.8]} />
-				<meshBasicMaterial attach="material" color={0x000000} opacity={0.5}	transparent={ true } />
-				</mesh>
-			</group>
-		  );
+		  // console.log(item.post.author.avatar);
+		  	const base64Texture = useFetchTextureLoader(item?.post?.author.avatar);
+			const row = Math.floor(index / numColumns);
+			const col = index % numColumns;
+			const x = col * xOffset;
+			const y = -row * yOffset + 8;
+			// wait for the texture to load
+			if (base64Texture) {
+				return (
+					<Suspense>
+					<group 	position={[x, y, 0]}>
+						<Text
+						key={index}
+						position={[0, 0, 0]}
+						fontSize={0.1}
+						maxWidth={4}
+						lineHeight={1}
+						letterSpacing={0.02}
+						anchorX={2.3}
+						wrap={0.1}
+						height={0.1}
+						textAlign={"left"}
+						>
+						{ (item?.post?.author.displayName + ": " + item?.post?.record?.text) }
+						</Text>
+						<mesh position={ [ -3, 0, - 0.04 ] }>
+							<planeGeometry
+							// args={[
+							// 	threeImage.aspectWidth / 12,
+							// 	threeImage.aspectHeight / 12
+							// ]}
+							/>
+							<meshStandardMaterial map={base64Texture} />
+						</mesh>
+						<mesh position={ [ 0, 0, - 0.05 ] }>
+							<planeGeometry attach="geometry" args={[5, 0.8]} />
+							<meshBasicMaterial attach="material" color={0x000000} opacity={0.5}	transparent={ true } />
+						</mesh>
+					</group>
+					</Suspense>
+				);
+			}
 		})}
 	  </group>
 	);
@@ -182,6 +247,7 @@ function ChatBox(props) {
 				for (let i = 0; i < currentFeed.length; i++) {
 					let newObject = {
 						"author": currentFeed[i].post.author.displayName,
+						"authorAvatar": currentFeed[i].post.author.avatar,
 						"post": currentFeed[i].post.record.text
 					}
 					newFeed.push(newObject);
@@ -752,7 +818,6 @@ export default function EnvironmentFront(props) {
 	const [spawnPoints, setSpawnPoints] = useState();
 	const [messageObject, setMessageObject] = useState({"tone": "happy", "message": "hello!"});
 	const [objectsInRoom, setObjectsInRoom] = useState([]);
-	const [threadWorld, setThreadWorld] = useState();
 	const [url, setURL] = useState(props.threeUrl ? props.threeUrl : (threeObjectPlugin + defaultEnvironment));
 	const agent = new BskyAgent({
 		service: 'https://bsky.social/',
@@ -771,43 +836,10 @@ export default function EnvironmentFront(props) {
 	});
 	const [feedItems, setFeedItems] = useState([]);
 
-	const handleTimeline = async (e) => {
-		// e.preventDefault();
-		try {
-			// console.log('Attempting to create a post with text:', post);
-			console.log(props);
-			const response = await fetch('/wp-json/your_namespace/v1/unified_session/', {
-				headers: {
-					'X-WP-Nonce': props.userData.nonce,
-				},
-			});
-			const sessionData = await response.json();
-			if (!sessionData) {
-				console.error('No session data found. Please log in first.');
-				return;
-			}
-			await agent.resumeSession(sessionData);
-			const res = await agent.getPostThread({ uri: "at://did:plc:mtzlowtzs6bvwfjoarz2xwip/app.bsky.feed.post/3jtf3h5neia2r", depth: 99 });
-			console.log('res:', res);
-
-			let worldJson = res.data.thread.replies[0].post.record.text;
-			//convert to json
-			worldJson = JSON.parse(worldJson);
-			setThreadWorld(worldJson);
-			console.log('WorldJson:', worldJson);
-			// props.onGetTimeline(res.data.feed);
-		} catch (error) {
-			console.error('Post creation error:', error);
-		}
-	};
-
 	console.log(agent);
-	useEffect(() => {
-		handleTimeline();
-	}, []);
-
+	
 	if (loaded === true) {
-		if (props.deviceTarget === "vr" && threadWorld) {
+		if (props.deviceTarget === "vr") {
 			return (
 				<>
 				    <TimelineControl 							
@@ -878,59 +910,22 @@ export default function EnvironmentFront(props) {
 												setShowUI={setShowUI}
 											/>
 											<Participants 
-												setParticipant={setParticipant}
-												participants={participants}
+											setParticipant={setParticipant}
+											participants={participants}
 											/>
 											<SavedObject
-												positionY={0}
-												rotationY={0}
-												url={(threeObjectPlugin + threadWorld.env.u)}
+												positionY={props.positionY}
+												rotationY={props.rotationY}
+												url={url}
 												color={props.backgroundColor}
 												hasZoom={props.hasZoom}
-												scale={threadWorld.env.s}
+												scale={props.scale}
 												hasTip={props.hasTip}
 												animations={props.animations}
 												playerData={props.userData}
 												setSpawnPoints={setSpawnPoints}
 											/>
-											<ThreeSkyThread
-												src={("http://xppworld.local/wp-content/uploads" + threadWorld.sky.u)}
-												distance={Number(threadWorld.sky.d)}
-												rayleigh={Number(threadWorld.sky.r)}
-												sunPositionX={Number(threadWorld.sky.sX)}
-												sunPositionY={Number(threadWorld.sky.sY)}
-												sunPositionZ={Number(threadWorld.sky.sZ)}
-											/>
-											<NPCObject
-												url={("http://xppworld.local/wp-content/uploads" + threadWorld.npc.u)}
-												positionX={Number(threadWorld.npc.px)}
-												positionY={0}
-												positionZ={Number(threadWorld.npc.pz)}
-												messages={messages}
-												rotationX={
-													0
-												}
-												rotationY={
-													Number(threadWorld.npc.ry)
-												}
-												rotationZ={
-													0
-												}
-												name={threadWorld.npc.name}
-												message={
-													messageObject
-												}
-												threeObjectPlugin={threeObjectPlugin}
-												threeObjectPluginRoot={threeObjectPluginRoot}
-												defaultAvatarAnimation={defaultAvatarAnimation}
-												defaultFont={defaultFont}
-												defaultMessage={threadWorld.npc.msg}
-												personality={"#agent is helpful and cheerful."}
-												feedItems={feedItems}
-												// idle={idle}
-											/>
-
-											{/* {Object.values(props.sky).map(
+											{Object.values(props.sky).map(
 												(item, index) => {
 													return (
 														<>
@@ -940,7 +935,7 @@ export default function EnvironmentFront(props) {
 														</>
 													);
 												}
-											)} */}
+											)}
 											{Object.values(
 												props.imagesToAdd
 											).map((item, index) => {
@@ -1261,7 +1256,7 @@ export default function EnvironmentFront(props) {
 													/>
 												);
 											})}
-											{/* {Object.values(
+											{Object.values(
 												props.npcsToAdd
 											).map((npc, index) => {
 												const modelPosX =
@@ -1399,7 +1394,7 @@ export default function EnvironmentFront(props) {
 														// idle={idle}
 													/>
 												);
-											})} */}
+											})}
 											{Object.values(
 												props.modelsToAdd
 											).map((model, index) => {
