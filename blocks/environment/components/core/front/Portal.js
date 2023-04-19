@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useLoader, useThree } from "@react-three/fiber";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
+import { GLTFLoader } from "../../../../../inc/utils/three/examples/jsm/loaders/GLTFLoader";
+import { DRACOLoader } from "../../../../../inc/utils/three/examples/jsm/loaders/DRACOLoader";
 import { AudioListener, Vector3, BufferGeometry, MeshBasicMaterial, DoubleSide, Mesh, CircleGeometry, sRGBEncoding } from "three";
 import { RigidBody } from "@react-three/rapier";
 import {

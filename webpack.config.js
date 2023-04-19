@@ -90,7 +90,12 @@ module.exports = {
 		alias: {
 			Brushes: path.resolve(__dirname, "brushes"),
 			'@magickml/editor': path.resolve(__dirname, 'node_modules/@magickml/editor'),
-			'draco-decoder': path.resolve(__dirname, 'node_modules/draco3d/')
-		}
+			'draco-decoder': path.resolve(__dirname, 'node_modules/draco3d/'),
+			'three': path.resolve(__dirname, 'inc/utils/three/build/three.module.js'),
+			// Map the `DRACOLoader` module to your custom build folder
+			'three/examples/jsm/loaders/DRACOLoader': path.resolve(__dirname, 'inc/utils/three/examples/jsm/loaders/DRACOLoader.js'),
+			// Map the `GLTFLoader` module to your custom build folder
+			'three/examples/jsm/loaders/GLTFLoader': path.resolve(__dirname, 'inc/utils/three/examples/jsm/loaders/GLTFLoader.js'),
+			  }
 	}
 };

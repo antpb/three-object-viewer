@@ -1,14 +1,14 @@
 import * as THREE from "three";
-import { Fog } from 'three/src/scenes/Fog'
+import { Fog } from '../../../inc/utils/three/src/scenes/Fog'
 // import { Reflector } from 'three/examples/jsm/objects/Reflector';
 import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
 import { useLoader, useThree, useFrame } from "@react-three/fiber";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
-import { TextureLoader } from "three/src/loaders/TextureLoader";
+import { GLTFLoader } from "../../../inc/utils/three/examples/jsm/loaders/GLTFLoader";
+import { DRACOLoader } from "../../../inc/utils/three/examples/jsm/loaders/DRACOLoader";
+import { TextureLoader } from "../../../inc/utils/three/src/loaders/TextureLoader";
 // import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
 import { Physics, RigidBody, Debug, Attractor, CuboidCollider } from "@react-three/rapier";
-import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
+import * as SkeletonUtils from "../../../inc/utils/three/examples/jsm/utils/SkeletonUtils.js";
 import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
 import axios from "axios";
 import ReactNipple from 'react-nipple';

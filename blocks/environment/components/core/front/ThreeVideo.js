@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useLoader, useThree } from "@react-three/fiber";
 import { VideoTexture, Vector3, BufferGeometry, MeshBasicMaterial, DoubleSide, Mesh, CircleGeometry, sRGBEncoding } from "three";
 import { RigidBody } from "@react-three/rapier";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { GLTFLoader } from "../../../../../inc/utils/three/examples/jsm/loaders/GLTFLoader";
 import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
+import { DRACOLoader } from "../../../../../inc/utils/three/examples/jsm/loaders/DRACOLoader";
 
 /**
  * Renders a video in a three.js scene.

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useFrame, useLoader, useThree } from "@react-three/fiber";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
+import { GLTFLoader } from "../../../../../inc/utils/three/examples/jsm/loaders/GLTFLoader";
+import { FBXLoader } from "../../../../../inc/utils/three/examples/jsm/loaders/FBXLoader";
+import { DRACOLoader } from "../../../../../inc/utils/three/examples/jsm/loaders/DRACOLoader";
 import { AudioListener, Group, Quaternion, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, BufferGeometry, MeshBasicMaterial, DoubleSide, Mesh, CircleGeometry, sRGBEncoding } from "three";
 import { RigidBody } from "@react-three/rapier";
 import {
@@ -388,7 +388,7 @@ export function NPCObject(model) {
 			>
 				<Text
 					font={model.threeObjectPlugin + model.defaultFont}
-					position={[0.6, (Number(headPositionY) - 0.5), 0]}
+					position={[0.6, (Number(headPositionY)), 0]}
 					className="content"
 					scale={[0.5, 0.5, 0.5]}
 					// rotation-y={-Math.PI / 2}
@@ -401,7 +401,7 @@ export function NPCObject(model) {
 				>
 					{outputJSON && String(outputJSON)}
 				</Text>
-				<mesh position={[0.6,  (Number(headPositionY) - 0.5), -0.01]}>
+				<mesh position={[0.6,  (Number(headPositionY)), -0.01]}>
 					<planeGeometry attach="geometry" args={[0.65, 1.5]} />
 					<meshBasicMaterial attach="material" color={0x000000} opacity={0.5}	transparent={ true } />
 				</mesh>

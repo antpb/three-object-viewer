@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
 import { Canvas, useLoader, useFrame, useThree } from "@react-three/fiber";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
+import { GLTFLoader } from "../../../inc/utils/three/examples/jsm/loaders/GLTFLoader";
+import { DRACOLoader } from "../../../inc/utils/three/examples/jsm/loaders/DRACOLoader";
 import {
 	PerspectiveCamera,
 	OrbitControls,

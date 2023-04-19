@@ -2,11 +2,11 @@ import * as THREE from 'three';
 import { AudioListener, Group, Quaternion, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, BufferGeometry, MeshBasicMaterial, DoubleSide, Mesh, CircleGeometry, sRGBEncoding } from "three";
 import React, { Suspense, useRef, useState, useEffect } from 'react';
 import { Canvas, useLoader, useFrame, useThree } from '@react-three/fiber';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
+import { GLTFLoader } from '../../../inc/utils/three/examples/jsm/loaders/GLTFLoader';
+import { FBXLoader } from "../../../inc/utils/three/examples/jsm/loaders/FBXLoader";
+import { DRACOLoader } from "../../../inc/utils/three/examples/jsm/loaders/DRACOLoader";
 import { Physics, RigidBody } from "@react-three/rapier";
-import { USDZLoader } from 'three/examples/jsm/loaders/USDZLoader';
+import { USDZLoader } from '../../../inc/utils/three/examples/jsm/loaders/USDZLoader';
 import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
 import idle from "../../../inc/avatars/friendly.fbx";
 

@@ -1,7 +1,7 @@
 import * as THREE from "three";
-import { TextureLoader } from "three/src/loaders/TextureLoader";
+import { TextureLoader } from "../../../inc/utils/three/src/loaders/TextureLoader";
 import { useFrame, useLoader, useThree, Interactive } from "@react-three/fiber";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { GLTFLoader } from "../../../inc/utils/three/examples/jsm/loaders/GLTFLoader";
 import Controls from "./Controls";
 
 import { useRef, useState, useEffect } from "react";

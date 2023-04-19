@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useFrame, useLoader, useThree } from "@react-three/fiber";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
+import { GLTFLoader } from "../../../../../inc/utils/three/examples/jsm/loaders/GLTFLoader";
+import { FBXLoader } from "../../../../../inc/utils/three/examples/jsm/loaders/FBXLoader";
+import { DRACOLoader } from "../../../../../inc/utils/three/examples/jsm/loaders/DRACOLoader";
 import { AudioListener, Group, Quaternion, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, BufferGeometry, MeshBasicMaterial, DoubleSide, Mesh, CircleGeometry, sRGBEncoding } from "three";
 import { RigidBody } from "@react-three/rapier";
 import {

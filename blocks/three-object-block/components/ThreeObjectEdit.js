@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import { USDZLoader } from 'three/examples/jsm/loaders/USDZLoader';
+import { USDZLoader } from '../../../inc/utils/three/examples/jsm/loaders/USDZLoader';
 import React, { Suspense, useRef, useState, useEffect } from 'react';
 import { Canvas, useLoader, useFrame, useThree } from '@react-three/fiber';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { GLTFLoader } from '../../../inc/utils/three/examples/jsm/loaders/GLTFLoader';
 import {
 	OrthographicCamera,
 	PerspectiveCamera,
