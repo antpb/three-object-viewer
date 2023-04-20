@@ -388,7 +388,7 @@ export function NPCObject(model) {
 			>
 				<Text
 					font={model.threeObjectPlugin + model.defaultFont}
-					position={[0.6, (Number(headPositionY)), 0]}
+					position={[0.6, (Number(headPositionY)+7), 0]}
 					className="content"
 					scale={[0.5, 0.5, 0.5]}
 					// rotation-y={-Math.PI / 2}
@@ -401,7 +401,7 @@ export function NPCObject(model) {
 				>
 					{outputJSON && String(outputJSON)}
 				</Text>
-				<mesh position={[0.6,  (Number(headPositionY)), -0.01]}>
+				<mesh position={[0.6,  (Number(headPositionY)+7), -0.01]}>
 					<planeGeometry attach="geometry" args={[0.65, 1.5]} />
 					<meshBasicMaterial attach="material" color={0x000000} opacity={0.5}	transparent={ true } />
 				</mesh>

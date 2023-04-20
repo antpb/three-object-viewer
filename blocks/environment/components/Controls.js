@@ -17,6 +17,7 @@ const Controls = (props) => {
 	const isLocked = useRef(false);
 	const [lock, setLock] = useState(false);
 	const [click, setClick] = useState(false);
+	const [crouch, setCrouch] = useState(false);
 	const [shiftActive, setShift] = useState(false);
 	const [moveForward, setMoveForward] = useState(false);
 	const [moveBackward, setMoveBackward] = useState(false);
@@ -27,7 +28,7 @@ const Controls = (props) => {
 	const [thirdPerson, setThirdPerson] = useState(false); // Add this line
 	const currentRigidbody = useRigidBody();
 	const { world, rapier } = useRapier();
-	const ray = new rapier.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
+	const ray = new rapier.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -0.5, z: 0 });
 
 	const pointerRay = new rapier.Ray(
 		{ x: 0, y: 0, z: 0 },
@@ -175,6 +176,7 @@ const Controls = (props) => {
 		ray.origin.x = playerThing.translation().x;
 		ray.origin.y = playerThing.translation().y;
 		ray.origin.z = playerThing.translation().z;
+		  
 		const velocity = shiftActive ? 0.28 : 0.08;
 		world.raw().step();
 		const maxToi = 14;
@@ -271,10 +273,10 @@ const Controls = (props) => {
 					const hitPoint = ray.pointAt(hit.toi);
 					playerThing.setTranslation({
 						x: controlsRef.current.camera.position.x,
-						y: hitPoint.y,
+						y: (Number(hitPoint.y) - 1),
 						z: controlsRef.current.camera.position.z
 					});
-					camera.position.setY(hitPoint.y + 0.007);
+					camera.position.setY(hitPoint.y + 0.002);
 				}
 				if (p2pcf) {
 					const position = [
@@ -459,7 +461,7 @@ const Controls = (props) => {
 				// case when both shift and the w key are pressed
 				case "ShiftLeft":
 					setShift(true);
-					setLock(false);
+
 					break;
 				case "ArrowUp":
 				case "KeyW":
@@ -484,6 +486,10 @@ const Controls = (props) => {
 					setMoveRight(true);
 					setLock(false);
 					break;
+				case "KeyC":
+					setCrouch(true);
+					setLock(false);
+					break;					  
 				case "KeyR":
 					if (props.something.current) {
 						const playerThing = world.getRigidBody(props.something.current.handle);
@@ -546,7 +552,6 @@ const Controls = (props) => {
 		switch (event.code) {
 			case "ShiftLeft":
 				setShift(false);
-				setLock(true);
 				break;
 			case "ArrowUp":
 			case "KeyW":
@@ -579,7 +584,10 @@ const Controls = (props) => {
 				setMoveRight(false);
 				setLock(true);
 				break;
-
+			case "KeyC":
+				setCrouch(false);
+				setLock(true);
+				break;
 			default:
 		}
 	};
