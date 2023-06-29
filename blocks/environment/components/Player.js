@@ -112,12 +112,13 @@ export default function Player(props) {
 					<>
 						<RigidBody
 							colliders={false}
-							linearDamping={100}
-							angularDamping={0}
-							friction={0}
+							// linearDamping={100}
+							// angularDamping={0}
+							// friction={0}
 							ref={rigidRef}
-							mass={0}
-							type={"static"}
+							// mass={0}
+							lockRotations={true}
+							type={"dynamic"}
 							onCollisionEnter={({ manifold, target }) => {
 								setRapierId(target.colliderSet.map.data[1]);
 								setContactPoint(manifold.solverContactPoint(0));

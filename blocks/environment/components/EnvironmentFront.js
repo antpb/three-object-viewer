@@ -17,6 +17,7 @@ import { Resizable } from "re-resizable";
 
 import {
 	useAnimations,
+	Html,
 } from "@react-three/drei";
 // import { A11y } from "@react-three/a11y";
 import { GLTFAudioEmitterExtension } from "three-omi";
@@ -38,6 +39,17 @@ import { NPCObject } from "./core/front/NPCObject";
 import { Portal } from "./core/front/Portal";
 import { ThreeSky } from "./core/front/ThreeSky";
 import { TextObject } from "./core/front/TextObject";
+
+function Loading() {
+	return (
+	  <Html center>
+		<div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100vh", width: "400px" }}>
+		  <div className="threeov-spinner"></div>
+		  <div style={{ backgroundColor: "black", minWidth: "100px", maxHeight: "50px", color: "white", textAlign: "center" }}>Loading...</div>
+		</div>
+	  </Html>
+	);
+}
 
 function ChatBox(props) {
 	
@@ -620,12 +632,11 @@ export default function EnvironmentFront(props) {
 						// shadow-bias={-0.001}
 						// castShadow
 						/>
-						<Suspense fallback={null}>
+    					<Suspense fallback={<Loading />}>
 							<Physics
+								// debug
 							>
-								<RigidBody></RigidBody>
 								{/* Debug physics */}
-								{/* <Debug /> */}
 								{url && (
 									<>
 										<TeleportTravel

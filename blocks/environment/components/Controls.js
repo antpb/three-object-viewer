@@ -1,21 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
-// import { Raycaster, Vector3, Math, Euler } from 'three';
 import { Euler, Raycaster, MathUtils } from "three";
 
 import { useFrame, useThree } from "@react-three/fiber";
 import { PointerLockControls } from "@react-three/drei";
-// import previewOptions from "@wordpress/block-editor/build/components/preview-options";
-import { useRapier, useRigidBody } from "@react-three/rapier";
-
-// function touchStarted() {
-// 	getAudioContext().resume();
-// }
+import { useRapier, useRigidBody, vec3, RigidBodyType } from "@react-three/rapier";
 
 const Controls = (props) => {
 	const p2pcf = window.p2pcf;
 	const controlsRef = useRef();
 	const isLocked = useRef(false);
 	const [lock, setLock] = useState(false);
+	const [falling, setFalling] = useState(true);
 	const [click, setClick] = useState(false);
 	const [shiftActive, setShift] = useState(false);
 	const [moveForward, setMoveForward] = useState(false);
@@ -24,10 +19,10 @@ const Controls = (props) => {
 	const [moveRight, setMoveRight] = useState(false);
 	const [spawnPos, setSpawnPos] = useState(props.spawnPoint);
 	const [jump, setJump] = useState(false);
-	const [thirdPerson, setThirdPerson] = useState(false); // Add this line
-	const currentRigidbody = useRigidBody();
+	const [jumping, setJumping] = useState(false);
+	const [thirdPerson, setThirdPerson] = useState(false);
 	const { world, rapier } = useRapier();
-	const ray = new rapier.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
+	const ray = new rapier.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -0.001, z: 0 });
 
 	const pointerRay = new rapier.Ray(
 		{ x: 0, y: 0, z: 0 },
@@ -37,23 +32,23 @@ const Controls = (props) => {
 
 	useEffect(() => {
 
-		if(props.mobileControls !== null && props.mobileControls?.direction !== undefined){
-			if(props.mobileControls.direction.angle === "down"){
+		if (props.mobileControls !== null && props.mobileControls?.direction !== undefined) {
+			if (props.mobileControls.direction.angle === "down") {
 				setMoveForward(false);
 				setMoveBackward(true);
 				setMoveLeft(false);
 				setMoveRight(false);
-			} else if(props.mobileControls.direction.angle === "up"){
+			} else if (props.mobileControls.direction.angle === "up") {
 				setMoveBackward(false);
 				setMoveForward(true);
 				setMoveLeft(false);
 				setMoveRight(false);
-			} else if(props.mobileControls.direction.angle === "left"){
+			} else if (props.mobileControls.direction.angle === "left") {
 				setMoveLeft(true);
 				setMoveForward(false);
 				setMoveBackward(false);
 				setMoveRight(false);
-			} else if(props.mobileControls.direction.angle === "right"){
+			} else if (props.mobileControls.direction.angle === "right") {
 				setMoveRight(true);
 				setMoveLeft(false);
 				setMoveForward(false);
@@ -146,24 +141,24 @@ const Controls = (props) => {
 
 		const playerThing = world.getRigidBody(props.something.current.handle);
 
-		// raycaster.set( camera.position, camera.getWorldDirection() );
-		// raycast forward from the camera and log hitting any objects
-		// var intersects = raycaster.intersectObjects( scene.children );
-		// if	(intersects.length > 0) {
-		// 	console.log(intersects[0].object);
-		// }
-
 		const playerThingColliders = world.getCollider(
 			props.something.current.handle
 		);
 		//lock rotations.
-		playerThing.restrictRotations({enableX: false, enableY: false, enableZ: false}, true);
+		playerThing.restrictRotations({ enableX: false, enableY: false, enableZ: false }, true);
 		//maybebringthemback
-		// playerThing.lockRotations(true, true);
+		playerThing.lockRotations(true, true);
 		if (lock) {
-			playerThing.setBodyType(1);
+			playerThing.restrictRotations({ enableX: false, enableY: false, enableZ: false }, true);
+			if (!falling){
+				playerThing.setBodyType(rapier.RigidBodyType.Fixed, 1);
+			}
 		} else {
-			playerThing.setBodyType(0);
+			if (falling){
+				setJumping(false);
+				playerThing.setBodyType(rapier.RigidBodyType.Dynamic, 1);
+			}
+			playerThing.setBodyType(rapier.RigidBodyType.Dynamic, 0);
 		}
 		// playerThing.setRotation({x: Math.radToDeg(controlsRef.current.camera.rotation.x), y: Math.radToDeg(controlsRef.current.camera.rotation.y), z: Math.radToDeg(controlsRef.current.camera.rotation.z), w: 0}, true);
 
@@ -176,10 +171,19 @@ const Controls = (props) => {
 		ray.origin.y = playerThing.translation().y;
 		ray.origin.z = playerThing.translation().z;
 		const velocity = shiftActive ? 0.28 : 0.08;
-		world.raw().step();
+		world.step();
 		const maxToi = 14;
 		const solid = true;
-
+		if (jump && ! jumping) {
+			setJumping(true);
+			// if not falling
+			playerThing.setBodyType(rapier.RigidBodyType.Dynamic, 0);
+			setFalling(true);
+			playerThing.applyImpulse({ x: 0, y: 30, z: 0 }, true);
+			console.log("jumping");
+			setJump(false); // Reset the jump state
+		}
+		
 		if (click) {
 			if (raycaster) {
 				raycaster.setFromCamera({ x: 0, y: 0 }, camera);
@@ -237,99 +241,107 @@ const Controls = (props) => {
 
 			switch (props.mobileRotControls.direction.angle) {
 				case 'left':
-				  controlsRef.current.camera.rotation.y += rotationSpeed;
-				  break;
+					controlsRef.current.camera.rotation.y += rotationSpeed;
+					break;
 				case 'right':
-				  controlsRef.current.camera.rotation.y -= rotationSpeed;
-				  break;
+					controlsRef.current.camera.rotation.y -= rotationSpeed;
+					break;
 				//   case 'down':
 				// 	controlsRef.current.camera.rotation.x -= rotationSpeed;
 				// 	break;
 				//   case 'up':
 				// 	controlsRef.current.camera.rotation.x += rotationSpeed;
 				// 	break;
-				  default:
-				  break;
-			  }		
+				default:
+					break;
 			}
-		  
+		}
+
 		if (moveForward) {
-			if (playerThing) {
+			if (
+				controlsRef.current.camera &&
+				controlsRef.current.camera.position &&
+				controlsRef.current.camera.position.x !== undefined
+			) {
 				controlsRef.current.moveForward(velocity);
-				const hit = world
-					.raw()
-					.queryPipeline.castRay(
-						world.raw().colliders,
+				if (playerThing && controlsRef.current.camera.position.x) {
+					const hit = world.castRay(
 						ray,
 						maxToi,
-						solid,
-						0xfffffffff
+						solid
 					);
+					playerThing.lockRotations(true, true);
+					if (hit) {
+						const hitPoint = ray.pointAt(hit.toi);
+						//calculate distance hitpoint.y is away from the player y position
+						const distance = Math.abs(hitPoint.y - controlsRef.current.camera.position.y);
+						if (distance > 0.22) {
+							setFalling(true);
+						} else {
+							setFalling(false);
+						}
+						const position = vec3(controlsRef.current.camera.position.x, hitPoint.y, controlsRef.current.camera.position.z)
+						playerThing.setTranslation({
+							x: Number(controlsRef.current.camera.position.x),
+							y: Number(hitPoint.y),
+							z: Number(controlsRef.current.camera.position.z)
+						});
+						camera.position.setY(hitPoint.y + 0.007);
+					} else {
+						setFalling(true);
+					}
+					if (p2pcf) {
+						const position = [
+							controlsRef.current.camera.position.x,
+							controlsRef.current.camera.position.y,
+							controlsRef.current.camera.position.z
+						];
+						const rotation = [
+							controlsRef.current.camera.rotation.x,
+							controlsRef.current.camera.rotation.y,
+							controlsRef.current.camera.rotation.z
+						];
+						const message =
+							`{ "${p2pcf.clientId}": [{ "position" : [` +
+							position +
+							`]},{ "rotation" : [` +
+							rotation +
+							`]},{ "profileImage" : ["` +
+							userData.profileImage +
+							`"]}]}`;
+						p2pcf.broadcast(new TextEncoder().encode(message));
+					}
 
-				playerThing.lockRotations(true, true);
-				if (hit) {
-					const hitPoint = ray.pointAt(hit.toi);
-					playerThing.setTranslation({
-						x: controlsRef.current.camera.position.x,
-						y: hitPoint.y,
-						z: controlsRef.current.camera.position.z
-					});
-					camera.position.setY(hitPoint.y + 0.007);
+					// playerThing.applyImpulse({x:0, y:0, z:0.1}, true);
+					// const pointerHit = world
+					// 	.raw()
+					// 	.queryPipeline.castRay(
+					// 		world.raw().colliders,
+					// 		pointerRay,
+					// 		maxToi,
+					// 		solid,
+					// 		0xfffffffff
+					// 	);
+
+					// playerThing.setRotation({x: 0, y: 1, z: 0, w: 0}, true);
+					// if (pointerHit){
+					// 	console.log(pointerHit);
+					// 	const pointerHitPoint = pointerRay.pointAt(hit.toi);
+					// 	console.log(pointerHitPoint);
+
+					// }
+					playerThing.setBodyType(rapier.RigidBodyType.Dynamic, 1);
 				}
-				if (p2pcf) {
-					const position = [
-						controlsRef.current.camera.position.x,
-						controlsRef.current.camera.position.y,
-						controlsRef.current.camera.position.z
-					];
-					const rotation = [
-						controlsRef.current.camera.rotation.x,
-						controlsRef.current.camera.rotation.y,
-						controlsRef.current.camera.rotation.z
-					];
-					const message =
-						`{ "${p2pcf.clientId}": [{ "position" : [` +
-						position +
-						`]},{ "rotation" : [` +
-						rotation +
-						`]},{ "profileImage" : ["` +
-						userData.profileImage +
-						`"]}]}`;
-					p2pcf.broadcast(new TextEncoder().encode(message));
-				}
-
-				// playerThing.applyImpulse({x:0, y:0, z:0.1}, true);
-				// const pointerHit = world
-				// 	.raw()
-				// 	.queryPipeline.castRay(
-				// 		world.raw().colliders,
-				// 		pointerRay,
-				// 		maxToi,
-				// 		solid,
-				// 		0xfffffffff
-				// 	);
-
-				// playerThing.setRotation({x: 0, y: 1, z: 0, w: 0}, true);
-				// if (pointerHit){
-				// 	console.log(pointerHit);
-				// 	const pointerHitPoint = pointerRay.pointAt(hit.toi);
-				// 	console.log(pointerHitPoint);
-
-				// }
 			}
 		} else if (moveLeft) {
 			playerThing.lockRotations(true, true);
 			// playerThing.setRotation({x: 0, y: -0.707107, z: 0, w: 0.707107}, true);
 			controlsRef.current.moveRight(-velocity);
-			const hit = world
-				.raw()
-				.queryPipeline.castRay(
-					world.raw().colliders,
-					ray,
-					maxToi,
-					solid,
-					0xfffffffff
-				);
+			const hit = world.castRay(
+				ray,
+				maxToi,
+				solid
+			);
 
 			if (hit) {
 				const hitPoint = ray.pointAt(hit.toi); // Same as: `ray.origin + ray.dir * toi`
@@ -365,15 +377,11 @@ const Controls = (props) => {
 			// playerThing.setRotation({x: 0, y: 0, z: 0, w: -1}, true);
 
 			controlsRef.current.moveForward(-velocity);
-			const hit = world
-				.raw()
-				.queryPipeline.castRay(
-					world.raw().colliders,
-					ray,
-					maxToi,
-					solid,
-					0xfffffffff
-				);
+			const hit = world.castRay(
+				ray,
+				maxToi,
+				solid
+			);
 
 			if (hit) {
 				const hitPoint = ray.pointAt(hit.toi); // Same as: `ray.origin + ray.dir * toi`
@@ -408,15 +416,11 @@ const Controls = (props) => {
 			playerThing.lockRotations(true, true);
 			// playerThing.setRotation({x: 0, y: 0.707107, z: 0, w: 0.707107}, true);
 			controlsRef.current.moveRight(velocity);
-			const hit = world
-				.raw()
-				.queryPipeline.castRay(
-					world.raw().colliders,
-					ray,
-					maxToi,
-					solid,
-					0xfffffffff
-				);
+			const hit = world.castRay(
+				ray,
+				maxToi,
+				solid
+			);
 
 			if (hit) {
 				const hitPoint = ray.pointAt(hit.toi); // Same as: `ray.origin + ray.dir * toi`
@@ -452,8 +456,8 @@ const Controls = (props) => {
 		}
 	});
 	const onKeyDown = function (event) {
-		if(event.target instanceof HTMLInputElement){
-		return
+		if (event.target instanceof HTMLInputElement) {
+			return
 		} else {
 			switch (event.code) {
 				// case when both shift and the w key are pressed
@@ -523,16 +527,16 @@ const Controls = (props) => {
 					}
 					setLock(false);
 					break;
-				case "Space":
-					setLock(false);
-					window.addEventListener("keydown", (e) => {
-						if (e.keyCode === 32 && e.target === document.body) {
+					case "Space":
+						setJump(true);
+						setLock(false);
+						window.addEventListener("keydown", (e) => {
+						  if (e.keyCode === 32 && e.target === document.body) {
 							e.preventDefault();
-						}
-					});
-					setJump(true);
-					break;
-				default:
+						  }
+						});
+						break;
+					default:
 			}
 		}
 	};
@@ -584,9 +588,9 @@ const Controls = (props) => {
 		}
 	};
 
-		document.addEventListener("keydown", onKeyDown);
-		document.addEventListener("keyup", onKeyUp);
-		  
+	document.addEventListener("keydown", onKeyDown);
+	document.addEventListener("keyup", onKeyUp);
+
 	return (
 		<>
 			<PointerLockControls
@@ -647,7 +651,7 @@ const Controls = (props) => {
 				}}
 				ref={controlsRef}
 			/>
-	</>
+		</>
 	);
 };
 

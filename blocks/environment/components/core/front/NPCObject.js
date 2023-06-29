@@ -306,11 +306,33 @@ export function NPCObject(model) {
 			}
 		}, [currentVrm]);
 
+		let lastUpdateTime = 0;
+
 		// Load animation
 		useFrame((state, delta) => {
+			const currentTime = state.clock.elapsedTime;
+			const timeSinceLastUpdate = currentTime - lastUpdateTime;
+					  
 			if (currentVrm) {
-
 				let outputJson;
+				if (timeSinceLastUpdate >= 0.1) { // Update every 100 milliseconds
+					lastUpdateTime = currentTime;
+
+					// get the object named "npcText" from the useThree scene
+					const npcText = scene.getObjectByName("npcText");
+					const npcBackground = scene.getObjectByName("npcBackground");
+					// move the npcText to the head height position
+					if (npcText && npcBackground) {
+						// get the head bone position y
+						let head = currentVrm.humanoid.getRawBoneNode(VRMHumanBoneName.Head);
+						// set the npcText position to the head bone world y position
+						let worldPos = new Vector3();
+						head.getWorldPosition(worldPos);
+						npcText.position.y = worldPos.y - 0.4;
+						npcBackground.position.y = worldPos.y - 0.4;
+					}
+				}
+
 				if (activeMessage) {
 					// messageObject = JSON.parse(activeMessage);
 					// const outputString = messageObject.outputs.Output;
@@ -320,9 +342,9 @@ export function NPCObject(model) {
 						const outputJSON = JSON.parse("null");
 					}
 
-					currentVrm.expressionManager.setValue( VRMExpressionPresetName.Neutral, 0 );
-					currentVrm.expressionManager.setValue( VRMExpressionPresetName.Relaxed, 0.8 );
-						currentVrm.update(clock.getDelta());
+					// currentVrm.expressionManager.setValue( VRMExpressionPresetName.Neutral, 0 );
+					// currentVrm.expressionManager.setValue( VRMExpressionPresetName.Relaxed, 0.8 );
+					currentVrm.update(clock.getDelta());
 			
 					// if(outputJSON.tone){
 					// 	//convert outputJSON.tone to lowercase
@@ -398,10 +420,11 @@ export function NPCObject(model) {
 					height={0.1}
 					color={0xffffff}
 					transform
+					name="npcText"
 				>
 					{outputJSON && String(outputJSON)}
 				</Text>
-				<mesh position={[0.6,  (Number(headPositionY) - 0.5), -0.01]}>
+				<mesh name="npcBackground" position={[0.6,  (Number(headPositionY) - 0.5), -0.01]}>
 					<planeGeometry attach="geometry" args={[0.65, 1.5]} />
 					<meshBasicMaterial attach="material" color={0x000000} opacity={0.5}	transparent={ true } />
 				</mesh>

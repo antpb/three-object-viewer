@@ -321,21 +321,20 @@ export function ModelObject(model) {
 
 	if (model.collidable === "1") {
 		return (
-			<>
 				<RigidBody
 					type="fixed"
 					colliders={audioObject ? "cuboid" : "trimesh"}
-					rotation={[
-						model.rotationX,
-						model.rotationY,
-						model.rotationZ
-					]}
-					position={[
-						model.positionX,
-						model.positionY,
-						model.positionZ
-					]}
-					scale={[model.scaleX + 0.01, model.scaleY + 0.01, model.scaleZ + 0.01]}
+					// rotation={[
+					// 	model.rotationX,
+					// 	model.rotationY,
+					// 	model.rotationZ
+					// ]}
+					// position={[
+					// 	Number(model.positionX),
+					// 	Number(model.positionY),
+					// 	Number(model.positionZ)
+					// ]}
+					// scale={[Number(model.scaleX) + 0.01, Number(model.scaleY) + 0.01, Number(model.scaleZ) + 0.01]}
 					onCollisionEnter={(manifold, target, other) => {
 						setClickEvent(!clicked);
 						if (audioObject) {
@@ -372,7 +371,6 @@ export function ModelObject(model) {
 						scale={[model.scaleX, model.scaleY, model.scaleZ]}
 					/>
 				</RigidBody>
-			</>
 		);
 	}
 	return (

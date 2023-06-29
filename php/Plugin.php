@@ -16,6 +16,8 @@ class Plugin
 		add_action( 'wp_enqueue_scripts',  array( $this, 'threeobjectviewer_register_threeobjectloaderinit'), 5 );
 		//Enqueue JavaScript and CSS for threeobjectloaderinit
 		add_action( 'wp_enqueue_scripts',  array( $this, 'threeobjectviewer_enqueue_threeobjectloaderinit'), 10 );
+		add_filter( 'the_content', array( $this, 'remove_block_from_archive' ), 10 );
+
     }
 
 	/**
@@ -91,7 +93,16 @@ class Plugin
 		
 		return $types;
 	}
-		
+
+	function remove_block_from_archive($content) {
+		if(is_archive()){
+			// remove div and contents that have teh class wp-block-three-object-viewer-environment and all of their contents
+			$content = preg_replace('/<div class="wp-block-three-object-viewer-.*?">(?:<(?:div|p).*?>[\s\S]*?<\/(?:div|p)>)*<\/div>/s', '', $content);
+		}
+		return $content;
+	}
+	
+
 	/**
 	 * Enqueue block frontend JavaScript
 	 */
@@ -149,7 +160,7 @@ class Plugin
 		$post_slug = $post->post_name;
 		$openbrush_enabled = false;
 		$three_icosa_brushes_url = '';
-		if(is_singular()){
+		if(is_singular() || is_home() || is_front_page() || is_archive() || is_search()) {
 			if (!function_exists('is_plugin_active')) {
 				include_once(ABSPATH . 'wp-admin/includes/plugin.php');
 			}
