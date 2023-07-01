@@ -19,6 +19,7 @@ import {
 	useAnimations,
 	Html,
 } from "@react-three/drei";
+
 // import { A11y } from "@react-three/a11y";
 import { GLTFAudioEmitterExtension } from "three-omi";
 import { VRCanvas, DefaultXRControllers, Hands, XRButton } from "@react-three/xr";
@@ -634,7 +635,7 @@ export default function EnvironmentFront(props) {
 						/>
     					<Suspense fallback={<Loading />}>
 							<Physics
-								// debug
+								debug
 							>
 								{/* Debug physics */}
 								{url && (

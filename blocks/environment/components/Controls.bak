@@ -1,18 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Euler, Raycaster, MathUtils } from "three";
-import CustomOrbitControls from "./CustomOrbitControls.js";
+
 import { useFrame, useThree } from "@react-three/fiber";
-import { 
-	PointerLockControls,
-	OrbitControls 
-} from "@react-three/drei";
+import { PointerLockControls } from "@react-three/drei";
 import { useRapier, useRigidBody, vec3, RigidBodyType } from "@react-three/rapier";
-  
+
 const Controls = (props) => {
 	const p2pcf = window.p2pcf;
 	const controlsRef = useRef();
-	const orbitControlsRef = useRef();
-	const centerPointRef = useRef([0, 0, 0]);
 	const isLocked = useRef(false);
 	const [lock, setLock] = useState(false);
 	const [falling, setFalling] = useState(true);
@@ -25,7 +20,7 @@ const Controls = (props) => {
 	const [spawnPos, setSpawnPos] = useState(props.spawnPoint);
 	const [jump, setJump] = useState(false);
 	const [jumping, setJumping] = useState(false);
-	const [isThirdPersonView, setIsThirdPersonView] = useState(false);
+	const [thirdPerson, setThirdPerson] = useState(false);
 	const { world, rapier } = useRapier();
 	const ray = new rapier.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -0.001, z: 0 });
 
@@ -73,6 +68,45 @@ const Controls = (props) => {
 
 	}, [props.mobileControls]);
 
+	// useEffect(() => {
+	// 	console.log("rot controls", props.mobileRotControls);
+
+	// 	if(props.mobileRotControls !== null && props.mobileRotControls?.direction !== undefined){
+	// 		if(props.mobileRotControls.direction.angle === "down"){
+	// 			setMoveForward(false);
+	// 			setMoveBackward(true);
+	// 			setMoveLeft(false);
+	// 			setMoveRight(false);
+	// 		} else if(props.mobileRotControls.direction.angle === "up"){
+	// 			setMoveBackward(false);
+	// 			setMoveForward(true);
+	// 			setMoveLeft(false);
+	// 			setMoveRight(false);
+	// 		} else if(props.mobileRotControls.direction.angle === "left"){
+	// 			setMoveLeft(true);
+	// 			setMoveForward(false);
+	// 			setMoveBackward(false);
+	// 			setMoveRight(false);
+	// 		} else if(props.mobileRotControls.direction.angle === "right"){
+	// 			setMoveRight(true);
+	// 			setMoveLeft(false);
+	// 			setMoveForward(false);
+	// 			setMoveBackward(false);
+	// 		} else {
+	// 			setMoveForward(false);
+	// 			setMoveBackward(false);
+	// 			setMoveLeft(false);
+	// 			setMoveRight(false);
+	// 		}
+	// 	} else {
+	// 		setMoveForward(false);
+	// 		setMoveBackward(false);
+	// 		setMoveLeft(false);
+	// 		setMoveRight(false);
+	// 	}
+
+	// }, [props.mobileRotControls]);
+
 	useEffect(() => {
 		const playerThing = world.getRigidBody(props.something.current.handle);
 		const x = Number(spawnPos[0]);
@@ -104,15 +138,8 @@ const Controls = (props) => {
 	const raycaster = new Raycaster();
 
 	useFrame(() => {
+
 		const playerThing = world.getRigidBody(props.something.current.handle);
-		// make orbit camera look at player
-		if (orbitControlsRef.current) {
-			orbitControlsRef.current.target = new vec3(
-				playerThing.translation().x,
-				playerThing.translation().y,
-				playerThing.translation().z
-			);
-		}
 
 		const playerThingColliders = world.getCollider(
 			props.something.current.handle
@@ -133,6 +160,12 @@ const Controls = (props) => {
 			}
 			playerThing.setBodyType(rapier.RigidBodyType.Dynamic, 0);
 		}
+		// playerThing.setRotation({x: Math.radToDeg(controlsRef.current.camera.rotation.x), y: Math.radToDeg(controlsRef.current.camera.rotation.y), z: Math.radToDeg(controlsRef.current.camera.rotation.z), w: 0}, true);
+
+		// pointerRay.origin.x = camera.position.x;
+		// pointerRay.origin.y = camera.position.y;
+		// pointerRay.origin.z = camera.position.z;
+		// console.log(pointerRay);
 
 		ray.origin.x = playerThing.translation().x;
 		ray.origin.y = playerThing.translation().y;
@@ -159,9 +192,12 @@ const Controls = (props) => {
 					true
 				);
 				if (intersects.length > 0) {
+					// console.log(intersects[0].object.name);
 					const pointHitObject = scene.getObjectByName(
 						intersects[0].object.name
 					);
+					// console.log(pointHitObject);
+					// add a rigidbody at the point of intersection
 					if (intersects[0].point) {
 						const rigidBodyDesc = new rapier.RigidBodyDesc(
 							rapier.RigidBodyType.Dynamic
@@ -173,7 +209,11 @@ const Controls = (props) => {
 								intersects[0].point.y,
 								intersects[0].point.z
 							)
+							// The linear velocity of this body.
+							// Default: zero velocity.
 							.setCanSleep(false)
+							// Whether or not CCD is enabled for this rigid-body.
+							// Default: false
 							.setCcdEnabled(true);
 						const rigidBody = world.createRigidBody(rigidBodyDesc);
 
@@ -272,6 +312,24 @@ const Controls = (props) => {
 						p2pcf.broadcast(new TextEncoder().encode(message));
 					}
 
+					// playerThing.applyImpulse({x:0, y:0, z:0.1}, true);
+					// const pointerHit = world
+					// 	.raw()
+					// 	.queryPipeline.castRay(
+					// 		world.raw().colliders,
+					// 		pointerRay,
+					// 		maxToi,
+					// 		solid,
+					// 		0xfffffffff
+					// 	);
+
+					// playerThing.setRotation({x: 0, y: 1, z: 0, w: 0}, true);
+					// if (pointerHit){
+					// 	console.log(pointerHit);
+					// 	const pointerHitPoint = pointerRay.pointAt(hit.toi);
+					// 	console.log(pointerHitPoint);
+
+					// }
 					playerThing.setBodyType(rapier.RigidBodyType.Dynamic, 1);
 				}
 			}
@@ -490,9 +548,6 @@ const Controls = (props) => {
 
 	const onKeyUp = function (event) {
 		switch (event.code) {
-			case "KeyC":  // Here we choose 'C' key to switch views.
-            setIsThirdPersonView(!isThirdPersonView);
-            break;
 			case "ShiftLeft":
 				setShift(false);
 				setLock(true);
@@ -539,42 +594,63 @@ const Controls = (props) => {
 	return (
 		<>
 			<PointerLockControls
-				// enabled={!isThirdPersonView}
 				position={[props.spawnPoint[0], props.spawnPoint[1], props.spawnPoint[2]]}
+				// onUpdate={() => {
+				// 	if (controlsRef.current) {
+				// 		controlsRef.current.addEventListener("lock", () => {
+				// 			console.log("lock");
+				// 			isLocked.current = true;
+				// 			props.setShowUI(true);
+				// 			console.log("should be true")
+				// 		});
+				// 		controlsRef.current.addEventListener("unlock", () => {
+				// 			console.log("unlock");
+				// 			isLocked.current = false;
+				// 			props.setShowUI(false);
+				// 			console.log("should be false")
+				// 		});
+				// 	}
+				// 	// prevent default click
+				// 	window.addEventListener("click", (e) => {
+				// 		if (e.target === document.body) {
+				// 			e.preventDefault();
+				// 		}
+				// 	});
+				// }}
 				onChange={() => {
-					if ( p2pcf && controlsRef && orbitControlsRef) {
-						// Update the center point based on the movement of PointerLockControls
-						const cameraPosition = controlsRef.current.camera.position.clone();
-						const cameraRotation = controlsRef.current.camera.rotation.clone();
-						const offset = new THREE.Vector3(0, 0, -1).applyEuler(cameraRotation);
-						const centerPoint = cameraPosition.clone().add(offset);
-						centerPointRef.current = [centerPoint.x, centerPoint.y, centerPoint.z];
-			
-						// Broadcast the updated center point to other components if needed
+					if (p2pcf && controlsRef) {
 						const position = [
 							controlsRef.current.camera.position.x,
 							controlsRef.current.camera.position.y,
-							controlsRef.current.camera.position.z,
+							controlsRef.current.camera.position.z
 						];
 						const rotation = [
 							controlsRef.current.camera.rotation.x,
 							controlsRef.current.camera.rotation.y,
-							controlsRef.current.camera.rotation.z,
+							controlsRef.current.camera.rotation.z
 						];
-						const message = `{ "${p2pcf.clientId}": [{ "position" : [` + position + `]}, { "rotation" : [` + rotation + `]}]}`;
+						const message =
+							`{ "${p2pcf.clientId}": [{ "position" : [` +
+							position +
+							`]},{ "rotation" : [` +
+							rotation +
+							`]},{ "profileImage" : ["` +
+							userData.profileImage +
+							`"]}]}`;
 						p2pcf.broadcast(new TextEncoder().encode(message));
-			
-						// Update the target position of OrbitControls
-						orbitControlsRef.current.target = new THREE.Vector3(
-							controlsRef.current.camera.position.x,
-							controlsRef.current.camera.position.y,
-							controlsRef.current.camera.position.z
-						);
 					}
+					const rotatingPlayer = scene.getObjectByName("playerOne");
+					const euler = new Euler();
+					const rotation = euler.setFromQuaternion(
+						controlsRef.current.camera.quaternion
+					);
+					const radians =
+						rotation.z > 0 ? rotation.z : 2 * Math.PI + rotation.z;
+					const degrees = MathUtils.radToDeg(radians);
+					rotatingPlayer.rotation.set(0, radians, 0);
 				}}
 				ref={controlsRef}
 			/>
-      		<CustomOrbitControls camera={camera} />
 		</>
 	);
 };
