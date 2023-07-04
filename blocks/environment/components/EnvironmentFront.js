@@ -637,6 +637,7 @@ export default function EnvironmentFront(props) {
 							<Physics
 								debug
 							>
+								<Perf className="stats" />
 								{/* Debug physics */}
 								{url && (
 									<>

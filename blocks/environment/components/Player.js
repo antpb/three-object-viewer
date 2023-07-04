@@ -1,213 +1,425 @@
-import { useGLTF, useKeyboardControls, useAnimations } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
-import { CapsuleCollider, RigidBody } from "@react-three/rapier";
-import { useControls } from "leva";
+import { Mesh, DoubleSide, MeshBasicMaterial, RingGeometry, AudioListener, Group, Quaternion, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, BufferGeometry, CircleGeometry, sRGBEncoding } from "three";
+import { TextureLoader } from "three/src/loaders/TextureLoader";
+import { useFrame, useLoader, useThree, Interactive } from "@react-three/fiber";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
+import { useKeyboardControls } from "./Controls"
 import { useRef, useState, useEffect } from "react";
-import * as THREE from "three";
+import { RigidBody, CapsuleCollider } from "@react-three/rapier";
+import defaultVRM from "../../../inc/avatars/3ov_default_avatar.vrm";
+import { VRMUtils, VRMSchema, VRMLoaderPlugin, VRMExpressionPresetName, VRMHumanBoneName } from "@pixiv/three-vrm";
+import { useXR } from "@react-three/xr";
+import idle from "../../../inc/avatars/friendly.fbx";
+import walk from "../../../inc/avatars/walking.fbx";
 
-const Player = (props) => {
-  const { speed } = useControls("Character", {
-    speed: { value: 150, min: 100, max: 1000, step: 10 } // Current speed of the model
-  });
+function Reticle() {
+	const { camera } = useThree();
+	var reticle = new Mesh(
+		new RingGeometry( 0.85 * 5, 5, 32),
+		new MeshBasicMaterial( {color: 0xffffff, side: DoubleSide })
+	);
+	reticle.scale.set(1.3, 1.3, 1.3);
+	reticle.position.z = -1000;
+	reticle.name = "reticle";
+	reticle.frustumCulled = false;
+	reticle.renderOrder = 1000;
+	reticle.lookAt(camera.position)
+	reticle.material.depthTest = false;
+	reticle.material.depthWrite = false;
+	reticle.material.opacity = 0.025;
 
-  const knightCharacter = useGLTF("/KnightCharacter.gltf");
-  const knightAnimations = useAnimations(
-    knightCharacter.animations,
-    knightCharacter.scene
-  );
-
-  // Model rigid body ref
-  const knightBody = useRef();
-  // Model mesh ref
-  const knightRef = useRef();
-  // Current model orientation
-  const [orientation, setOrientation] = useState(Math.PI);
-  // Current model animation
-  const [knightRun, setknightRun] = useState("Idle");
-
-  const [subscribeKeys, getKeys] = useKeyboardControls();
-
-  // Cast model shadow
-  knightCharacter.scene.traverse((child) => (child.castShadow = true));
-
-  useFrame((state, delta) => {
-    // retrieve keys
-    const keys = getKeys();
-
-    let { forward, backward, leftward, rightward } = keys;
-
-    // Keys pressed counter
-    const nbOfKeysPressed = Object.values(keys).filter((key) => key).length;
-
-    if (forward && backward && nbOfKeysPressed === 2) forward = false;
-
-    if (leftward && rightward && nbOfKeysPressed === 2) leftward = false;
-
-    // Update character animation on movement
-    setknightRun(nbOfKeysPressed === 0 ? "Idle" : "Run");
-
-    /**
-     * Model movement
-     */
-
-    const linvelY = knightBody.current.linvel().y;
-
-    // Reduce speed value if it's diagonal movement to always keep the same speed
-    const normalizedSpeed =
-      nbOfKeysPressed == 1 ? speed * delta : Math.sqrt(2) * (speed / 2) * delta;
-
-    const impulse = {
-      x: leftward ? -normalizedSpeed : rightward ? normalizedSpeed : 0,
-      y: linvelY,
-      z: forward ? -normalizedSpeed : backward ? normalizedSpeed : 0
-    };
-
-    // Set model currennt linear velocity
-    knightBody.current.setLinvel(impulse);
-
-    /**
-     * Model orentation
-     */
-
-    const angle = Math.PI / 4 / 7; // rotation normalizedSpeed (more divided => more smooth)
-
-    const topLeftAngle = 3.927; // (225 * Math.PI / 180).toFixed(3)
-
-    const bottomLeftAngle = 5.498; // (315 * Math.PI / 180).toFixed(3)
-
-    const topRightAngle = 2.356; // (135 * Math.PI / 180).toFixed(3)
-
-    const bottomRightAngle = 0.785; // (45 * Math.PI / 180).toFixed(3)
-
-    let aTanAngle = Math.atan2(Math.sin(orientation), Math.cos(orientation));
-    aTanAngle = aTanAngle < 0 ? aTanAngle + Math.PI * 2 : aTanAngle;
-    aTanAngle = Number(aTanAngle.toFixed(3));
-    aTanAngle = aTanAngle == 0 ? Number((Math.PI * 2).toFixed(3)) : aTanAngle;
-
-    const keysCombinations = {
-      forwardRight: forward && !backward && !leftward && rightward,
-      forwardLeft: forward && !backward && leftward && !rightward,
-      backwardRight: !forward && backward && !leftward && rightward,
-      backwardLeft: !forward && backward && leftward && !rightward,
-      forward: forward && !backward && !leftward && !rightward,
-      right: !forward && !backward && !leftward && rightward,
-      backward: !forward && backward && !leftward && !rightward,
-      left: !forward && !backward && leftward && !rightward
-    };
-
-    // Forward-Rightward
-    if (keysCombinations.forwardRight && aTanAngle != topRightAngle) {
-      setOrientation(
-        (prevState) => prevState + angle * (aTanAngle > topRightAngle ? -1 : 1)
-      );
-    }
-
-    // Forward-Leftward
-    if (keysCombinations.forwardLeft && aTanAngle != topLeftAngle) {
-      setOrientation(
-        (prevState) => prevState + angle * (aTanAngle > topLeftAngle ? -1 : 1)
-      );
-    }
-
-    // Backward-Rightward
-    if (keysCombinations.backwardRight && aTanAngle != bottomRightAngle) {
-      setOrientation(
-        (prevState) =>
-          prevState +
-          angle *
-            (aTanAngle > bottomRightAngle && aTanAngle < topLeftAngle ? -1 : 1)
-      );
-    }
-
-    // Backward-Leftward
-    if (keysCombinations.backwardLeft && aTanAngle != bottomLeftAngle) {
-      setOrientation(
-        (prevState) =>
-          prevState +
-          angle *
-            (aTanAngle < topRightAngle || aTanAngle > bottomLeftAngle ? -1 : 1)
-      );
-    }
-
-    // Rightward
-    if (keysCombinations.right && Math.sin(orientation) != 1) {
-      setOrientation(
-        (prevState) => prevState + angle * (Math.cos(orientation) > 0 ? 1 : -1)
-      );
-    }
-
-    // Leftward
-    if (keysCombinations.left && Math.sin(orientation) != -1) {
-      setOrientation(
-        (prevState) => prevState + angle * (Math.cos(orientation) > 0 ? -1 : 1)
-      );
-    }
-
-    // Forward
-    if (keysCombinations.forward && Math.cos(orientation) != -1) {
-      setOrientation(
-        (prevState) => prevState + angle * (Math.sin(orientation) > 0 ? 1 : -1)
-      );
-    }
-
-    // Backward
-    if (keysCombinations.backward && Math.cos(orientation) != 1) {
-      setOrientation(
-        (prevState) => prevState + angle * (Math.sin(orientation) > 0 ? -1 : 1)
-      );
-    }
-
-    // Lock X and Z model rotations and update rotation Y
-    const quaternionRotation = new THREE.Quaternion();
-    quaternionRotation.setFromEuler(new THREE.Euler(0, orientation, 0));
-    knightBody.current.setRotation(quaternionRotation);
-
-    /**
-     * Camera Movement
-     */
-    if (!props.orbitControls) {
-      const knightPosition = knightBody.current.translation();
-
-      const cameraPosition = new THREE.Vector3();
-      cameraPosition.copy(knightPosition);
-      cameraPosition.z += 5;
-      cameraPosition.y += 2.5;
-
-      const cameraTarget = new THREE.Vector3();
-      cameraTarget.copy(knightPosition);
-      cameraTarget.y += 0.25;
-
-      state.camera.position.copy(cameraPosition);
-      state.camera.lookAt(cameraTarget);
-    }
-  });
-
-  useEffect(() => {
-    knightAnimations.actions[knightRun].reset().fadeIn(0.2).play();
-
-    return () => {
-      knightAnimations.actions[knightRun].fadeOut(0.2);
-    };
-  }, [knightRun]);
-
-  return (
-    <RigidBody
-      lockRotations={true}
-      ref={knightBody}
-      colliders={false}
-      position={[0, 1, 0]}
-      restitution={0.2}
-      friction={1}
-    >
-      <primitive
-        ref={knightRef}
-        object={knightCharacter.scene}
-        scale={0.2}
-        position-y={-1}
-      />
-      <CapsuleCollider args={[0.3, 0.25]} position={[0, -0.45, 0]} />=
-    </RigidBody>
-  );
+	return reticle;
+}
+/**
+ * A map from Mixamo rig name to VRM Humanoid bone name
+ */
+const mixamoVRMRigMap = {
+	mixamorigHips: 'hips',
+	mixamorigSpine: 'spine',
+	mixamorigSpine1: 'chest',
+	mixamorigSpine2: 'upperChest',
+	mixamorigNeck: 'neck',
+	mixamorigHead: 'head',
+	mixamorigLeftShoulder: 'leftShoulder',
+	mixamorigLeftArm: 'leftUpperArm',
+	mixamorigLeftForeArm: 'leftLowerArm',
+	mixamorigLeftHand: 'leftHand',
+	mixamorigLeftHandThumb1: 'leftThumbMetacarpal',
+	mixamorigLeftHandThumb2: 'leftThumbProximal',
+	mixamorigLeftHandThumb3: 'leftThumbDistal',
+	mixamorigLeftHandIndex1: 'leftIndexProximal',
+	mixamorigLeftHandIndex2: 'leftIndexIntermediate',
+	mixamorigLeftHandIndex3: 'leftIndexDistal',
+	mixamorigLeftHandMiddle1: 'leftMiddleProximal',
+	mixamorigLeftHandMiddle2: 'leftMiddleIntermediate',
+	mixamorigLeftHandMiddle3: 'leftMiddleDistal',
+	mixamorigLeftHandRing1: 'leftRingProximal',
+	mixamorigLeftHandRing2: 'leftRingIntermediate',
+	mixamorigLeftHandRing3: 'leftRingDistal',
+	mixamorigLeftHandPinky1: 'leftLittleProximal',
+	mixamorigLeftHandPinky2: 'leftLittleIntermediate',
+	mixamorigLeftHandPinky3: 'leftLittleDistal',
+	mixamorigRightShoulder: 'rightShoulder',
+	mixamorigRightArm: 'rightUpperArm',
+	mixamorigRightForeArm: 'rightLowerArm',
+	mixamorigRightHand: 'rightHand',
+	mixamorigRightHandPinky1: 'rightLittleProximal',
+	mixamorigRightHandPinky2: 'rightLittleIntermediate',
+	mixamorigRightHandPinky3: 'rightLittleDistal',
+	mixamorigRightHandRing1: 'rightRingProximal',
+	mixamorigRightHandRing2: 'rightRingIntermediate',
+	mixamorigRightHandRing3: 'rightRingDistal',
+	mixamorigRightHandMiddle1: 'rightMiddleProximal',
+	mixamorigRightHandMiddle2: 'rightMiddleIntermediate',
+	mixamorigRightHandMiddle3: 'rightMiddleDistal',
+	mixamorigRightHandIndex1: 'rightIndexProximal',
+	mixamorigRightHandIndex2: 'rightIndexIntermediate',
+	mixamorigRightHandIndex3: 'rightIndexDistal',
+	mixamorigRightHandThumb1: 'rightThumbMetacarpal',
+	mixamorigRightHandThumb2: 'rightThumbProximal',
+	mixamorigRightHandThumb3: 'rightThumbDistal',
+	mixamorigLeftUpLeg: 'leftUpperLeg',
+	mixamorigLeftLeg: 'leftLowerLeg',
+	mixamorigLeftFoot: 'leftFoot',
+	mixamorigLeftToeBase: 'leftToes',
+	mixamorigRightUpLeg: 'rightUpperLeg',
+	mixamorigRightLeg: 'rightLowerLeg',
+	mixamorigRightFoot: 'rightFoot',
+	mixamorigRightToeBase: 'rightToes',
 };
 
-export default Player;
+/**
+ * Download Mixamo animation, convert it for usage with three-vrm, and return the converted animation.
+ *
+ * @param {string} url - The URL of Mixamo animation data
+ * @param {VRM} vrm - The target VRM
+ * @returns {Promise<AnimationClip>} - The adapted AnimationClip
+ */
+function loadMixamoAnimation(url, vrm) {
+	let loader;
+	if (url.endsWith('.fbx')) {
+		loader = new FBXLoader(); // Use an FBX loader
+	} else {
+		loader = new GLTFLoader(); // Use a GLTF loader
+	}
+	return loader.loadAsync(url).then((resource) => {
+		const clip = resource.animations[0]; // Extract the AnimationClip
+
+		// if resource is GLB, get the scene
+		if (url.endsWith('.glb')) {
+			resource = resource.scene;
+		}
+
+		let tracks = []; // KeyframeTracks compatible with VRM to be stored here
+
+		let restRotationInverse = new Quaternion();
+		let parentRestWorldRotation = new Quaternion();
+		let _quatA = new Quaternion();
+		let _vec3 = new Vector3();
+
+		// Adjust according to the height of the hips.
+		let mixamoHips = resource.getObjectByName('mixamorigHips');
+		let regularHips = resource.getObjectByName('hips');
+		let mainHip;
+		if (mixamoHips) {
+			mainHip = mixamoHips.position.y;
+		} else if (regularHips) {
+			mainHip = regularHips.position.y;
+		}
+		const vrmHipsY = vrm.humanoid?.getNormalizedBoneNode('hips').getWorldPosition(_vec3).y;
+		const vrmRootY = vrm.scene.getWorldPosition(_vec3).y;
+		const vrmHipsHeight = Math.abs(vrmHipsY - vrmRootY);
+		const hipsPositionScale = vrmHipsHeight / mainHip;
+
+		clip.tracks.forEach((track) => {
+			// Convert each track for VRM usage, and push to `tracks`
+			let trackSplitted = track.name.split('.');
+			let mixamoRigName = trackSplitted[0];
+			let vrmBoneName = mixamoVRMRigMap[mixamoRigName];
+			let vrmNodeName = vrm.humanoid?.getNormalizedBoneNode(vrmBoneName)?.name;
+			let mixamoRigNode = resource.getObjectByName(mixamoRigName);
+
+			if (vrmNodeName != null) {
+
+				let propertyName = trackSplitted[1];
+
+				// Store rotations of rest-pose.
+				mixamoRigNode.getWorldQuaternion(restRotationInverse).invert();
+				mixamoRigNode.parent.getWorldQuaternion(parentRestWorldRotation);
+
+				if (track instanceof QuaternionKeyframeTrack) {
+
+					// Retarget rotation of mixamoRig to NormalizedBone.
+					for (let i = 0; i < track.values.length; i += 4) {
+
+						let flatQuaternion = track.values.slice(i, i + 4);
+
+						_quatA.fromArray(flatQuaternion);
+
+						_quatA
+							.premultiply(parentRestWorldRotation)
+							.multiply(restRotationInverse);
+
+						_quatA.toArray(flatQuaternion);
+
+						flatQuaternion.forEach((v, index) => {
+
+							track.values[index + i] = v;
+
+						});
+
+					}
+
+					tracks.push(
+						new QuaternionKeyframeTrack(
+							`${vrmNodeName}.${propertyName}`,
+							track.times,
+							track.values.map((v, i) => (vrm.meta?.metaVersion === '0' && i % 2 === 0 ? - v : v)),
+						),
+					);
+
+				} else if (track instanceof VectorKeyframeTrack) {
+					let value = track.values.map((v, i) => (vrm.meta?.metaVersion === '0' && i % 3 !== 1 ? - v : v) * hipsPositionScale);
+					tracks.push(new VectorKeyframeTrack(`${vrmNodeName}.${propertyName}`, track.times, value));
+				}
+
+			}
+
+		});
+
+		return new AnimationClip('vrmAnimation', clip.duration, tracks);
+
+	});
+}
+
+export default function Player(props) {
+	console.log("hit")
+	const animationsRef = useRef();
+
+	const idleFile = threeObjectPlugin + idle;
+	const walkingFile	= threeObjectPlugin + walk;
+	// const [walkFile, setWalkFile] = useState(model.threeObjectPlugin + walk);
+	const spawnPoint = props.spawnPoint.map(Number);  // convert spawnPoint to numbers
+	const { controllers } = useXR();
+	const { camera, scene, clock } = useThree();
+	const participantObject = scene.getObjectByName("playerOne");
+	const [rapierId, setRapierId] = useState("");
+	const [contactPoint, setContactPoint] = useState("");
+	const [headPoint, setHeadPoint] = useState("");
+	const rigidRef = useRef();
+	
+	if (!scene.getObjectByName("reticle")){
+		camera.add(Reticle());
+	}
+
+	if ( controllers.length > 0 ) {
+		scene.remove(scene.getObjectByName("reticle"));
+	}
+
+
+	useFrame(() => {
+		if (participantObject) {
+			const posY = participantObject.parent.position.y;
+			camera.position.setY(posY + 0.23);
+		}
+	});
+
+	// Participant VRM.
+	const fallbackURL = threeObjectPlugin + defaultVRM;
+	const playerURL = userData.vrm ? userData.vrm : fallbackURL;
+
+	const someSceneState = useLoader(GLTFLoader, playerURL, (loader) => {
+		loader.register((parser) => {
+			return new VRMLoaderPlugin(parser);
+		});
+	});
+
+	if (someSceneState?.userData?.gltfExtensions?.VRM) {
+		const playerController = someSceneState.userData.vrm;
+		// Check if the avatar is reachable with a 200 response code.
+		const fetchProfile = async () => {
+			fetch(userData.profileImage)
+			.then((response) => {
+				if (response.status === 200) {
+					const loadedProfile = useLoader(TextureLoader, userData.profileImage);
+
+					playerController.scene.traverse((obj) => {
+						obj.frustumCulled = false;
+
+						if (obj.name === "profile") {
+							const newMat = obj.material.clone();
+							newMat.map = loadedProfile;
+							obj.material = newMat;
+							obj.material.map.needsUpdate = true;
+						}
+					});			
+				} 
+				return response;
+			}).catch(err => {
+				return Promise.reject(err)
+		   })
+		};
+			
+		VRMUtils.rotateVRM0(playerController);
+		const currentVrm = playerController;
+		const currentMixer = new AnimationMixer(currentVrm.scene);
+
+		useEffect(() => {
+			setHeadPoint(
+				playerController.firstPerson.humanoid.humanBones.head.node
+					.position.y
+			);
+		}, []);
+
+		// need to dynamically do this on scroll
+		// playerController.firstPerson.humanoid.humanBones.head.node.scale.set([
+		// 	0, 0, 0
+		// ]);
+
+		const movement = useKeyboardControls();
+		const velocity = useRef([0, 0, 0]);  // Use a ref instead of state for velocity
+		let lastUpdateTime = 0;
+
+		useFrame((state, delta) => {
+			const currentTime = state.clock.elapsedTime;
+			const timeSinceLastUpdate = currentTime - lastUpdateTime;
+
+			if (timeSinceLastUpdate >= 0.1) { // Update every 100 milliseconds
+				lastUpdateTime = currentTime;
+			}
+			if (currentVrm) {
+				currentVrm.update(delta);
+			}
+			if (currentMixer) {
+				currentMixer.update(delta);
+			}
+
+			const speed = 0.05;
+			let newVelocity = [...velocity.current];
+
+				// initialize the moving state to false
+			let isMoving = false;
+		
+			if (movement.current.forward){
+				playerController.scene.rotation.y = Math.PI;
+				newVelocity[2] += speed;
+				isMoving = true;
+			}
+			if (movement.current.backward){
+				playerController.scene.rotation.y = 0;
+				newVelocity[2] -= speed;
+				isMoving = true;
+			}
+			if (movement.current.left){
+				playerController.scene.rotation.y = -Math.PI / 2;
+				newVelocity[0] += speed;
+				isMoving = true;
+			}
+			if (movement.current.right){
+				playerController.scene.rotation.y = Math.PI / 2;
+				newVelocity[0] -= speed;
+				isMoving = true;
+			}
+			
+			velocity.current = newVelocity;
+			// move the player using the new velocity
+			if (isMoving) {
+				const oldPosition = [...participantObject.parent.position];
+				const newPosition = [
+					velocity.current[0],
+					velocity.current[1],
+					velocity.current[2]
+				];
+				participantObject.parent.position.set(...newPosition);
+			}
+			
+				// animation logic
+			if (animationsRef.current) {
+				const { idle, walking } = animationsRef.current;
+
+				if (isMoving) {
+					// If moving, but idle animation is playing, stop it and play walking animation
+					if (idle.isRunning()) {
+
+						// blend from idle to walking
+						idle.crossFadeTo(walking, 0.5);
+						// set the walking animation to lower weight so it blends into the idle animation
+						walking.enabled = true;
+						walking.setEffectiveTimeScale(1);
+						walking.setEffectiveWeight(0.7);
+						idle.enabled = true;
+						idle.setEffectiveTimeScale(1);
+						idle.setEffectiveWeight(0.3);
+						walking.play();
+					}
+				} else {
+					// If not moving, but walking animation is playing, stop it and play idle animation
+					if (walking.isRunning()) {
+						// blend from walking to idle
+						walking.crossFadeTo(idle, 0.5);
+						// set the walking animation to lower weight so it blends into the idle animation
+						walking.enabled = true;
+						walking.setEffectiveTimeScale(1);
+						walking.setEffectiveWeight(0);
+						idle.enabled = true;
+						idle.setEffectiveTimeScale(1);
+						idle.setEffectiveWeight(1);
+						idle.play();
+					}
+				}
+			}
+
+
+			// if participantObject is defined set the camera to lookAt the participantObject position from behind the head of the avatar
+			if (participantObject) {
+				camera.position.setY(participantObject.parent.position.y + 2.5);
+				camera.position.setX(participantObject.parent.position.x);
+				camera.position.setZ(participantObject.parent.position.z - 3.5);
+				camera.lookAt(
+					participantObject.parent.position.x,
+					participantObject.parent.position.y + headPoint,
+					participantObject.parent.position.z
+				);
+			}
+		});
+		
+		let animationFiles = [idleFile, walkingFile]; // Add more animation files if needed
+		let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, currentVrm));
+		
+		Promise.all(animationsPromises)
+		.then(animations => {
+			const idleAction = currentMixer.clipAction(animations[0]);
+			const walkingAction = currentMixer.clipAction(animations[1]);
+			idleAction.timeScale = 1;  // speed up the idle animation
+			walkingAction.timeScale = 1;  // speed up the walking animation
+
+			animationsRef.current = { idle: idleAction, walking: walkingAction };
+			// Set idle animation to play by default
+			idleAction.play();
+		});
+
+		return (
+			<>
+			  {playerController && (
+				<>
+				  <RigidBody
+					position={spawnPoint}  // use spawnPoint as initial position
+					colliders={false}
+					ref={rigidRef}
+					lockRotations={true}
+					type={"dynamic"}
+					onCollisionEnter={({ manifold, target }) => {
+					  setRapierId(target.colliderSet.map.data[1]);
+					  setContactPoint(manifold.solverContactPoint(0));
+					}}
+					linearVelocity={velocity.current}
+				  >
+					<CapsuleCollider position={[0, 1, 0]} args={[0.7, 0.7]} />
+					<primitive visible={true} name="playerOne" object={playerController.scene} />
+				  </RigidBody>
+				</>
+			  )}
+			</>
+		  );
+	}
+}
