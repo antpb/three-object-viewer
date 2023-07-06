@@ -1,11 +1,11 @@
-import { Mesh, DoubleSide, MeshBasicMaterial, RingGeometry, AudioListener, Group, Quaternion, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, BufferGeometry, CircleGeometry, sRGBEncoding } from "three";
+import { Mesh, DoubleSide, MeshBasicMaterial, RingGeometry, AudioListener, Group, Quaternion, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, BufferGeometry, CircleGeometry, sRGBEncoding, MathUtils } from "three";
 import { TextureLoader } from "three/src/loaders/TextureLoader";
 import { useFrame, useLoader, useThree, Interactive } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { useKeyboardControls } from "./Controls"
 import { useRef, useState, useEffect } from "react";
-import { RigidBody, CapsuleCollider } from "@react-three/rapier";
+import { RigidBody, CapsuleCollider, useRapier } from "@react-three/rapier";
 import defaultVRM from "../../../inc/avatars/3ov_default_avatar.vrm";
 import { VRMUtils, VRMSchema, VRMLoaderPlugin, VRMExpressionPresetName, VRMHumanBoneName } from "@pixiv/three-vrm";
 import { useXR } from "@react-three/xr";
@@ -202,6 +202,7 @@ export default function Player(props) {
 	const spawnPoint = props.spawnPoint.map(Number);  // convert spawnPoint to numbers
 	const { controllers } = useXR();
 	const { camera, scene, clock } = useThree();
+	const { world, rapier } = useRapier();
 	const participantObject = scene.getObjectByName("playerOne");
 	const [rapierId, setRapierId] = useState("");
 	const [contactPoint, setContactPoint] = useState("");
@@ -271,6 +272,16 @@ export default function Player(props) {
 			);
 		}, []);
 
+		useEffect(() => {
+			const playerThing = world.getRigidBody(rigidRef.current.handle);
+			console.log(spawnPoint)
+			console.log(playerThing)
+			setTimeout(() => {
+				// playerThing.setBodyType(rapier.RigidBodyType.Dynamic, 0);
+				// playerThing.setTranslation(spawnPoint);
+			}, 20);
+		}, []);
+	
 		// need to dynamically do this on scroll
 		// playerController.firstPerson.humanoid.humanBones.head.node.scale.set([
 		// 	0, 0, 0
@@ -283,6 +294,7 @@ export default function Player(props) {
 		useFrame((state, delta) => {
 			const currentTime = state.clock.elapsedTime;
 			const timeSinceLastUpdate = currentTime - lastUpdateTime;
+			const rigidBodyPosition = rigidRef.current.translation();
 
 			if (timeSinceLastUpdate >= 0.1) { // Update every 100 milliseconds
 				lastUpdateTime = currentTime;
@@ -327,12 +339,12 @@ export default function Player(props) {
 				const oldPosition = [...participantObject.parent.position];
 				const newPosition = [
 					velocity.current[0],
-					velocity.current[1],
+					rigidBodyPosition.y,
 					velocity.current[2]
 				];
 				participantObject.parent.position.set(...newPosition);
 			}
-			
+					
 				// animation logic
 			if (animationsRef.current) {
 				const { idle, walking } = animationsRef.current;
@@ -369,7 +381,6 @@ export default function Player(props) {
 				}
 			}
 
-
 			// if participantObject is defined set the camera to lookAt the participantObject position from behind the head of the avatar
 			if (participantObject) {
 				camera.position.setY(participantObject.parent.position.y + 2.5);
@@ -381,8 +392,26 @@ export default function Player(props) {
 					participantObject.parent.position.z
 				);
 			}
-		});
 		
+			// update rigidBody's position
+			if (rigidRef.current) {
+				// // match the rigidBody's position to the participantObject's position.
+				// rigidRef.current.position.x = participantObject.parent.position.x;
+				// rigidRef.current.position.z = participantObject.parent.position.z;
+				// console.log("participantObject.parent.position.x", participantObject.parent.position.x);
+
+				// set the rigidbody type to one that can be moved by setTranslation
+				rigidRef.current.setBodyType(rapier.RigidBodyType.Dynamic, 1);
+
+				// set a const of the rigidBody's current position
+				rigidRef.current.setTranslation({ x: participantObject.parent.position.x, y: rigidBodyPosition.y, z: participantObject.parent.position.z});
+
+				// console.log("rigidRef.current.position.x", rigidRef.current);
+				// rigidRef.current.position.x = participantObject.parent.position.x;
+				// rigidRef.current.position.z = participantObject.parent.position.z;
+			}
+		});
+				
 		let animationFiles = [idleFile, walkingFile]; // Add more animation files if needed
 		let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, currentVrm));
 		
