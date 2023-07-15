@@ -150,7 +150,9 @@ class Plugin
 		// new variable named default_animation that checks if the wp_option for '3ov_defaultVRM' is available.
 		// if it is, it will use that value, if not, it will use the default value of 'default.vrm'
 		$default_animation = get_option('3ov_defaultVRM');
-	
+
+		$default_avatar = get_option('3ov_defaultAvatar');
+
 		// $user_data_passed = array(
 		//     'userId' => 'something',
 		//     'userName' => 'someone',
@@ -180,6 +182,7 @@ class Plugin
 				wp_localize_script( 'threeobjectloader-frontend', 'threeObjectPlugin', $three_object_plugin );	
 				wp_localize_script( 'threeobjectloader-frontend', 'threeObjectPluginRoot', $three_object_plugin_root );	
 				wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatarAnimation', $default_animation );	
+				wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatar', $default_avatar );	
 				wp_enqueue_script( 
 					"threeobjectloader-frontend"
 				);
@@ -196,7 +199,10 @@ class Plugin
 				wp_localize_script( 'versepress-frontend', 'openbrushEnabled', $openbrush_enabled );
 				wp_localize_script( 'versepress-frontend', 'threeObjectPlugin', $three_object_plugin );
 				wp_localize_script( 'versepress-frontend', 'threeObjectPluginRoot', $three_object_plugin_root );	
-				wp_localize_script( 'versepress-frontend', 'defaultAvatarAnimation', $default_animation );	
+				wp_localize_script( 'versepress-frontend', 'defaultAvatarAnimation', $default_animation );
+				wp_localize_script( 'versepress-frontend', 'defaultAvatar', $default_avatar );
+				wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatarAnimation', $default_animation );	
+				wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatar', $default_avatar );	
 				wp_enqueue_script( 
 					"versepress-frontend"
 				);

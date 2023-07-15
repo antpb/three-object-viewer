@@ -635,9 +635,9 @@ export default function EnvironmentFront(props) {
 						/>
     					<Suspense fallback={<Loading />}>
 							<Physics
-								debug
+								// debug
 							>
-								<Perf className="stats" />
+								{/* <Perf className="stats" /> */}
 								{/* Debug physics */}
 								{url && (
 									<>
@@ -652,6 +652,7 @@ export default function EnvironmentFront(props) {
 												mobileControls={mobileControls}
 												mobileRotControls={mobileRotControls}
 												setShowUI={setShowUI}
+												defaultAvatar={defaultAvatar}
 											/>
 											<Participants 
 											setParticipant={setParticipant}

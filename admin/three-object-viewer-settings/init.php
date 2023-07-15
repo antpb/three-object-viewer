@@ -34,6 +34,7 @@ add_action('rest_api_init', function (){
 					'openApiKey' => three_decrypt ( get_option( '3ov_ai_openApiKey', '' ) ),
 					'allowPublicAI' => get_option( '3ov_ai_allow', '' ),
 					'defaultVRM' => get_option( '3ov_defaultVRM', '' ),
+					'defaultAvatar' => get_option( '3ov_defaultAvatar', '' ),
 				], 200);
 			},
 					'permission_callback' => function(){
@@ -48,6 +49,7 @@ add_action('rest_api_init', function (){
 				update_option( '3ov_ai_enabled', $data['enabled'] );
 				update_option( '3ov_mp_networkWorker', $data['networkWorker'] );
 				update_option( '3ov_defaultVRM', $data['defaultVRM'] );
+				update_option( '3ov_defaultAvatar', $data['defaultAvatar'] );
 				update_option( '3ov_ai_allow', $data['allowPublicAI'] );
 				update_option( '3ov_ai_openApiKey', three_encrypt( $data['openApiKey'] ) );
 				return rest_ensure_response( $data, 200);
