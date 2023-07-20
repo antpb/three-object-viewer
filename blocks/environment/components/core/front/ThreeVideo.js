@@ -5,6 +5,7 @@ import { RigidBody } from "@react-three/rapier";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
+import { Select } from "@react-three/drei";
 
 /**
  * Renders a video in a three.js scene.
@@ -59,7 +60,6 @@ export function ThreeVideo(threeVideo) {
 			}
 
 		}
-
 	}, [gltf]);
 
 	// Add a triangle mesh on top of the video
@@ -99,49 +99,12 @@ export function ThreeVideo(threeVideo) {
 			circle.material.visible = true;
 		}
 	}, [video, play]);
-
 	return (
-		// <Select
-		// 	box
-		// 	multiple
-		// 	onChange={(e) => {
-		// 		if (e.length !== 0) {
-		// 			setClickEvent(!clicked);
-		// 			if (clicked) {
-		// 				video.play();
-		// 				triangle.material.visible = false;
-		// 				circle.material.visible = false;
-		// 			} else {
-		// 				video.pause();
-		// 				triangle.material.visible = true;
-		// 				circle.material.visible = true;
-		// 			}
-		// 		}
-		// 	}}
-		// 	filter={(items) => items}
-		// >
-		<group
-			name="video"
-			scale={[threeVideo.scaleX, threeVideo.scaleY, threeVideo.scaleZ]}
-			position={[
-				threeVideo.positionX,
-				threeVideo.positionY,
-				threeVideo.positionZ
-			]}
-			rotation={[
-				threeVideo.rotationX,
-				threeVideo.rotationY,
-				threeVideo.rotationZ
-			]}
-		>
-			{threeVideo.customModel === "1" && gltf ? (
-						<primitive object={gltf.scene} />
-						) : (
-			<RigidBody
-				type="fixed"
-				colliders={"cuboid"}
-				ccd={true}
-				onCollisionExit={(manifold, target, other) => {
+		<Select
+			box
+			// multiple
+			onChange={(e) => {
+				if (e.length !== 0) {
 					setClickEvent(!clicked);
 					if (clicked) {
 						video.play();
@@ -152,29 +115,64 @@ export function ThreeVideo(threeVideo) {
 						triangle.material.visible = true;
 						circle.material.visible = true;
 					}
-				}}
-			>
-				<object3D>
-						<mesh>
-							<meshBasicMaterial toneMapped={false}>
-								<videoTexture
-									attach="map"
-									args={[video]}
-									encoding={sRGBEncoding}
-								/>
-							</meshBasicMaterial>
-							<planeGeometry
-								args={[
-									threeVideo.aspectWidth / 12,
-									threeVideo.aspectHeight / 12
-								]}
-							/>
-						</mesh>
-				</object3D>
-			</RigidBody>)}
+				}
+			}}
+			filter={(items) => items}
+		>
+		<group
+			name="video"
+			scale={[threeVideo.scaleX, threeVideo.scaleY, threeVideo.scaleZ]}
+			position={[
+				Number(threeVideo.positionX),
+				Number(threeVideo.positionY),
+				Number(threeVideo.positionZ)
+			]}
+			rotation={[
+				Number(threeVideo.rotationX),
+				Number(threeVideo.rotationY),
+				Number(threeVideo.rotationZ)
+			]}
+		>
+			{threeVideo.customModel === "1" && gltf ? (
+						<primitive object={gltf.scene} />
+						) : (
+							<RigidBody
+								type="fixed"
+								colliders={"cuboid"}
+								ccd={true}
+								onCollisionExit={(manifold, target, other) => {
+									setClickEvent(!clicked);
+									if (clicked) {
+										video.play();
+										triangle.material.visible = false;
+										circle.material.visible = false;
+									} else {
+										video.pause();
+										triangle.material.visible = true;
+										circle.material.visible = true;
+									}
+								}}
+							>
+								<mesh>
+									<meshBasicMaterial toneMapped={false}>
+										<videoTexture
+											attach="map"
+											args={[video]}
+											encoding={sRGBEncoding}
+										/>
+									</meshBasicMaterial>
+									<planeGeometry
+										args={[
+											threeVideo.aspectWidth / 12,
+											threeVideo.aspectHeight / 12
+										]}
+									/>
+								</mesh>
+							</RigidBody>
+						)}
 			<primitive position={[-1.5, 0, 0.1]} object={triangle} />
 			<primitive position={[0, 0, 0.05]} object={circle} />
 		</group>
-		// </Select>
+		</Select>
 	); 
 }

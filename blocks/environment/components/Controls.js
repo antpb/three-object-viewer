@@ -19,6 +19,15 @@ export function useKeyboardControls() {
       else if (e.key === 'space') movement.current.space = true;
       // add shift key
       else if (e.key === 'Shift') movement.current.shift = true;
+      else if (e.key === 'r' || e.key === 'R'){
+        if (e.metaKey || e.ctrlKey){
+          movement.current.respawn = false;
+        } else {
+          movement.current.respawn = true;
+        }
+
+      }
+      
     }
 
     const handleKeyUp = (e) => {
@@ -28,6 +37,7 @@ export function useKeyboardControls() {
       else if (e.key === 'd' || e.key === 'D') movement.current.right = false;
       else if (e.key === 'space') movement.current.space = false;
       else if (e.key === 'Shift') movement.current.shift = false;
+      else if (e.key === 'r' || e.key === 'R') movement.current.respawn = false;
     }
 
     window.addEventListener('keydown', handleKeyDown);

@@ -206,7 +206,7 @@ export default function Player(props) {
 	const walkingFile	= threeObjectPlugin + walk;
 	const runningFile	= threeObjectPlugin + run;
 	// const [walkFile, setWalkFile] = useState(model.threeObjectPlugin + walk);
-	const spawnPoint = props.spawnPoint.map(Number);  // convert spawnPoint to numbers
+	const spawnPoint = props.spawnPoint? props.spawnPoint.map(Number) : [0,0,0];  // convert spawnPoint to numbers
 	const { controllers } = useXR();
 	const { camera, scene, clock } = useThree();
 	const { world, rapier } = useRapier();
@@ -285,6 +285,8 @@ export default function Player(props) {
 		// const movement = useKeyboardControls();
 		const velocity = useRef(spawnPoint);  // Use a ref instead of state for velocity
 		let lastUpdateTime = 0;
+		let blinkTimer = 0;  // Initialize the blinkTimer outside the useFrame loop.
+		let blinkInterval = 5 + Math.random() * 10;  // Blink roughly every 2 to 6 seconds
 
 		// frame loop
 		useFrame((state, delta) => {
@@ -310,10 +312,43 @@ export default function Player(props) {
 			if (currentMixer) {
 				currentMixer.update(delta);
 			}
+			blinkTimer += delta;  // Increment timer
 		
-			let speed = 0.05;
+			//blink
+			if (blinkTimer > blinkInterval) {
+				if (currentVrm) {
+					// Randomize the duration of the blink between 0.05 and 0.15 seconds
+					const blinkDuration = 0.05 + Math.random() * 0.1;
+					const steps = Math.round(blinkDuration / 0.01);  // We want each step to be roughly 0.01 seconds
+			
+					// Close both eyes over the course of the blink duration
+					for(let i = 0; i <= steps; i++) {
+						const s = i / steps;
+						setTimeout(() => {
+							currentVrm.expressionManager.setValue('blinkLeft', s);
+							currentVrm.expressionManager.setValue('blinkRight', s);
+						}, s * blinkDuration * 1000);
+					}
+			
+					// Open both eyes over the course of the blink duration, after a small delay
+					setTimeout(() => {
+						for(let i = 0; i <= steps; i++) {
+							const s = 1 - i / steps;
+							setTimeout(() => {
+								currentVrm.expressionManager.setValue('blinkLeft', s);
+								currentVrm.expressionManager.setValue('blinkRight', s);
+							}, (1 - s) * blinkDuration * 1000);
+						}
+					}, blinkDuration * 1000 + 200);  // Add a small delay before opening the eyes
+			
+					blinkTimer = 0;  // Reset the timer
+					blinkInterval = 5 + Math.random() * 10;  // Blink roughly every 10 to 25 seconds
+				}
+			}
+											
+			let speed = 0.06;
 			if (props.movement.current.shift){
-				speed = 0.1;
+				speed = 0.12;
 			}       
 		
 			let newVelocity = [...velocity.current];
@@ -330,14 +365,26 @@ export default function Player(props) {
 				isMoving = true;
 			}
 			if (props.movement.current.left && canMoveRef.current){
+				speed = 0.03;
+				if (props.movement.current.shift){
+					speed = 0.07;
+				}	
 				newVelocity[0] -= speed * right.x;
 				newVelocity[2] -= speed * right.z;
 				isMoving = true;
 			}
 			if (props.movement.current.right && canMoveRef.current){
+				speed = 0.03;
+				if (props.movement.current.shift){
+					speed = 0.07;
+				}
 				newVelocity[0] += speed * right.x;
 				newVelocity[2] += speed * right.z;
 				isMoving = true;
+			} if(props.movement.current.respawn === true){
+				newPosition = spawnPoint;
+				newVelocity = spawnPoint;
+				velocity.current = spawnPoint;
 			}
 		
 			// if shift is pressed, run by setting speed to 0.1
@@ -406,6 +453,42 @@ export default function Player(props) {
 				participantObject.parent.position.set(...newPosition);
 				castRef.current.setTranslation({x: newPosition[0], y: newPosition[1], z: newPosition[2]});
 				// console.log(castRef.current.translation());
+			}
+			if(props.movement.current.respawn === true){
+				const x = Number(props.spawnPoint[0]);
+				const y = Number(props.spawnPoint[1]);
+				const z = Number(props.spawnPoint[2]);
+				if (props.spawnPointsToAdd) {
+					let finalPoints = [];
+					props.spawnPointsToAdd.forEach((point) => {
+					finalPoints.push([Number(point.position.x), Number(point.position.y), Number(point.position.z)]);
+					});
+					finalPoints.push([x, y, z]);
+					//pick a random point
+					let randomPoint = finalPoints[Math.floor(Math.random() * finalPoints.length)];
+					if([x, y, z] !== [camera.position.x, camera.position.y, camera.position.z]){
+						// Check if the converted values are valid and finite
+						// Set the camera's position
+						// orbitRef.position.set(randomPoint[0], randomPoint[1], randomPoint[2]);
+						castRef.current.setTranslation({
+						x: randomPoint[0],
+						y: randomPoint[1],
+						z: randomPoint[2]
+						});
+						participantObject.parent.position.set(randomPoint[0], randomPoint[1], randomPoint[2]);
+					}
+		
+				} else {
+					// Check if the converted values are valid and finite
+					// Set the camera's position
+					camera.position.set(x, y, z);
+		
+					castRef.current.setTranslation({
+					x: x,
+					y: y,
+					z: z
+					});
+				}
 			}
 			// animation logic
 			if (animationsRef.current) {
@@ -553,7 +636,6 @@ export default function Player(props) {
 				/> */}
 				<RigidBody
 					position={spawnPoint}  // use spawnPoint as initial position
-					rotation={rigidRef.current?.rotation ? rigidRef.current.rotation : [0, 0, 0]}
 					colliders={false}
 					ref={rigidRef}
 					lockRotations={true}

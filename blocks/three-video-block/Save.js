@@ -34,6 +34,12 @@ export default function save({ attributes }) {
 					<p className="video-block-custom-model">
 						{attributes.customModel ? 1 : 0}
 					</p>
+					<p className="video-block-aspect-height">
+						{attributes.aspectHeight}
+					</p>
+					<p className="video-block-aspect-width">
+						{attributes.aspectWidth}
+					</p>
 					<div className="video-block-model-url">{attributes.modelUrl}</div>
 				</div>
 			</>

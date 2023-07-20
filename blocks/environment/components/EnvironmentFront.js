@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Fog } from 'three/src/scenes/Fog'
 // import { Reflector } from 'three/examples/jsm/objects/Reflector';
 import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
-import { useLoader, useThree, useFrame } from "@react-three/fiber";
+import { useLoader, useThree, useFrame, Canvas } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import { TextureLoader } from "three/src/loaders/TextureLoader";
@@ -22,7 +22,7 @@ import {
 
 // import { A11y } from "@react-three/a11y";
 import { GLTFAudioEmitterExtension } from "three-omi";
-import { VRCanvas, DefaultXRControllers, Hands, XRButton } from "@react-three/xr";
+import { VRCanvas, DefaultXRControllers, Hands, XRButton, XR } from "@react-three/xr";
 import { Perf } from "r3f-perf";
 import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import TeleportTravel from "./TeleportTravel";
@@ -46,6 +46,13 @@ function isMobile() {
 	return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 
+function isVRCompatible() {
+	const xrSupported = navigator.xr && typeof navigator.xr.isSessionSupported === 'function';
+	const webGLSupported = typeof window.WebGLRenderingContext !== 'undefined';
+  
+	return xrSupported && webGLSupported;
+  }
+  
 
 function Loading() {
 	return (
@@ -192,34 +199,100 @@ function ChatBox(props) {
 		  props.setMessages([...props.messages, testString]);
 
 		};
-	return (
-		<>
-		<ClickStop>
-			<Resizable>
-				<div style={{pointerEvents: "auto", position: "relative", paddingTop: "14px", paddingLeft: "5px", paddingRight: "5px", overflyY: "scroll", paddingBottom: "5px", boxSizing: "border-box", zIndex:100, marginTop: "-350px", width: "300px", height: "280px", fontSize: ".8em", color: "#FFFFFF", bottom: "0", left: "2%", backgroundColor: "transparent"}}>
-					<div style={{pointerEvents: "auto", position: "relative", paddingTop: "14px", paddingLeft: "5px", paddingRight: "5px", overflyY: "scroll", paddingBottom: "5px", boxSizing: "border-box", zIndex:100, width: "275px", maxHeight: "250px", height: "250px", fontSize: "0.8em", color: "#FFFFFF", backgroundColor: "#"}}>
-						<ScrollableFeed>
-							<ul style={{paddingLeft: "0px", marginLeft: "5px", listStyle: "none"}}>
-								{ props.showUI && props.messages && props.messages.length > 0 && props.messages.map((message, index) => (
-									<li style={{background: "#000000db", borderRadius: "30px", padding: "10px 20px"}} key={index}>{message}</li>
-								))}
-							</ul>
-						</ScrollableFeed>
-					</div>
-						<div style={{ width: "100%", height: "5%", position: "relative", bottom: "0px", boxSizing: "border-box", padding: "15px", paddingLeft: "7px" }}>
-						{/* {props.messages.map((message, index) => (
-						<p key={index}>{message}</p>
-						))} */}
-						<form style={{display: "flex"}} onSubmit={handleSubmit}>
-							<input style={{height: "30px", pointerEvents: "auto", borderTopLeftRadius: "15px", borderBottomLeftRadius: "15px", borderTopRightRadius: "0px", borderBottomRightRadius: "0px"} } type="text" name="message" onInput={handleChange} onChange={handleChange} />
-							<button className="threeov-chat-button-send" style={{ height: "30px", background: "#9100ff", color: "white", fontSize: ".9em", lineHeight: ".3em", borderTopRightRadius: "15px", borderBottomRightRadius: "15px", borderTopLeftRadius: "0px", borderBottomLeftRadius: "0px"} } type="submit">Send</button>
-						</form>
-					</div>
-				</div>
-			</Resizable>
-		</ClickStop>
-	  </>
-	);
+	// return (
+	// 	<>
+	// 	<ClickStop>
+	// 		<Resizable>
+	// 			<div style={{pointerEvents: "auto", position: "relative", paddingTop: "14px", paddingLeft: "5px", paddingRight: "5px", overflyY: "scroll", paddingBottom: "5px", boxSizing: "border-box", zIndex:100, marginTop: "-350px", width: "300px", height: "280px", fontSize: ".8em", color: "#FFFFFF", bottom: "0", left: "2%", backgroundColor: "transparent"}}>
+	// 				<div style={{pointerEvents: "auto", position: "relative", paddingTop: "14px", paddingLeft: "5px", paddingRight: "5px", overflyY: "scroll", paddingBottom: "5px", boxSizing: "border-box", zIndex:100, width: "275px", maxHeight: "250px", height: "250px", fontSize: "0.8em", color: "#FFFFFF", backgroundColor: "#"}}>
+	// 					<ScrollableFeed>
+	// 						<ul style={{paddingLeft: "0px", marginLeft: "5px", listStyle: "none"}}>
+	// 							{ props.showUI && props.messages && props.messages.length > 0 && props.messages.map((message, index) => (
+	// 								<li style={{background: "#000000db", borderRadius: "30px", padding: "10px 20px"}} key={index}>{message}</li>
+	// 							))}
+	// 						</ul>
+	// 					</ScrollableFeed>
+	// 				</div>
+	// 					<div style={{ width: "100%", height: "5%", position: "relative", bottom: "0px", boxSizing: "border-box", padding: "15px", paddingLeft: "7px" }}>
+	// 					{/* {props.messages.map((message, index) => (
+	// 					<p key={index}>{message}</p>
+	// 					))} */}
+	// 					<form style={{display: "flex"}} onSubmit={handleSubmit}>
+	// 						<input style={{height: "30px", pointerEvents: "auto", borderTopLeftRadius: "15px", borderBottomLeftRadius: "15px", borderTopRightRadius: "0px", borderBottomRightRadius: "0px"} } type="text" name="message" onInput={handleChange} onChange={handleChange} />
+	// 						<button className="threeov-chat-button-send" style={{ height: "30px", background: "#9100ff", color: "white", fontSize: ".9em", lineHeight: ".3em", borderTopRightRadius: "15px", borderBottomRightRadius: "15px", borderTopLeftRadius: "0px", borderBottomLeftRadius: "0px"} } type="submit">Send</button>
+	// 					</form>
+	// 				</div>
+	// 			</div>
+	// 		</Resizable>
+	// 	</ClickStop>
+	//   </>
+	// );
+	const [open, setOpen] = useState(false);
+	const onSwitch = (e) => {
+		e.preventDefault();
+		e.stopPropagation();	
+		setOpen(prevOpen => !prevOpen);
+	};
+
+	if(isMobile()){
+		return (
+			<>
+			<button className="threeov-chat-button" onClick={onSwitch}>Chat</button>
+			{open && (
+				<ClickStop>
+						<button className="threeov-chat-button" onClick={onSwitch}>Close</button>
+						<div className="threeov-chat-container" style={{ pointerEvents: "auto", position: "relative", paddingTop: "14px", paddingLeft: "5px", paddingRight: "5px", overflyY: "scroll", paddingBottom: "5px", boxSizing: "border-box", zIndex:100, marginTop: "-350px", width: "300px", height: "280px", fontSize: ".8em", color: "#FFFFFF", bottom: "0", left: "2%", backgroundColor: "transparent"}}>
+							<div style={{pointerEvents: "auto", position: "relative", paddingTop: "14px", paddingLeft: "5px", paddingRight: "5px", overflyY: "scroll", paddingBottom: "5px", boxSizing: "border-box", zIndex:100, width: "275px", maxHeight: "250px", height: "250px", fontSize: "0.8em", color: "#FFFFFF", backgroundColor: "#"}}>
+								<ScrollableFeed>
+									<ul style={{paddingLeft: "0px", marginLeft: "5px", listStyle: "none"}}>
+										{ props.showUI && props.messages && props.messages.length > 0 && props.messages.map((message, index) => (
+											<li style={{background: "#000000db", borderRadius: "30px", padding: "10px 20px"}} key={index}>{message}</li>
+										))}
+									</ul>
+								</ScrollableFeed>
+							</div>
+								<div style={{ width: "100%", height: "5%", position: "relative", bottom: "0px", boxSizing: "border-box", padding: "15px", paddingLeft: "7px" }}>
+								{/* {props.messages.map((message, index) => (
+								<p key={index}>{message}</p>
+								))} */}
+								<form style={{display: "flex"}} onSubmit={handleSubmit}>
+									<input style={{height: "30px", pointerEvents: "auto", borderTopLeftRadius: "15px", borderBottomLeftRadius: "15px", borderTopRightRadius: "0px", borderBottomRightRadius: "0px"} } type="text" name="message" onInput={handleChange} onChange={handleChange} onfocus={(e) => { e.preventDefault()} }/>
+									<button className="threeov-chat-button-send" style={{ height: "30px", background: "#9100ff", color: "white", fontSize: ".9em", lineHeight: ".3em", borderTopRightRadius: "15px", borderBottomRightRadius: "15px", borderTopLeftRadius: "0px", borderBottomLeftRadius: "0px"} } type="submit">Send</button>
+								</form>
+							</div>
+						</div>
+				</ClickStop>
+			)}
+		  </>
+		);
+		} else {
+			return (
+				<>
+					<ClickStop>
+							<div style={{pointerEvents: "auto", position: "relative", paddingTop: "14px", paddingLeft: "5px", paddingRight: "5px", overflyY: "scroll", paddingBottom: "5px", boxSizing: "border-box", zIndex:100, marginTop: "-350px", width: "300px", height: "280px", fontSize: ".8em", color: "#FFFFFF", bottom: "0", left: "2%", backgroundColor: "transparent"}}>
+								<div style={{pointerEvents: "auto", position: "relative", paddingTop: "14px", paddingLeft: "5px", paddingRight: "5px", overflyY: "scroll", paddingBottom: "5px", boxSizing: "border-box", zIndex:100, width: "275px", maxHeight: "250px", height: "250px", fontSize: "0.8em", color: "#FFFFFF", backgroundColor: "#"}}>
+									<ScrollableFeed>
+										<ul style={{paddingLeft: "0px", marginLeft: "5px", listStyle: "none"}}>
+											{ props.showUI && props.messages && props.messages.length > 0 && props.messages.map((message, index) => (
+												<li style={{background: "#000000db", borderRadius: "30px", padding: "10px 20px"}} key={index}>{message}</li>
+											))}
+										</ul>
+									</ScrollableFeed>
+								</div>
+									<div style={{ width: "100%", height: "5%", position: "relative", bottom: "0px", boxSizing: "border-box", padding: "15px", paddingLeft: "7px" }}>
+									{/* {props.messages.map((message, index) => (
+									<p key={index}>{message}</p>
+									))} */}
+									<form style={{display: "flex"}} onSubmit={handleSubmit}>
+										<input style={{height: "30px", pointerEvents: "auto", borderTopLeftRadius: "15px", borderBottomLeftRadius: "15px", borderTopRightRadius: "0px", borderBottomRightRadius: "0px"} } type="text" name="message" onInput={handleChange} onChange={handleChange} />
+										<button className="threeov-chat-button-send" style={{ height: "30px", background: "#9100ff", color: "white", fontSize: ".9em", lineHeight: ".3em", borderTopRightRadius: "15px", borderBottomRightRadius: "15px", borderTopLeftRadius: "0px", borderBottomLeftRadius: "0px"} } type="submit">Send</button>
+									</form>
+								</div>
+							</div>
+					</ClickStop>
+			  </>
+			);
+		}	
   }  
   
 /**
@@ -590,12 +663,20 @@ export default function EnvironmentFront(props) {
 	const [messages, setMessages] = useState();
 	const [messageHistory, setMessageHistory] = useState();
 	const [loaded, setLoaded] = useState(false);
-	const [spawnPoints, setSpawnPoints] = useState();
+	const [spawnPoints, setSpawnPoints] = useState([0,0,0]);
 	const [messageObject, setMessageObject] = useState({"tone": "happy", "message": "hello!"});
 	const [objectsInRoom, setObjectsInRoom] = useState([]);
 	const [url, setURL] = useState(props.threeUrl ? props.threeUrl : (threeObjectPlugin + defaultEnvironment));
 	
 	if (loaded === true) {
+		// find the element that contains the text "WEBXR NOT AVAILABLE" and hide it
+		// set an element const that selects the body of the document
+		const elements = document.body.getElementsByTagName('*');
+		const webXRNotAvail = Array.from(elements).find((el) => el.textContent === 'WEBXR NOT AVAILABLE');
+		if (webXRNotAvail) {
+			webXRNotAvail.style.display = "none";
+		}
+
 		if (props.deviceTarget === "vr") {
 			return (
 				<>
@@ -619,1020 +700,1021 @@ export default function EnvironmentFront(props) {
 							zIndex: 1
 						  }}
 					>
-						{/* <Perf className="stats" /> */}
-						{/* <fog attach="fog" color="hotpink" near={100} far={20} /> */}
-						<Hands />
-						<DefaultXRControllers />
-						<ambientLight intensity={0.5} />
-						<directionalLight
-							intensity={0.6}
-							position={[0, 2, 2]}
-						// shadow-mapSize-width={512}
-						// shadow-mapSize-height={512}
-						// shadow-camera-far={5000}
-						// shadow-camera-fov={15}
-						// shadow-camera-near={0.5}
-						// shadow-camera-left={-50}
-						// shadow-camera-bottom={-50}
-						// shadow-camera-right={50}
-						// shadow-camera-top={50}
-						// shadow-radius={1}
-						// shadow-bias={-0.001}
-						// castShadow
-						/>
-    					<Suspense fallback={<Loading />}>
-							<Physics
-								// debug
-							>
-								{/* <Perf className="stats" /> */}
-								{/* Debug physics */}
-								{url && (
-									<>
-										<TeleportTravel
-											spawnPointsToAdd={props.spawnPointsToAdd}
-											spawnPoint={props.spawnPoint}
-											useNormal={false}
-										>
-											<Player
-												spawnPointsToAdd={spawnPoints}
+							{ isVRCompatible() && <XRButton mode={'VR' | 'inline'}/>}
+							{/* <Perf className="stats" /> */}
+							{/* <fog attach="fog" color="hotpink" near={100} far={20} /> */}
+							<Hands />
+							<DefaultXRControllers />
+							<ambientLight intensity={0.5} />
+							<directionalLight
+								intensity={0.6}
+								position={[0, 2, 2]}
+							// shadow-mapSize-width={512}
+							// shadow-mapSize-height={512}
+							// shadow-camera-far={5000}
+							// shadow-camera-fov={15}
+							// shadow-camera-near={0.5}
+							// shadow-camera-left={-50}
+							// shadow-camera-bottom={-50}
+							// shadow-camera-right={50}
+							// shadow-camera-top={50}
+							// shadow-radius={1}
+							// shadow-bias={-0.001}
+							// castShadow
+							/>
+							<Suspense fallback={<Loading />}>
+								<Physics
+									// debug
+								>
+									{/* <Perf className="stats" /> */}
+									{/* Debug physics */}
+									{url && (
+										<>
+											<TeleportTravel
+												spawnPointsToAdd={props.spawnPointsToAdd}
 												spawnPoint={props.spawnPoint}
-												setShowUI={setShowUI}
-												defaultAvatar={defaultAvatar}
-												movement={movement}
-											/>
-											<Participants 
-											setParticipant={setParticipant}
-											participants={participants}
-											/>
-											<SavedObject
-												positionY={props.positionY}
-												rotationY={props.rotationY}
-												url={url}
-												color={props.backgroundColor}
-												hasZoom={props.hasZoom}
-												scale={props.scale}
-												hasTip={props.hasTip}
-												animations={props.animations}
-												playerData={props.userData}
-												setSpawnPoints={setSpawnPoints}
-											/>
-											{Object.values(props.sky).map(
-												(item, index) => {
-													return (
-														<>
-															<ThreeSky
-																src={props.sky}
-															/>
-														</>
-													);
-												}
-											)}
-											{Object.values(
-												props.imagesToAdd
-											).map((item, index) => {
-												const imagePosX =
-													item.querySelector(
-														"p.image-block-positionX"
-													)
-														? item.querySelector(
-															"p.image-block-positionX"
-														).innerText
-														: "";
-
-												const imagePosY =
-													item.querySelector(
-														"p.image-block-positionY"
-													)
-														? item.querySelector(
-															"p.image-block-positionY"
-														).innerText
-														: "";
-
-												const imagePosZ =
-													item.querySelector(
-														"p.image-block-positionZ"
-													)
-														? item.querySelector(
-															"p.image-block-positionZ"
-														).innerText
-														: "";
-
-												const imageScaleX =
-													item.querySelector(
-														"p.image-block-scaleX"
-													)
-														? item.querySelector(
-															"p.image-block-scaleX"
-														).innerText
-														: "";
-
-												const imageScaleY =
-													item.querySelector(
-														"p.image-block-scaleY"
-													)
-														? item.querySelector(
-															"p.image-block-scaleY"
-														).innerText
-														: "";
-
-												const imageScaleZ =
-													item.querySelector(
-														"p.image-block-scaleZ"
-													)
-														? item.querySelector(
-															"p.image-block-scaleZ"
-														).innerText
-														: "";
-
-												const imageRotationX =
-													item.querySelector(
-														"p.image-block-rotationX"
-													)
-														? item.querySelector(
-															"p.image-block-rotationX"
-														).innerText
-														: "";
-
-												const imageRotationY =
-													item.querySelector(
-														"p.image-block-rotationY"
-													)
-														? item.querySelector(
-															"p.image-block-rotationY"
-														).innerText
-														: "";
-
-												const imageRotationZ =
-													item.querySelector(
-														"p.image-block-rotationZ"
-													)
-														? item.querySelector(
-															"p.image-block-rotationZ"
-														).innerText
-														: "";
-
-												const imageUrl =
-													item.querySelector(
-														"p.image-block-url"
-													)
-														? item.querySelector(
-															"p.image-block-url"
-														).innerText
-														: "";
-
-												const aspectHeight =
-													item.querySelector(
-														"p.image-block-aspect-height"
-													)
-														? item.querySelector(
-															"p.image-block-aspect-height"
-														).innerText
-														: "";
-
-												const aspectWidth =
-													item.querySelector(
-														"p.image-block-aspect-width"
-													)
-														? item.querySelector(
-															"p.image-block-aspect-width"
-														).innerText
-														: "";
-
-												const transparent =
-													item.querySelector(
-														"p.image-block-transparent"
-													)
-														? item.querySelector(
-															"p.image-block-transparent"
-														).innerText
-														: false;
-												return (
-													<ThreeImage
-														key={index}
-														url={imageUrl}
-														positionX={imagePosX}
-														positionY={imagePosY}
-														positionZ={imagePosZ}
-														scaleX={imageScaleX}
-														scaleY={imageScaleY}
-														scaleZ={imageScaleZ}
-														rotationX={
-															imageRotationX
-														}
-														rotationY={
-															imageRotationY
-														}
-														rotationZ={
-															imageRotationZ
-														}
-														aspectHeight={
-															aspectHeight
-														}
-														aspectWidth={
-															aspectWidth
-														}
-														transparent={
-															transparent
-														}
-													/>
-												);
-											})}
-											{Object.values(
-												props.videosToAdd
-											).map((item, index) => {
-												const videoPosX =
-													item.querySelector(
-														"p.video-block-positionX"
-													)
-														? item.querySelector(
-															"p.video-block-positionX"
-														).innerText
-														: "";
-
-												const videoPosY =
-													item.querySelector(
-														"p.video-block-positionY"
-													)
-														? item.querySelector(
-															"p.video-block-positionY"
-														).innerText
-														: "";
-
-												const videoPosZ =
-													item.querySelector(
-														"p.video-block-positionZ"
-													)
-														? item.querySelector(
-															"p.video-block-positionZ"
-														).innerText
-														: "";
-
-												const videoScaleX =
-													item.querySelector(
-														"p.video-block-scaleX"
-													)
-														? item.querySelector(
-															"p.video-block-scaleX"
-														).innerText
-														: "";
-
-												const videoScaleY =
-													item.querySelector(
-														"p.video-block-scaleY"
-													)
-														? item.querySelector(
-															"p.video-block-scaleY"
-														).innerText
-														: "";
-
-												const videoScaleZ =
-													item.querySelector(
-														"p.video-block-scaleZ"
-													)
-														? item.querySelector(
-															"p.video-block-scaleZ"
-														).innerText
-														: "";
-
-												const videoRotationX =
-													item.querySelector(
-														"p.video-block-rotationX"
-													)
-														? item.querySelector(
-															"p.video-block-rotationX"
-														).innerText
-														: "";
-
-												const videoRotationY =
-													item.querySelector(
-														"p.video-block-rotationY"
-													)
-														? item.querySelector(
-															"p.video-block-rotationY"
-														).innerText
-														: "";
-
-												const videoRotationZ =
-													item.querySelector(
-														"p.video-block-rotationZ"
-													)
-														? item.querySelector(
-															"p.video-block-rotationZ"
-														).innerText
-														: "";
-
-												const videoUrl =
-													item.querySelector(
-														"div.video-block-url"
-													)
-														? item.querySelector(
-															"div.video-block-url"
-														).innerText
-														: "";
-
-												const aspectHeight =
-													item.querySelector(
-														"p.video-block-aspect-height"
-													)
-														? item.querySelector(
-															"p.video-block-aspect-height"
-														).innerText
-														: "";
-
-												const aspectWidth =
-													item.querySelector(
-														"p.video-block-aspect-width"
-													)
-														? item.querySelector(
-															"p.video-block-aspect-width"
-														).innerText
-														: "";
-
-														const autoPlay =
+												useNormal={false}
+											>
+												<Player
+													spawnPointsToAdd={spawnPoints}
+													spawnPoint={props.spawnPoint}
+													setShowUI={setShowUI}
+													defaultAvatar={defaultAvatar}
+													movement={movement}
+												/>
+												<Participants 
+												setParticipant={setParticipant}
+												participants={participants}
+												/>
+												<SavedObject
+													positionY={props.positionY}
+													rotationY={props.rotationY}
+													url={url}
+													color={props.backgroundColor}
+													hasZoom={props.hasZoom}
+													scale={props.scale}
+													hasTip={props.hasTip}
+													animations={props.animations}
+													playerData={props.userData}
+													setSpawnPoints={setSpawnPoints}
+												/>
+												{Object.values(props.sky).map(
+													(item, index) => {
+														return (
+															<>
+																<ThreeSky
+																	src={props.sky}
+																/>
+															</>
+														);
+													}
+												)}
+												{Object.values(
+													props.imagesToAdd
+												).map((item, index) => {
+													const imagePosX =
 														item.querySelector(
-															"p.video-block-autoplay"
+															"p.image-block-positionX"
 														)
 															? item.querySelector(
-																"p.video-block-autoplay"
+																"p.image-block-positionX"
+															).innerText
+															: "";
+
+													const imagePosY =
+														item.querySelector(
+															"p.image-block-positionY"
+														)
+															? item.querySelector(
+																"p.image-block-positionY"
+															).innerText
+															: "";
+
+													const imagePosZ =
+														item.querySelector(
+															"p.image-block-positionZ"
+														)
+															? item.querySelector(
+																"p.image-block-positionZ"
+															).innerText
+															: "";
+
+													const imageScaleX =
+														item.querySelector(
+															"p.image-block-scaleX"
+														)
+															? item.querySelector(
+																"p.image-block-scaleX"
+															).innerText
+															: "";
+
+													const imageScaleY =
+														item.querySelector(
+															"p.image-block-scaleY"
+														)
+															? item.querySelector(
+																"p.image-block-scaleY"
+															).innerText
+															: "";
+
+													const imageScaleZ =
+														item.querySelector(
+															"p.image-block-scaleZ"
+														)
+															? item.querySelector(
+																"p.image-block-scaleZ"
+															).innerText
+															: "";
+
+													const imageRotationX =
+														item.querySelector(
+															"p.image-block-rotationX"
+														)
+															? item.querySelector(
+																"p.image-block-rotationX"
+															).innerText
+															: "";
+
+													const imageRotationY =
+														item.querySelector(
+															"p.image-block-rotationY"
+														)
+															? item.querySelector(
+																"p.image-block-rotationY"
+															).innerText
+															: "";
+
+													const imageRotationZ =
+														item.querySelector(
+															"p.image-block-rotationZ"
+														)
+															? item.querySelector(
+																"p.image-block-rotationZ"
+															).innerText
+															: "";
+
+													const imageUrl =
+														item.querySelector(
+															"p.image-block-url"
+														)
+															? item.querySelector(
+																"p.image-block-url"
+															).innerText
+															: "";
+
+													const aspectHeight =
+														item.querySelector(
+															"p.image-block-aspect-height"
+														)
+															? item.querySelector(
+																"p.image-block-aspect-height"
+															).innerText
+															: "";
+
+													const aspectWidth =
+														item.querySelector(
+															"p.image-block-aspect-width"
+														)
+															? item.querySelector(
+																"p.image-block-aspect-width"
+															).innerText
+															: "";
+
+													const transparent =
+														item.querySelector(
+															"p.image-block-transparent"
+														)
+															? item.querySelector(
+																"p.image-block-transparent"
 															).innerText
 															: false;
-	
-													const customModel =
-													item.querySelector(
-														"p.video-block-custom-model"
-													)
-														? item.querySelector(
-															"p.video-block-custom-model"
-														).innerText
-														: false;
-													const videoModelUrl =
-													item.querySelector(
-														"div.video-block-model-url"
-													)
-													? item.querySelector(
-														"div.video-block-model-url"
-													).innerText
-													: "";
+													return (
+														<ThreeImage
+															key={index}
+															url={imageUrl}
+															positionX={imagePosX}
+															positionY={imagePosY}
+															positionZ={imagePosZ}
+															scaleX={imageScaleX}
+															scaleY={imageScaleY}
+															scaleZ={imageScaleZ}
+															rotationX={
+																imageRotationX
+															}
+															rotationY={
+																imageRotationY
+															}
+															rotationZ={
+																imageRotationZ
+															}
+															aspectHeight={
+																aspectHeight
+															}
+															aspectWidth={
+																aspectWidth
+															}
+															transparent={
+																transparent
+															}
+														/>
+													);
+												})}
+												{Object.values(
+													props.videosToAdd
+												).map((item, index) => {
+													const videoPosX =
+														item.querySelector(
+															"p.video-block-positionX"
+														)
+															? item.querySelector(
+																"p.video-block-positionX"
+															).innerText
+															: "";
 
-															return (
-													<ThreeVideo
-														key={index}
-														url={videoUrl}
-														positionX={videoPosX}
-														positionY={videoPosY}
-														positionZ={videoPosZ}
-														scaleX={videoScaleX}
-														scaleY={videoScaleY}
-														scaleZ={videoScaleZ}
-														rotationX={
-															videoRotationX
-														}
-														rotationY={
-															videoRotationY
-														}
-														rotationZ={
-															videoRotationZ
-														}
-														aspectHeight={
-															aspectHeight
-														}
-														aspectWidth={
-															aspectWidth
-														}
-														autoPlay={autoPlay}
-														customModel={customModel}
-														threeObjectPlugin={threeObjectPlugin}
-														threeObjectPluginRoot={threeObjectPluginRoot}
-														modelUrl={videoModelUrl}
-													/>
-												);
-											})}
-											{Object.values(
-												props.npcsToAdd
-											).map((npc, index) => {
-												const modelPosX =
-													npc.querySelector(
-														"p.npc-block-position-x"
-													)
-														? npc.querySelector(
-															"p.npc-block-position-x"
-														).innerText
-														: "";
+													const videoPosY =
+														item.querySelector(
+															"p.video-block-positionY"
+														)
+															? item.querySelector(
+																"p.video-block-positionY"
+															).innerText
+															: "";
 
-												const modelPosY =
-													npc.querySelector(
-														"p.npc-block-position-y"
-													)
-														? npc.querySelector(
-															"p.npc-block-position-y"
-														).innerText
-														: "";
+													const videoPosZ =
+														item.querySelector(
+															"p.video-block-positionZ"
+														)
+															? item.querySelector(
+																"p.video-block-positionZ"
+															).innerText
+															: "";
 
-												const modelPosZ =
-													npc.querySelector(
-														"p.npc-block-position-z"
-													)
-														? npc.querySelector(
-															"p.npc-block-position-z"
-														).innerText
-														: "";
+													const videoScaleX =
+														item.querySelector(
+															"p.video-block-scaleX"
+														)
+															? item.querySelector(
+																"p.video-block-scaleX"
+															).innerText
+															: "";
 
-												const modelRotationX =
-													npc.querySelector(
-														"p.npc-block-rotation-x"
-													)
-														? npc.querySelector(
-															"p.npc-block-rotation-x"
-														).innerText
-														: "";
+													const videoScaleY =
+														item.querySelector(
+															"p.video-block-scaleY"
+														)
+															? item.querySelector(
+																"p.video-block-scaleY"
+															).innerText
+															: "";
 
-												const modelRotationY =
-													npc.querySelector(
-														"p.npc-block-rotation-y"
-													)
-														? npc.querySelector(
-															"p.npc-block-rotation-y"
-														).innerText
-														: "";
+													const videoScaleZ =
+														item.querySelector(
+															"p.video-block-scaleZ"
+														)
+															? item.querySelector(
+																"p.video-block-scaleZ"
+															).innerText
+															: "";
 
-												const modelRotationZ =
-													npc.querySelector(
-														"p.npc-block-rotation-z"
-													)
-														? npc.querySelector(
-															"p.npc-block-rotation-z"
-														).innerText
-														: "";
+													const videoRotationX =
+														item.querySelector(
+															"p.video-block-rotationX"
+														)
+															? item.querySelector(
+																"p.video-block-rotationX"
+															).innerText
+															: "";
 
-												const url = npc.querySelector(
-													"p.npc-block-url"
-												)
-													? npc.querySelector(
-														"p.npc-block-url"
-													).innerText
-													: "";
+													const videoRotationY =
+														item.querySelector(
+															"p.video-block-rotationY"
+														)
+															? item.querySelector(
+																"p.video-block-rotationY"
+															).innerText
+															: "";
 
-												const alt = npc.querySelector(
-													"p.npc-block-alt"
-												)
-													? npc.querySelector(
-														"p.npc-block-alt"
-													).innerText
-													: "";
+													const videoRotationZ =
+														item.querySelector(
+															"p.video-block-rotationZ"
+														)
+															? item.querySelector(
+																"p.video-block-rotationZ"
+															).innerText
+															: "";
 
-													const personality = npc.querySelector(
-														"p.npc-block-personality"
-													)
-														? npc.querySelector(
-															"p.npc-block-personality"
-														).innerText
-														: "";
+													const videoUrl =
+														item.querySelector(
+															"div.video-block-url"
+														)
+															? item.querySelector(
+																"div.video-block-url"
+															).innerText
+															: "";
 
-													const defaultMessage = npc.querySelector(
-														"p.npc-block-default-message"
-													)
-														? npc.querySelector(
-															"p.npc-block-default-message"
-														).innerText
-														: "";
-	
-														const name = npc.querySelector(
-														"p.npc-block-name"
-													)
-														? npc.querySelector(
-															"p.npc-block-name"
-														).innerText
-														: "";
+													const aspectHeight =
+														item.querySelector(
+															"p.video-block-aspect-height"
+														)
+															? item.querySelector(
+																"p.video-block-aspect-height"
+															).innerText
+															: "";
+
+													const aspectWidth =
+														item.querySelector(
+															"p.video-block-aspect-width"
+														)
+															? item.querySelector(
+																"p.video-block-aspect-width"
+															).innerText
+															: "";
+
+															const autoPlay =
+															item.querySelector(
+																"p.video-block-autoplay"
+															)
+																? item.querySelector(
+																	"p.video-block-autoplay"
+																).innerText
+																: false;
 		
-												const objectAwareness =
-													npc.querySelector(
-														"p.npc-block-object-awareness"
+														const customModel =
+														item.querySelector(
+															"p.video-block-custom-model"
+														)
+															? item.querySelector(
+																"p.video-block-custom-model"
+															).innerText
+															: false;
+														const videoModelUrl =
+														item.querySelector(
+															"div.video-block-model-url"
+														)
+														? item.querySelector(
+															"div.video-block-model-url"
+														).innerText
+														: "";
+
+																return (
+														<ThreeVideo
+															key={index}
+															url={videoUrl}
+															positionX={videoPosX}
+															positionY={videoPosY}
+															positionZ={videoPosZ}
+															scaleX={videoScaleX}
+															scaleY={videoScaleY}
+															scaleZ={videoScaleZ}
+															rotationX={
+																videoRotationX
+															}
+															rotationY={
+																videoRotationY
+															}
+															rotationZ={
+																videoRotationZ
+															}
+															aspectHeight={
+																aspectHeight
+															}
+															aspectWidth={
+																aspectWidth
+															}
+															autoPlay={autoPlay}
+															customModel={customModel}
+															threeObjectPlugin={threeObjectPlugin}
+															threeObjectPluginRoot={threeObjectPluginRoot}
+															modelUrl={videoModelUrl}
+														/>
+													);
+												})}
+												{Object.values(
+													props.npcsToAdd
+												).map((npc, index) => {
+													const modelPosX =
+														npc.querySelector(
+															"p.npc-block-position-x"
+														)
+															? npc.querySelector(
+																"p.npc-block-position-x"
+															).innerText
+															: "";
+
+													const modelPosY =
+														npc.querySelector(
+															"p.npc-block-position-y"
+														)
+															? npc.querySelector(
+																"p.npc-block-position-y"
+															).innerText
+															: "";
+
+													const modelPosZ =
+														npc.querySelector(
+															"p.npc-block-position-z"
+														)
+															? npc.querySelector(
+																"p.npc-block-position-z"
+															).innerText
+															: "";
+
+													const modelRotationX =
+														npc.querySelector(
+															"p.npc-block-rotation-x"
+														)
+															? npc.querySelector(
+																"p.npc-block-rotation-x"
+															).innerText
+															: "";
+
+													const modelRotationY =
+														npc.querySelector(
+															"p.npc-block-rotation-y"
+														)
+															? npc.querySelector(
+																"p.npc-block-rotation-y"
+															).innerText
+															: "";
+
+													const modelRotationZ =
+														npc.querySelector(
+															"p.npc-block-rotation-z"
+														)
+															? npc.querySelector(
+																"p.npc-block-rotation-z"
+															).innerText
+															: "";
+
+													const url = npc.querySelector(
+														"p.npc-block-url"
 													)
 														? npc.querySelector(
+															"p.npc-block-url"
+														).innerText
+														: "";
+
+													const alt = npc.querySelector(
+														"p.npc-block-alt"
+													)
+														? npc.querySelector(
+															"p.npc-block-alt"
+														).innerText
+														: "";
+
+														const personality = npc.querySelector(
+															"p.npc-block-personality"
+														)
+															? npc.querySelector(
+																"p.npc-block-personality"
+															).innerText
+															: "";
+
+														const defaultMessage = npc.querySelector(
+															"p.npc-block-default-message"
+														)
+															? npc.querySelector(
+																"p.npc-block-default-message"
+															).innerText
+															: "";
+		
+															const name = npc.querySelector(
+															"p.npc-block-name"
+														)
+															? npc.querySelector(
+																"p.npc-block-name"
+															).innerText
+															: "";
+			
+													const objectAwareness =
+														npc.querySelector(
 															"p.npc-block-object-awareness"
-														).innerText
-														: false;
+														)
+															? npc.querySelector(
+																"p.npc-block-object-awareness"
+															).innerText
+															: false;
 
-												return (
-													<NPCObject
-														key={index}
-														url={url}
-														positionX={modelPosX}
-														positionY={modelPosY}
-														positionZ={modelPosZ}
-														messages={messages}
-														rotationX={
-															modelRotationX
-														}
-														rotationY={
-															modelRotationY
-														}
-														rotationZ={
-															modelRotationZ
-														}
-														objectAwareness={objectAwareness}
-														name={name}
-														message={
-															messageObject
-														}
-														threeObjectPlugin={threeObjectPlugin}
-														threeObjectPluginRoot={threeObjectPluginRoot}
-														defaultAvatarAnimation={defaultAvatarAnimation}
-														defaultFont={defaultFont}
-														defaultMessage={defaultMessage}
-														personality={personality}
-														// idle={idle}
-													/>
-												);
-											})}
-											{Object.values(
-												props.modelsToAdd
-											).map((model, index) => {
-												const modelPosX =
-													model.querySelector(
-														"p.model-block-position-x"
-													)
-														? model.querySelector(
+													return (
+														<NPCObject
+															key={index}
+															url={url}
+															positionX={modelPosX}
+															positionY={modelPosY}
+															positionZ={modelPosZ}
+															messages={messages}
+															rotationX={
+																modelRotationX
+															}
+															rotationY={
+																modelRotationY
+															}
+															rotationZ={
+																modelRotationZ
+															}
+															objectAwareness={objectAwareness}
+															name={name}
+															message={
+																messageObject
+															}
+															threeObjectPlugin={threeObjectPlugin}
+															threeObjectPluginRoot={threeObjectPluginRoot}
+															defaultAvatarAnimation={defaultAvatarAnimation}
+															defaultFont={defaultFont}
+															defaultMessage={defaultMessage}
+															personality={personality}
+															// idle={idle}
+														/>
+													);
+												})}
+												{Object.values(
+													props.modelsToAdd
+												).map((model, index) => {
+													const modelPosX =
+														model.querySelector(
 															"p.model-block-position-x"
-														).innerText
-														: "";
+														)
+															? model.querySelector(
+																"p.model-block-position-x"
+															).innerText
+															: "";
 
-												const modelPosY =
-													model.querySelector(
-														"p.model-block-position-y"
-													)
-														? model.querySelector(
+													const modelPosY =
+														model.querySelector(
 															"p.model-block-position-y"
-														).innerText
-														: "";
+														)
+															? model.querySelector(
+																"p.model-block-position-y"
+															).innerText
+															: "";
 
-												const modelPosZ =
-													model.querySelector(
-														"p.model-block-position-z"
-													)
-														? model.querySelector(
+													const modelPosZ =
+														model.querySelector(
 															"p.model-block-position-z"
-														).innerText
-														: "";
+														)
+															? model.querySelector(
+																"p.model-block-position-z"
+															).innerText
+															: "";
 
-												const modelScaleX =
-													model.querySelector(
-														"p.model-block-scale-x"
-													)
-														? model.querySelector(
+													const modelScaleX =
+														model.querySelector(
 															"p.model-block-scale-x"
-														).innerText
-														: "";
+														)
+															? model.querySelector(
+																"p.model-block-scale-x"
+															).innerText
+															: "";
 
-												const modelScaleY =
-													model.querySelector(
-														"p.model-block-scale-y"
-													)
-														? model.querySelector(
+													const modelScaleY =
+														model.querySelector(
 															"p.model-block-scale-y"
-														).innerText
-														: "";
+														)
+															? model.querySelector(
+																"p.model-block-scale-y"
+															).innerText
+															: "";
 
-												const modelScaleZ =
-													model.querySelector(
-														"p.model-block-scale-z"
-													)
-														? model.querySelector(
+													const modelScaleZ =
+														model.querySelector(
 															"p.model-block-scale-z"
-														).innerText
-														: "";
+														)
+															? model.querySelector(
+																"p.model-block-scale-z"
+															).innerText
+															: "";
 
-												const modelRotationX =
-													model.querySelector(
-														"p.model-block-rotation-x"
-													)
-														? model.querySelector(
+													const modelRotationX =
+														model.querySelector(
 															"p.model-block-rotation-x"
-														).innerText
-														: "";
+														)
+															? model.querySelector(
+																"p.model-block-rotation-x"
+															).innerText
+															: "";
 
-												const modelRotationY =
-													model.querySelector(
-														"p.model-block-rotation-y"
-													)
-														? model.querySelector(
+													const modelRotationY =
+														model.querySelector(
 															"p.model-block-rotation-y"
-														).innerText
-														: "";
+														)
+															? model.querySelector(
+																"p.model-block-rotation-y"
+															).innerText
+															: "";
 
-												const modelRotationZ =
-													model.querySelector(
-														"p.model-block-rotation-z"
-													)
-														? model.querySelector(
+													const modelRotationZ =
+														model.querySelector(
 															"p.model-block-rotation-z"
-														).innerText
-														: "";
+														)
+															? model.querySelector(
+																"p.model-block-rotation-z"
+															).innerText
+															: "";
 
-												const url = model.querySelector(
-													"p.model-block-url"
-												)
-													? model.querySelector(
+													const url = model.querySelector(
 														"p.model-block-url"
-													).innerText
-													: "";
-
-												const animations =
-													model.querySelector(
-														"p.model-block-animations"
 													)
 														? model.querySelector(
-															"p.model-block-animations"
+															"p.model-block-url"
 														).innerText
 														: "";
 
-												const alt = model.querySelector(
-													"p.model-block-alt"
-												)
-													? model.querySelector(
-														"p.model-block-alt"
-													).innerText
-													: "";
+													const animations =
+														model.querySelector(
+															"p.model-block-animations"
+														)
+															? model.querySelector(
+																"p.model-block-animations"
+															).innerText
+															: "";
 
-													if (!objectsInRoom.includes(alt)) {
-														setObjectsInRoom([...objectsInRoom, alt]);
-													}
-													
-												const collidable =
-													model.querySelector(
-														"p.model-block-collidable"
+													const alt = model.querySelector(
+														"p.model-block-alt"
 													)
 														? model.querySelector(
-															"p.model-block-collidable"
+															"p.model-block-alt"
 														).innerText
-														: false;
-												return (
-													<ModelObject
-														key={index}
-														url={url}
-														positionX={modelPosX}
-														positionY={modelPosY}
-														positionZ={modelPosZ}
-														scaleX={modelScaleX}
-														scaleY={modelScaleY}
-														scaleZ={modelScaleZ}
-														messages={messages}
-														rotationX={
-															modelRotationX
+														: "";
+
+														if (!objectsInRoom.includes(alt)) {
+															setObjectsInRoom([...objectsInRoom, alt]);
 														}
-														rotationY={
-															modelRotationY
-														}
-														rotationZ={
-															modelRotationZ
-														}
-														alt={alt}
-														animations={animations}
-														collidable={collidable}
-														message={
-															messageObject
-														}
-														threeObjectPlugin={threeObjectPlugin}
-														threeObjectPluginRoot={threeObjectPluginRoot}
-														defaultFont={defaultFont}
-														// idle={idle}
-													/>
-												);
-											})}
-											{Object.values(props.htmlToAdd).map(
-												(model, index) => {
-													const textContent =
+														
+													const collidable =
 														model.querySelector(
-															"p.three-text-content"
+															"p.model-block-collidable"
 														)
 															? model.querySelector(
+																"p.model-block-collidable"
+															).innerText
+															: false;
+													return (
+														<ModelObject
+															key={index}
+															url={url}
+															positionX={modelPosX}
+															positionY={modelPosY}
+															positionZ={modelPosZ}
+															scaleX={modelScaleX}
+															scaleY={modelScaleY}
+															scaleZ={modelScaleZ}
+															messages={messages}
+															rotationX={
+																modelRotationX
+															}
+															rotationY={
+																modelRotationY
+															}
+															rotationZ={
+																modelRotationZ
+															}
+															alt={alt}
+															animations={animations}
+															collidable={collidable}
+															message={
+																messageObject
+															}
+															threeObjectPlugin={threeObjectPlugin}
+															threeObjectPluginRoot={threeObjectPluginRoot}
+															defaultFont={defaultFont}
+															// idle={idle}
+														/>
+													);
+												})}
+												{Object.values(props.htmlToAdd).map(
+													(model, index) => {
+														const textContent =
+															model.querySelector(
 																"p.three-text-content"
-															).innerText
-															: "";
-													const rotationX =
-														model.querySelector(
-															"p.three-text-rotationX"
-														)
-															? model.querySelector(
+															)
+																? model.querySelector(
+																	"p.three-text-content"
+																).innerText
+																: "";
+														const rotationX =
+															model.querySelector(
 																"p.three-text-rotationX"
-															).innerText
-															: "";
-													const rotationY =
-														model.querySelector(
-															"p.three-text-rotationY"
-														)
-															? model.querySelector(
+															)
+																? model.querySelector(
+																	"p.three-text-rotationX"
+																).innerText
+																: "";
+														const rotationY =
+															model.querySelector(
 																"p.three-text-rotationY"
-															).innerText
-															: "";
-													const rotationZ =
-														model.querySelector(
-															"p.three-text-rotationZ"
-														)
-															? model.querySelector(
+															)
+																? model.querySelector(
+																	"p.three-text-rotationY"
+																).innerText
+																: "";
+														const rotationZ =
+															model.querySelector(
 																"p.three-text-rotationZ"
-															).innerText
-															: "";
-													const positionX =
-														model.querySelector(
-															"p.three-text-positionX"
-														)
-															? model.querySelector(
+															)
+																? model.querySelector(
+																	"p.three-text-rotationZ"
+																).innerText
+																: "";
+														const positionX =
+															model.querySelector(
 																"p.three-text-positionX"
-															).innerText
-															: "";
-													const positionY =
-														model.querySelector(
-															"p.three-text-positionY"
-														)
-															? model.querySelector(
+															)
+																? model.querySelector(
+																	"p.three-text-positionX"
+																).innerText
+																: "";
+														const positionY =
+															model.querySelector(
 																"p.three-text-positionY"
-															).innerText
-															: "";
-													const positionZ =
-														model.querySelector(
-															"p.three-text-positionZ"
-														)
-															? model.querySelector(
+															)
+																? model.querySelector(
+																	"p.three-text-positionY"
+																).innerText
+																: "";
+														const positionZ =
+															model.querySelector(
 																"p.three-text-positionZ"
-															).innerText
-															: "";
-													const scaleX =
-														model.querySelector(
-															"p.three-text-scaleX"
-														)
-															? model.querySelector(
+															)
+																? model.querySelector(
+																	"p.three-text-positionZ"
+																).innerText
+																: "";
+														const scaleX =
+															model.querySelector(
 																"p.three-text-scaleX"
-															).innerText
-															: "";
-													const scaleY =
-														model.querySelector(
-															"p.three-text-scaleY"
-														)
-															? model.querySelector(
+															)
+																? model.querySelector(
+																	"p.three-text-scaleX"
+																).innerText
+																: "";
+														const scaleY =
+															model.querySelector(
 																"p.three-text-scaleY"
-															).innerText
-															: "";
-													const scaleZ =
+															)
+																? model.querySelector(
+																	"p.three-text-scaleY"
+																).innerText
+																: "";
+														const scaleZ =
+															model.querySelector(
+																"p.three-text-scaleZ"
+															)
+																? model.querySelector(
+																	"p.three-text-scaleZ"
+																).innerText
+																: "";
+
+														const textColor =
+															model.querySelector(
+																"p.three-text-color"
+															)
+																? model.querySelector(
+																	"p.three-text-color"
+																).innerText
+																: "";
+
+														return (
+															<TextObject
+																key={index}
+																textContent={
+																	textContent
+																}
+																positionX={
+																	positionX
+																}
+																positionY={
+																	positionY
+																}
+																positionZ={
+																	positionZ
+																}
+																scaleX={scaleX}
+																scaleY={scaleY}
+																scaleZ={scaleZ}
+																defaultFont={defaultFont}
+																threeObjectPlugin={threeObjectPlugin}
+																textColor={
+																	textColor
+																}
+																rotationX={
+																	rotationX
+																}
+																rotationY={
+																	rotationY
+																}
+																rotationZ={
+																	rotationZ
+																}
+															// alt={alt}
+															// animations={animations}
+															/>
+														);
+													}
+												)}
+												{Object.values(
+													props.portalsToAdd
+												).map((model, index) => {
+													const modelPosX =
 														model.querySelector(
-															"p.three-text-scaleZ"
+															"p.three-portal-block-position-x"
 														)
 															? model.querySelector(
-																"p.three-text-scaleZ"
+																"p.three-portal-block-position-x"
 															).innerText
 															: "";
 
-													const textColor =
+													const modelPosY =
 														model.querySelector(
-															"p.three-text-color"
+															"p.three-portal-block-position-y"
 														)
 															? model.querySelector(
-																"p.three-text-color"
+																"p.three-portal-block-position-y"
+															).innerText
+															: "";
+
+													const modelPosZ =
+														model.querySelector(
+															"p.three-portal-block-position-z"
+														)
+															? model.querySelector(
+																"p.three-portal-block-position-z"
+															).innerText
+															: "";
+
+													const modelScaleX =
+														model.querySelector(
+															"p.three-portal-block-scale-x"
+														)
+															? model.querySelector(
+																"p.three-portal-block-scale-x"
+															).innerText
+															: "";
+
+													const modelScaleY =
+														model.querySelector(
+															"p.three-portal-block-scale-y"
+														)
+															? model.querySelector(
+																"p.three-portal-block-scale-y"
+															).innerText
+															: "";
+
+													const modelScaleZ =
+														model.querySelector(
+															"p.three-portal-block-scale-z"
+														)
+															? model.querySelector(
+																"p.three-portal-block-scale-z"
+															).innerText
+															: "";
+
+													const modelRotationX =
+														model.querySelector(
+															"p.three-portal-block-rotation-x"
+														)
+															? model.querySelector(
+																"p.three-portal-block-rotation-x"
+															).innerText
+															: "";
+
+													const modelRotationY =
+														model.querySelector(
+															"p.three-portal-block-rotation-y"
+														)
+															? model.querySelector(
+																"p.three-portal-block-rotation-y"
+															).innerText
+															: "";
+
+													const modelRotationZ =
+														model.querySelector(
+															"p.three-portal-block-rotation-z"
+														)
+															? model.querySelector(
+																"p.three-portal-block-rotation-z"
+															).innerText
+															: "";
+
+													const url = model.querySelector(
+														"p.three-portal-block-url"
+													)
+														? model.querySelector(
+															"p.three-portal-block-url"
+														).innerText
+														: "";
+
+													const destinationUrl =
+														model.querySelector(
+															"p.three-portal-block-destination-url"
+														)
+															? model.querySelector(
+																"p.three-portal-block-destination-url"
+															).innerText
+															: "";
+
+													const animations =
+														model.querySelector(
+															"p.three-portal-block-animations"
+														)
+															? model.querySelector(
+																"p.three-portal-block-animations"
+															).innerText
+															: "";
+
+													const label =
+														model.querySelector(
+															"p.three-portal-block-label"
+														)
+															? model.querySelector(
+																"p.three-portal-block-label"
+															).innerText
+															: "";
+
+													const labelOffsetX =
+														model.querySelector(
+															"p.three-portal-block-label-offset-x"
+														)
+															? model.querySelector(
+																"p.three-portal-block-label-offset-x"
+															).innerText
+															: "";
+
+													const labelOffsetY =
+														model.querySelector(
+															"p.three-portal-block-label-offset-y"
+														)
+															? model.querySelector(
+																"p.three-portal-block-label-offset-y"
+															).innerText
+															: "";
+
+													const labelOffsetZ =
+														model.querySelector(
+															"p.three-portal-block-label-offset-z"
+														)
+															? model.querySelector(
+																"p.three-portal-block-label-offset-z"
+															).innerText
+															: "";
+													const labelTextColor =
+														model.querySelector(
+															"p.three-portal-block-label-text-color"
+														)
+															? model.querySelector(
+																"p.three-portal-block-label-text-color"
 															).innerText
 															: "";
 
 													return (
-														<TextObject
+														<Portal
 															key={index}
-															textContent={
-																textContent
+															url={url}
+															destinationUrl={
+																destinationUrl
 															}
-															positionX={
-																positionX
-															}
-															positionY={
-																positionY
-															}
-															positionZ={
-																positionZ
-															}
-															scaleX={scaleX}
-															scaleY={scaleY}
-															scaleZ={scaleZ}
 															defaultFont={defaultFont}
 															threeObjectPlugin={threeObjectPlugin}
-															textColor={
-																textColor
-															}
+															positionX={modelPosX}
+															positionY={modelPosY}
+															animations={animations}
+															positionZ={modelPosZ}
+															scaleX={modelScaleX}
+															scaleY={modelScaleY}
+															scaleZ={modelScaleZ}
 															rotationX={
-																rotationX
+																modelRotationX
 															}
 															rotationY={
-																rotationY
+																modelRotationY
 															}
 															rotationZ={
-																rotationZ
+																modelRotationZ
 															}
-														// alt={alt}
-														// animations={animations}
+															label={label}
+															labelOffsetX={
+																labelOffsetX
+															}
+															labelOffsetY={
+																labelOffsetY
+															}
+															labelOffsetZ={
+																labelOffsetZ
+															}
+															labelTextColor={
+																labelTextColor
+															}
+															threeObjectPluginRoot={threeObjectPluginRoot}
 														/>
 													);
-												}
-											)}
-											{Object.values(
-												props.portalsToAdd
-											).map((model, index) => {
-												const modelPosX =
-													model.querySelector(
-														"p.three-portal-block-position-x"
-													)
-														? model.querySelector(
-															"p.three-portal-block-position-x"
-														).innerText
-														: "";
-
-												const modelPosY =
-													model.querySelector(
-														"p.three-portal-block-position-y"
-													)
-														? model.querySelector(
-															"p.three-portal-block-position-y"
-														).innerText
-														: "";
-
-												const modelPosZ =
-													model.querySelector(
-														"p.three-portal-block-position-z"
-													)
-														? model.querySelector(
-															"p.three-portal-block-position-z"
-														).innerText
-														: "";
-
-												const modelScaleX =
-													model.querySelector(
-														"p.three-portal-block-scale-x"
-													)
-														? model.querySelector(
-															"p.three-portal-block-scale-x"
-														).innerText
-														: "";
-
-												const modelScaleY =
-													model.querySelector(
-														"p.three-portal-block-scale-y"
-													)
-														? model.querySelector(
-															"p.three-portal-block-scale-y"
-														).innerText
-														: "";
-
-												const modelScaleZ =
-													model.querySelector(
-														"p.three-portal-block-scale-z"
-													)
-														? model.querySelector(
-															"p.three-portal-block-scale-z"
-														).innerText
-														: "";
-
-												const modelRotationX =
-													model.querySelector(
-														"p.three-portal-block-rotation-x"
-													)
-														? model.querySelector(
-															"p.three-portal-block-rotation-x"
-														).innerText
-														: "";
-
-												const modelRotationY =
-													model.querySelector(
-														"p.three-portal-block-rotation-y"
-													)
-														? model.querySelector(
-															"p.three-portal-block-rotation-y"
-														).innerText
-														: "";
-
-												const modelRotationZ =
-													model.querySelector(
-														"p.three-portal-block-rotation-z"
-													)
-														? model.querySelector(
-															"p.three-portal-block-rotation-z"
-														).innerText
-														: "";
-
-												const url = model.querySelector(
-													"p.three-portal-block-url"
-												)
-													? model.querySelector(
-														"p.three-portal-block-url"
-													).innerText
-													: "";
-
-												const destinationUrl =
-													model.querySelector(
-														"p.three-portal-block-destination-url"
-													)
-														? model.querySelector(
-															"p.three-portal-block-destination-url"
-														).innerText
-														: "";
-
-												const animations =
-													model.querySelector(
-														"p.three-portal-block-animations"
-													)
-														? model.querySelector(
-															"p.three-portal-block-animations"
-														).innerText
-														: "";
-
-												const label =
-													model.querySelector(
-														"p.three-portal-block-label"
-													)
-														? model.querySelector(
-															"p.three-portal-block-label"
-														).innerText
-														: "";
-
-												const labelOffsetX =
-													model.querySelector(
-														"p.three-portal-block-label-offset-x"
-													)
-														? model.querySelector(
-															"p.three-portal-block-label-offset-x"
-														).innerText
-														: "";
-
-												const labelOffsetY =
-													model.querySelector(
-														"p.three-portal-block-label-offset-y"
-													)
-														? model.querySelector(
-															"p.three-portal-block-label-offset-y"
-														).innerText
-														: "";
-
-												const labelOffsetZ =
-													model.querySelector(
-														"p.three-portal-block-label-offset-z"
-													)
-														? model.querySelector(
-															"p.three-portal-block-label-offset-z"
-														).innerText
-														: "";
-												const labelTextColor =
-													model.querySelector(
-														"p.three-portal-block-label-text-color"
-													)
-														? model.querySelector(
-															"p.three-portal-block-label-text-color"
-														).innerText
-														: "";
-
-												return (
-													<Portal
-														key={index}
-														url={url}
-														destinationUrl={
-															destinationUrl
-														}
-														defaultFont={defaultFont}
-														threeObjectPlugin={threeObjectPlugin}
-														positionX={modelPosX}
-														positionY={modelPosY}
-														animations={animations}
-														positionZ={modelPosZ}
-														scaleX={modelScaleX}
-														scaleY={modelScaleY}
-														scaleZ={modelScaleZ}
-														rotationX={
-															modelRotationX
-														}
-														rotationY={
-															modelRotationY
-														}
-														rotationZ={
-															modelRotationZ
-														}
-														label={label}
-														labelOffsetX={
-															labelOffsetX
-														}
-														labelOffsetY={
-															labelOffsetY
-														}
-														labelOffsetZ={
-															labelOffsetZ
-														}
-														labelTextColor={
-															labelTextColor
-														}
-														threeObjectPluginRoot={threeObjectPluginRoot}
-													/>
-												);
-											})}
-										</TeleportTravel>
-									</>
-								)}
-							</Physics>
-						</Suspense>
-						{/* <OrbitControls
-							enableZoom={ true }
-						/> */}
+												})}
+											</TeleportTravel>
+										</>
+									)}
+								</Physics>
+							</Suspense>
+							{/* <OrbitControls
+								enableZoom={ true }
+							/> */}
 					</VRCanvas>
 					{Object.values(
 						props.npcsToAdd
@@ -1671,17 +1753,18 @@ export default function EnvironmentFront(props) {
 					
 					return (
 							<ChatBox 
-							setMessages = {setMessages}
-							objectsInRoom = {objectsInRoom}
-							personality = {personality}
-							objectAwareness = {objectAwareness}
-							name = {name}
-							defaultMessage = {defaultMessage}
-							messages = {messages}
-							showUI = {showUI}
-							style = {{zIndex: 100}}
-							nonce={props.userData.nonce}
-							key="something"/>
+								setMessages = {setMessages}
+								objectsInRoom = {objectsInRoom}
+								personality = {personality}
+								objectAwareness = {objectAwareness}
+								name = {name}
+								defaultMessage = {defaultMessage}
+								messages = {messages}
+								showUI = {showUI}
+								style = {{zIndex: 100}}
+								nonce={props.userData.nonce}
+								key="something"
+							/>
 					)
 					})}
 						<>
@@ -1704,7 +1787,11 @@ export default function EnvironmentFront(props) {
 							// all events supported by nipplejs are available as callbacks
 							// see https://github.com/yoannmoinet/nipplejs#start
 							onMove={( evt, data ) => {
-								console.log(data.direction.angle);
+								if(data.force > 1.5){
+									movement.current.shift = true;
+								} else {
+									movement.current.shift = false;
+								}
 								if(data.direction.angle){
 									if(data.direction.angle === "up"){
 										movement.current.forward = true;
