@@ -1,4 +1,4 @@
-import { Mesh, DoubleSide, MeshBasicMaterial, RingGeometry, AudioListener, Group, Quaternion, Matrix4, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, BufferGeometry, CircleGeometry, sRGBEncoding, MathUtils } from "three";
+import { Mesh, Raycaster, DoubleSide, MeshBasicMaterial, RingGeometry, AudioListener, Group, Quaternion, Matrix4, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, Vector2, BufferGeometry, CircleGeometry, sRGBEncoding, MathUtils } from "three";
 import { TextureLoader } from "three/src/loaders/TextureLoader";
 import { useFrame, useLoader, useThree, Interactive } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
@@ -6,7 +6,7 @@ import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { OrbitControls } from '@react-three/drei';
 import { useKeyboardControls } from "./Controls"
 import { useRef, useState, useEffect } from "react";
-import { RigidBody, CapsuleCollider, useRapier } from "@react-three/rapier";
+import { RigidBody, CapsuleCollider, useRapier, vec3 } from "@react-three/rapier";
 import defaultVRM from "../../../inc/avatars/3ov_default_avatar.vrm";
 import { VRMUtils, VRMSchema, VRMLoaderPlugin, VRMExpressionPresetName, VRMHumanBoneName } from "@pixiv/three-vrm";
 import { useXR } from "@react-three/xr";
@@ -195,9 +195,12 @@ function loadMixamoAnimation(url, vrm) {
 }
 
 export default function Player(props) {
-	console.log("hit")
+	const canMoveRef = useRef(true);
+	const falling = useRef(true);
 	const animationsRef = useRef();
 	const orbitRef = useRef();
+	const rigidRef = useRef();
+	const castRef = useRef();
 
 	const idleFile = threeObjectPlugin + idle;
 	const walkingFile	= threeObjectPlugin + walk;
@@ -208,11 +211,8 @@ export default function Player(props) {
 	const { camera, scene, clock } = useThree();
 	const { world, rapier } = useRapier();
 	const participantObject = scene.getObjectByName("playerOne");
-	const [rapierId, setRapierId] = useState("");
-	const [contactPoint, setContactPoint] = useState("");
-	const [headPoint, setHeadPoint] = useState("");
-	const rigidRef = useRef();
-	
+	const mouse = new Vector2();
+		
 	// if (!scene.getObjectByName("reticle")){
 	// 	camera.add(Reticle());
 	// }
@@ -232,7 +232,6 @@ export default function Player(props) {
 	// Participant VRM.
 	const fallbackURL = threeObjectPlugin + defaultVRM;
 	const defaultAvatarURL = props.defaultAvatar;
-	console.log(defaultAvatarURL);
 	let playerURL = userData.vrm ? userData.vrm : fallbackURL;
 	if(defaultAvatarURL){
 		playerURL = defaultAvatarURL;
@@ -273,44 +272,23 @@ export default function Player(props) {
 			fetchProfile();
 		}, 1000);
 
-		VRMUtils.rotateVRM0(playerController);
+		// VRMUtils.rotateVRM0(playerController);
 		const currentVrm = playerController;
 		const currentMixer = new AnimationMixer(currentVrm.scene);
 
-		useEffect(() => {
-			// setHeadPoint(
-			// 	playerController.firstPerson.humanoid.humanBones.head.node
-			// 		.position.y
-			// );
-			// set the HeadPoint to the world position of the head bone
-			// setHeadPoint(
-			// 	playerController.firstPerson.humanoid.humanBones.head.node
-			// 		.getWorldPosition()
-			// 		.y
-			// );
-			
-		}, []);
-
-		useEffect(() => {
-			const playerThing = world.getRigidBody(rigidRef.current.handle);
-			console.log(spawnPoint)
-			console.log(playerThing)
-			setTimeout(() => {
-				// playerThing.setBodyType(rapier.RigidBodyType.Dynamic, 0);
-				// playerThing.setTranslation(spawnPoint);
-			}, 20);
-		}, []);
 	
 		// need to dynamically do this on scroll
 		// playerController.firstPerson.humanoid.humanBones.head.node.scale.set([
 		// 	0, 0, 0
 		// ]);
 
-		const movement = useKeyboardControls();
-		const velocity = useRef([0, 0, 0]);  // Use a ref instead of state for velocity
+		// const movement = useKeyboardControls();
+		const velocity = useRef(spawnPoint);  // Use a ref instead of state for velocity
 		let lastUpdateTime = 0;
 
+		// frame loop
 		useFrame((state, delta) => {
+			let isMoving = false;
 			const currentTime = state.clock.elapsedTime;
 			const timeSinceLastUpdate = currentTime - lastUpdateTime;
 			const rigidBodyPosition = rigidRef.current.translation();
@@ -318,12 +296,12 @@ export default function Player(props) {
 			camera.getWorldDirection(forward);
 			forward.negate(); // In Three.js camera looks towards negative Z, so we negate the vector
 			forward.normalize();
-			// Get camera's right vector
 			const right = new Vector3();
 			right.crossVectors(camera.up, forward);
 			right.normalize();
-		  
-			if (timeSinceLastUpdate >= 0.1) { // Update every 100 milliseconds
+			// initialize the moving state to false
+			const raycaster = state.raycaster;		
+			if (timeSinceLastUpdate >= 0.1) {
 				lastUpdateTime = currentTime;
 			}
 			if (currentVrm) {
@@ -332,94 +310,102 @@ export default function Player(props) {
 			if (currentMixer) {
 				currentMixer.update(delta);
 			}
-
-			let speed = 0.05;
-			if (movement.current.shift){
-				speed = 0.1;
-			}		
-
-			let newVelocity = [...velocity.current];
-
-				// initialize the moving state to false
-			let isMoving = false;
 		
-			if (movement.current.backward){
-				// playerController.scene.rotation.y = Math.PI;
+			let speed = 0.05;
+			if (props.movement.current.shift){
+				speed = 0.1;
+			}       
+		
+			let newVelocity = [...velocity.current];
+			let newPosition = null;
+		
+			if (props.movement.current.backward && canMoveRef.current){
 				newVelocity[0] += speed * forward.x;
 				newVelocity[2] += speed * forward.z;
 				isMoving = true;
 			}
-			if (movement.current.forward){
-				// playerController.scene.rotation.y = 0;
+			if (props.movement.current.forward && canMoveRef.current){
 				newVelocity[0] -= speed * forward.x;
 				newVelocity[2] -= speed * forward.z;
 				isMoving = true;
 			}
-			if (movement.current.left){
-				// playerController.scene.rotation.y = -Math.PI / 2;
+			if (props.movement.current.left && canMoveRef.current){
 				newVelocity[0] -= speed * right.x;
 				newVelocity[2] -= speed * right.z;
 				isMoving = true;
 			}
-			if (movement.current.right){
-				// playerController.scene.rotation.y = Math.PI / 2;
+			if (props.movement.current.right && canMoveRef.current){
 				newVelocity[0] += speed * right.x;
 				newVelocity[2] += speed * right.z;
 				isMoving = true;
 			}
+		
 			// if shift is pressed, run by setting speed to 0.1
-			velocity.current = newVelocity;
-			// move the player using the new velocity
-			// Define the speed of rotation
+			if(canMoveRef.current){
+				velocity.current = newVelocity;				
+			}
+
 			const rotationSpeed = 0.5;
-
-			if (isMoving) {
-
-				if (movement.current.backward) {
-					orbitRef.current.minPolarAngle = Math.PI / 1.8;
-					orbitRef.current.maxPolarAngle = Math.PI / 1.25;
-					orbitRef.current.maxDistance = 2;
-					orbitRef.current.minDistance = 2;
+			if (props.movement.current.backward) {
+				orbitRef.current.minPolarAngle = Math.PI / 1.8;
+				orbitRef.current.maxPolarAngle = Math.PI / 1.25;
+				orbitRef.current.maxDistance = 2;
+				orbitRef.current.minDistance = 2;
+			} else {
+				// Reset properties to default values
+				if(isMoving){
+					orbitRef.current.minPolarAngle = Math.PI / 1.5;
 				} else {
-					// Reset properties to default values
 					orbitRef.current.minPolarAngle = Math.PI / 1.8;
-					orbitRef.current.maxPolarAngle = Math.PI / 1.2;
-					orbitRef.current.maxDistance = 2;
-					orbitRef.current.minDistance = 1.3;
 				}
-				
-				// We compute the direction from the camera to the player
-				let direction = camera.getWorldDirection(new Vector3());
-				// normalize the direction to not be looking up or downward
-				direction.normalize();
-				direction.y = 0; // Ignore vertical difference
-				
-				// Adjust the direction based on the movement direction
-				if(movement.current.backward) {
-					direction.negate();  // for backward movement, we want to reverse the direction
-				} else if (movement.current.right) {
-					direction.applyAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2);  // for right movement, rotate the direction 90 degrees counterclockwise
-				} else if (movement.current.left) {
-					direction.applyAxisAngle(new Vector3(0, 1, 0), Math.PI / 2);  // for left movement, rotate the direction 90 degrees clockwise
-				}
+				orbitRef.current.maxPolarAngle = Math.PI / 1.2;
+				orbitRef.current.maxDistance = 2;
+				orbitRef.current.minDistance = 1.3;
+			}
+
+			// send a raycast from the orbit camera and check if there is an obstacle in the way
 			
-				// Define the desired rotation matrix
-				let matrix = new Matrix4();
-				matrix.lookAt(new Vector3(0,0,0), direction, new Vector3(0,1,0));
+			// We compute the direction from the camera to the player
+			let direction = camera.getWorldDirection(new Vector3());
+			// normalize the direction to not be looking up or downward
+			direction.normalize();
+			direction.y = 0;
 			
-				// Create a quaternion from the rotation matrix
-				let desiredQuaternion = new Quaternion();
-				desiredQuaternion.setFromRotationMatrix(matrix);
-			
+			// Adjust the direction based on the movement direction
+			if(props.movement.current.backward) {
+				direction.negate();  // for backward movement, we want to reverse the direction
+			} else if (props.movement.current.right) {
+				direction.applyAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2);  // for right movement, rotate the direction 90 degrees counterclockwise
+			} else if (props.movement.current.left) {
+				direction.applyAxisAngle(new Vector3(0, 1, 0), Math.PI / 2);  // for left movement, rotate the direction 90 degrees clockwise
+			}
+			// Define the desired rotation matrix
+			let matrix = new Matrix4();
+			matrix.lookAt(new Vector3(0,0,0), direction, new Vector3(0,1,0));
+		
+			// Create a quaternion from the rotation matrix
+			let desiredQuaternion = new Quaternion();
+			desiredQuaternion.setFromRotationMatrix(matrix);
+
+			if ( props.movement.current.forward === true ||
+				props.movement.current.backward === true ||
+				props.movement.current.left === true ||
+				props.movement.current.right === true
+			) {
 				// Apply slerp to the player's current quaternion, gradually aligning it with the desired quaternion
 				playerController.scene.quaternion.slerp(desiredQuaternion, rotationSpeed);
-			
-				const newPosition = [
+			}
+			castRef.current.setRotation(desiredQuaternion);
+
+			if (isMoving && canMoveRef.current) {
+				newPosition = [
 					velocity.current[0],
 					rigidBodyPosition.y,
 					velocity.current[2]
 				];
 				participantObject.parent.position.set(...newPosition);
+				castRef.current.setTranslation({x: newPosition[0], y: newPosition[1], z: newPosition[2]});
+				// console.log(castRef.current.translation());
 			}
 			// animation logic
 			if (animationsRef.current) {
@@ -429,7 +415,7 @@ export default function Player(props) {
 					// If moving, but idle animation is playing, stop it and play walking animation
 					// if (idle.isRunning()) {
 						// blend from idle to walking
-						if(movement.current.shift) {
+						if(props.movement.current.shift) {
 							if (walking.isRunning()) {
 								walking.crossFadeTo(running, 1);
 							} else {
@@ -496,9 +482,6 @@ export default function Player(props) {
 			}
 
 			if (participantObject) {
-				// camera.position.setY(participantObject.parent.position.y + 2.5);
-				// camera.position.setX(participantObject.parent.position.x);
-				// camera.position.setZ(participantObject.parent.position.z - 3.5);
 				camera.lookAt(
 					participantObject.parent.position.x,
 					playerController.firstPerson.humanoid.humanBones.head.node.getWorldPosition(new Vector3()).y,
@@ -513,55 +496,42 @@ export default function Player(props) {
 					);
 					// lerpVectors() orbitRef from current position target to newTarget
 					orbitRef.current.target.lerpVectors(orbitRef.current.target, newTarget, 0.5);
-
-					
-
-					// orbitRef.current.target.set(
-					// 	participantObject.parent.position.x,
-					// 	playerController.firstPerson.humanoid.humanBones.head.node.getWorldPosition(new Vector3()).y + 1.5,
-					// 	participantObject.parent.position.z
-					// );
-					// set the zoom to 1
-					// orbitRef.current.zoom = 2;
 				}
 			}
 		
 			// update rigidBody's position
 			if (rigidRef.current) {
 				// // match the rigidBody's position to the participantObject's position.
-				// rigidRef.current.position.x = participantObject.parent.position.x;
-				// rigidRef.current.position.z = participantObject.parent.position.z;
-				// console.log("participantObject.parent.position.x", participantObject.parent.position.x);
-
 				// set the rigidbody type to one that can be moved by setTranslation
-				rigidRef.current.setBodyType(rapier.RigidBodyType.Dynamic, 1);
+				if(props.movement.current.backward || props.movement.current.forward || props.movement.current.left || props.movement.current.right || falling.current === true) {
+					rigidRef.current.setBodyType(rapier.RigidBodyType.Dynamic, 1);
+					// rigidRef.current.setFriction(1); // Set the friction to 1 so the player doesn't slide
+				} else {
+					rigidRef.current.setBodyType(rapier.RigidBodyType.Fixed, 1);
+				}
 
 				// set a const of the rigidBody's current position
 				rigidRef.current.setTranslation({ x: participantObject.parent.position.x, y: rigidBodyPosition.y, z: participantObject.parent.position.z});
-
-				// console.log("rigidRef.current.position.x", rigidRef.current);
-				// rigidRef.current.position.x = participantObject.parent.position.x;
-				// rigidRef.current.position.z = participantObject.parent.position.z;
 			}
 		});
-				
+
+
 		let animationFiles = [idleFile, walkingFile, runningFile];
 		let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, currentVrm));
-		
+	
 		Promise.all(animationsPromises)
-		.then(animations => {
+			.then(animations => {
 			const idleAction = currentMixer.clipAction(animations[0]);
 			const walkingAction = currentMixer.clipAction(animations[1]);
 			const runningAction = currentMixer.clipAction(animations[2]);
-			idleAction.timeScale = 1;  // speed up the idle animation
-			walkingAction.timeScale = 1;  // speed up the walking animation
-			runningAction.timeScale = 1;  // speed up the walking animation
-
+			idleAction.timeScale = 1;
+			walkingAction.timeScale = 1;
+			runningAction.timeScale = 1;
+	
 			animationsRef.current = { idle: idleAction, walking: walkingAction, running: runningAction };
-			// Set idle animation to play by default
 			idleAction.play();
 		});
-
+		
 		return (
 			<>
 			  {playerController && (
@@ -569,8 +539,9 @@ export default function Player(props) {
 				<OrbitControls
 					minDistance={1.3}
 					maxDistance={2}
-					maxZoom={2}
-					minZoom={2}
+					maxZoom={2.2}
+					minZoom={2.2}
+					enableDamping={true}
 					maxPolarAngle={Math.PI / 1.2}
 					minPolarAngle={Math.PI / 1.8}
 					ref={orbitRef}
@@ -580,21 +551,68 @@ export default function Player(props) {
 				{/* <CameraControls
 					ref={orbitRef}
 				/> */}
-				  <RigidBody
+				<RigidBody
 					position={spawnPoint}  // use spawnPoint as initial position
+					rotation={rigidRef.current?.rotation ? rigidRef.current.rotation : [0, 0, 0]}
 					colliders={false}
 					ref={rigidRef}
 					lockRotations={true}
+					mass={1}
+					friction={1}
+					linearDamping={0.5}
 					type={"dynamic"}
-					onCollisionEnter={({ manifold, target }) => {
-					  setRapierId(target.colliderSet.map.data[1]);
-					  setContactPoint(manifold.solverContactPoint(0));
+					angularVelocity={[0, 0, 0]}
+					linearVelocity={[0, 0, 0]}
+				>
+					<CapsuleCollider position={[0, 1, 0]} args={[0.45, 0.3]} />
+					<primitive visible={true} name="playerOne" object={playerController.scene} position={[0, .3, 0]}/>
+				</RigidBody>
+				<RigidBody
+					position={spawnPoint}  // use spawnPoint as initial position
+					colliders={false}
+					ref={castRef}
+					type={"dynamic"}
+					lockRotations={true}
+					lockTranslations={true}
+					mass={1}
+					friction={1}
+					linearDamping={0.5}
+					sensor
+					//type={"Fixed"}
+					onIntersectionEnter={({ manifold, target }) => {
+						canMoveRef.current = false;
 					}}
-					linearVelocity={velocity.current}
-				  >
-					<CapsuleCollider position={[0, 1, 0]} args={[0.45, 0.4]} />
-					<primitive visible={true} name="playerOne" object={playerController.scene} position={[0, .2, 0]}/>
-				  </RigidBody>
+					onIntersectionExit={({ manifold, target }) => {
+						canMoveRef.current = true;
+					}}
+					angularVelocity={[0, 0, 0]}
+					linearVelocity={[0, 0, 0]}
+				>
+					<CapsuleCollider
+						sensor        
+						// onIntersectionEnter={() => console.log("enter")}
+						position={[0, 1.5, -0.5]}
+						args={[0.03, 0.04]}
+					/>
+					<CapsuleCollider
+						sensor        
+						// onIntersectionEnter={() => console.log("enter")}
+						position={[0, 1.1, -0.5]}
+						args={[0.03, 0.04]}
+					/>
+					<CapsuleCollider
+						sensor        
+						// onIntersectionEnter={() => console.log("enter")}
+						position={[0.3, 1.5, -0.4]}
+						args={[0.03, 0.04]}
+					/>
+					<CapsuleCollider
+						sensor        
+						// onIntersectionEnter={() => console.log("enter")}
+						position={[-0.3, 1.5, -0.4]}
+						args={[0.03, 0.04]}
+					/>
+				</RigidBody>
 				</>
 			  )}
 			</>

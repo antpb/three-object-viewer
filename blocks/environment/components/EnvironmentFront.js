@@ -40,6 +40,12 @@ import { NPCObject } from "./core/front/NPCObject";
 import { Portal } from "./core/front/Portal";
 import { ThreeSky } from "./core/front/ThreeSky";
 import { TextObject } from "./core/front/TextObject";
+import { useKeyboardControls } from "./Controls";
+
+function isMobile() {
+	return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
 
 function Loading() {
 	return (
@@ -362,7 +368,7 @@ function SavedObject(props) {
 	const gltf = useLoader(GLTFLoader, url, (loader) => {
 		const dracoLoader = new DRACOLoader();
 		dracoLoader.setDecoderPath( threeObjectPluginRoot + "/inc/utils/draco/");
-		dracoLoader.setDecoderConfig({type: 'js'}); // (Optional) Override detection of WASM support.
+		dracoLoader.setDecoderConfig({type: 'js'});
 		loader.setDRACOLoader(dracoLoader);
 
 		loader.register(
@@ -578,6 +584,7 @@ export default function EnvironmentFront(props) {
 	// let string = 'Hello! Welcome to this 3OV world! Feel free to ask me anything. I am especially versed in the 3OV metaverse plugin for WordPress.'
 	const [mobileControls, setMobileControls] = useState(null);
 	const [mobileRotControls, setMobileRotControls] = useState(null);	  
+	const movement = useKeyboardControls();
 	  
 
 	const [messages, setMessages] = useState();
@@ -649,10 +656,9 @@ export default function EnvironmentFront(props) {
 											<Player
 												spawnPointsToAdd={spawnPoints}
 												spawnPoint={props.spawnPoint}
-												mobileControls={mobileControls}
-												mobileRotControls={mobileRotControls}
 												setShowUI={setShowUI}
 												defaultAvatar={defaultAvatar}
+												movement={movement}
 											/>
 											<Participants 
 											setParticipant={setParticipant}
@@ -1678,7 +1684,8 @@ export default function EnvironmentFront(props) {
 							key="something"/>
 					)
 					})}
-						{/* <>
+						<>
+						{ isMobile() && (
 						<ReactNipple
 							// supports all nipplejs options
 							// see https://github.com/yoannmoinet/nipplejs#options
@@ -1696,10 +1703,40 @@ export default function EnvironmentFront(props) {
 							}}
 							// all events supported by nipplejs are available as callbacks
 							// see https://github.com/yoannmoinet/nipplejs#start
-							onMove={(evt, data) => setMobileControls(data)}
-							onEnd={(evt, data) => setMobileControls(null)}
+							onMove={( evt, data ) => {
+								console.log(data.direction.angle);
+								if(data.direction.angle){
+									if(data.direction.angle === "up"){
+										movement.current.forward = true;
+										movement.current.backward = false;
+										movement.current.left = false;
+										movement.current.right = false;
+									} else if(data.direction.angle === "down"){
+										movement.current.forward = false;
+										movement.current.backward = true;
+										movement.current.left = false;
+										movement.current.right = false;
+									} else if(data.direction.angle === "left"){
+										movement.current.forward = false;
+										movement.current.backward = false;
+										movement.current.left = true;
+										movement.current.right = false;
+									} else if(data.direction.angle === "right"){
+										movement.current.forward = false;
+										movement.current.backward = false;
+										movement.current.left = false;
+										movement.current.right = true;
+									}	
+								}
+							}}
+							onEnd={( evt, data ) => {
+								movement.current.forward = false;
+								movement.current.backward = false;
+								movement.current.left = false;
+								movement.current.right = false;
+							}}
 						/>
-						<ReactNipple
+						/* <ReactNipple
 							// supports all nipplejs options
 							// see https://github.com/yoannmoinet/nipplejs#options
 							options={{ mode: 'static', position: { top: '50%', left: '50%' } }}
@@ -1716,10 +1753,13 @@ export default function EnvironmentFront(props) {
 							}}
 							// all events supported by nipplejs are available as callbacks
 							// see https://github.com/yoannmoinet/nipplejs#start
-							onMove={(evt, data) => setMobileRotControls(data)}
-							onEnd={(evt, data) => setMobileRotControls(null)}
-						/>
-					</> */}
+							onMove={( evt, data ) => {
+								console.log(data.direction.angle);
+							}}
+							// onEnd={(evt, data) => setMobileRotControls(null)}
+						/> */
+					) }
+					</>
 				</>
 			);
 		}

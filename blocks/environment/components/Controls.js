@@ -12,20 +12,20 @@ export function useKeyboardControls() {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'w') movement.current.forward = true;
-      else if (e.key === 's') movement.current.backward = true;
-      else if (e.key === 'a') movement.current.left = true;
-      else if (e.key === 'd') movement.current.right = true;
+      if (e.key === 'w' || e.key === 'W') movement.current.forward = true;
+      else if (e.key === 's' || e.key === 'S') movement.current.backward = true;
+      else if (e.key === 'a' || e.key === 'A') movement.current.left = true;
+      else if (e.key === 'd' || e.key === 'D') movement.current.right = true;
       else if (e.key === 'space') movement.current.space = true;
       // add shift key
       else if (e.key === 'Shift') movement.current.shift = true;
     }
 
     const handleKeyUp = (e) => {
-      if (e.key === 'w') movement.current.forward = false;
-      else if (e.key === 's') movement.current.backward = false;
-      else if (e.key === 'a') movement.current.left = false;
-      else if (e.key === 'd') movement.current.right = false;
+      if (e.key === 'w' || e.key === 'W') movement.current.forward = false;
+      else if (e.key === 's' || e.key === 'S') movement.current.backward = false;
+      else if (e.key === 'a' || e.key === 'A') movement.current.left = false;
+      else if (e.key === 'd' || e.key === 'D') movement.current.right = false;
       else if (e.key === 'space') movement.current.space = false;
       else if (e.key === 'Shift') movement.current.shift = false;
     }

@@ -13,8 +13,6 @@ import { GLTFAudioEmitterExtension } from "three-omi";
 import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
 import { VRMUtils, VRMSchema, VRMLoaderPlugin, VRMExpressionPresetName } from "@pixiv/three-vrm";
 import idle from "../../../../../inc/avatars/friendly.fbx";
-import friendly from "../../../../../inc/avatars/idle.fbx";
-import talking from "../../../../../inc/avatars/talking.fbx";
 
 /**
  * A map from Mixamo rig name to VRM Humanoid bone name
@@ -324,6 +322,8 @@ export function ModelObject(model) {
 				<RigidBody
 					type="fixed"
 					colliders={audioObject ? "cuboid" : "trimesh"}
+					lockRotations={true}
+					lockTranslations={true}
 					// rotation={[
 					// 	model.rotationX,
 					// 	model.rotationY,
