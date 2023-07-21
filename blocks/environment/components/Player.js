@@ -6,7 +6,7 @@ import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { OrbitControls } from '@react-three/drei';
 import { useKeyboardControls } from "./Controls"
 import { useRef, useState, useEffect } from "react";
-import { RigidBody, CapsuleCollider, useRapier, vec3 } from "@react-three/rapier";
+import { RigidBody, CapsuleCollider, useRapier, vec3, interactionGroups } from "@react-three/rapier";
 import defaultVRM from "../../../inc/avatars/3ov_default_avatar.vrm";
 import { VRMUtils, VRMSchema, VRMLoaderPlugin, VRMExpressionPresetName, VRMHumanBoneName } from "@pixiv/three-vrm";
 import { useXR } from "@react-three/xr";
@@ -245,33 +245,40 @@ export default function Player(props) {
 	if (someSceneState?.userData?.gltfExtensions?.VRM) {
 		const playerController = someSceneState.userData.vrm;
 		// Check if the avatar is reachable with a 200 response code.
+		// Check if the avatar is reachable with a 200 response code.
 		const fetchProfile = async () => {
-			fetch(userData.profileImage)
-			.then((response) => {
-				if (response.status === 200) {
-					const loadedProfile = useLoader(TextureLoader, userData.profileImage);
-
-					playerController.scene.traverse((obj) => {
-						obj.frustumCulled = false;
-
-						if (obj.name === "profile") {
-							const newMat = obj.material.clone();
-							newMat.map = loadedProfile;
-							obj.material = newMat;
-							obj.material.map.needsUpdate = true;
-						}
-					});
-				} 
-				return response;
-			}).catch(err => {
-				return Promise.reject(err)
-		   })
+			try {
+			const response = await fetch(userData.profileImage);
+			if (response.status === 200) {
+				const loadedProfile = useLoader(TextureLoader, userData.profileImage);
+		
+				playerController.scene.traverse((obj) => {
+				obj.frustumCulled = false;
+		
+				if (obj.name === "profile") {
+					const newMat = obj.material.clone();
+					newMat.map = loadedProfile;
+					obj.material = newMat;
+					obj.material.map.needsUpdate = true;
+				}
+				});
+			}
+			return response;
+			} catch (err) {
+			// Handle the error properly or rethrow it to be caught elsewhere.
+			// console.error("Error fetching profile:", err);
+			// throw err;
+			}
 		};
-		// fetch profile after timeout of 1 second
 		setTimeout(() => {
-			fetchProfile();
+			fetchProfile()
+			  .then((response) => {
+				// You can handle the response here if needed
+			  })
+			  .catch((err) => {
+				// Handle the error here if needed
+			  });
 		}, 1000);
-
 		// VRMUtils.rotateVRM0(playerController);
 		const currentVrm = playerController;
 		const currentMixer = new AnimationMixer(currentVrm.scene);
@@ -636,6 +643,7 @@ export default function Player(props) {
 				/> */}
 				<RigidBody
 					position={spawnPoint}  // use spawnPoint as initial position
+					collisionGroups={interactionGroups(0, [0, 1, 2])} 
 					colliders={false}
 					ref={rigidRef}
 					lockRotations={true}
@@ -651,6 +659,7 @@ export default function Player(props) {
 				</RigidBody>
 				<RigidBody
 					position={spawnPoint}  // use spawnPoint as initial position
+					collisionGroups={interactionGroups(1, [0, 1])} 
 					colliders={false}
 					ref={castRef}
 					type={"dynamic"}

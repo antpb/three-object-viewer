@@ -12,6 +12,9 @@ export function useKeyboardControls() {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
+      let element = e.target;
+      // if the element is an input, dont move
+      if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') return;
       if (e.key === 'w' || e.key === 'W') movement.current.forward = true;
       else if (e.key === 's' || e.key === 'S') movement.current.backward = true;
       else if (e.key === 'a' || e.key === 'A') movement.current.left = true;

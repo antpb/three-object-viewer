@@ -1792,7 +1792,7 @@ export default function EnvironmentFront(props) {
 								} else {
 									movement.current.shift = false;
 								}
-								if(data.direction.angle){
+								if(data.direction && data.direction.angle){
 									if(data.direction.angle === "up"){
 										movement.current.forward = true;
 										movement.current.backward = false;

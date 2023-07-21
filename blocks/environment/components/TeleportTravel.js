@@ -68,8 +68,9 @@ export default function TeleportTravel(props) {
 	useEffect(() => {
 		// Remove the reticle when the controllers are registered.
 		const reticle = scene.getObjectByName("reticle");
+		const participantObject = scene.getObjectByName("playerOne");
 		if (controllers.length > 0 && reticle) {
-			const participantObject = scene.getObjectByName("playerOne");
+			// console.log("participantObject", participantObject);
 			// set participantObject to invisible
 			participantObject.visible = false;
 			reticle.visible = false;

@@ -3,7 +3,7 @@ import { useLoader, useThree } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import { AudioListener, Vector3, BufferGeometry, MeshBasicMaterial, DoubleSide, Mesh, CircleGeometry, sRGBEncoding } from "three";
-import { RigidBody } from "@react-three/rapier";
+import { RigidBody, interactionGroups } from "@react-three/rapier";
 import {
 	useAnimations,
 	Billboard,
@@ -205,6 +205,7 @@ export function Portal(model) {
 			<RigidBody
 				type="fixed"
 				colliders={"cuboid"}
+				collisionGroups={interactionGroups(2, [0, 2])} 
 				onCollisionEnter={(props) =>
 					(window.location.href = model.destinationUrl)
 				}
