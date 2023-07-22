@@ -15,10 +15,10 @@ export function useKeyboardControls() {
       let element = e.target;
       // if the element is an input, dont move
       if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') return;
-      if (e.key === 'w' || e.key === 'W') movement.current.forward = true;
-      else if (e.key === 's' || e.key === 'S') movement.current.backward = true;
-      else if (e.key === 'a' || e.key === 'A') movement.current.left = true;
-      else if (e.key === 'd' || e.key === 'D') movement.current.right = true;
+      if (e.key === 'w' || e.key === 'W' && ! movement.current.forward) movement.current.forward = true;
+      else if (e.key === 's' || e.key === 'S' && ! movement.current.backward) movement.current.backward = true;
+      else if (e.key === 'a' || e.key === 'A' && ! movement.current.left) movement.current.left = true;
+      else if (e.key === 'd' || e.key === 'D' && ! movement.current.right) movement.current.right = true;
       else if (e.key === 'space') movement.current.space = true;
       // add shift key
       else if (e.key === 'Shift') movement.current.shift = true;

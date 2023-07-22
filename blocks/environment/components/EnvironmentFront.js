@@ -1793,22 +1793,22 @@ export default function EnvironmentFront(props) {
 									movement.current.shift = false;
 								}
 								if(data.direction && data.direction.angle){
-									if(data.direction.angle === "up"){
+									if(data.direction.angle === "up" && ! movement.current.forward){
 										movement.current.forward = true;
 										movement.current.backward = false;
 										movement.current.left = false;
 										movement.current.right = false;
-									} else if(data.direction.angle === "down"){
+									} else if(data.direction.angle === "down"  && ! movement.current.backward){
 										movement.current.forward = false;
 										movement.current.backward = true;
 										movement.current.left = false;
 										movement.current.right = false;
-									} else if(data.direction.angle === "left"){
+									} else if(data.direction.angle === "left"  && ! movement.current.left){
 										movement.current.forward = false;
 										movement.current.backward = false;
 										movement.current.left = true;
 										movement.current.right = false;
-									} else if(data.direction.angle === "right"){
+									} else if(data.direction.angle === "right"  && ! movement.current.right){
 										movement.current.forward = false;
 										movement.current.backward = false;
 										movement.current.left = false;

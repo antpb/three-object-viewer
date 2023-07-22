@@ -142,6 +142,7 @@ export default function App({ getSettings, updateSettings }) {
 				<tr>
 					<td>
 						<label htmlFor="defaultAvatar"><b>Default Avatar</b></label>
+						<p>View our  <a href="https://3ov.xyz/resource/recommended-avatars/">Avatar Resource Page</a> for some 3OV compatible avatars.</p>
 					</td>
 				</tr>
 				<tr>

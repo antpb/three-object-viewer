@@ -365,13 +365,11 @@ export default function Player(props) {
 				newVelocity[0] += speed * forward.x;
 				newVelocity[2] += speed * forward.z;
 				isMoving = true;
-			}
-			if (props.movement.current.forward && canMoveRef.current){
+			} else if (props.movement.current.forward && canMoveRef.current){
 				newVelocity[0] -= speed * forward.x;
 				newVelocity[2] -= speed * forward.z;
 				isMoving = true;
-			}
-			if (props.movement.current.left && canMoveRef.current){
+			} else if (props.movement.current.left && canMoveRef.current){
 				speed = 0.03;
 				if (props.movement.current.shift){
 					speed = 0.07;
@@ -379,8 +377,7 @@ export default function Player(props) {
 				newVelocity[0] -= speed * right.x;
 				newVelocity[2] -= speed * right.z;
 				isMoving = true;
-			}
-			if (props.movement.current.right && canMoveRef.current){
+			}else if (props.movement.current.right && canMoveRef.current){
 				speed = 0.03;
 				if (props.movement.current.shift){
 					speed = 0.07;
@@ -388,7 +385,9 @@ export default function Player(props) {
 				newVelocity[0] += speed * right.x;
 				newVelocity[2] += speed * right.z;
 				isMoving = true;
-			} if(props.movement.current.respawn === true){
+			} 
+			
+			if(props.movement.current.respawn === true){
 				newPosition = spawnPoint;
 				newVelocity = spawnPoint;
 				velocity.current = spawnPoint;
