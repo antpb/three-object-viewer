@@ -324,17 +324,17 @@ export function ModelObject(model) {
 					colliders={audioObject ? "cuboid" : "trimesh"}
 					lockRotations={true}
 					lockTranslations={true}
-					// rotation={[
-					// 	model.rotationX,
-					// 	model.rotationY,
-					// 	model.rotationZ
-					// ]}
-					// position={[
-					// 	Number(model.positionX),
-					// 	Number(model.positionY),
-					// 	Number(model.positionZ)
-					// ]}
-					// scale={[Number(model.scaleX) + 0.01, Number(model.scaleY) + 0.01, Number(model.scaleZ) + 0.01]}
+					rotation={[
+						model.rotationX,
+						model.rotationY,
+						model.rotationZ
+					]}
+					position={[
+						Number(model.positionX),
+						Number(model.positionY),
+						Number(model.positionZ)
+					]}
+					scale={[Number(model.scaleX) + 0.01, Number(model.scaleY) + 0.01, Number(model.scaleZ) + 0.01]}
 					onCollisionEnter={(manifold, target, other) => {
 						setClickEvent(!clicked);
 						if (audioObject) {
@@ -358,17 +358,17 @@ export function ModelObject(model) {
 						object={gltf.scene}
 						// castShadow
 						// receiveShadow
-						rotation={[
-							model.rotationX,
-							model.rotationY,
-							model.rotationZ
-						]}
-						position={[
-							model.positionX,
-							model.positionY,
-							model.positionZ
-						]}
-						scale={[model.scaleX, model.scaleY, model.scaleZ]}
+						// rotation={[
+						// 	model.rotationX,
+						// 	model.rotationY,
+						// 	model.rotationZ
+						// ]}
+						// position={[
+						// 	model.positionX,
+						// 	model.positionY,
+						// 	model.positionZ
+						// ]}
+						// scale={[model.scaleX, model.scaleY, model.scaleZ]}
 					/>
 				</RigidBody>
 		);

@@ -43,7 +43,7 @@ export default function App({ getSettings, updateSettings }) {
 			button: {
 				text: 'Use this media',
 			},
-			multiple: false, // Set to true to allow multiple files to be selected
+			multiple: false,
 		})
 		frame.on( 'select', function() {
       
@@ -73,14 +73,13 @@ export default function App({ getSettings, updateSettings }) {
 			button: {
 				text: 'Use this media',
 			},
-			multiple: false, // Set to true to allow multiple files to be selected
+			multiple: false,
 		})
 		frame.on( 'select', function() {
       
 			// Get media attachment details from the frame state
 			var attachment = frame.state().get('selection').first().toJSON();
 			setSettings({ ...settings, defaultAvatar: attachment.url });
-			// Send the attachment URL to our custom image input field.
 		  });
 	  
 		  
