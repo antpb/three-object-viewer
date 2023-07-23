@@ -53,7 +53,6 @@ export function ThreeVideo(threeVideo) {
 					setScreenParent(foundScreen.parent);
 					// Update screen's material with video texture
 					const videoTexture = new VideoTexture(video);
-					videoTexture.encoding = sRGBEncoding;
 					const material = new MeshBasicMaterial({ map: videoTexture, toneMapped: false });
 					foundScreen.material = material;
 				}
@@ -158,7 +157,6 @@ export function ThreeVideo(threeVideo) {
 										<videoTexture
 											attach="map"
 											args={[video]}
-											encoding={sRGBEncoding}
 										/>
 									</meshBasicMaterial>
 									<planeGeometry

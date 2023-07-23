@@ -300,7 +300,10 @@ export default function Player(props) {
 			let isMoving = false;
 			const currentTime = state.clock.elapsedTime;
 			const timeSinceLastUpdate = currentTime - lastUpdateTime;
-			const rigidBodyPosition = rigidRef.current.translation();
+			let rigidBodyPosition = [0, 0, 0]
+			if(rigidRef){
+				rigidBodyPosition = rigidRef.current.translation();
+			}
 			const forward = new Vector3();
 			camera.getWorldDirection(forward);
 			forward.negate(); // In Three.js camera looks towards negative Z, so we negate the vector
@@ -352,41 +355,38 @@ export default function Player(props) {
 					blinkInterval = 5 + Math.random() * 10;  // Blink roughly every 10 to 25 seconds
 				}
 			}
-											
-			let speed = 0.06;
-			if (props.movement.current.shift){
-				speed = 0.12;
-			}       
-		
+			let speedPerSecondFB = 3.6;  // This is equivalent to 0.06 per frame at 60 FPS
+			let speedPerSecondLR = 1.8;  // This is equivalent to 0.03 per frame at 60 FPS
+			
+			if (props.movement.current.shift) {
+				speedPerSecondFB = 7.2;  // This is equivalent to 0.12 per frame at 60 FPS
+				speedPerSecondLR = 4.2;  // This is equivalent to 0.07 per frame at 60 FPS
+			}
+
 			let newVelocity = [...velocity.current];
 			let newPosition = null;
-		
-			if (props.movement.current.backward && canMoveRef.current){
+
+			if (props.movement.current.backward && canMoveRef.current) {
+				let speed = speedPerSecondFB * delta;
 				newVelocity[0] += speed * forward.x;
 				newVelocity[2] += speed * forward.z;
 				isMoving = true;
-			} else if (props.movement.current.forward && canMoveRef.current){
+			} else if (props.movement.current.forward && canMoveRef.current) {
+				let speed = speedPerSecondFB * delta;
 				newVelocity[0] -= speed * forward.x;
 				newVelocity[2] -= speed * forward.z;
 				isMoving = true;
-			} else if (props.movement.current.left && canMoveRef.current){
-				speed = 0.03;
-				if (props.movement.current.shift){
-					speed = 0.07;
-				}	
+			} else if (props.movement.current.left && canMoveRef.current) {
+				let speed = speedPerSecondLR * delta;
 				newVelocity[0] -= speed * right.x;
 				newVelocity[2] -= speed * right.z;
 				isMoving = true;
-			}else if (props.movement.current.right && canMoveRef.current){
-				speed = 0.03;
-				if (props.movement.current.shift){
-					speed = 0.07;
-				}
+			} else if (props.movement.current.right && canMoveRef.current) {
+				let speed = speedPerSecondLR * delta;
 				newVelocity[0] += speed * right.x;
 				newVelocity[2] += speed * right.z;
 				isMoving = true;
-			} 
-			
+			}
 			if(props.movement.current.respawn === true){
 				newPosition = spawnPoint;
 				newVelocity = spawnPoint;
@@ -589,7 +589,7 @@ export default function Player(props) {
 			}
 		
 			// update rigidBody's position
-			if (rigidRef.current) {
+			if (rigidRef.current && participantObject?.parent?.position?.x) {
 				// // match the rigidBody's position to the participantObject's position.
 				// set the rigidbody type to one that can be moved by setTranslation
 				if(props.movement.current.backward || props.movement.current.forward || props.movement.current.left || props.movement.current.right || falling.current === true) {
