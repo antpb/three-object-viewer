@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLoader, useThree } from "@react-three/fiber";
-import { VideoTexture, Vector3, BufferGeometry, MeshBasicMaterial, DoubleSide, Mesh, CircleGeometry, sRGBEncoding } from "three";
+import { VideoTexture, Vector3, BufferGeometry, MeshBasicMaterial, MeshStandardMaterial, DoubleSide, Mesh, CircleGeometry, sRGBEncoding } from "three";
 import { RigidBody } from "@react-three/rapier";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
@@ -53,7 +53,10 @@ export function ThreeVideo(threeVideo) {
 					setScreenParent(foundScreen.parent);
 					// Update screen's material with video texture
 					const videoTexture = new VideoTexture(video);
-					const material = new MeshBasicMaterial({ map: videoTexture, toneMapped: false });
+					videoTexture.encoding = sRGBEncoding;
+					const material = new MeshBasicMaterial({ 
+						map: videoTexture
+					});
 					foundScreen.material = material;
 				}
 			}
@@ -153,10 +156,11 @@ export function ThreeVideo(threeVideo) {
 								}}
 							>
 								<mesh>
-									<meshBasicMaterial toneMapped={false}>
+									<meshBasicMaterial>
 										<videoTexture
 											attach="map"
 											args={[video]}
+											encoding={sRGBEncoding}
 										/>
 									</meshBasicMaterial>
 									<planeGeometry
