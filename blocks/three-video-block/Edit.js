@@ -77,11 +77,6 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 	};
 
 	const onChangeCustomModel = (customModelSetting) => {
-		setAttributes({ 			
-			aspectHeight: attributes.aspectHeight,
-			aspectWidth: attributes.aspectWidth
-		});
-
 		setAttributes({ customModel: customModelSetting });
 	};
 

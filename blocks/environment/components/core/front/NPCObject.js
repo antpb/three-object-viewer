@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
@@ -13,8 +13,6 @@ import { GLTFAudioEmitterExtension } from "three-omi";
 import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
 import { VRMUtils, VRMSchema, VRMLoaderPlugin, VRMExpressionPresetName, VRMHumanBoneName } from "@pixiv/three-vrm";
 import idle from "../../../../../inc/avatars/friendly.fbx";
-import friendly from "../../../../../inc/avatars/idle.fbx";
-import talking from "../../../../../inc/avatars/talking.fbx";
 
 /**
  * A map from Mixamo rig name to VRM Humanoid bone name
@@ -192,7 +190,7 @@ export function NPCObject(model) {
 	const [idleFile, setIdleFile] = useState(model.threeObjectPlugin + idle);
 	const [clicked, setClickEvent] = useState();
 	const [activeMessage, setActiveMessage] = useState([]);
-	const [headPositionY, setHeadPositionY] = useState([]);
+	const headPositionY = useRef([]);
 	const [url, set] = useState(model.url);
 	useEffect(() => {
 		setTimeout(() => set(model.url), 2000);
@@ -302,52 +300,75 @@ export function NPCObject(model) {
 				let head = currentVrm.humanoid.getRawBoneNode(VRMHumanBoneName.Head);
 				let worldPos = new Vector3();
 				head.getWorldPosition(worldPos);
-				setHeadPositionY(worldPos.y);
+				// setHeadPositionY(worldPos.y);
+				headPositionY.current = worldPos.y;
 			}
 		}, [currentVrm]);
 
+		let lastUpdateTime = 0;
+
 		// Load animation
 		useFrame((state, delta) => {
+			const currentTime = state.clock.elapsedTime;
+			const timeSinceLastUpdate = currentTime - lastUpdateTime;
+					  
 			if (currentVrm) {
-
 				let outputJson;
-				if (activeMessage) {
-					// messageObject = JSON.parse(activeMessage);
-					// const outputString = messageObject.outputs.Output;
-					try {
-						const outputJSON = JSON.parse(activeMessage);
-					} catch (e) {
-						const outputJSON = JSON.parse("null");
+				if (timeSinceLastUpdate >= 0.1) { // Update every 100 milliseconds
+					lastUpdateTime = currentTime;
+
+					// get the object named "npcText" from the useThree scene
+					const npcText = scene.getObjectByName("npcText");
+					const npcBackground = scene.getObjectByName("npcBackground");
+					// move the npcText to the head height position
+					if (npcText && npcBackground) {
+						// get the head bone position y
+						let head = currentVrm.humanoid.getRawBoneNode(VRMHumanBoneName.Head);
+						// set the npcText position to the head bone world y position
+						let worldPos = new Vector3();
+						head.getWorldPosition(worldPos);
+						npcText.position.y = worldPos.y - 0.4;
+						npcBackground.position.y = worldPos.y - 0.4;
 					}
-
-					currentVrm.expressionManager.setValue( VRMExpressionPresetName.Neutral, 0 );
-					currentVrm.expressionManager.setValue( VRMExpressionPresetName.Relaxed, 0.8 );
-						currentVrm.update(clock.getDelta());
-			
-					// if(outputJSON.tone){
-					// 	//convert outputJSON.tone to lowercase
-					// 	outputJSON.tone = outputJSON.tone.toLowerCase();
-
-					// 	// Extract the Output parameter
-					// 	if(outputJSON.tone.toLowerCase() === "neutral" ){
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 0 );
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 0 );
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 0 );
-					// 	} else if (outputJSON.tone.toLowerCase() === "confused" ){
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 1 );
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 1 );
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 0 );
-					// 	} else if (outputJSON.tone.toLowerCase() === "friendly" ){
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 0 );
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 1 );
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 0 );
-					// 	} else if (outputJSON.tone.toLowerCase() === "angry" ){
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 0 );
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 0 );
-					// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 1 );
-					// 	}
-					// }
 				}
+
+				// if (activeMessage) {
+				// 	// messageObject = JSON.parse(activeMessage);
+				// 	// const outputString = messageObject.outputs.Output;
+				// 	try {
+				// 		const outputJSON = JSON.parse(activeMessage);
+				// 	} catch (e) {
+				// 		const outputJSON = JSON.parse("null");
+				// 	}
+
+				// 	// currentVrm.expressionManager.setValue( VRMExpressionPresetName.Neutral, 0 );
+				// 	// currentVrm.expressionManager.setValue( VRMExpressionPresetName.Relaxed, 0.8 );
+				// 	currentVrm.update(clock.getDelta());
+			
+				// 	// if(outputJSON.tone){
+				// 	// 	//convert outputJSON.tone to lowercase
+				// 	// 	outputJSON.tone = outputJSON.tone.toLowerCase();
+
+				// 	// 	// Extract the Output parameter
+				// 	// 	if(outputJSON.tone.toLowerCase() === "neutral" ){
+				// 	// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 0 );
+				// 	// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 0 );
+				// 	// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 0 );
+				// 	// 	} else if (outputJSON.tone.toLowerCase() === "confused" ){
+				// 	// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 1 );
+				// 	// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 1 );
+				// 	// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 0 );
+				// 	// 	} else if (outputJSON.tone.toLowerCase() === "friendly" ){
+				// 	// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 0 );
+				// 	// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 1 );
+				// 	// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 0 );
+				// 	// 	} else if (outputJSON.tone.toLowerCase() === "angry" ){
+				// 	// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Surprised, 0 );
+				// 	// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Happy, 0 );
+				// 	// 		currentVrm.expressionManager.setValue( VRMExpressionPresetName.Angry, 1 );
+				// 	// 	}
+				// 	// }
+				// }
 				currentVrm.update(delta);
 			}
 			if (currentMixer) {
@@ -388,7 +409,7 @@ export function NPCObject(model) {
 			>
 				<Text
 					font={model.threeObjectPlugin + model.defaultFont}
-					position={[0.6, (Number(headPositionY) - 0.5), 0]}
+					position={[0.6, (Number(headPositionY.current) - 0.5), 0]}
 					className="content"
 					scale={[0.5, 0.5, 0.5]}
 					// rotation-y={-Math.PI / 2}
@@ -398,10 +419,11 @@ export function NPCObject(model) {
 					height={0.1}
 					color={0xffffff}
 					transform
+					name="npcText"
 				>
 					{outputJSON && String(outputJSON)}
 				</Text>
-				<mesh position={[0.6,  (Number(headPositionY) - 0.5), -0.01]}>
+				<mesh name="npcBackground" position={[0.6,  (Number(headPositionY.current) - 0.5), -0.01]}>
 					<planeGeometry attach="geometry" args={[0.65, 1.5]} />
 					<meshBasicMaterial attach="material" color={0x000000} opacity={0.5}	transparent={ true } />
 				</mesh>

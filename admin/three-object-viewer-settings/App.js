@@ -28,7 +28,7 @@ export default function App({ getSettings, updateSettings }) {
 		setSettings(response);
 	};
 
-	const runUploader = (event) => {
+	const runUploaderAnimation = (event) => {
 		event.preventDefault()
 	
 		// If the media frame already exists, reopen it.
@@ -43,7 +43,7 @@ export default function App({ getSettings, updateSettings }) {
 			button: {
 				text: 'Use this media',
 			},
-			multiple: false, // Set to true to allow multiple files to be selected
+			multiple: false,
 		})
 		frame.on( 'select', function() {
       
@@ -58,13 +58,46 @@ export default function App({ getSettings, updateSettings }) {
 		frame.open()
 	}
 
+	const runUploaderDefaultAvatar = (event) => {
+		event.preventDefault()
+	
+		// If the media frame already exists, reopen it.
+		if (frame) {
+			frame.open()
+			return
+		}
+	
+		// Create a new media frame
+		frame = wp.media({
+			title: 'Select or Upload Media',
+			button: {
+				text: 'Use this media',
+			},
+			multiple: false,
+		})
+		frame.on( 'select', function() {
+      
+			// Get media attachment details from the frame state
+			var attachment = frame.state().get('selection').first().toJSON();
+			setSettings({ ...settings, defaultAvatar: attachment.url });
+		  });
+	  
+		  
+		// Finally, open the modal on click
+		frame.open()
+	}
+
 	//Show a spinner if loading
 	if (isLoading) {
 		return <div className="spinner" style={{ visibility: "visible" }} />;
 	}
 	const clearDefaultAnimation = () => {
 		setSettings({ ...settings, defaultVRM: "" });
-	  }
+	}
+
+	const clearDefaultAvatar = () => {
+		setSettings({ ...settings, defaultAvatar: "" });
+	}
 	  
 	//Show settings if not loading
 	return (
@@ -93,7 +126,7 @@ export default function App({ getSettings, updateSettings }) {
 				</tr>
 				<tr>
 					<td>
-						<button type='button' onClick={runUploader}>
+						<button type='button' onClick={runUploaderAnimation}>
 							Set Default Animation
 						</button>
 					</td>
@@ -102,6 +135,31 @@ export default function App({ getSettings, updateSettings }) {
 					<td>
 						<button type='button' onClick={clearDefaultAnimation}>
 							Clear Default Animation
+						</button>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label htmlFor="defaultAvatar"><b>Default Avatar</b></label>
+						<p>View our  <a href="https://3ov.xyz/resource/recommended-avatars/">Avatar Resource Page</a> for some 3OV compatible avatars.</p>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						{ settings.defaultAvatar ? settings.defaultAvatar : "No custom default avatar set"}
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<button type='button' onClick={runUploaderDefaultAvatar}>
+							Set Default Avatar
+						</button>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<button type='button' onClick={clearDefaultAvatar}>
+							Clear Default Avatar
 						</button>
 					</td>
 				</tr>

@@ -13,8 +13,6 @@ import { GLTFAudioEmitterExtension } from "three-omi";
 import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
 import { VRMUtils, VRMSchema, VRMLoaderPlugin, VRMExpressionPresetName } from "@pixiv/three-vrm";
 import idle from "../../../../../inc/avatars/friendly.fbx";
-import friendly from "../../../../../inc/avatars/idle.fbx";
-import talking from "../../../../../inc/avatars/talking.fbx";
 
 /**
  * A map from Mixamo rig name to VRM Humanoid bone name
@@ -321,21 +319,22 @@ export function ModelObject(model) {
 
 	if (model.collidable === "1") {
 		return (
-			<>
 				<RigidBody
 					type="fixed"
 					colliders={audioObject ? "cuboid" : "trimesh"}
+					lockRotations={true}
+					lockTranslations={true}
 					rotation={[
 						model.rotationX,
 						model.rotationY,
 						model.rotationZ
 					]}
 					position={[
-						model.positionX,
-						model.positionY,
-						model.positionZ
+						Number(model.positionX),
+						Number(model.positionY),
+						Number(model.positionZ)
 					]}
-					scale={[model.scaleX + 0.01, model.scaleY + 0.01, model.scaleZ + 0.01]}
+					scale={[Number(model.scaleX) + 0.01, Number(model.scaleY) + 0.01, Number(model.scaleZ) + 0.01]}
 					onCollisionEnter={(manifold, target, other) => {
 						setClickEvent(!clicked);
 						if (audioObject) {
@@ -359,20 +358,19 @@ export function ModelObject(model) {
 						object={gltf.scene}
 						// castShadow
 						// receiveShadow
-						rotation={[
-							model.rotationX,
-							model.rotationY,
-							model.rotationZ
-						]}
-						position={[
-							model.positionX,
-							model.positionY,
-							model.positionZ
-						]}
-						scale={[model.scaleX, model.scaleY, model.scaleZ]}
+						// rotation={[
+						// 	model.rotationX,
+						// 	model.rotationY,
+						// 	model.rotationZ
+						// ]}
+						// position={[
+						// 	model.positionX,
+						// 	model.positionY,
+						// 	model.positionZ
+						// ]}
+						// scale={[model.scaleX, model.scaleY, model.scaleZ]}
 					/>
 				</RigidBody>
-			</>
 		);
 	}
 	return (

@@ -33,8 +33,14 @@ module.exports = {
 	...defaultConfig,
 	module: {
 		...defaultConfig.module,
+		
 		rules: [
 			...defaultConfig.module.rules,
+			{
+				test: /\.js$/,
+				exclude: /node_modules/,
+				use: 'babel-loader'
+			},			  
 			{
 				test: /\.css$/,
 				use: ["style-loader", "sass-loader", "css-loader"]

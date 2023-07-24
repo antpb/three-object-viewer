@@ -3,7 +3,7 @@
 * Plugin Name: Three Object Viewer
 * Plugin URI: https://3ov.xyz/
 * Description: A plugin for viewing 3D files with support for WebXR and Open Metaverse Interoperability GLTF Extensions.
-* Version: 1.3.7
+* Version: 1.4.0
 * Requires at least: 5.7
 * Requires PHP:      7.1.0
 * Author:            antpb
@@ -19,27 +19,74 @@ use threeObjectViewer\Core\Plugin;
 $main = new Plugin();
 $main->init();
 register_activation_hook( __FILE__, array( 'threeObjectViewer\MainOptions', 'my_plugin_activate' ) );
-register_deactivation_hook( __FILE__,  array( 'threeObjectViewer\MainOptions', 'my_plugin_deactivate' ));
+
+define('THREEOV_PLUGIN_VERSION', '1.4.0');
 
 class MainOptions
-{
-	public static function my_plugin_deactivate() {
-		delete_option( '3ov_ai_enabled' );
-		delete_option( '3ov_mp_networkWorker' );
-		delete_option( '3ov_ai_openApiKey' );
-		delete_option( '3ov_ai_allow' );
-	}
-	
+{	
 	public static function my_plugin_activate() {
-		update_option( '3ov_ai_enabled', true );
-		update_option( '3ov_mp_networkWorker', 'https://alchemy.sxp.digital' );
-		update_option( '3ov_ai_openApiKey', '' );
-		update_option( '3ov_ai_allow', 'loggedIn' );
-		update_option( '3ov_defaultVRM', '' );
+		if( ! get_option( '3ov_ai_enabled' ) ) {
+			update_option( '3ov_ai_enabled', true );
+		}
+		if( ! get_option( '3ov_mp_networkWorker' ) ) {
+			update_option( '3ov_mp_networkWorker', 'https://alchemy.sxp.digital' );
+		}
+		// if 3ov_ai_openApiKey is not set, set it to empty string
+		if( ! get_option( '3ov_ai_openApiKey' ) ) {
+			update_option( '3ov_ai_openApiKey', '' );
+		}
+		if( ! get_option( '3ov_ai_allow' ) ) {
+			update_option( '3ov_ai_allow', 'loggedIn' );
+		}
+		// Check and update '3ov_defaultAvatar' option
+		if( ! get_option( '3ov_defaultAvatar' ) ) {
+			update_option( '3ov_defaultAvatar', '' ); // replace 'default_value' with the value you want to set
+		}
+		update_option('3ov_plugin_version', THREEOV_PLUGIN_VERSION);
 	}
+	public static function check_plugin_update() {
+		// Get the last known version from options
+		$last_known_version = get_option('3ov_plugin_version');
+
+		// If there's no recorded version or the current version is higher than the last known version, the plugin has been updated
+		if (!$last_known_version || version_compare(THREEOV_PLUGIN_VERSION, $last_known_version, '>')) {
+			self::on_plugin_update();
+		}
+	}
+
+	public static function on_plugin_update() {
+		if( ! get_option( '3ov_ai_enabled' ) ) {
+			update_option( '3ov_ai_enabled', true );
+		}
+
+		if( ! get_option( '3ov_mp_networkWorker' ) ) {
+			update_option( '3ov_mp_networkWorker', 'https://alchemy.sxp.digital' );
+		}
+
+		// if 3ov_ai_openApiKey is not set, set it to empty string
+		if( ! get_option( '3ov_ai_openApiKey' ) ) {
+			update_option( '3ov_ai_openApiKey', '' );
+		}
+
+		if( ! get_option( '3ov_ai_allow' ) ) {
+			update_option( '3ov_ai_allow', 'loggedIn' );
+		}
+
+		if( ! get_option( '3ov_defaultAvatar' ) ) {
+			update_option( '3ov_defaultAvatar', '' );
+		}
+
+		if( ! get_option( '3ov_defaultVRM' ) ) {
+			update_option( '3ov_defaultVRM', '' );
+		}
+
+		// Update the version in options
+		update_option('3ov_plugin_version', THREEOV_PLUGIN_VERSION);
+	}
+
 }
 
-
+MainOptions::check_plugin_update();
 
 
 // Include three-object-block

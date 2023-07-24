@@ -1,8 +1,8 @@
 === Three Object Viewer ===
 Requires at least: 5.7
-Tested up to: 6.2
+Tested up to: 6.2.2
 Requires PHP: 7.2
-Stable tag: 1.3.7
+Stable tag: 1.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Author: antpb
@@ -42,6 +42,15 @@ It can also be installed manually using a zip file.
 
 
 == Changelog ==
+= 1.4.0 =
+Removed: 1st person controller (coming back in a future update)
+Added: 3rd Person Controller + avatars.
+Added: New setting to define the default avatar of your site.
+Added: Loading animation when users clicks "Load World".
+Added: Clickable canvas for elements like the Video Block. Click to play. Click again to pause.
+Fixed: Removed Environment Block from rendering on an archive page for performance reasons. Not yet convinced there is a use case for multiple environment blocks on a page.
+Added: Update logic for future options that need to initialize on update.
+
 = 1.3.7 =
 Fixed: NPC text was falling into the ground. Moved up closer to NPC head position.
 

@@ -205,6 +205,20 @@ div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner
 	text-align: center;
 }
 
+.threeov-chat-button {
+	position: absolute !important;
+	top: 0px !important;
+	z-index: 100;
+}
+.threeov-chat-container {
+    background-color: rgba(0,0,0,.8) !important;
+    z-index: 1001 !important;
+    width: 100% !important;
+    padding: 0px !important;
+    margin-left: -8px !important;
+}
+
+
 .three-object-block-url-input {
 	padding-bottom: 20px;
 }
@@ -212,3 +226,18 @@ div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner
 .three-object-block-url-input input{
 	height: 40px;
 }
+
+.threeov-spinner {
+	border: 8px solid #f3f3f3;
+	border-top: 8px solid #007bff;
+	border-radius: 50%;
+	width: 60px;
+	height: 60px;
+	animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+  }
+  

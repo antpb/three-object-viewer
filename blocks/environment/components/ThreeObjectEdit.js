@@ -389,7 +389,7 @@ function VideoObject(threeVideo) {
 			  setScreenParent(foundScreen.parent);
 			  // Update screen's material with video texture
 			  const videoTexture = new THREE.VideoTexture(video);
-			  videoTexture.encoding = THREE.sRGBEncoding;
+			  videoTexture.encoding= THREE.sRGBEncoding;
 			  const material = new THREE.MeshBasicMaterial({ map: videoTexture, toneMapped: false });
 			  foundScreen.material = material;
 			}
@@ -1451,10 +1451,10 @@ export default function ThreeObjectEdit(props) {
 			<div
 			  style={{
 				display: "flex",
-				justifyContent: "flex-end",
+				justifyContent: "flex-start",
 				position: "absolute",
-				top: "0",
-				right: "0",
+				top: "15px",
+				left: "250px",
 			  }}
 			>
 			  <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -1550,27 +1550,6 @@ export default function ThreeObjectEdit(props) {
 	return (
 		<>
 			<ObjectControls transformMode={transformMode} setTransformMode={setTransformMode}/>
-			<Resizable
-				defaultSize={{
-					height: "90vh",
-					width: "100%",
-				}}
-				enable={{
-					top: false,
-					right: false,
-					bottom: true,
-					left: false,
-					topRight: false,
-					bottomRight: false,
-					bottomLeft: false,
-					topLeft: false,
-				}}
-				style={{
-					flex: 1,
-					paddingLeft: "220px",
-					backgroundColor: "#cbcbcb",
-				}}
-			>
 				<Canvas
 					name={"maincanvas"}
 					camera={{
@@ -1627,7 +1606,6 @@ export default function ThreeObjectEdit(props) {
 					)}
 					<OrbitControls makeDefault enableZoom={props.selected} target={props.focusPoint}/>
 				</Canvas>
-			</Resizable>
 		</>
 	);
 }

@@ -16,6 +16,8 @@ class Plugin
 		add_action( 'wp_enqueue_scripts',  array( $this, 'threeobjectviewer_register_threeobjectloaderinit'), 5 );
 		//Enqueue JavaScript and CSS for threeobjectloaderinit
 		add_action( 'wp_enqueue_scripts',  array( $this, 'threeobjectviewer_enqueue_threeobjectloaderinit'), 10 );
+		add_filter( 'the_content', array( $this, 'remove_block_from_archive' ), 10 );
+
     }
 
 	/**
@@ -91,7 +93,16 @@ class Plugin
 		
 		return $types;
 	}
-		
+
+	function remove_block_from_archive($content) {
+		if(is_archive()){
+			// remove div and contents that have teh class wp-block-three-object-viewer-environment and all of their contents
+			$content = preg_replace('/<div class="wp-block-three-object-viewer-.*?">(?:<(?:div|p).*?>[\s\S]*?<\/(?:div|p)>)*<\/div>/s', '', $content);
+		}
+		return $content;
+	}
+	
+
 	/**
 	 * Enqueue block frontend JavaScript
 	 */
@@ -139,7 +150,9 @@ class Plugin
 		// new variable named default_animation that checks if the wp_option for '3ov_defaultVRM' is available.
 		// if it is, it will use that value, if not, it will use the default value of 'default.vrm'
 		$default_animation = get_option('3ov_defaultVRM');
-	
+
+		$default_avatar = get_option('3ov_defaultAvatar');
+
 		// $user_data_passed = array(
 		//     'userId' => 'something',
 		//     'userName' => 'someone',
@@ -149,7 +162,7 @@ class Plugin
 		$post_slug = $post->post_name;
 		$openbrush_enabled = false;
 		$three_icosa_brushes_url = '';
-		if(is_singular()){
+		if(is_singular() || is_home() || is_front_page() || is_archive() || is_search()) {
 			if (!function_exists('is_plugin_active')) {
 				include_once(ABSPATH . 'wp-admin/includes/plugin.php');
 			}
@@ -169,6 +182,7 @@ class Plugin
 				wp_localize_script( 'threeobjectloader-frontend', 'threeObjectPlugin', $three_object_plugin );	
 				wp_localize_script( 'threeobjectloader-frontend', 'threeObjectPluginRoot', $three_object_plugin_root );	
 				wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatarAnimation', $default_animation );	
+				wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatar', $default_avatar );	
 				wp_enqueue_script( 
 					"threeobjectloader-frontend"
 				);
@@ -185,7 +199,10 @@ class Plugin
 				wp_localize_script( 'versepress-frontend', 'openbrushEnabled', $openbrush_enabled );
 				wp_localize_script( 'versepress-frontend', 'threeObjectPlugin', $three_object_plugin );
 				wp_localize_script( 'versepress-frontend', 'threeObjectPluginRoot', $three_object_plugin_root );	
-				wp_localize_script( 'versepress-frontend', 'defaultAvatarAnimation', $default_animation );	
+				wp_localize_script( 'versepress-frontend', 'defaultAvatarAnimation', $default_animation );
+				wp_localize_script( 'versepress-frontend', 'defaultAvatar', $default_avatar );
+				wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatarAnimation', $default_animation );	
+				wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatar', $default_avatar );	
 				wp_enqueue_script( 
 					"versepress-frontend"
 				);

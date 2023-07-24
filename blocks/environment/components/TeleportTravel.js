@@ -7,7 +7,6 @@ import { useRapier, useRigidBody, RigidBody } from "@react-three/rapier";
 export function TeleportIndicator(props) {
 	return (
 		<>
-			<pointLight position={[0, 0.5, 0]} args={[0xff00ff, 2, 0.6]} />
 			<mesh position={[0, 0.25, 0]}>
 				<coneBufferGeometry args={[0.1, 0.5, 6]} attach="geometry" />
 				<meshBasicMaterial attach="material" color={0xff00ff} />
@@ -68,7 +67,11 @@ export default function TeleportTravel(props) {
 	useEffect(() => {
 		// Remove the reticle when the controllers are registered.
 		const reticle = scene.getObjectByName("reticle");
+		const participantObject = scene.getObjectByName("playerOne");
 		if (controllers.length > 0 && reticle) {
+			// console.log("participantObject", participantObject);
+			// set participantObject to invisible
+			participantObject.visible = false;
 			reticle.visible = false;
 		}
 	}, [controllers]);
