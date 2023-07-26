@@ -6,7 +6,7 @@ import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { OrbitControls } from '@react-three/drei';
 import { useKeyboardControls } from "./Controls"
 import { useRef, useState, useEffect } from "react";
-import { RigidBody, CapsuleCollider, useRapier, vec3, interactionGroups } from "@react-three/rapier";
+import { RigidBody, CapsuleCollider, useRapier, vec3, interactionGroups, CuboidCollider } from "@react-three/rapier";
 import defaultVRM from "../../../inc/avatars/3ov_default_avatar.vrm";
 import { VRMUtils, VRMSchema, VRMLoaderPlugin, VRMExpressionPresetName, VRMHumanBoneName } from "@pixiv/three-vrm";
 import { useXR } from "@react-three/xr";
@@ -649,7 +649,7 @@ export default function Player(props) {
 					mass={1}
 					friction={1}
 					linearDamping={0.5}
-					type={"dynamic"}
+					type={"kinematicPositionBased"}
 					angularVelocity={[0, 0, 0]}
 					linearVelocity={[0, 0, 0]}
 				>
@@ -678,29 +678,10 @@ export default function Player(props) {
 					angularVelocity={[0, 0, 0]}
 					linearVelocity={[0, 0, 0]}
 				>
-					<CapsuleCollider
-						sensor        
+					<CuboidCollider
 						// onIntersectionEnter={() => console.log("enter")}
-						position={[0, 1.5, -0.5]}
-						args={[0.03, 0.04]}
-					/>
-					<CapsuleCollider
-						sensor        
-						// onIntersectionEnter={() => console.log("enter")}
-						position={[0, 1.1, -0.5]}
-						args={[0.03, 0.04]}
-					/>
-					<CapsuleCollider
-						sensor        
-						// onIntersectionEnter={() => console.log("enter")}
-						position={[0.3, 1.5, -0.4]}
-						args={[0.03, 0.04]}
-					/>
-					<CapsuleCollider
-						sensor        
-						// onIntersectionEnter={() => console.log("enter")}
-						position={[-0.3, 1.5, -0.4]}
-						args={[0.03, 0.04]}
+						position={[0, 1.4, -0.5]}
+						args={[0.03, 0.03, 0.03]}
 					/>
 				</RigidBody>
 				</>
