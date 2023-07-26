@@ -2,7 +2,7 @@
 Requires at least: 5.7
 Tested up to: 6.2.2
 Requires PHP: 7.2
-Stable tag: 1.4.0
+Stable tag: 1.4.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Author: antpb
@@ -42,6 +42,9 @@ It can also be installed manually using a zip file.
 
 
 == Changelog ==
+= 1.4.1 =
+Fixed: Performance issues with controller using kinematicPositionBased now instead of dynamic. Also removed some points of collision to ease performance.
+
 = 1.4.0 =
 Removed: 1st person controller (coming back in a future update)
 Added: 3rd Person Controller + avatars.
