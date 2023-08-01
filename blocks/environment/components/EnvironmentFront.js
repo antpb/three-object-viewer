@@ -35,6 +35,7 @@ import { BoxGeometry } from "three";
 
 import { ThreeImage } from "./core/front/ThreeImage";
 import { ThreeVideo } from "./core/front/ThreeVideo";
+import { ThreeAudio } from "./core/front/ThreeAudio";
 import { ModelObject } from "./core/front/ModelObject";
 import { NPCObject } from "./core/front/NPCObject";
 import { Portal } from "./core/front/Portal";
@@ -1088,6 +1089,118 @@ export default function EnvironmentFront(props) {
 															modelUrl={videoModelUrl}
 														/>
 													);
+												})}
+												{Object.values(props.audiosToAdd).map((item, index) => {
+												const audioPosX = item.querySelector("p.audio-block-positionX")
+													? item.querySelector("p.audio-block-positionX").innerText
+													: "";
+
+												const audioPosY = item.querySelector("p.audio-block-positionY")
+													? item.querySelector("p.audio-block-positionY").innerText
+													: "";
+
+												const audioPosZ = item.querySelector("p.audio-block-positionZ")
+													? item.querySelector("p.audio-block-positionZ").innerText
+													: "";
+
+												const audioScaleX = item.querySelector("p.audio-block-scaleX")
+													? item.querySelector("p.audio-block-scaleX").innerText
+													: "";
+
+												const audioScaleY = item.querySelector("p.audio-block-scaleY")
+													? item.querySelector("p.audio-block-scaleY").innerText
+													: "";
+
+												const audioScaleZ = item.querySelector("p.audio-block-scaleZ")
+													? item.querySelector("p.audio-block-scaleZ").innerText
+													: "";
+
+												const audioRotationX = item.querySelector("p.audio-block-rotationX")
+													? item.querySelector("p.audio-block-rotationX").innerText
+													: "";
+
+												const audioRotationY = item.querySelector("p.audio-block-rotationY")
+													? item.querySelector("p.audio-block-rotationY").innerText
+													: "";
+
+												const audioRotationZ = item.querySelector("p.audio-block-rotationZ")
+													? item.querySelector("p.audio-block-rotationZ").innerText
+													: "";
+
+												const audioUrl = item.querySelector("p.audio-block-url")
+													? item.querySelector("p.audio-block-url").innerText
+													: "";
+
+												const autoPlay = item.querySelector("p.audio-block-autoPlay")
+													? item.querySelector("p.audio-block-autoPlay").innerText === "1"
+													: false;
+
+												const loop = item.querySelector("p.audio-block-loop")
+													? item.querySelector("p.audio-block-loop").innerText === "1"
+													: false;
+
+												const volume = item.querySelector("p.audio-block-volume")
+													? Number(item.querySelector("p.audio-block-volume").innerText)
+													: 1;
+
+												const positional = item.querySelector("p.audio-block-positional")
+													? item.querySelector("p.audio-block-positional").innerText === "1"
+													: false;
+
+												const coneInnerAngle = item.querySelector("p.audio-block-coneInnerAngle")
+													? Number(item.querySelector("p.audio-block-coneInnerAngle").innerText)
+													: 1;
+
+												const coneOuterAngle = item.querySelector("p.audio-block-coneOuterAngle")
+													? Number(item.querySelector("p.audio-block-coneOuterAngle").innerText)
+													: 1;
+
+												const coneOuterGain = item.querySelector("p.audio-block-coneOuterGain")
+													? Number(item.querySelector("p.audio-block-coneOuterGain").innerText)
+													: 1;
+
+												const distanceModel = item.querySelector("p.audio-block-distanceModel")
+													? item.querySelector("p.audio-block-distanceModel").innerText
+													: "inverse";
+
+												const maxDistance = item.querySelector("p.audio-block-maxDistance")
+													? Number(item.querySelector("p.audio-block-maxDistance").innerText)
+													: 1;
+
+												const refDistance = item.querySelector("p.audio-block-refDistance")
+													? Number(item.querySelector("p.audio-block-refDistance").innerText)
+													: 1;
+
+												const rolloffFactor = item.querySelector("p.audio-block-rolloffFactor")
+													? Number(item.querySelector("p.audio-block-rolloffFactor").innerText)
+													: 1;
+
+												return (
+													<ThreeAudio
+													key={index}
+													audioUrl={audioUrl}
+													positionX={audioPosX}
+													positionY={audioPosY}
+													positionZ={audioPosZ}
+													scaleX={audioScaleX}
+													scaleY={audioScaleY}
+													scaleZ={audioScaleZ}
+													rotationX={audioRotationX}
+													rotationY={audioRotationY}
+													rotationZ={audioRotationZ}
+													autoPlay={autoPlay ? "1" : "0"} // Convert bool to string "1" or "0"
+													loop={loop ? "1" : "0"} // Convert bool to string "1" or "0"
+													volume={volume}
+													positional={positional ? "1" : "0"} // Convert bool to string "1" or "0"
+													coneInnerAngle={coneInnerAngle}
+													coneOuterAngle={coneOuterAngle}
+													coneOuterGain={coneOuterGain}
+													distanceModel={distanceModel}
+													maxDistance={maxDistance}
+													refDistance={refDistance}
+													rolloffFactor={rolloffFactor}
+													/>
+												);
 												})}
 												{Object.values(
 													props.npcsToAdd

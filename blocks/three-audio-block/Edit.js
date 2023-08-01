@@ -1,5 +1,5 @@
 import { __ } from "@wordpress/i18n";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DropZone } from "@wordpress/components";
 import "./editor.scss";
 import {
@@ -19,15 +19,21 @@ import {
 } from "@wordpress/components";
 import { more } from "@wordpress/icons";
 
-export default function Edit({ attributes, setAttributes, isSelected }) {
+export default function Edit({ attributes, setAttributes, isSelected, clientId }) {
+	const { select, dispatch } = wp.data;
+
 	const onImageSelect = (imageObject) => {
-		setAttributes({ videoUrl: null });
+		setAttributes({ audioUrl: null });
 		setAttributes({
-			videoUrl: imageObject.url,
-			aspectHeight: imageObject.height,
-			aspectWidth: imageObject.width
+			audioUrl: imageObject.url,
 		});
 	};
+	useEffect(() => {
+		if( isSelected ){
+					dispatch( 'three-object-environment-events' ).setFocusEvent( clientId );
+			}
+	}, [isSelected]);
+
 	const onChangePositionX = (positionX) => {
 		setAttributes({ positionX });
 	};
@@ -125,9 +131,11 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 					>
 						<PanelRow>
 							<span>
-								Select an image or object to attach to your
-								audio. Leave blank for no mesh.
+								Select an audio file to add to your scene.
 							</span>
+						</PanelRow>
+						{ attributes.audioUrl && (<span> { attributes.audioUrl } </span>)}
+						<PanelRow>
 						</PanelRow>
 						<PanelRow>
 							<MediaUpload
@@ -374,15 +382,26 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 			</InspectorControls>
 			{isSelected ? (
 				<>
-					{attributes.videoUrl ? (
-						<>
-							<VideoEdit
-								src={attributes.videoUrl}
-								aspectHeight={attributes.aspectHeight}
-								aspectWidth={attributes.aspectWidth}
-							/>
-						</>
-					) : (
+				{attributes.audioUrl ? (
+					<div className="three-object-viewer-inner">
+						<div className="three-object-viewer-inner-edit-container">
+							<svg
+								className="custom-icon custom-icon-cube"
+								viewBox="0 0 40 40"
+								version="1.1"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<g transform="matrix(1,0,0,1,-1.1686,0.622128)">
+									<path d="M37.485,28.953L21.699,38.067L21.699,19.797L37.485,10.683L37.485,28.953ZM21.218,19.821L21.218,38.065L5.435,28.953L5.435,10.709L21.218,19.821ZM37.207,10.288L21.438,19.392L5.691,10.301L21.46,1.197L37.207,10.288Z" />
+								</g>
+							</svg>
+							<p>
+								<b>Audio block</b>
+							</p>
+							{/* <p>URL: {attributes.threeObjectUrl}</p> */}
+						</div>
+					</div>
+				) : (
 						<div className="three-object-viewer-inner">
 							<div className="three-object-viewer-inner-edit-container">
 								<svg
@@ -401,14 +420,14 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 									}
 									type="video"
 									allowedTypes={ALLOWED_MEDIA_TYPES}
-									value={attributes.videoUrl}
+									value={attributes.audioUrl}
 									render={({ open }) => (
 										<button
 											className="three-object-viewer-button"
 											onClick={open}
 										>
-											{attributes.videoUrl
-												? "Replace Object"
+											{attributes.audioUrl
+												? "Replace Audio"
 												: "Select Audio"}
 										</button>
 									)}
@@ -419,15 +438,26 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 				</>
 			) : (
 				<>
-					{attributes.videoUrl ? (
-						<>
-							<VideoEdit
-								src={attributes.videoUrl}
-								aspectHeight={attributes.aspectHeight}
-								aspectWidth={attributes.aspectWidth}
-							/>
-						</>
-					) : (
+					{attributes.audioUrl ? (
+						<div className="three-object-viewer-inner">
+						<div className="three-object-viewer-inner-edit-container">
+							<svg
+								className="custom-icon custom-icon-cube"
+								viewBox="0 0 40 40"
+								version="1.1"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<g transform="matrix(1,0,0,1,-1.1686,0.622128)">
+									<path d="M37.485,28.953L21.699,38.067L21.699,19.797L37.485,10.683L37.485,28.953ZM21.218,19.821L21.218,38.065L5.435,28.953L5.435,10.709L21.218,19.821ZM37.207,10.288L21.438,19.392L5.691,10.301L21.46,1.197L37.207,10.288Z" />
+								</g>
+							</svg>
+							<p>
+								<b>Audio block</b>
+							</p>
+							{/* <p>URL: {attributes.threeObjectUrl}</p> */}
+						</div>
+					</div>
+				) : (
 						<div className="three-object-viewer-inner">
 							<div className="three-object-viewer-inner-edit-container">
 								<svg
@@ -446,7 +476,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 									}
 									type="image"
 									allowedTypes={ALLOWED_MEDIA_TYPES}
-									value={attributes.videoUrl}
+									value={attributes.audioUrl}
 									render={({ open }) => (
 										<button
 											className="three-object-viewer-button"

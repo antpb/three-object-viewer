@@ -86,14 +86,6 @@
         "rotationZ": {
             "type": "int",
             "default":0
-        },
-        "aspectHeight": {
-            "type": "int",
-            "default":0
-        },
-        "aspectWidth": {
-            "type": "int",
-            "default":0
         }
     },
     "category": "design",
