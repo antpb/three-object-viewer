@@ -2,7 +2,7 @@
 Requires at least: 5.7
 Tested up to: 6.2.2
 Requires PHP: 7.2
-Stable tag: 1.4.1
+Stable tag: 1.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Author: antpb
@@ -42,6 +42,10 @@ It can also be installed manually using a zip file.
 
 
 == Changelog ==
+= 1.5.0 =
+Fixed: Issue where player controler used property that is not available until initialized.
+Added: Audio Block - Set audio global or positional to bring your worlds to life with sound.
+
 = 1.4.1 =
 Fixed: Performance issues with controller using kinematicPositionBased now instead of dynamic. Also removed some points of collision to ease performance.
 

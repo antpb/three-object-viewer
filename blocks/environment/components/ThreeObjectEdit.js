@@ -23,6 +23,7 @@ import { Perf } from "r3f-perf";
 // import EditControls from "./EditControls";
 import { Resizable } from "re-resizable";
 import defaultFont from "../../../inc/fonts/roboto.woff";
+import audioIcon from "../../../inc/assets/audio_icon.png";
 
 const { registerStore } = wp.data;
 
@@ -323,6 +324,115 @@ function ImageObject(threeImage) {
 						)}
 					</mesh>
 				)}
+			</TransformController>
+		</Select>
+	);
+}
+
+function AudioObject(threeAudio) {
+	const texture2 = useLoader(THREE.TextureLoader, (threeObjectPlugin + audioIcon));
+
+	const [threeAudioBlockAttributes, setThreeAudioBlockAttributes] = useState(
+		wp.data
+			.select("core/block-editor")
+			.getBlockAttributes(threeAudio.audioID)
+	);
+	  
+	useEffect(() => {
+		const attributes = wp.data
+			.select("core/block-editor")
+			.getBlockAttributes(threeAudio.audioID);
+			setThreeAudioBlockAttributes(attributes);
+	}, [threeAudio.audioID]);
+
+	const [isSelected, setIsSelected] = useState();
+ 	  
+	const clicked = true;
+	const audioObj = useRef();
+	const TransformController = ({ condition, wrap, children }) =>
+		condition ? wrap(children) : children;
+
+	// useEffect(() => void (clicked && video.play()), [video, clicked]);
+
+	useEffect(() => {
+		if( threeAudio.focusID === threeAudio.audioID ) {
+			const someFocus = new THREE.Vector3(Number(threeAudio.positionX), Number(threeAudio.positionY), Number(threeAudio.positionZ));
+			threeAudio.changeFocusPoint(someFocus);
+		}
+	}, [threeAudio.focusID]);
+
+	return (
+		<Select
+			box
+			multiple
+			onChange={(e) => {
+				e.length !== 0 ? setIsSelected(true) : setIsSelected(false);
+			}}
+			filter={(items) => items}
+		>
+			<TransformController
+				condition={threeAudio.focusID === threeAudio.audioID}
+				wrap={(children) => (
+					<TransformControls
+						enabled={threeAudio.focusID === threeAudio.audioID}
+						mode={
+							threeAudio.transformMode
+								? threeAudio.transformMode
+								: "translate"
+						}
+						object={audioObj}
+						size={0.5}
+						onMouseUp={(e) => {
+							const rot = new THREE.Euler(0, 0, 0, "XYZ");
+							const scale = e?.target.worldScale;
+							rot.setFromQuaternion(e?.target.worldQuaternion);
+							wp.data
+								.dispatch("core/block-editor")
+								.updateBlockAttributes(threeAudio.audioID, {
+									positionX: e?.target.worldPosition.x,
+									positionY: e?.target.worldPosition.y,
+									positionZ: e?.target.worldPosition.z,
+									rotationX: rot.x,
+									rotationY: rot.y,
+									rotationZ: rot.z,
+								});
+								setThreeAudioBlockAttributes(
+								wp.data
+									.select("core/block-editor")
+									.getBlockAttributes(threeAudio.audioID)
+							);
+						}}
+					>
+						{children}
+					</TransformControls>
+				)}
+			>					
+				<group
+					ref={audioObj}
+					position={[
+						threeAudioBlockAttributes.positionX,
+						threeAudioBlockAttributes.positionY,
+						threeAudioBlockAttributes.positionZ
+					]}
+					rotation={[
+						threeAudioBlockAttributes.rotationX,
+						threeAudioBlockAttributes.rotationY,
+						threeAudioBlockAttributes.rotationZ
+					]}
+				>
+				<mesh>
+					<meshBasicMaterial
+						transparent
+						side={THREE.DoubleSide}
+						map={texture2}
+					/>
+					<planeGeometry
+						args={[
+							1, 1
+						]}
+					/>
+				</mesh>
+			</group>
 			</TransformController>
 		</Select>
 	);
@@ -1117,6 +1227,10 @@ function ThreeObject(props) {
 	let videoobject;
 	const videoElementsToAdd = [];
 
+	let audioID;
+	let audioObject;
+	const audioElementsToAdd = [];
+
 	const editorHtmlToAdd = [];
 	let htmlobject;
 	let htmlobjectId;
@@ -1172,6 +1286,14 @@ function ThreeObject(props) {
 							videoobject = innerBlock.attributes;
 							videoID = innerBlock.clientId;
 							videoElementsToAdd.push({ videoobject, videoID });
+						}
+						if (
+							innerBlock.name ===
+							"three-object-viewer/three-audio-block"
+						) {
+							audioObject = innerBlock.attributes;
+							audioID = innerBlock.clientId;
+							audioElementsToAdd.push({ audioObject, audioID });
 						}
 						if (
 							innerBlock.name ===
@@ -1402,6 +1524,30 @@ function ThreeObject(props) {
 							setFocusPosition={props.setFocusPosition}
 							aspectHeight={model.videoobject.aspectHeight}
 							aspectWidth={model.videoobject.aspectWidth}
+							transformMode={props.transformMode}
+							shouldFocus={props.shouldFocus}
+						/>
+					);
+				}
+			})}
+			{Object.values(audioElementsToAdd).map((model, index) => {
+				if (model.audioObject.audioUrl) {
+					return (
+						<AudioObject
+							url={model.audioObject.audioUrl}
+							customModel={model.audioObject.customModel}
+							modelUrl={model.audioObject.modelUrl}
+							positionX={model.audioObject.positionX}
+							positionY={model.audioObject.positionY}
+							positionZ={model.audioObject.positionZ}
+							rotationX={model.audioObject.rotationX}
+							rotationY={model.audioObject.rotationY}
+							rotationZ={model.audioObject.rotationZ}
+							selected={props.selected}
+							audioID={model.audioID}
+							focusID ={props.focusID}
+							changeFocusPoint={props.changeFocusPoint}
+							setFocusPosition={props.setFocusPosition}
 							transformMode={props.transformMode}
 							shouldFocus={props.shouldFocus}
 						/>
