@@ -34,6 +34,10 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 			}
 	}, [isSelected]);
 
+	const onChangeName = (name) => {
+		setAttributes({ name });
+	};
+
 	const onChangePositionX = (positionX) => {
 		setAttributes({ positionX });
 	};
@@ -129,6 +133,14 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 						icon={more}
 						initialOpen={true}
 					>
+						<PanelRow>
+							<TextControl
+								label="Name"
+								help="Give your audio a name."
+								value={attributes.name}
+								onChange={(value) => onChangeName(value)}
+							/>
+						</PanelRow>
 						<PanelRow>
 							<span>
 								Select an audio file to add to your scene.

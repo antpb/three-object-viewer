@@ -23,6 +23,7 @@ import { Perf } from "r3f-perf";
 // import EditControls from "./EditControls";
 import { Resizable } from "re-resizable";
 import defaultFont from "../../../inc/fonts/roboto.woff";
+import audioIcon from "../../../inc/assets/audio_icon.png";
 
 const { registerStore } = wp.data;
 
@@ -329,6 +330,8 @@ function ImageObject(threeImage) {
 }
 
 function AudioObject(threeAudio) {
+	const texture2 = useLoader(THREE.TextureLoader, (threeObjectPlugin + audioIcon));
+
 	const [threeAudioBlockAttributes, setThreeAudioBlockAttributes] = useState(
 		wp.data
 			.select("core/block-editor")
@@ -418,8 +421,11 @@ function AudioObject(threeAudio) {
 					]}
 				>
 				<mesh>
-					<meshBasicMaterial DoubleSide toneMapped={false}>
-					</meshBasicMaterial>
+					<meshBasicMaterial
+						transparent
+						side={THREE.DoubleSide}
+						map={texture2}
+					/>
 					<planeGeometry
 						args={[
 							1, 1

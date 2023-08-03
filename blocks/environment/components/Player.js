@@ -301,7 +301,7 @@ export default function Player(props) {
 			const currentTime = state.clock.elapsedTime;
 			const timeSinceLastUpdate = currentTime - lastUpdateTime;
 			let rigidBodyPosition = [0, 0, 0]
-			if(rigidRef){
+			if(rigidRef.current?.translation()){
 				rigidBodyPosition = rigidRef.current.translation();
 			}
 			const forward = new Vector3();
@@ -448,7 +448,9 @@ export default function Player(props) {
 				// Apply slerp to the player's current quaternion, gradually aligning it with the desired quaternion
 				playerController.scene.quaternion.slerp(desiredQuaternion, rotationSpeed);
 			}
-			castRef.current.setRotation(desiredQuaternion);
+			if(castRef.current){
+				castRef.current.setRotation(desiredQuaternion);
+			}
 
 			if (isMoving && canMoveRef.current) {
 				newPosition = [

@@ -3,6 +3,10 @@
     "title": "3D Audio",
     "description": "An audio block for your environment",
     "attributes": {
+        "name": {
+            "type": "string",
+            "default": null
+        },
         "audioUrl": {
             "type": "string",
             "default": null
@@ -25,15 +29,15 @@
         },
         "coneInnerAngle": {
             "type": "int",
-            "default":1
+            "default":360
         },
         "coneOuterAngle": {
             "type": "int",
-            "default":1
+            "default":0
         },
         "coneOuterGain": {
             "type": "int",
-            "default":1
+            "default":0.8
         },
         "distanceModel": {
             "type": "string",
@@ -41,27 +45,15 @@
         },
         "maxDistance": {
             "type": "int",
-            "default":1
+            "default":10000
         },
         "refDistance": {
             "type": "int",
-            "default":1
+            "default":5
         },
         "rolloffFactor": {
             "type": "int",
-            "default":1
-        },
-        "scaleX": {
-            "type": "int",
-            "default":1
-        },
-        "scaleY": {
-            "type": "int",
-            "default":1
-        },
-        "scaleZ": {
-            "type": "int",
-            "default":1
+            "default":5
         },
         "positionX": {
             "type": "int",
