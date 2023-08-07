@@ -20,7 +20,6 @@ export function useKeyboardControls() {
       else if (e.key === 'a' || e.key === 'A' && ! movement.current.left) movement.current.left = true;
       else if (e.key === 'd' || e.key === 'D' && ! movement.current.right) movement.current.right = true;
       else if (e.key === 'space') movement.current.space = true;
-      // add shift key
       else if (e.key === 'Shift') movement.current.shift = true;
       else if (e.key === 'r' || e.key === 'R'){
         if (e.metaKey || e.ctrlKey){
