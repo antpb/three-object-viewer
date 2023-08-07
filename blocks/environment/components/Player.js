@@ -427,11 +427,12 @@ export default function Player(props) {
 			// Adjust the direction based on the movement direction
 			if(props.movement.current.backward) {
 				direction.negate();  // for backward movement, we want to reverse the direction
-			} else if (props.movement.current.right) {
+			} else if (props.movement.current.right && !props.movement.current.left && !props.movement.current.forward && !props.movement.current.backward) {
 				direction.applyAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2);  // for right movement, rotate the direction 90 degrees counterclockwise
-			} else if (props.movement.current.left) {
+			} else if (props.movement.current.left && !props.movement.current.right && !props.movement.current.forward && !props.movement.current.backward) {
 				direction.applyAxisAngle(new Vector3(0, 1, 0), Math.PI / 2);  // for left movement, rotate the direction 90 degrees clockwise
 			}
+
 			// Define the desired rotation matrix
 			let matrix = new Matrix4();
 			matrix.lookAt(new Vector3(0,0,0), direction, new Vector3(0,1,0));

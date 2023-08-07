@@ -10,6 +10,7 @@ export default function App({ getSettings, updateSettings }) {
 	//Use to show loading spinner
 	const [isLoading, setIsLoading] = useState(true);
 	const [isOpenApiKeyVisible, setIsOpenApiKeyVisible] = useState(false);
+	const [saveIndicator, setSaveIndicator] = useState(false);
 
 	const [defaultVRM, setDefaultVRM] = useState();
 
@@ -24,10 +25,15 @@ export default function App({ getSettings, updateSettings }) {
     //Function to update settings via API
 	const onSave = async (event) => {
 		event.preventDefault();
-		let response = await updateSettings(settings)
+		setSaveIndicator(true); // Show save indicator
+		let response = await updateSettings(settings);
 		setSettings(response);
-	};
 
+		setTimeout(() => {
+			setSaveIndicator(false);
+		}, 1500);
+	};
+	
 	const runUploaderAnimation = (event) => {
 		event.preventDefault()
 	
@@ -249,7 +255,10 @@ export default function App({ getSettings, updateSettings }) {
 					</td>
 				</tr>
 				<tr>
-					<td><input id="save" className="button button-small button-primary" type="submit" name="enabled" onClick={onSave} /></td>
+					<td>
+						<input id="save" className="button button-small button-primary" type="submit" name="enabled" onClick={onSave} />
+						{saveIndicator && <span style={{color: "green", paddingLeft: "10px"}} className="save-indicator">Saving...</span>}
+					</td>
 				</tr>
 			</tbody>
 		</table>
