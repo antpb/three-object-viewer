@@ -326,6 +326,7 @@ class Plugin
 							'three-object-viewer/three-text-block',
 							'three-object-viewer/model-block',
 							'three-object-viewer/audio-block',
+							'three-object-viewer/light-block',
 							'three-object-viewer/npc-block',
 							'three-object-viewer/sky-block',
 							'three-object-viewer/npc-block',
