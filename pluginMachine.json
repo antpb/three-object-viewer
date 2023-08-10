@@ -15,6 +15,7 @@
             "three-image-block",
             "three-video-block",
             "three-audio-block",
+            "three-light-block",
             "three-portal-block",
             "three-text-block",
             "spawn-point-block"

@@ -32,6 +32,9 @@ const videosToAdd = document.querySelectorAll(
 const audiosToAdd = document.querySelectorAll(
 	".three-object-three-app-audio-block"
 );
+const lightsToAdd = document.querySelectorAll(
+	".three-object-three-app-light-block"
+);
 threeApp.forEach((threeApp) => {
 	if (threeApp) {
 		const spawnPoint =
@@ -124,6 +127,7 @@ threeApp.forEach((threeApp) => {
 					imagesToAdd={imagesToAdd}
 					videosToAdd={videosToAdd}
 					audiosToAdd={audiosToAdd}
+					lightsToAdd={lightsToAdd}
 					spawnPoint={spawnPoint ? spawnPoint : null}
 					htmlToAdd={htmlToAdd}
 					npcsToAdd={npcsToAdd}
