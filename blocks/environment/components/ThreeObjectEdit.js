@@ -1235,7 +1235,22 @@ function ThreeObject(props) {
 	let htmlobject;
 	let htmlobjectId;
 
-	const currentBlocks = wp.data.select("core/block-editor").getBlocks();
+	const { select } = wp.data;
+
+	function getNestedBlocks(clientId) {
+		const blockEditor = select("core/block-editor");
+		const blocks = blockEditor.getBlocks(clientId);
+		let allBlocks = [...blocks];
+
+		blocks.forEach(block => {
+			const innerBlocks = getNestedBlocks(block.clientId);
+			allBlocks = [...allBlocks, ...innerBlocks];
+		});
+
+		return allBlocks;
+	}
+
+	const currentBlocks = getNestedBlocks(props.clientId);
 	if (currentBlocks) {
 		currentBlocks.forEach((block) => {
 			if (block.name === "three-object-viewer/environment") {

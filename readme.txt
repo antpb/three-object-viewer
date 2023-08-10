@@ -1,8 +1,8 @@
 === Three Object Viewer ===
-Requires at least: 5.7
-Tested up to: 6.2.2
+Requires at least: 6.0
+Tested up to: 6.3
 Requires PHP: 7.2
-Stable tag: 1.5.1
+Stable tag: 1.5.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Author: antpb
@@ -42,6 +42,9 @@ It can also be installed manually using a zip file.
 
 
 == Changelog ==
+= 1.5.2 =
+Fixed: Full compatibility with the Site Editor.
+
 = 1.5.1 =
 Added: Video Block - Now sets audio to positionally play where the video's plane or mesh is located in the scene.
 Fixed: Player Controller animations fixed to not play incorrect direction when multiple directions are held.
