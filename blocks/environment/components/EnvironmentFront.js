@@ -700,7 +700,7 @@ export default function EnvironmentFront(props) {
 							padding: "0",
 							position: "relative",
 							zIndex: 1
-						  }}
+						}}
 					>
 							{ isVRCompatible() && <XRButton mode={'VR' | 'inline'}/>}
 							{/* <Perf className="stats" /> */}
@@ -1231,19 +1231,6 @@ export default function EnvironmentFront(props) {
 												const lightRotationZ = item.querySelector("p.light-block-rotationZ")
 													? item.querySelector("p.light-block-rotationZ").innerText
 													: "";
-
-												const lightTargetX = item.querySelector("p.light-block-targetX")
-													? item.querySelector("p.light-block-targetX").innerText
-													: "";
-
-												const lightTargetY = item.querySelector("p.light-block-targetY")
-													? item.querySelector("p.light-block-targetY").innerText
-													: "";
-
-												const lightTargetZ = item.querySelector("p.light-block-targetZ")
-													? item.querySelector("p.light-block-targetZ").innerText
-													: "";
-
 
 												const lightType = item.querySelector("p.light-block-type")
 													? item.querySelector("p.light-block-type").innerText

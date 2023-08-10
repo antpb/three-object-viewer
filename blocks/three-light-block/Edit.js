@@ -140,34 +140,6 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 							/>
 						</PanelRow>
 						<PanelRow>
-							<legend className="blocks-base-control__label">
-								{__("Light Target", "three-object-viewer")}
-							</legend>
-						</PanelRow>
-						<PanelRow>
-							<TextControl
-								className="position-inputs"
-								label="X"
-								// help="position x"
-								value={attributes.targetX}
-								onChange={(value) => onChangeTargetX(value)}
-							/>
-							<TextControl
-								className="position-inputs"
-								label="Y"
-								// help="position y"
-								value={attributes.targetY}
-								onChange={(value) => onChangeTargetY(value)}
-							/>
-							<TextControl
-								className="position-inputs"
-								label="Z"
-								// help="position z"
-								value={attributes.targetZ}
-								onChange={(value) => onChangeTargetZ(value)}
-							/>
-						</PanelRow>
-						<PanelRow>
 						<ColorPalette
 							// colors={ attributes.color }
 							value={ attributes.color }

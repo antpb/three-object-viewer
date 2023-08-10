@@ -20,9 +20,6 @@ import {
  * @param {number} threeLight.positionX - The X-coordinate of the light's position.
  * @param {number} threeLight.positionY - The Y-coordinate of the light's position.
  * @param {number} threeLight.positionZ - The Z-coordinate of the light's position.
- * @param {number} threeLight.targetX - The X-coordinate for the target the light should point to (for DirectionalLight & SpotLight).
- * @param {number} threeLight.targetY - The Y-coordinate for the target the light should point to (for DirectionalLight & SpotLight).
- * @param {number} threeLight.targetZ - The Z-coordinate for the target the light should point to (for DirectionalLight & SpotLight).
  * @param {number} threeLight.angle - Maximum extent of the spotlight, in radians (for SpotLight).
  * @param {number} threeLight.penumbra - Percentage of the spotlight cone that is attenuated due to penumbra (for SpotLight).
  *
@@ -39,11 +36,10 @@ export function ThreeLight(threeLight) {
       case "directional":
         lightInstance = new DirectionalLight(color, threeLight.intensity);
         lightInstance.position.set(threeLight.positionX, threeLight.positionY, threeLight.positionZ);
-        lightInstance.target.position.set(threeLight.targetX, threeLight.targetY, threeLight.targetZ);
         break;
 
       case "ambient":
-        lightInstance = new AmbientLight(color, threeLight.intensity);
+        lightInstance = new AmbientLight(color, Number(threeLight.intensity));
         break;
 
       case "point":
@@ -54,7 +50,6 @@ export function ThreeLight(threeLight) {
       case "spot":
         lightInstance = new SpotLight(color, threeLight.intensity, threeLight.distance, threeLight.angle, threeLight.penumbra);
         lightInstance.position.set(threeLight.positionX, threeLight.positionY, threeLight.positionZ);
-        lightInstance.target.position.set(threeLight.targetX, threeLight.targetY, threeLight.targetZ);
         break;
 
       default:

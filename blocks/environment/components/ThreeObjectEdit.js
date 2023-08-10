@@ -480,11 +480,6 @@ function LightObject(threeLight) {
                         threeLight.positionY,
                         threeLight.positionZ
                     ]}
-                    target-position={[
-                        threeLight.targetX,
-                        threeLight.targetY,
-                        threeLight.targetZ
-                    ]}
                 />
             );
             break;
@@ -643,8 +638,6 @@ function LightObject(threeLight) {
 		</Select>
 	);
 }
-
-
 
 function VideoObject(threeVideo) {
 	const [url, setUrl] = useState(threeVideo.modelUrl);
@@ -1446,8 +1439,23 @@ function ThreeObject(props) {
 	const editorHtmlToAdd = [];
 	let htmlobject;
 	let htmlobjectId;
+	const { select } = wp.data;
 
-	const currentBlocks = wp.data.select("core/block-editor").getBlocks();
+	function getNestedBlocks(clientId) {
+		const blockEditor = select("core/block-editor");
+		const blocks = blockEditor.getBlocks(clientId);
+		let allBlocks = [...blocks];
+		
+		blocks.forEach(block => {
+			const innerBlocks = getNestedBlocks(block.clientId);
+			allBlocks = [...allBlocks, ...innerBlocks];
+		});
+	
+		return allBlocks;
+	}
+	
+	const currentBlocks = getNestedBlocks(props.clientId);
+	
 	if (currentBlocks) {
 		currentBlocks.forEach((block) => {
 			if (block.name === "three-object-viewer/environment") {
@@ -1803,6 +1811,10 @@ function ThreeObject(props) {
 							rotationX={model.lightObject.rotationX}
 							rotationY={model.lightObject.rotationY}
 							rotationZ={model.lightObject.rotationZ}
+							targetX={model.lightObject.targetX}
+							targetY={model.lightObject.targetY}
+							targetZ={model.lightObject.targetZ}
+
 							selected={props.selected}
 							lightID={model.lightID}
 							focusID ={props.focusID}
@@ -1843,6 +1855,7 @@ function ThreeObject(props) {
 }
 
 export default function ThreeObjectEdit(props) {
+
 	const [transformMode, setTransformMode] = useState("translate");
 
 	const ObjectControls = (props) => {
@@ -1999,6 +2012,7 @@ export default function ThreeObjectEdit(props) {
 								focusPosition={props.focusPosition}
 								shouldFocus={shouldFocus}
 								changeFocusPoint={props.changeFocusPoint}
+								clientId={props.clientId}
 							/>
 						</Suspense>
 					)}

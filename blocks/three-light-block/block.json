@@ -47,18 +47,6 @@
             "type": "float",
             "default": 0
         },
-        "targetX": {
-            "type": "float",
-            "default": 0
-        },
-        "targetY": {
-            "type": "float",
-            "default": 0
-        },
-        "targetZ": {
-            "type": "float",
-            "default": 0
-        },
         "angle": {
             "type": "float",
             "default": 0.78539816339
