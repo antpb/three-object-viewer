@@ -21,11 +21,9 @@ import {
 import { Icon, moveTo, more, rotateLeft, resizeCornerNE } from "@wordpress/icons";
 import * as THREE from "three";
 import defaultEnvironment from "../../inc/assets/default_grid.glb";
-
 import ThreeObjectEdit from "./components/ThreeObjectEdit";
 
 export default function Edit({ attributes, setAttributes, isSelected }) {
-	
 	const ALLOWED_BLOCKS = allowed_blocks;
 	const [focusPosition, setFocusPosition] = useState(new THREE.Vector3());
 	const [focusPoint, setFocus] = useState(new THREE.Vector3());
@@ -33,7 +31,6 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 	const changeFocusPoint = (newValue) => {
 		setFocusPosition(newValue);
 	}
-
 
 	// useEffect to initialize the value of the threeObjectUrl attribute if it is not set
 	useEffect(() => {
