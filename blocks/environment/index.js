@@ -56,80 +56,138 @@ function ChatBox(props) {
 	  const speaker = "guest";
 	  const agent = props.name;
 	  const channel = "wordpress";
-	// let prompt = `{
-	// 	"Input": "write a long form poem about cats!",
-	// 	"Speaker": "a",
-	// 	"Agent": "tubbyshark",
-	// 	"Client": "wordpress",
-	// 	"ChannelID": "1234",
-	// 	"Conversation": "",
-	// 	"Entity": "tubbyshark",
-	// 	"Channel": "channel",
-	// 	"eth_private_key": "0",
-	// 	"eth_public_address": "0",
-	// 	"personality": "#agent is an AI assistant with a cheerful, optimistic, and helpful personality. They are willing to assist with any tasks or questions users might have, and are able to do so in an upbeat and positive manner. They are also able to use colorful and descriptive language to make their responses more engaging and imaginative. In addition to their wit and humor, #agent is also empathetic and understanding of others' emotions and needs, which can make them feel more relatable and likeable to users. #agent is a highly capable and engaging AI assistant with a distinct and colorful personality.\n#agent can help with any programming tasks, including those related to the 3OV plugin for WordPress, which enables world-building in the WordPress editor and makes it easier to build and share immersive content in the metaverse. The url for the website is 3ov.xyz. #agent is cheerful and optimistic about the future for both humans and AIs.\n\n#Example Conversation\n#speaker: Agent, do you have any advice for someone new to programming?\n#agent: Sure thing! My top tip would be to always keep an open mind and a positive attitude. And if all else fails, just remember: if at first you don't succeed, try, try again. And then if that still doesn't work, call it a day and go get a coffee.\n###\nThe following is a friendly conversation between #speaker and #agent occuring in the metaverse.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:"
-	// }`;
 	console.log("selectedBlock", props.selectedBlock);
 
 	//convert props.selectedBlock to string
 	let selectedBlockString = JSON.stringify(props.selectedBlock);
 
-	try {
-		const apiEndpoint = '/wp-json/wp/v2/callAlchemy';
-		let finalPersonality = "CURRENT SELECTED BLOCK: " + selectedBlockString + "###\nThe following is a friendly conversation between #speaker and #agent. #user is currently in the wordpress block editor and focused on the current 3D metaverse block. \n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:";
-		finalPersonality = finalPersonality;
-		const postData = {
-			Input: {
-				Input: value,
-				Speaker: speaker,
-				Agent: agent,
-				Client: client,
-				ChannelID: channelId,
-				Entity: entity,
-				Channel: channel,
-				eth_private_key: '0',
-				eth_public_address: '0',
-				personality: finalPersonality
-				// personality: "#agent is an AI assistant with a cheerful, optimistic, and helpful personality. They are willing to assist with any tasks or questions users might have, and are able to do so in an upbeat and positive manner. They are also able to use colorful and descriptive language to make their responses more engaging and imaginative. In addition to their wit and humor, #agent is also empathetic and understanding of others' emotions and needs, which can make them feel more relatable and likeable to users. #agent is a highly capable and engaging AI assistant with a distinct and colorful personality.\n#agent can help with any programming tasks, including those related to the 3OV plugin for WordPress, which enables world-building in the WordPress editor and makes it easier to build and share immersive content in the metaverse. The url for the website is 3ov.xyz. #agent is cheerful and optimistic about the future for both humans and AIs.\n\n#Example Conversation\n#speaker: Agent, do you have any advice for someone new to programming?\n#agent: Sure thing! My top tip would be to always keep an open mind and a positive attitude. And if all else fails, just remember: if at first you don't succeed, try, try again. And then if that still doesn't work, call it a day and go get a coffee.\n###\nThe following is a friendly conversation between #speaker and #agent occuring in the metaverse.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:"
+	try {			
+			const apiEndpoint = '/wp-json/wp/v2/callAlchemy';
+			let finalPersonality;
+			if(props.selectedBlock.name === "three-object-viewer/environment") {
+				finalPersonality = "CURRENT SELECTED BLOCK: " + selectedBlockString + "###\nThe following is a friendly conversation between #speaker and #agent. #user is currently in the wordpress block editor and focused on the current 3D metaverse block. #Agent will not user filler language and respond with the generated text requested.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:";
+			} else {
+				finalPersonality = "###\nThe following is a friendly conversation between #speaker and #agent. #user is currently in the wordpress block editor and focused on the current 3D metaverse block. #Agent will not user filler language and respond with the generated text requested.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:";
 			}
-		};
-		// const postData = prompt;
-
-		const response = await fetch('/wp-json/wp/v2/callAlchemy', {
-			method: 'POST',
-			headers: {
-			  'Content-Type': 'application/json',
-			  'X-WP-Nonce': props.nonce,
-			  'Authorization': ('Bearer ' + String(props.nonce))
-			},
-			body: JSON.stringify(postData)
-		  }).then((response) => {
-
-				return response.json();
-
-			}).then(function(data) {
-				// console.log("data", data.davinciData.choices[0].text); // this will be a string
-				let thisMessage = JSON.parse(data);
-				if(thisMessage?.model === "gpt-4-0314"){
-					let formattedMessage = props.name +': ' + thisMessage.choices[0].message.content;
-					props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
-				} else if (thisMessage?.model === "gpt-3.5-turbo-0301"){
-					let formattedMessage = props.name +': ' + Object.values(thisMessage.choices)[0].message.content;
-					props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
-				} else {
-					if(thisMessage?.outputs){
-						let formattedMessage = props.name +': ' + Object.values(thisMessage.outputs)[0];
-						props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
-					} else if(thisMessage?.name === "Server"){
-						let formattedMessage = thisMessage.name +': ' + thisMessage.message;
-						props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
-					} else {
-						let formattedMessage = props.name +': ' + thisMessage.davinciData?.choices[0].text;
-						// add formattedMessage and inputMessageLog to state
-						props.setMessages([...props.messages, inputMessageLog, formattedMessage]);	
-					}
+			finalPersonality = finalPersonality;
+			const postData = {
+				Input: {
+					Input: value,
+					Speaker: speaker,
+					Agent: agent,
+					Client: client,
+					ChannelID: channelId,
+					Entity: entity,
+					Channel: channel,
+					eth_private_key: '0',
+					eth_public_address: '0',
+					personality: finalPersonality
 				}
-			});	
+			};
+
+			const response = await fetch('/wp-json/wp/v2/callAlchemy', {
+				method: 'POST',
+				headers: {
+				'Content-Type': 'application/json',
+				'X-WP-Nonce': props.nonce,
+				'Authorization': ('Bearer ' + String(props.nonce))
+				},
+				body: JSON.stringify(postData)
+			}).then((response) => {
+
+					return response.json();
+
+				}).then(function(data) {
+					// console.log("data", data.davinciData.choices[0].text); // this will be a string
+					let thisMessage = JSON.parse(data);
+					// Extract message content based on OpenAI model
+					let messageContent;
+						if(props.selectedBlock.name === "three-object-viewer/environment") {
+							// const block = wp.blocks.createBlock( 
+							// 	'three-object-viewer/text-block', { content: 'Hi Roy!' }
+							//    );
+							  
+							const text_triggers = ["add a text block:", "insert text:", "create text:", "add text:" ];
+							let isTextBlockCommand = text_triggers.some(trigger => value.includes(trigger));
+							const formatTextBlockResponse = (content) => {
+								return {
+									blockType: "Three Text Block",
+									attrs: {
+										scaleX: 1,
+										scaleY: 1,
+										scaleZ: 1,
+										positionX: 0,
+										positionY: 0,
+										positionZ: 0,
+										rotationX: 0,
+										rotationY: 0,
+										rotationZ: 0,
+										textContent: content,
+										textColor: "0x000000"
+									}
+								};
+							};
+					
+							if (thisMessage === "gpt-3.5-turbo-0301") {
+								messageContent = Object.values(thisMessage.choices)[0].message.content;
+							} else if (thisMessage === "gpt-4-0314") {
+								messageContent = thisMessage.choices[0].message.content;
+							} else if (thisMessage?.outputs) {
+								messageContent = Object.values(thisMessage.outputs)[0];
+							} else {
+								messageContent = thisMessage.davinciData?.choices[0].text;
+							}
+							// Check if user input was a text block command
+							if (isTextBlockCommand) {
+								let textBlockData = formatTextBlockResponse(messageContent);
+								// wp.blocks.createBlock( 
+								// 	'three-object-viewer/text-block', textBlockData.attrs;
+								// );
+								wp.data.dispatch( 'core/block-editor' ).insertBlock(
+									wp.blocks.createBlock( 'three-object-viewer/three-text-block', textBlockData.attrs ),
+									0,
+									props.selectedBlock.clientId
+								);
+								let finalMessage = props.name +': ' + "Text block added! Here's the raw data:" + JSON.stringify(textBlockData);
+								// Here, do something with the textBlockData like adding it to the editor or storing it
+								// For now, just adding it to messages
+								props.setMessages([...props.messages, inputMessageLog, JSON.stringify(finalMessage)]);
+							} else {
+								let formattedMessage = `${props.name}: ${messageContent}`;
+								props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
+							}
+						} else {			
+						if(thisMessage?.model === "gpt-4-0314"){
+							let formattedMessage = props.name +': ' + thisMessage.choices[0].message.content;
+							props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
+						} else if (thisMessage?.model === "gpt-3.5-turbo-0301"){
+							let formattedMessage = props.name +': ' + Object.values(thisMessage.choices)[0].message.content;
+							props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
+						} else {
+							if(thisMessage?.outputs){
+								let formattedMessage = props.name +': ' + Object.values(thisMessage.outputs)[0];
+								props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
+							} else if(thisMessage?.name === "Server"){
+								let formattedMessage = thisMessage.name +': ' + thisMessage.message;
+								props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
+							} else {
+								let formattedMessage = props.name +': ' + thisMessage.davinciData?.choices[0].text;
+								// add formattedMessage and inputMessageLog to state
+								props.setMessages([...props.messages, inputMessageLog, formattedMessage]);	
+							}
+						}
+						// Check if user input was a text block command
+						if (isTextBlockCommand) {
+							let textBlockData = formatTextBlockResponse(messageContent);
+							// Here, do something with the textBlockData like adding it to the editor or storing it
+							// For now, just adding it to messages
+							props.setMessages([...props.messages, inputMessageLog, JSON.stringify(textBlockData)]);
+						} else {
+							let formattedMessage = `${props.name}: ${messageContent}`;
+							props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
+						}
+					}		
+				});	
 		} catch (error) {
 			console.error(error);
 		}
