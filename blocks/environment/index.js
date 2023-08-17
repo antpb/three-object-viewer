@@ -56,20 +56,19 @@ function ChatBox(props) {
 	  const speaker = "guest";
 	  const agent = props.name;
 	  const channel = "wordpress";
-	console.log("selectedBlock", props.selectedBlock);
 
 	//convert props.selectedBlock to string
 	let selectedBlockString = JSON.stringify(props.selectedBlock);
 
-	try {			
+	try {
+			console.log("selectedBlock", props.selectedBlock);
 			const apiEndpoint = '/wp-json/wp/v2/callAlchemy';
 			let finalPersonality;
 			if(props.selectedBlock.name === "three-object-viewer/environment") {
-				finalPersonality = "CURRENT SELECTED BLOCK: " + selectedBlockString + "###\nThe following is a friendly conversation between #speaker and #agent. #user is currently in the wordpress block editor and focused on the current 3D metaverse block. #Agent will not user filler language and respond with the generated text requested.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:";
+				finalPersonality = "CURRENT SELECTED BLOCK: " + selectedBlockString + "###\nThe following is a friendly conversation between #speaker and #agent. #user is currently in the wordpress block editor and focused on the CURRENT SELECTED BLOCK. #Agent will not user filler language and respond with the generated text requested.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:";
 			} else {
-				finalPersonality = "###\nThe following is a friendly conversation between #speaker and #agent. #user is currently in the wordpress block editor and focused on the current 3D metaverse block. #Agent will not user filler language and respond with the generated text requested.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:";
+				finalPersonality = "CURRENT SELECTED BLOCK: " + selectedBlockString + "###\nThe following is a friendly conversation between #speaker and #agent. #user is currently in the wordpress block editor and focused on the CURRENT SELECTED BLOCK. #Agent will not user filler language and respond with the generated text requested.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:";
 			}
-			finalPersonality = finalPersonality;
 			const postData = {
 				Input: {
 					Input: value,
@@ -102,31 +101,31 @@ function ChatBox(props) {
 					let thisMessage = JSON.parse(data);
 					// Extract message content based on OpenAI model
 					let messageContent;
+					const text_triggers = ["add a text block:", "insert text:", "create text:", "add text:" ];
+					let isTextBlockCommand = text_triggers.some(trigger => value.includes(trigger));
+					const formatTextBlockResponse = (content) => {
+						return {
+							blockType: "Three Text Block",
+							attrs: {
+								scaleX: 1,
+								scaleY: 1,
+								scaleZ: 1,
+								positionX: 0,
+								positionY: 0,
+								positionZ: 0,
+								rotationX: 0,
+								rotationY: 0,
+								rotationZ: 0,
+								textContent: content,
+								textColor: "0x000000"
+							}
+						};
+					};
+
 						if(props.selectedBlock.name === "three-object-viewer/environment") {
 							// const block = wp.blocks.createBlock( 
 							// 	'three-object-viewer/text-block', { content: 'Hi Roy!' }
 							//    );
-							  
-							const text_triggers = ["add a text block:", "insert text:", "create text:", "add text:" ];
-							let isTextBlockCommand = text_triggers.some(trigger => value.includes(trigger));
-							const formatTextBlockResponse = (content) => {
-								return {
-									blockType: "Three Text Block",
-									attrs: {
-										scaleX: 1,
-										scaleY: 1,
-										scaleZ: 1,
-										positionX: 0,
-										positionY: 0,
-										positionZ: 0,
-										rotationX: 0,
-										rotationY: 0,
-										rotationZ: 0,
-										textContent: content,
-										textColor: "0x000000"
-									}
-								};
-							};
 					
 							if (thisMessage === "gpt-3.5-turbo-0301") {
 								messageContent = Object.values(thisMessage.choices)[0].message.content;
@@ -158,19 +157,26 @@ function ChatBox(props) {
 							}
 						} else {			
 						if(thisMessage?.model === "gpt-4-0314"){
+							messageContent = thisMessage.choices[0].message.content;
 							let formattedMessage = props.name +': ' + thisMessage.choices[0].message.content;
 							props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
 						} else if (thisMessage?.model === "gpt-3.5-turbo-0301"){
+							messageContent = Object.values(thisMessage.choices)[0].message.content;
+
 							let formattedMessage = props.name +': ' + Object.values(thisMessage.choices)[0].message.content;
 							props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
 						} else {
 							if(thisMessage?.outputs){
+								messageContent = Object.values(thisMessage.outputs)[0];
+
 								let formattedMessage = props.name +': ' + Object.values(thisMessage.outputs)[0];
 								props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
 							} else if(thisMessage?.name === "Server"){
 								let formattedMessage = thisMessage.name +': ' + thisMessage.message;
 								props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
 							} else {
+								messageContent = thisMessage.davinciData?.choices[0].text;
+
 								let formattedMessage = props.name +': ' + thisMessage.davinciData?.choices[0].text;
 								// add formattedMessage and inputMessageLog to state
 								props.setMessages([...props.messages, inputMessageLog, formattedMessage]);	
