@@ -25,6 +25,7 @@ import { Perf } from "r3f-perf";
 import { Resizable } from "re-resizable";
 import defaultFont from "../../../inc/fonts/roboto.woff";
 import audioIcon from "../../../inc/assets/audio_icon.png";
+import lightIcon from "../../../inc/assets/light_icon.png";
 
 const { registerStore } = wp.data;
 
@@ -130,7 +131,7 @@ function ThreeSky(sky) {
 				rotation={[0, 0, 0]}
 			>
 				<sphereGeometry args={[300, 50, 50]} />
-				<meshStandardMaterial side={THREE.DoubleSide} map={texture_1} />
+				<meshBasicMaterial side={THREE.DoubleSide} map={texture_1} />
 			</mesh>
 		);
 	} else {
@@ -434,6 +435,206 @@ function AudioObject(threeAudio) {
 					/>
 				</mesh>
 			</group>
+			</TransformController>
+		</Select>
+	);
+}
+
+
+function LightObject(threeLight) {
+	const { scene } = useThree();
+	// add lightRef
+	const lightRef = useRef();
+    useEffect(() => {
+        if (lightRef.current) {
+            scene.add(lightRef.current);
+        }
+        return () => {
+            if (lightRef.current) {
+                scene.remove(lightRef.current);
+            }
+        };
+    }, []);
+    useEffect(() => {
+        if (lightRef.current) {
+            scene.add(lightRef.current);
+        }
+        return () => {
+            if (lightRef.current) {
+                scene.remove(lightRef.current);
+            }
+        };
+    }, []);
+
+    let LightComponent;
+	const color = new THREE.Color( threeLight.color );
+
+    switch (threeLight.type) {
+        case "directional":
+            LightComponent = (
+                <directionalLight
+                    ref={lightRef}
+                    color={color}
+                    intensity={threeLight.intensity}
+                    position={[
+                        threeLight.positionX,
+                        threeLight.positionY,
+                        threeLight.positionZ
+                    ]}
+                />
+            );
+            break;
+        case "point":
+            LightComponent = (
+                <pointLight
+                    ref={lightRef}
+                    color={color}
+                    intensity={threeLight.intensity}
+                    distance={threeLight.distance}
+                    decay={threeLight.decay}
+                    position={[
+                        threeLight.positionX,
+                        threeLight.positionY,
+                        threeLight.positionZ
+                    ]}
+                />
+            );
+            break;
+        case "spot":
+            LightComponent = (
+                <spotLight
+                    ref={lightRef}
+                    color={color}
+                    intensity={threeLight.intensity}
+                    distance={threeLight.distance}
+                    angle={threeLight.angle}
+                    penumbra={threeLight.penumbra}
+                    decay={threeLight.decay}
+                    position={[
+                        threeLight.positionX,
+                        threeLight.positionY,
+                        threeLight.positionZ
+                    ]}
+                />
+            );
+            break;
+			case "ambient":
+				LightComponent = (
+					<ambientLight
+						ref={lightRef}
+						color={threeLight.color}
+						intensity={threeLight.intensity}
+					/>
+				);
+				break;	
+			default:
+            LightComponent = null;
+    }
+
+	const texture2 = useLoader(THREE.TextureLoader, (threeObjectPlugin + lightIcon));
+
+	const [threeLightBlockAttributes, setThreeLightBlockAttributes] = useState(
+		wp.data
+			.select("core/block-editor")
+			.getBlockAttributes(threeLight.lightID)
+	);
+	  
+	useEffect(() => {
+		const attributes = wp.data
+			.select("core/block-editor")
+			.getBlockAttributes(threeLight.lightID);
+			setThreeLightBlockAttributes(attributes);
+	}, [threeLight.lightID]);
+
+	const [isSelected, setIsSelected] = useState();
+ 	  
+	const clicked = true;
+	const lightObj = useRef();
+	const TransformController = ({ condition, wrap, children }) =>
+		condition ? wrap(children) : children;
+
+	// useEffect(() => void (clicked && video.play()), [video, clicked]);
+
+	useEffect(() => {
+		if( threeLight.focusID === threeLight.lightID ) {
+			const someFocus = new THREE.Vector3(Number(threeLight.positionX), Number(threeLight.positionY), Number(threeLight.positionZ));
+			threeLight.changeFocusPoint(someFocus);
+		}
+	}, [threeLight.focusID]);
+
+	return (
+		<Select
+			box
+			multiple
+			onChange={(e) => {
+				e.length !== 0 ? setIsSelected(true) : setIsSelected(false);
+			}}
+			filter={(items) => items}
+		>
+			<TransformController
+				condition={threeLight.focusID === threeLight.lightID}
+				wrap={(children) => (
+					<TransformControls
+						enabled={threeLight.focusID === threeLight.lightID}
+						mode={
+							threeLight.transformMode
+								? threeLight.transformMode
+								: "translate"
+						}
+						object={lightObj}
+						size={0.5}
+						onMouseUp={(e) => {
+							const rot = new THREE.Euler(0, 0, 0, "XYZ");
+							const scale = e?.target.worldScale;
+							rot.setFromQuaternion(e?.target.worldQuaternion);
+							wp.data
+								.dispatch("core/block-editor")
+								.updateBlockAttributes(threeLight.lightID, {
+									positionX: e?.target.worldPosition.x,
+									positionY: e?.target.worldPosition.y,
+									positionZ: e?.target.worldPosition.z,
+									rotationX: rot.x,
+									rotationY: rot.y,
+									rotationZ: rot.z,
+								});
+								setThreeLightBlockAttributes(
+								wp.data
+									.select("core/block-editor")
+									.getBlockAttributes(threeLight.lightID)
+							);
+						}}
+					>
+						{children}
+					</TransformControls>
+				)}
+			>					
+				<group
+					ref={lightObj}
+					position={[
+						threeLightBlockAttributes.positionX,
+						threeLightBlockAttributes.positionY,
+						threeLightBlockAttributes.positionZ
+					]}
+					rotation={[
+						threeLightBlockAttributes.rotationX,
+						threeLightBlockAttributes.rotationY,
+						threeLightBlockAttributes.rotationZ
+					]}
+				>
+					{LightComponent}
+					<mesh>
+						<meshBasicMaterial
+							transparent
+							side={THREE.DoubleSide}
+							map={texture2}
+						/>
+						<planeGeometry
+							args={[
+								1, 1
+							]}
+						/>
+					</mesh>
+				</group>
 			</TransformController>
 		</Select>
 	);
@@ -1232,17 +1433,19 @@ function ThreeObject(props) {
 	let audioObject;
 	const audioElementsToAdd = [];
 
+	let lightID;
+	let lightObject;
+	const lightElementsToAdd = [];
+
 	const editorHtmlToAdd = [];
 	let htmlobject;
 	let htmlobjectId;
-
 	const { select } = wp.data;
 
 	function getNestedBlocks(clientId) {
 		const blockEditor = select("core/block-editor");
 		const blocks = blockEditor.getBlocks(clientId);
 		let allBlocks = [...blocks];
-
 		blocks.forEach(block => {
 			const innerBlocks = getNestedBlocks(block.clientId);
 			allBlocks = [...allBlocks, ...innerBlocks];
@@ -1310,6 +1513,14 @@ function ThreeObject(props) {
 							audioObject = innerBlock.attributes;
 							audioID = innerBlock.clientId;
 							audioElementsToAdd.push({ audioObject, audioID });
+						}
+						if (
+							innerBlock.name ===
+							"three-object-viewer/three-light-block"
+						) {
+							lightObject = innerBlock.attributes;
+							lightID = innerBlock.clientId;
+							lightElementsToAdd.push({ lightObject, lightID });
 						}
 						if (
 							innerBlock.name ===
@@ -1570,6 +1781,50 @@ function ThreeObject(props) {
 					);
 				}
 			})}
+			{ lightElementsToAdd.length < 1 && (
+					<>
+						<ambientLight intensity={0.5} />
+						<directionalLight
+							intensity={0.6}
+							position={[0, 2, 2]}
+							shadow-mapSize-width={2048}
+							shadow-mapSize-height={2048}
+							castShadow
+						/>
+					</>
+			)}
+			{Object.values(lightElementsToAdd).map((model, index) => {
+				if (model.lightObject.type) {
+					return (
+						<LightObject
+							type={model.lightObject.type}
+							color={model.lightObject.color}
+							intensity={model.lightObject.intensity}
+							distance={model.lightObject.distance}
+							decay={model.lightObject.decay}
+							angle={model.lightObject.angle}
+							penumbra={model.lightObject.penumbra}
+							positionX={model.lightObject.positionX}
+							positionY={model.lightObject.positionY}
+							positionZ={model.lightObject.positionZ}
+							rotationX={model.lightObject.rotationX}
+							rotationY={model.lightObject.rotationY}
+							rotationZ={model.lightObject.rotationZ}
+							targetX={model.lightObject.targetX}
+							targetY={model.lightObject.targetY}
+							targetZ={model.lightObject.targetZ}
+
+							selected={props.selected}
+							lightID={model.lightID}
+							focusID ={props.focusID}
+							changeFocusPoint={props.changeFocusPoint}
+							setFocusPosition={props.setFocusPosition}
+							transformMode={props.transformMode}
+							shouldFocus={props.shouldFocus}
+						/>
+					);
+				}
+			})}
 			{Object.values(editorHtmlToAdd).map((text, index) => {
 				return (
 					<TextObject
@@ -1599,6 +1854,7 @@ function ThreeObject(props) {
 }
 
 export default function ThreeObjectEdit(props) {
+
 	const [transformMode, setTransformMode] = useState("translate");
 
 	const ObjectControls = (props) => {
@@ -1722,7 +1978,7 @@ export default function ThreeObjectEdit(props) {
 						position: [0, 0, 20]
 					}}
 					ref={canvasRef}
-					shadowMap
+					// shadowMap
 					performance={{ min: 0.5 }}
 					onCreated={handleCanvasCreated}
 					style={{
@@ -1738,14 +1994,6 @@ export default function ThreeObjectEdit(props) {
 						position={[0, 0, 20]}
 						makeDefault
 						zoom={1}
-					/>
-					<ambientLight intensity={0.5} />
-					<directionalLight
-						intensity={0.6}
-						position={[0, 2, 2]}
-						shadow-mapSize-width={2048}
-						shadow-mapSize-height={2048}
-						castShadow
 					/>
 					{props.url && (
 						<Suspense fallback={null}>
@@ -1770,6 +2018,7 @@ export default function ThreeObjectEdit(props) {
 								focusPosition={props.focusPosition}
 								shouldFocus={shouldFocus}
 								changeFocusPoint={props.changeFocusPoint}
+								clientId={props.clientId}
 							/>
 						</Suspense>
 					)}

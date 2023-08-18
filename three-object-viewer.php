@@ -113,6 +113,9 @@ include_once dirname( __FILE__ ) . '/blocks/three-video-block/init.php';
 // Include audio
 include_once dirname( __FILE__ ) . '/blocks/three-audio-block/init.php';
 
+// Include light
+include_once dirname( __FILE__ ) . '/blocks/three-light-block/init.php';
+
 // Include portal
 include_once dirname( __FILE__ ) . '/blocks/three-portal-block/init.php';
 

@@ -37,6 +37,7 @@ import { BoxGeometry } from "three";
 import { ThreeImage } from "./core/front/ThreeImage";
 import { ThreeVideo } from "./core/front/ThreeVideo";
 import { ThreeAudio } from "./core/front/ThreeAudio";
+import { ThreeLight } from "./core/front/ThreeLight";
 import { ModelObject } from "./core/front/ModelObject";
 import { NPCObject } from "./core/front/NPCObject";
 import { Portal } from "./core/front/Portal";
@@ -700,30 +701,13 @@ console.log(props.previewImage);
 							padding: "0",
 							position: "relative",
 							zIndex: 1
-						  }}
+						}}
 					>
 							{ isVRCompatible() && <XRButton mode={'VR' | 'inline'}/>}
 							{/* <Perf className="stats" /> */}
 							{/* <fog attach="fog" color="hotpink" near={100} far={20} /> */}
 							<Hands />
 							<DefaultXRControllers />
-							<ambientLight intensity={0.5} />
-							<directionalLight
-								intensity={0.6}
-								position={[0, 2, 2]}
-							// shadow-mapSize-width={512}
-							// shadow-mapSize-height={512}
-							// shadow-camera-far={5000}
-							// shadow-camera-fov={15}
-							// shadow-camera-near={0.5}
-							// shadow-camera-left={-50}
-							// shadow-camera-bottom={-50}
-							// shadow-camera-right={50}
-							// shadow-camera-top={50}
-							// shadow-radius={1}
-							// shadow-bias={-0.001}
-							// castShadow
-							/>
 							<Suspense fallback={<Loading />}>
 								{props.hdr && 
 									<Environment
@@ -1210,6 +1194,100 @@ console.log(props.previewImage);
 													/>
 												);
 												})}
+												{props.lightsToAdd.length < 1 && (
+													<>
+														<ambientLight intensity={0.5} />
+														<directionalLight
+															intensity={0.6}
+															position={[0, 2, 2]}
+														// shadow-mapSize-width={512}
+														// shadow-mapSize-height={512}
+														// shadow-camera-far={5000}
+														// shadow-camera-fov={15}
+														// shadow-camera-near={0.5}
+														// shadow-camera-left={-50}
+														// shadow-camera-bottom={-50}
+														// shadow-camera-right={50}
+														// shadow-camera-top={50}
+														// shadow-radius={1}
+														// shadow-bias={-0.001}
+														// castShadow
+														/>
+													</>
+												)}
+												{Object.values(props.lightsToAdd).map((item, index) => {
+												const lightPosX = item.querySelector("p.light-block-positionX")
+													? item.querySelector("p.light-block-positionX").innerText
+													: "";
+
+												const lightPosY = item.querySelector("p.light-block-positionY")
+													? item.querySelector("p.light-block-positionY").innerText
+													: "";
+
+												const lightPosZ = item.querySelector("p.light-block-positionZ")
+													? item.querySelector("p.light-block-positionZ").innerText
+													: "";
+
+												const lightRotationX = item.querySelector("p.light-block-rotationX")
+													? item.querySelector("p.light-block-rotationX").innerText
+													: "";
+
+												const lightRotationY = item.querySelector("p.light-block-rotationY")
+													? item.querySelector("p.light-block-rotationY").innerText
+													: "";
+
+												const lightRotationZ = item.querySelector("p.light-block-rotationZ")
+													? item.querySelector("p.light-block-rotationZ").innerText
+													: "";
+
+												const lightType = item.querySelector("p.light-block-type")
+													? item.querySelector("p.light-block-type").innerText
+													: "ambient";
+
+												const lightColor = item.querySelector("p.light-block-color")
+													? item.querySelector("p.light-block-color").innerText
+													: "";
+
+												const lightItensity = item.querySelector("p.light-block-intensity")
+													? item.querySelector("p.light-block-intensity").innerText
+													: "";
+	
+												const lightDistance = item.querySelector("p.light-block-distance")
+													? item.querySelector("p.light-block-distance").innerText
+													: "";
+
+												const lightDecay = item.querySelector("p.light-block-decay")
+													? item.querySelector("p.light-block-decay").innerText
+													: "";
+
+												const lightAngle = item.querySelector("p.light-block-angle")
+													? item.querySelector("p.light-block-angle").innerText
+													: "";
+
+												const lightPenumbra = item.querySelector("p.light-block-penumbra")
+													? item.querySelector("p.light-block-penumbra").innerText
+													: "";
+
+												return (
+													<ThreeLight
+														key={index}
+														positionX={lightPosX}
+														positionY={lightPosY}
+														positionZ={lightPosZ}
+														rotationX={lightRotationX}
+														rotationY={lightRotationY}
+														rotationZ={lightRotationZ}
+														type={lightType}
+														color={lightColor}
+														intensity={lightItensity}
+														distance={lightDistance}
+														decay={lightDecay}
+														angle={lightAngle}
+														penumbra={lightPenumbra}
+													/>
+												);
+												})}
+
 												{Object.values(
 													props.npcsToAdd
 												).map((npc, index) => {
