@@ -31,6 +31,10 @@
             "type": "string",
             "default": null
         },
+        "hdr": {
+            "type": "string",
+            "default": null
+        },
         "deviceTarget": {
             "type": "string",
             "default": "vr"

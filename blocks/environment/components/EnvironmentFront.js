@@ -14,6 +14,7 @@ import axios from "axios";
 import ReactNipple from 'react-nipple';
 import ScrollableFeed from 'react-scrollable-feed'
 import { Resizable } from "re-resizable";
+import { Environment } from "@react-three/drei";
 
 import {
 	useAnimations,
@@ -677,7 +678,7 @@ export default function EnvironmentFront(props) {
 		if (webXRNotAvail) {
 			webXRNotAvail.style.display = "none";
 		}
-
+console.log(props.previewImage);
 		if (props.deviceTarget === "vr") {
 			return (
 				<>
@@ -724,6 +725,13 @@ export default function EnvironmentFront(props) {
 							// castShadow
 							/>
 							<Suspense fallback={<Loading />}>
+								{props.hdr && 
+									<Environment
+										blur={0.05}
+										files={props.hdr}
+										background
+									/>
+								}
 								<Physics
 									// debug
 								>

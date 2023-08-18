@@ -13,7 +13,8 @@ import {
 	Select,
 	Text,
 	useAspect,
-	Sky
+	Sky,
+	Environment
 } from "@react-three/drei";
 import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import { GLTFAudioEmitterExtension } from "three-omi";
@@ -1748,6 +1749,13 @@ export default function ThreeObjectEdit(props) {
 					/>
 					{props.url && (
 						<Suspense fallback={null}>
+							{props.hdr && 
+								<Environment
+									blur={0.05}
+									files={props.hdr}
+									background
+								/>
+							}
 							{/* <EditControls/> */}
 							<ThreeObject
 								url={props.url}

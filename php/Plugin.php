@@ -66,6 +66,7 @@ class Plugin
 	  // $new_filetypes['glb'] = 'model/gltf-binary';
 	  $new_filetypes['glb'] = 'application/octet-stream';
 	  $new_filetypes['vrm'] = 'application/octet-stream';
+	  $new_filetypes['hdr'] = 'image/vnd.radiance';
 	  $new_filetypes['usdz'] = 'model/vnd.usdz+zip';
 	  $new_filetypes['fbx'] = 'application/octet-stream';
 	  $file_types = array_merge($file_types, $new_filetypes );
@@ -81,6 +82,10 @@ class Plugin
 		if ( false !== strpos( $filename, '.glb' ) ) {
 			$types['ext']  = 'glb';
 			$types['type'] = 'application/octet-stream';
+		}
+		if ( false !== strpos( $filename, '.hdr' ) ) {
+			$types['ext']  = 'hdr';
+			$types['type'] = 'image/vnd.radiance';
 		}
 		if ( false !== strpos( $filename, '.vrm' ) ) {
 			$types['ext']  = 'vrm';

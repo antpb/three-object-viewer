@@ -58,6 +58,11 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 		setAttributes({ threePreviewImage: imageObject.url });
 	};
 
+	const onHDRImageSelect = (imageObject) => {
+		setAttributes({ hdr: null });
+		setAttributes({ hdr: imageObject.url });
+	};
+
 	const onChangePositionY = (posy) => {
 		setAttributes({ positionY: posy });
 	};
@@ -81,6 +86,10 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 	const ALLOWED_MEDIA_TYPES = [
 		"model/gltf-binary",
 		"application/octet-stream"
+	];
+
+	const HDR = [
+		"image/vnd.radiance"
 	];
 
 	const TEMPLATE = [            
@@ -182,6 +191,24 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 								)}
 							/>
 						</PanelRow>
+						<PanelRow>
+							<MediaUpload
+								onSelect={(imageObject) =>
+									onHDRImageSelect(imageObject)
+								}
+								type="image"
+								label="HDR Image"
+								allowedTypes={ HDR }
+								value={attributes.hdr}
+								render={({ open }) => (
+									<button onClick={open}>
+										{attributes.hrd
+											? "Replace HDR"
+											: "Select HDR"}
+									</button>
+								)}
+							/>
+						</PanelRow>
 					</PanelBody>
 					<PanelBody
 						title="Scene Settings"
@@ -262,6 +289,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 					{mainModel && (
 						<ThreeObjectEdit
 							url={mainModel}
+							hdr={attributes.hdr}
 							deviceTarget={attributes.deviceTarget}
 							backgroundColor={attributes.bg_color}
 							zoom={attributes.zoom}
