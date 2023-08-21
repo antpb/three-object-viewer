@@ -402,9 +402,9 @@ export function NPCObject(model) {
 
 		}
 		let defaultColor = "0xffffff";
+		let black = "0x000000";
 		var colorValue = parseInt ( defaultColor.replace("#","0x"), 16 );
-
-		const color = new THREE.Color( colorValue );
+		var blackValue = parseInt ( black.replace("#","0x"), 16 );
 	
 		return (
 			<group
@@ -421,7 +421,7 @@ export function NPCObject(model) {
 					maxWidth={1}
 					wrap={0.1}
 					height={0.1}
-					color={color}
+					color={colorValue}
 					transform
 					name="npcText"
 				>
@@ -429,7 +429,7 @@ export function NPCObject(model) {
 				</Text>
 				<mesh name="npcBackground" position={[0.6,  (Number(headPositionY.current) - 0.5), -0.01]}>
 					<planeGeometry attach="geometry" args={[0.65, 1.5]} />
-					<meshBasicMaterial attach="material" color={colorValue} opacity={0.5}	transparent={ true } />
+					<meshBasicMaterial attach="material" color={blackValue} opacity={0.5}	transparent={ true } />
 				</mesh>
 				<primitive object={vrm.scene} />
 			</group>

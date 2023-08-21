@@ -679,7 +679,6 @@ export default function EnvironmentFront(props) {
 		if (webXRNotAvail) {
 			webXRNotAvail.style.display = "none";
 		}
-console.log(props.previewImage);
 		if (props.deviceTarget === "vr") {
 			return (
 				<>
