@@ -445,26 +445,16 @@ function LightObject(threeLight) {
 	const { scene } = useThree();
 	// add lightRef
 	const lightRef = useRef();
-    useEffect(() => {
-        if (lightRef.current) {
-            scene.add(lightRef.current);
-        }
-        return () => {
-            if (lightRef.current) {
-                scene.remove(lightRef.current);
-            }
-        };
-    }, []);
-    useEffect(() => {
-        if (lightRef.current) {
-            scene.add(lightRef.current);
-        }
-        return () => {
-            if (lightRef.current) {
-                scene.remove(lightRef.current);
-            }
-        };
-    }, []);
+    // useEffect(() => {
+    //     if (lightRef.current) {
+    //         scene.add(lightRef.current);
+    //     }
+    //     return () => {
+    //         if (lightRef.current) {
+    //             scene.remove(lightRef.current);
+    //         }
+    //     };
+    // }, []);
 
     let LightComponent;
 	var colorValue = parseInt ( threeLight.color.replace("#","0x"), 16 );
@@ -1788,7 +1778,7 @@ function ThreeObject(props) {
 					);
 				}
 			})}
-			{ lightElementsToAdd.length < 1 && (
+			{/* { lightElementsToAdd.length < 1 && (
 					<>
 						<ambientLight intensity={0.5} />
 						<directionalLight
@@ -1799,7 +1789,7 @@ function ThreeObject(props) {
 							castShadow
 						/>
 					</>
-			)}
+			)} */}
 			{Object.values(lightElementsToAdd).map((model, index) => {
 				if (model.lightObject.type) {
 					return (

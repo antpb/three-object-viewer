@@ -26,7 +26,7 @@ import {
  * @returns {JSX.Element} - Returns a JSX element containing a Three.js light object.
  */
 export function ThreeLight(threeLight) {
-  const [light, setLight] = useState(null);
+  const { scene } = useThree();
 
   useEffect(() => {
     let lightInstance;
@@ -56,12 +56,9 @@ export function ThreeLight(threeLight) {
         console.warn("Invalid light type provided");
     }
 
-    setLight(lightInstance);
-  }, [threeLight]);
+    // add the light to the scene 
+    scene.add(lightInstance);
+  }, []);
 
-  return (
-    <>
-      {light && <primitive object={light} />}
-    </>
-  );
+  return;
 }

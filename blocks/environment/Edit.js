@@ -192,6 +192,11 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 							/>
 						</PanelRow>
 						<PanelRow>
+							{attributes.hdr && (<span>
+								{ attributes.hdr }
+							</span>)}
+						</PanelRow>
+						<PanelRow>
 							<MediaUpload
 								onSelect={(imageObject) =>
 									onHDRImageSelect(imageObject)
