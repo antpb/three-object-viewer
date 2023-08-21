@@ -130,11 +130,6 @@ include_once dirname( __FILE__ ) . '/blocks/spawn-point-block/init.php';
 * Include the autoloader
 */
 add_action( 'plugins_loaded', function () {
-			// Unload the translation from the default location
-	// load_plugin_textdomain( 'three-object-viewer', false, dirname(plugin_basename(__FILE__)) . '/languages' );
-
-	// load_plugin_textdomain( 'three-object-viewer', false, dirname(dirname(plugin_basename(__FILE__))) . '/languages' );
-
     if ( file_exists(__DIR__ . '/vendor/autoload.php' ) ) {
         include __DIR__ . '/vendor/autoload.php';
     }

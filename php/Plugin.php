@@ -368,19 +368,6 @@ class Plugin
 		wp_enqueue_script( 'three-object-viewer-three-object-block-editor-script', 'three-object-viewer', ['wp-element', 'wp-data', 'wp-i18n', 'wp-hooks'], '', true );
 		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'threeObjectPlugin', $three_object_plugin );	
 		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'threeObjectPluginRoot', $three_object_plugin_root );	
-		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'allowed_blocks', $ALLOWED_BLOCKS );
-		
-		    // // Get the list of registered scripts
-			// global $wp_scripts;
-			// $registered_scripts = $wp_scripts->registered;
-		
-			// // List the registered script handles
-			// $registered_script_handles = array_keys($registered_scripts);
-		
-			// // Output the list (you can format this as needed)
-			// echo '<pre>';
-			// print_r($registered_script_handles);
-			// echo '</pre>';
-		
+		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'allowed_blocks', $ALLOWED_BLOCKS );		
 	}
 	}
