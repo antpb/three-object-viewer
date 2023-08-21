@@ -1,7 +1,5 @@
 {
     "name": "three-object-viewer/three-audio-block",
-    "title": "3D Audio",
-    "description": "An audio block for your environment",
     "attributes": {
         "name": {
             "type": "string",
@@ -87,6 +85,7 @@
         "html": false,
         "multiple": true
     },
+    "textdomain": "three-object-viewer",
     "editorScript": "file:../../build/block-three-audio-block.js",
 	"editorStyle": "file:../../build/block-three-audio-block.css",
 	"style": "file:../../build/block-three-audio-block.css"

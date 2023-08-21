@@ -8,7 +8,6 @@ import { useSelect, useDispatch } from '@wordpress/data';
 import { useEffect } from '@wordpress/element';
 import React, { Suspense, useRef, useMemo } from "react";
 
-
 const icon = (
 	<svg
 		className="custom-icon custom-icon-cube"

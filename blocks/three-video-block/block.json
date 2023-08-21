@@ -1,7 +1,5 @@
 {
     "name": "three-object-viewer/three-video-block",
-    "title": "3D Video",
-    "description": "A video block for your environment",
     "attributes": {
         "videoUrl": {
             "type": "string",
@@ -71,6 +69,7 @@
         "html": false,
         "multiple": true
     },
+    "textdomain": "three-object-viewer",
     "editorScript": "file:../../build/block-three-video-block.js",
 	"editorStyle": "file:../../build/block-three-video-block.css",
 	"style": "file:../../build/block-three-video-block.css"

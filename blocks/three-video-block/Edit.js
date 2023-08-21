@@ -118,7 +118,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 	return (
 		<div {...useBlockProps()}>
 			<InspectorControls key="setting">
-				<Panel header="Settings">
+				<Panel header={ __( "Settings", 'three-object-viewer') }>
 					<PanelBody
 						title="Image Object"
 						icon={more}
@@ -126,7 +126,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 					>
 						<PanelRow>
 							<span>
-								Select an image to render in your environment:
+							{ __( 'Select an image to render in your environment:', 'three-object-viewer' )}
 							</span>
 						</PanelRow>
 						<PanelRow>
@@ -135,14 +135,14 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									onImageSelect(imageObject)
 								}
 								type="image"
-								label="Video File"
+								label={ __( "Video File", 'three-object-viewer' )}
 								allowedTypes={ALLOWED_MEDIA_TYPES}
 								value={attributes.videoUrl}
 								render={({ open }) => (
 									<button onClick={open}>
 										{attributes.videoUrl
-											? "Replace Video"
-											: "Select Video"}
+											? __( "Replace Video", 'three-object-viewer' )
+											: __( "Select Video", 'three-object-viewer' )}
 									</button>
 								)}
 							/>
@@ -152,8 +152,8 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 								label="AutoPlay"
 								help={
 									attributes.autoPlay
-										? "Item will autoplay."
-										: "Item will not autoplay."
+										? __( "Item will autoplay.", 'three-object-viewer' )
+										: __( "Item will not autoplay.", 'three-object-viewer' )
 								}
 								checked={attributes.autoPlay}
 								onChange={(e) => {
@@ -164,11 +164,11 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 						<PanelRow>
 							{attributes.videoUrl && (
 							<ToggleControl
-								label="Custom Model"
+								label={ __( "Custom Model", 'three-object-viewer' )}
 								help={
 									attributes.customModel
-										? "Item will use a custom model. Name your faces 'screen'."
-										: "Item will not use a custom model."
+										? __( "Item will use a custom model. Name your faces 'screen'.", 'three-object-viewer' )
+										: __( "Item will not use a custom model.", 'three-object-viewer' )
 								}
 								checked={attributes.customModel}
 								onChange={(e) => {
@@ -182,14 +182,14 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									onModelSelect(modelObject)
 								}
 								// type="file"
-								label="Custom Model"
+								label={ __("Custom Model", 'three-object-viewer' )}
 								allowedTypes={THREE_ALLOWED_MEDIA_TYPES}
 								value={attributes.customModel}
 								render={({ open }) => (
 									<button onClick={open}>
 										{attributes.customModel
-											? "Replace model"
-											: "Select model"}
+											? __( "Replace model", 'three-object-viewer' )
+											: __( "Select model", 'three-object-viewer' )}
 									</button>
 								)}
 							/>
@@ -292,7 +292,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									</g>
 								</svg>
 								<p>
-									<b>Video block</b>
+									<b>{__( 'Video block', 'three-object-viewer' ) }</b>
 								</p>
 								{/* <p>URL: {attributes.threeObjectUrl}</p> */}
 							</div>
@@ -323,8 +323,8 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 											onClick={open}
 										>
 											{attributes.videoUrl
-												? "Replace Object"
-												: "Select Video"}
+												? __( "Replace Object", "three-object-viewer" )
+												: __( "Select Video", "three-object-viewer" )}
 										</button>
 									)}
 								/>
@@ -348,7 +348,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									</g>
 								</svg>
 								<p>
-									<b>Video block</b>
+									<b>{ __( 'Video block', 'three-object-viewer' ) }</b>
 								</p>
 								{/* <p>URL: {attributes.threeObjectUrl}</p> */}
 							</div>
@@ -378,7 +378,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 											className="three-object-viewer-button"
 											onClick={open}
 										>
-											Select Video
+											{__( 'Select Video', 'three-object-viewer' )}
 										</button>
 									)}
 								/>

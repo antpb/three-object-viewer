@@ -17,8 +17,33 @@ class Plugin
 		//Enqueue JavaScript and CSS for threeobjectloaderinit
 		add_action( 'wp_enqueue_scripts',  array( $this, 'threeobjectviewer_enqueue_threeobjectloaderinit'), 10 );
 		add_filter( 'the_content', array( $this, 'remove_block_from_archive' ), 10 );
+		add_action( 'enqueue_block_editor_assets', array( $this, 'load_three_object_viewer_translations_blocks' ) );
+		add_action( 'init', array( $this, 'load_three_object_viewer_textdomain' ) );
 
     }
+
+	function load_three_object_viewer_textdomain() {
+		load_plugin_textdomain( 'three-object-viewer', false, dirname(dirname(plugin_basename(__FILE__))) . '/languages' );
+	}
+
+	function load_three_object_viewer_translations_blocks() {
+		if ( function_exists( 'wp_set_script_translations' ) ) {
+			$script_handle = generate_block_asset_handle( 'three-object-viewer/environment', 'editorScript' );
+			$path = plugin_dir_path( __FILE__ ) . 'languages';
+			$language_directory = plugin_dir_path(dirname(__DIR__)) . 'three-object-viewer/languages/';
+			wp_set_script_translations( 'three-object-viewer-three-portal-block-editor-script', 'three-object-viewer', $language_directory );
+			wp_set_script_translations( 'three-object-viewer-three-text-block-editor-script', 'three-object-viewer', $language_directory );
+			wp_set_script_translations( 'three-object-viewer-model-block-editor-script', 'three-object-viewer', $language_directory );
+			wp_set_script_translations( 'three-object-viewer-three-audio-block-editor-script', 'three-object-viewer', $language_directory );
+			wp_set_script_translations( 'three-object-viewer-three-light-block-editor-script', 'three-object-viewer', $language_directory );
+			wp_set_script_translations( 'three-object-viewer-npc-block-editor-script', 'three-object-viewer', $language_directory );
+			wp_set_script_translations( 'three-object-viewer-sky-block-editor-script', 'three-object-viewer', $language_directory );
+			wp_set_script_translations( 'three-object-viewer-three-image-block-editor-script', 'three-object-viewer', $language_directory );
+			wp_set_script_translations( 'three-object-viewer-three-video-block-editor-script', 'three-object-viewer', $language_directory );
+			wp_set_script_translations( 'three-object-viewer-spawn-point-block-editor-script', 'three-object-viewer', $language_directory );
+			wp_set_script_translations( 'three-object-viewer-environment-editor-script', 'three-object-viewer', $language_directory );
+		}
+	}
 
 	/**
 	* Registers JavaScript and CSS for threeobjectloaderinit
@@ -107,7 +132,6 @@ class Plugin
 		return $content;
 	}
 	
-
 	/**
 	 * Enqueue block frontend JavaScript
 	 */
@@ -341,9 +365,22 @@ class Plugin
 		];
 		$ALLOWED_BLOCKS = apply_filters( 'three-object-environment-inner-allowed-blocks', $DEFAULT_BLOCKS );
 	
+		wp_enqueue_script( 'three-object-viewer-three-object-block-editor-script', 'three-object-viewer', ['wp-element', 'wp-data', 'wp-i18n', 'wp-hooks'], '', true );
 		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'threeObjectPlugin', $three_object_plugin );	
 		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'threeObjectPluginRoot', $three_object_plugin_root );	
 		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'allowed_blocks', $ALLOWED_BLOCKS );
-	
+		
+		    // // Get the list of registered scripts
+			// global $wp_scripts;
+			// $registered_scripts = $wp_scripts->registered;
+		
+			// // List the registered script handles
+			// $registered_script_handles = array_keys($registered_scripts);
+		
+			// // Output the list (you can format this as needed)
+			// echo '<pre>';
+			// print_r($registered_script_handles);
+			// echo '</pre>';
+		
 	}
 	}

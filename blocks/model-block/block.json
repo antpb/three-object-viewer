@@ -1,7 +1,5 @@
 {
     "name": "three-object-viewer/model-block",
-    "title": "3D Model",
-    "description": "A 3D model for your environment",
     "attributes": {
         "scaleX": {
             "type": "int",
@@ -66,6 +64,7 @@
         "html": false,
         "multiple": true
     },
+    "textdomain": "three-object-viewer",
     "editorScript": "file:../../build/block-model-block.js",
 	"editorStyle": "file:../../build/block-model-block.css",
 	"style": "file:../../build/block-model-block.css"

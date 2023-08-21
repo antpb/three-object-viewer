@@ -50,9 +50,9 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 	return (
 		<div {...useBlockProps()}>
 			<InspectorControls key="setting">
-				<Panel header="Settings">
+				<Panel header={ __( "Settings", "three-object-viewer" ) }>
 					<PanelBody
-						title="Spawn Point"
+						title={ __( "Spawn Point" )	}
 						icon={more}
 						initialOpen={true}
 					>
@@ -81,7 +81,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 						</PanelRow>
 						<PanelRow>
 							<legend className="blocks-base-control__label">
-								{__("Rotation", "three-object-viewer")}
+								{__( "Rotation", "three-object-viewer" )}
 							</legend>
 						</PanelRow>
 						<PanelRow>
@@ -124,7 +124,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 							</g>
 						</svg>
 						<p>
-							<b>Spawn Point</b>
+							<b>{__( "Spawn Point", "three-object-viewer" ) }</b>
 						</p>
 					</div>
 				</div>

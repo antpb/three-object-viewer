@@ -467,7 +467,9 @@ function LightObject(threeLight) {
     }, []);
 
     let LightComponent;
-	const color = new THREE.Color( threeLight.color );
+	var colorValue = parseInt ( threeLight.color.replace("#","0x"), 16 );
+
+	const color = new THREE.Color( colorValue );
 
     switch (threeLight.type) {
         case "directional":
@@ -1080,6 +1082,11 @@ function NPCObject(props) {
 		const vrm = gltf.userData.vrm;
 		VRMUtils.rotateVRM0(vrm);
 		const rotationVRM = vrm.scene.rotation.y + parseFloat(0);
+		let defaultColor = "0x000000";
+		var colorValue = parseInt ( defaultColor.replace("#","0x"), 16 );
+	
+		const color = new THREE.Color( colorValue );
+			
 		return (
 			<>
 				<Select
@@ -1145,7 +1152,7 @@ function NPCObject(props) {
 							>
 								<mesh position={[0.6, 0.9, -0.01]}>
 									<planeGeometry attach="geometry" args={[0.65, 1.5]} />
-									<meshBasicMaterial attach="material" color={0x000000} opacity={0.5}	transparent={ true } />
+									<meshBasicMaterial attach="material" color={color} opacity={0.5}	transparent={ true } />
 								</mesh>
 								<primitive object={vrm.scene} />
 							</group>

@@ -1,9 +1,9 @@
 <?php
 /**
-* Plugin Name: Three Object Viewer
-* Plugin URI: https://3ov.xyz/
-* Description: A plugin for viewing 3D files with support for WebXR and Open Metaverse Interoperability GLTF Extensions.
-* Version: 1.5.2
+* Plugin Name:       Three Object Viewer
+* Plugin URI:        https://3ov.xyz/
+* Description:       A plugin for viewing 3D files with support for WebXR and Open Metaverse Interoperability GLTF Extensions.
+* Version:           1.5.2
 * Requires at least: 5.7
 * Requires PHP:      7.1.0
 * Author:            antpb
@@ -23,7 +23,8 @@ register_activation_hook( __FILE__, array( 'threeObjectViewer\MainOptions', 'my_
 define('THREEOV_PLUGIN_VERSION', '1.4.0');
 
 class MainOptions
-{	
+{
+
 	public static function my_plugin_activate() {
 		if( ! get_option( '3ov_ai_enabled' ) ) {
 			update_option( '3ov_ai_enabled', true );
@@ -129,6 +130,11 @@ include_once dirname( __FILE__ ) . '/blocks/spawn-point-block/init.php';
 * Include the autoloader
 */
 add_action( 'plugins_loaded', function () {
+			// Unload the translation from the default location
+	// load_plugin_textdomain( 'three-object-viewer', false, dirname(plugin_basename(__FILE__)) . '/languages' );
+
+	// load_plugin_textdomain( 'three-object-viewer', false, dirname(dirname(plugin_basename(__FILE__))) . '/languages' );
+
     if ( file_exists(__DIR__ . '/vendor/autoload.php' ) ) {
         include __DIR__ . '/vendor/autoload.php';
     }

@@ -77,9 +77,9 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 	return (
 		<div {...useBlockProps()}>
 			<InspectorControls key="setting">
-				<Panel header="Settings">
+				<Panel header={ __( "Settings", 'three-object-viewer' ) } >
 					<PanelBody
-						title="Light Object"
+						title={ __( "Light Object", 'three-object-viewer' )	}
 						icon={more}
 						initialOpen={true}
 					>
@@ -148,13 +148,12 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 						</PanelRow>
 						<PanelRow>
 							<SelectControl
-								label="Light Type"
+								label={ __( "Light Type", "three-object-viewer" ) }
 								value={attributes.type}
 								options={[
-									{ label: "Point", value: "point" },
-									{ label: "Spot", value: "spot" },
-									{ label: "Ambient", value: "ambient" },
-									{ label: "Directional", value: "directional" },
+									{ label: __( "Point", 'three-object-viewer' ), value: "point" },
+									{ label: __( "Ambient", 'three-object-viewer'), value: "ambient" },
+									{ label: __( "Directional", 'three-object-viewer' ), value: "directional" },
 							]}
 								onChange={(target) => onChangeType(target)}
 							/>
@@ -162,7 +161,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 						<PanelRow>
 							<RangeControl
 								className="position-inputs"
-								label="Intensity"
+								label={ __( "Intensity", "three-object-viewer" ) }
 								// help="Unitless multiplier against original source volume for determining emitter loudness."
 								max={10}
 								min={0}
@@ -175,7 +174,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 						<PanelRow>
 							<RangeControl
 								className="position-inputs"
-								label="Distance"
+								label={ __( "Distance", "three-object-viewer" ) }
 								// help="Unitless multiplier against original source volume for determining emitter loudness."
 								max={1000}
 								min={0.1}
@@ -188,7 +187,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 						<PanelRow>
 							<RangeControl
 								className="position-inputs"
-								label="Decay"
+								label={ __( "Decay", "three-object-viewer" ) }
 								// help="Unitless multiplier against original source volume for determining emitter loudness."
 								max={10}
 								min={0}
@@ -201,7 +200,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 						<PanelRow>
 							<RangeControl
 								className="position-inputs"
-								label="Angle"
+								label={__( "Angle", "three-object-viewer" )}
 								// help="Unitless multiplier against original source volume for determining emitter loudness."
 								max={10}
 								min={0}
@@ -214,7 +213,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 						<PanelRow>
 							<RangeControl
 								className="position-inputs"
-								label="Penumbra"
+								label={__( "Penumbra", "three-object-viewer" )}
 								// help="Unitless multiplier against original source volume for determining emitter loudness."
 								max={1}
 								min={0}
@@ -242,7 +241,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 								</g>
 							</svg>
 							<p>
-								<b>Light Block</b>
+								<b>{ ( __( 'Light Block', 'three-object-viewer' ) ) }</b>
 							</p>
 							{/* <p>URL: {attributes.threeObjectUrl}</p> */}
 						</div>
@@ -263,7 +262,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 								</g>
 							</svg>
 							<p>
-								<b>Light Block</b>
+								<b>{ __( 'Light Block', 'three-object-viewer' ) }</b>
 							</p>
 							{/* <p>URL: {attributes.threeObjectUrl}</p> */}
 						</div>

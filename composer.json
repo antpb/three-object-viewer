@@ -2,7 +2,8 @@
     "name": "antpb/three-object-viewer",
     "description": "threeObjectViewer",
     "require": {
-        "php": "^7.2|^8.0"
+        "php": "^7.2|^8.0",
+        "wp-cli/i18n-command": "^2.4"
     },
     "type": "wordpress-plugin",
     "autoload": {

@@ -1,7 +1,5 @@
 {
     "name": "three-object-viewer/three-image-block",
-    "title": "3D Image",
-    "description": "An image block for your environment",
     "attributes": {
         "imageUrl": {
             "type": "string",
@@ -63,6 +61,7 @@
         "html": false,
         "multiple": true
     },
+    "textdomain": "three-object-viewer",
     "editorScript": "file:../../build/block-three-image-block.js",
 	"editorStyle": "file:../../build/block-three-image-block.css",
 	"style": "file:../../build/block-three-image-block.css"

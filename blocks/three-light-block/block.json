@@ -1,7 +1,5 @@
 {
     "name": "three-object-viewer/three-light-block",
-    "title": "3D Light",
-    "description": "A light block for your environment",
     "attributes": {
         "type": {
             "type": "string",
@@ -63,6 +61,7 @@
         "html": false,
         "multiple": true
     },
+    "textdomain": "three-object-viewer",
     "editorScript": "file:../../build/block-three-light-block.js",
     "editorStyle": "file:../../build/block-three-light-block.css",
     "style": "file:../../build/block-three-light-block.css"

@@ -1,7 +1,5 @@
 {
     "name": "three-object-viewer/three-portal-block",
-    "title": "3D Portal",
-    "description": "A 3D portal",
     "attributes": {
         "scaleX": {
             "type": "int",
@@ -83,6 +81,7 @@
         "html": false,
         "multiple": true
     },
+    "textdomain": "three-object-viewer",
     "editorScript": "file:../../build/block-three-portal-block.js",
 	"editorStyle": "file:../../build/block-three-portal-block.css",
 	"style": "file:../../build/block-three-portal-block.css"
