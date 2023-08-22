@@ -47,7 +47,6 @@ Fixed: Player Controller - Respawn while falling works again.
 Added: Light Block - You can now control the individual lights in your worlds. Note: highly recommend not having more than two Libhg Blocks in a world for performance reasons.
 Added: Environment Block - HDR setting to allow the usage of hdr environment map files (.hdr)
 Added: Translations with support for es_MX and ja.
-Added: Command Palette - Adds new "Add new World" command. To use, hit cmd/ctrl+k and type "add new world"
 
 = 1.5.2 =
 Fixed: Full compatibility with the Site Editor.
