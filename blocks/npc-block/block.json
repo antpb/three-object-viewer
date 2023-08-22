@@ -1,7 +1,5 @@
 {
     "name": "three-object-viewer/npc-block",
-    "title": "NPC Block",
-    "description": "A NPC to live in your environment",
     "attributes": {
         "name": {
             "type": "string"
@@ -52,6 +50,7 @@
         "html": false,
         "multiple": false
     },
+    "textdomain": "three-object-viewer",
     "editorScript": "file:../../build/block-npc-block.js",
 	"editorStyle": "file:../../build/block-npc-block.css",
 	"style": "file:../../build/block-npc-block.css"

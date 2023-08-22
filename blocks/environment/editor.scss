@@ -62,6 +62,7 @@
 .wp-block-three-object-viewer-npc-block,
 .wp-block-three-object-viewer-three-image-block,
 .wp-block-three-object-viewer-three-audio-block,
+.wp-block-three-object-viewer-three-light-block,
 .wp-block-three-object-viewer-three-portal-block,
 .wp-block-three-object-viewer-three-video-block,
 .wp-block-three-object-viewer-spawn-point-block,
@@ -89,9 +90,11 @@
 	height: 90vh;
   }
   
-.three-object-environment-edit-container .components-panel__row {
+
+  .three-object-viewer-edit-panel .wide-slider {
     display: block;
 }
+
 .three-object-environment-edit-container .threeov-three-number-settings {
 	display: flex;
 }

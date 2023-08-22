@@ -53,18 +53,17 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 		<div {...useBlockProps()}>
 			<InspectorControls key="setting">
 				<Panel 
-					header="Settings"
-					className="three-object-environment-edit-container"
+					header={ __( "Settings", "three-object-viewer" ) }
+					className="three-object-environment-edit-container three-object-viewer-edit-panel"
 				>
 					<PanelBody
-						title="Sky Object"
+						title={ __( "Sky Object", "three-object-viewer" ) }
 						icon={more}
 						initialOpen={true}
 					>
 						<PanelRow>
 							<span>
-								Select an image to be used as your skybox. 360
-								spherical panoramics recommended:
+								{ __( 'Select an image to be used as your skybox. 360 panoramics recommended:', 'three-object-viewer' ) }
 							</span>
 						</PanelRow>
 						<PanelRow>
@@ -73,28 +72,28 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 									onImageSelect(imageObject)
 								}
 								type="image"
-								label="Sky File"
+								label={ __( "Sky File", "three-object-viewer" ) }
 								allowedTypes={ALLOWED_MEDIA_TYPES}
 								value={attributes.skyUrl}
 								render={({ open }) => (
 									<>
 									<button onClick={open}>
 										{attributes.skyUrl
-											? "Replace Sky"
-											: "Select Sky"}
+											? __( "Replace Sky", "three-object-viewer" )
+											: __( "Select Sky", "three-object-viewer" )}
 									</button>
 									{attributes.skyUrl && (
 									<button onClick={removeImage}>		
-											Remove Image
+											{ __( 'Remove Image', 'three-object-viewer' ) }
 									</button>
 									)}
 									</>
 								)}
 							/>
 						</PanelRow>
-						<PanelRow>
+						<PanelRow className="wide-slider">
 							<RangeControl
-								label="distance"
+								label={ __( "distance", "three-object-viewer" ) }
 								default={400000}
 								min={1}
 								max={400000}
@@ -102,9 +101,9 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 								onChange={ onChangeDistance }
 							/>
 						</PanelRow>
-						<PanelRow>
+						<PanelRow className="wide-slider">
 							<RangeControl
-								label="rayleigh"
+								label={ __( "rayleigh", "three-object-viewer" ) }
 								default={2}
 								min={0}
 								max={10}
@@ -114,7 +113,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 						</PanelRow>
 						<PanelRow>
 							<legend className="blocks-base-control__label">
-								{__("Sun Position", "three-object-viewer")}
+								{__( 'Sun Position', 'three-object-viewer')}
 							</legend>
 						</PanelRow>
 						<PanelRow className="threeov-three-number-settings">
@@ -161,7 +160,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 								</g>
 							</svg>
 							<p>
-								<b>Sky block</b>
+								<b>{ __( 'Sky block', 'three-object-viewer' ) }</b>
 							</p>
 							{/* <p>URL: {attributes.skyUrl}</p> */}
 						</div>
@@ -182,7 +181,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 								</g>
 							</svg>
 							<p>
-								<b>Sky block</b>
+								<b>{ __( 'Sky block', 'three-object-viewer' ) }</b>
 							</p>
 							{/* <p>URL: {attributes.skyUrl}</p> */}
 						</div>

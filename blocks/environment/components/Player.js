@@ -461,43 +461,6 @@ export default function Player(props) {
 				];
 				participantObject.parent.position.set(...newPosition);
 				castRef.current.setTranslation({x: newPosition[0], y: newPosition[1], z: newPosition[2]});
-				// console.log(castRef.current.translation());
-			}
-			if(props.movement.current.respawn === true){
-				const x = Number(props.spawnPoint[0]);
-				const y = Number(props.spawnPoint[1]);
-				const z = Number(props.spawnPoint[2]);
-				if (props.spawnPointsToAdd) {
-					let finalPoints = [];
-					props.spawnPointsToAdd.forEach((point) => {
-					finalPoints.push([Number(point.position.x), Number(point.position.y), Number(point.position.z)]);
-					});
-					finalPoints.push([x, y, z]);
-					//pick a random point
-					let randomPoint = finalPoints[Math.floor(Math.random() * finalPoints.length)];
-					if([x, y, z] !== [camera.position.x, camera.position.y, camera.position.z]){
-						// Check if the converted values are valid and finite
-						// Set the camera's position
-						// orbitRef.position.set(randomPoint[0], randomPoint[1], randomPoint[2]);
-						castRef.current.setTranslation({
-						x: randomPoint[0],
-						y: randomPoint[1],
-						z: randomPoint[2]
-						});
-						participantObject.parent.position.set(randomPoint[0], randomPoint[1], randomPoint[2]);
-					}
-		
-				} else {
-					// Check if the converted values are valid and finite
-					// Set the camera's position
-					camera.position.set(x, y, z);
-		
-					castRef.current.setTranslation({
-					x: x,
-					y: y,
-					z: z
-					});
-				}
 			}
 			// animation logic
 			if (animationsRef.current) {
@@ -604,6 +567,49 @@ export default function Player(props) {
 
 				// set a const of the rigidBody's current position
 				rigidRef.current.setTranslation({ x: participantObject.parent.position.x, y: rigidBodyPosition.y, z: participantObject.parent.position.z});
+			}
+			if(props.movement.current.respawn === true){
+
+				const x = Number(props.spawnPoint[0]);
+				const y = Number(props.spawnPoint[1]);
+				const z = Number(props.spawnPoint[2]);
+				if (props.spawnPointsToAdd) {
+					let finalPoints = [];
+					props.spawnPointsToAdd.forEach((point) => {
+					finalPoints.push([Number(point.position.x), Number(point.position.y), Number(point.position.z)]);
+					});
+					finalPoints.push([x, y, z]);
+					//pick a random point
+					let randomPoint = finalPoints[Math.floor(Math.random() * finalPoints.length)];
+					if([x, y, z] !== [camera.position.x, camera.position.y, camera.position.z]){
+						// Check if the converted values are valid and finite
+						// Set the camera's position
+						// orbitRef.position.set(randomPoint[0], randomPoint[1], randomPoint[2]);
+						castRef.current.setTranslation({
+						x: randomPoint[0],
+						y: randomPoint[1],
+						z: randomPoint[2]
+						});
+						participantObject.parent.position.set(randomPoint[0], randomPoint[1], randomPoint[2]);
+						// move the rigidRef to the new position
+						rigidRef.current.setTranslation({
+							x: randomPoint[0],
+							y: randomPoint[1],
+							z: randomPoint[2]
+						});
+					}
+		
+				} else {
+					// Check if the converted values are valid and finite
+					// Set the camera's position
+					camera.position.set(x, y, z);
+		
+					castRef.current.setTranslation({
+					x: x,
+					y: y,
+					z: z
+					});
+				}
 			}
 		});
 

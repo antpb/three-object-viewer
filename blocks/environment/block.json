@@ -1,7 +1,5 @@
 {
     "name": "three-object-viewer/environment",
-    "title": "3D Environment",
-    "description": "A 3D environment component",
     "attributes": {
         "align": {
             "type": "string",
@@ -31,6 +29,10 @@
             "type": "string",
             "default": null
         },
+        "hdr": {
+            "type": "string",
+            "default": null
+        },
         "deviceTarget": {
             "type": "string",
             "default": "vr"
@@ -48,6 +50,7 @@
 		"hasOverlay": false,
         "align": ["full"]
     },
+    "textdomain": "three-object-viewer",
     "editorScript": "file:../../build/block-environment.js",
 	"editorStyle": "file:../../build/block-environment.css",
 	"style": "file:../../build/block-environment.css"

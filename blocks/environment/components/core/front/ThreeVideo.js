@@ -5,6 +5,7 @@ import {
   Vector3,
   BufferGeometry,
   MeshBasicMaterial,
+  MeshStandardMaterial,
   DoubleSide,
   Mesh,
   CircleGeometry,
@@ -99,9 +100,12 @@ export function ThreeVideo(threeVideo) {
           setScreenParent(foundScreen.parent);
           const videoTexture = new VideoTexture(video);
           videoTexture.encoding = sRGBEncoding;
-          const material = new MeshBasicMaterial({
-            map: videoTexture
-          });
+
+		  // new mesh standard material with the map texture
+		  const material = new MeshStandardMaterial({
+			map: videoTexture,
+			side: DoubleSide
+		  });	
           foundScreen.material = material;
           foundScreen.add(audio);
         }
@@ -203,13 +207,13 @@ export function ThreeVideo(threeVideo) {
 								}}
 							>
 								<mesh>
-									<meshBasicMaterial>
+									<meshStandardMaterial>
 										<videoTexture
 											attach="map"
 											args={[video]}
 											encoding={sRGBEncoding}
 										/>
-									</meshBasicMaterial>
+									</meshStandardMaterial>
 									<planeGeometry
 										args={[
 											threeVideo.aspectWidth / 12,

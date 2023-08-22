@@ -1,0 +1,936 @@
+# Copyright (C) 2023 antpb
+# This file is distributed under the GPL v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Three Object Viewer 1.5.2\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/three-object-"
+"viewer\n"
+"POT-Creation-Date: 2023-08-21T03:16:49+00:00\n"
+"PO-Revision-Date: 2023-08-20 22:23-0500\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.3.2\n"
+"X-Domain: three-object-viewer\n"
+
+#. Plugin Name of the plugin
+msgid "Three Object Viewer"
+msgstr "Three Object Viewer"
+
+#. Plugin URI of the plugin
+msgid "https://3ov.xyz/"
+msgstr "https://3ov.xyz/"
+
+#. Description of the plugin
+msgid ""
+"A plugin for viewing 3D files with support for WebXR and Open Metaverse "
+"Interoperability GLTF Extensions."
+msgstr ""
+"WebXRおよびOpen Metaverse Interoperability GLTF拡張のサポートを備えた3Dファイ"
+"ルの表示プラグインです。"
+
+#. Author of the plugin
+msgid "antpb"
+msgstr "antpb"
+
+#. Author URI of the plugin
+msgid "https://antpb.com"
+msgstr "https://antpb.com"
+
+#: admin/three-object-viewer-settings/init.php:75
+#: admin/three-object-viewer-settings/init.php:76
+#: admin/three-object-viewer-settings/App.js:118
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "3OV Settings"
+msgstr "3OV設定"
+
+#: blocks/environment/init.php:9
+msgctxt "block title"
+msgid "Environment Block"
+msgstr "環境ブロック"
+
+#: blocks/environment/init.php:10
+msgctxt "block description"
+msgid "A 3D environment component"
+msgstr "3D環境コンポーネント"
+
+#: blocks/model-block/init.php:9
+msgctxt "block title"
+msgid "Model Block"
+msgstr "モデルブロック"
+
+#: blocks/model-block/init.php:10
+msgctxt "block description"
+msgid "A 3D model for your environment"
+msgstr "3D環境用モデル"
+
+#: blocks/npc-block/init.php:9
+msgctxt "block title"
+msgid "NPC Block"
+msgstr "NPCブロック"
+
+#: blocks/npc-block/init.php:10
+msgctxt "block description"
+msgid "A NPC to live in your environment"
+msgstr "環境内に住むNPC"
+
+#: blocks/sky-block/init.php:9
+msgctxt "block title"
+msgid "Sky Block"
+msgstr "スカイブロック"
+
+#: blocks/sky-block/init.php:10
+msgctxt "block description"
+msgid "A sky your environment"
+msgstr "環境用の空のテーマ"
+
+#: blocks/spawn-point-block/init.php:9
+msgctxt "block title"
+msgid "Spawn Point Block"
+msgstr "スポーンポイントブロック"
+
+#: blocks/spawn-point-block/init.php:10
+msgctxt "block description"
+msgid "A spawn point for your users"
+msgstr "ユーザーのためのスポーンポイント"
+
+#: blocks/three-audio-block/init.php:9
+msgctxt "block title"
+msgid "Audio Block"
+msgstr "オーディオブロック"
+
+#: blocks/three-audio-block/init.php:10
+msgctxt "block description"
+msgid "An audio block for your environment"
+msgstr "環境用のオーディオブロック"
+
+#: blocks/three-image-block/init.php:9
+msgctxt "block title"
+msgid "3D Image Block"
+msgstr "3Dイメージブロック"
+
+#: blocks/three-image-block/init.php:10
+msgctxt "block description"
+msgid "An image block for your environment"
+msgstr "環境用の画像ブロック"
+
+#: blocks/three-light-block/init.php:9
+msgctxt "block title"
+msgid "Light Block"
+msgstr "ライトブロック"
+
+#: blocks/three-light-block/init.php:10
+msgctxt "block description"
+msgid "A light block for your environment"
+msgstr "環境用のライトブロック"
+
+#: blocks/three-portal-block/init.php:9
+msgctxt "block title"
+msgid "Portal Block"
+msgstr "ポータルブロック"
+
+#: blocks/three-portal-block/init.php:10
+msgctxt "block description"
+msgid "A portal for traversal"
+msgstr "移動用のポータル"
+
+#: blocks/three-text-block/init.php:9
+msgctxt "block title"
+msgid "Text Block"
+msgstr "テキストブロック"
+
+#: blocks/three-text-block/init.php:10
+msgctxt "block description"
+msgid "A 3D Text Block"
+msgstr "3Dテキストブロック"
+
+#: blocks/three-video-block/init.php:9
+msgctxt "block title"
+msgid "3D Video Block"
+msgstr "3Dビデオブロック"
+
+#: blocks/three-video-block/init.php:10
+msgctxt "block description"
+msgid "A video block for your environment"
+msgstr "環境用のビデオブロック"
+
+#: admin/three-object-viewer-settings/App.js:50
+#: admin/three-object-viewer-settings/App.js:80
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Select or Upload Media"
+msgstr "メディアの選択またはアップロード"
+
+#: admin/three-object-viewer-settings/App.js:52
+#: admin/three-object-viewer-settings/App.js:82
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Use this media"
+msgstr "このメディアを使用する"
+
+#: admin/three-object-viewer-settings/App.js:119
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid ""
+"Here you can manage the settings for 3OV to tweak global configuration "
+"options and save your API keys for connected serivces."
+msgstr ""
+"ここでは、3OVの設定を管理して、グローバルな構成オプションを調整し、接続された"
+"サービスのAPIキーを保存できます。"
+
+#: admin/three-object-viewer-settings/App.js:123
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Avatar Settings"
+msgstr "アバター設定"
+
+#: admin/three-object-viewer-settings/App.js:127
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Default animation"
+msgstr "デフォルトのアニメーション"
+
+#: admin/three-object-viewer-settings/App.js:132
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "No custom default animation set"
+msgstr "カスタムのデフォルトアニメーションは設定されていません。"
+
+#: admin/three-object-viewer-settings/App.js:138
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Set Default Animation"
+msgstr "デフォルトのアニメーションを設定する"
+
+#: admin/three-object-viewer-settings/App.js:145
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Clear Default Animation"
+msgstr "デフォルトのアニメーションをクリアする"
+
+#: admin/three-object-viewer-settings/App.js:157
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "No custom default avatar set"
+msgstr "カスタムのデフォルトアバターは設定されていません。"
+
+#: admin/three-object-viewer-settings/App.js:163
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Set Default Avatar"
+msgstr "デフォルトのアバターを設定する"
+
+#: admin/three-object-viewer-settings/App.js:170
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Clear Default Avatar"
+msgstr "デフォルトのアバターをクリアする"
+
+#: admin/three-object-viewer-settings/App.js:175
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "AI Settings"
+msgstr "AI設定"
+
+#: admin/three-object-viewer-settings/App.js:178
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "NPC Settings"
+msgstr "NPC設定"
+
+#: admin/three-object-viewer-settings/App.js:182
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Enable"
+msgstr "有効にする"
+
+#: admin/three-object-viewer-settings/App.js:197
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "AI Endpoint URL"
+msgstr "AIエンドポイントのURL"
+
+#: admin/three-object-viewer-settings/App.js:213
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "OpenAI API Token"
+msgstr "OpenAI APIトークン"
+
+#: admin/three-object-viewer-settings/App.js:245
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "AI Access Level"
+msgstr "AIアクセスレベル"
+
+#: admin/three-object-viewer-settings/App.js:254
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Public"
+msgstr "パブリック"
+
+#: admin/three-object-viewer-settings/App.js:255
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Logged In"
+msgstr "ログイン済み"
+
+#: admin/three-object-viewer-settings/App.js:262
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Saving..."
+msgstr "保存中…"
+
+#: blocks/environment/Edit.js:126 build/block-environment.js:1
+msgid "Environment Settings"
+msgstr "環境設定"
+
+#: blocks/environment/Edit.js:129 build/block-environment.js:1
+msgid ""
+"Environment Object (Changing this value changes your scene ground planes)"
+msgstr "環境オブジェクト（この値を変更すると、シーンの地面が変わります）"
+
+#: blocks/environment/Edit.js:135 build/block-environment.js:1
+msgid ""
+"Select a glb file from your media library. This will be treated as a "
+"collidable mesh that visitors can walk on:"
+msgstr ""
+"メディアライブラリからglbファイルを選択してください。これは訪問者が歩行できる"
+"衝突メッシュとして扱われます。"
+
+#: blocks/environment/Edit.js:150 build/block-environment.js:1
+msgid "Replace Environment"
+msgstr "環境を置き換える"
+
+#: blocks/environment/Edit.js:151 build/block-environment.js:1
+msgid "Select Environment"
+msgstr "環境を選択する"
+
+#: blocks/environment/Edit.js:158 build/block-environment.js:1
+msgid "Select an image to be used as the preview image:"
+msgstr "プレビュー画像として使用する画像を選択してください。"
+
+#: blocks/environment/Edit.js:188 blocks/three-image-block/Edit.js:136
+#: build/block-environment.js:1 build/block-three-image-block.js:1
+msgid "Replace Image"
+msgstr "画像を置き換える"
+
+#: blocks/environment/Edit.js:189 blocks/three-image-block/Edit.js:137
+#: blocks/three-image-block/Edit.js:340 build/block-environment.js:1
+#: build/block-three-image-block.js:1
+msgid "Select Image"
+msgstr "画像を選択する"
+
+#: blocks/environment/Edit.js:207 build/block-environment.js:1
+msgid "Replace HDR"
+msgstr "HDRを置き換える"
+
+#: blocks/environment/Edit.js:208 build/block-environment.js:1
+msgid "Select HDR"
+msgstr "HDRを選択する"
+
+#: blocks/environment/Edit.js:212 build/block-environment.js:1
+msgid "Remove HDR"
+msgstr "HDRを削除する"
+
+#: blocks/environment/Edit.js:221 build/block-environment.js:1
+msgid "Scene Settings"
+msgstr "シーン設定"
+
+#: blocks/environment/Edit.js:226 build/block-environment.js:1
+msgid "Object Display Type:"
+msgstr "オブジェクトの表示タイプ："
+
+#: blocks/environment/Edit.js:238 blocks/model-block/Edit.js:184
+#: blocks/three-portal-block/Edit.js:193 build/block-environment.js:1
+#: build/block-model-block.js:1 build/block-three-portal-block.js:1
+msgid "Loop Animations"
+msgstr "アニメーションをループする"
+
+#: blocks/environment/Edit.js:239 blocks/model-block/Edit.js:185
+#: blocks/three-portal-block/Edit.js:194 build/block-environment.js:1
+#: build/block-model-block.js:1 build/block-three-portal-block.js:1
+msgid "Separate each animation name you wish to loop with a comma"
+msgstr "各ループさせたいアニメーション名をコンマで区切ってください。"
+
+#: blocks/environment/Edit.js:246 blocks/model-block/Edit.js:256
+#: blocks/three-image-block/Edit.js:209 blocks/three-portal-block/Edit.js:305
+#: blocks/three-text-block/Edit.js:208 blocks/three-video-block/Edit.js:250
+#: build/block-environment.js:1 build/block-model-block.js:1
+#: build/block-three-image-block.js:1 build/block-three-portal-block.js:1
+#: build/block-three-text-block.js:1 build/block-three-video-block.js:1
+msgid "Scale"
+msgstr "スケール"
+
+#: blocks/environment/Edit.js:255 build/block-environment.js:1
+msgid "Position Y"
+msgstr "Y座標"
+
+#: blocks/environment/Edit.js:265 build/block-environment.js:1
+msgid "Rotation Y"
+msgstr "Y軸回転"
+
+#: blocks/model-block/Edit.js:124 blocks/npc-block/Edit.js:113
+#: blocks/sky-block/Edit.js:56 blocks/spawn-point-block/Edit.js:53
+#: blocks/three-audio-block/Edit.js:130 blocks/three-light-block/Edit.js:80
+#: blocks/three-portal-block/Edit.js:142 blocks/three-video-block/Edit.js:121
+#: build/block-model-block.js:1 build/block-npc-block.js:1
+#: build/block-sky-block.js:1 build/block-spawn-point-block.js:1
+#: build/block-three-audio-block.js:1 build/block-three-light-block.js:1
+#: build/block-three-portal-block.js:1 build/block-three-video-block.js:1
+msgid "Settings"
+msgstr "設定"
+
+#: blocks/model-block/Edit.js:126 blocks/three-portal-block/Edit.js:144
+#: build/block-model-block.js:1 build/block-three-portal-block.js:1
+msgid "GLB Object"
+msgstr "GLBオブジェクト"
+
+#: blocks/model-block/Edit.js:132 blocks/npc-block/Edit.js:121
+#: blocks/three-audio-block/Edit.js:138 build/block-model-block.js:1
+#: build/block-npc-block.js:1 build/block-three-audio-block.js:1
+msgid "Name"
+msgstr "名前"
+
+#: blocks/model-block/Edit.js:133 build/block-model-block.js:1
+msgid "Give your object a name."
+msgstr "オブジェクトに名前を付けてください。"
+
+#: blocks/model-block/Edit.js:140 build/block-model-block.js:1
+msgid ""
+"select a glb file from your media library to render an object in the canvas:"
+msgstr ""
+"キャンバス上にオブジェクトをレンダリングするために、メディアライブラリからglb"
+"ファイルを選択してください。"
+
+#: blocks/model-block/Edit.js:149 build/block-model-block.js:1
+msgid "GLB File"
+msgstr "GLBファイル"
+
+#: blocks/model-block/Edit.js:155 blocks/three-portal-block/Edit.js:165
+#: blocks/three-portal-block/Edit.js:381 blocks/three-video-block/Edit.js:326
+#: build/block-model-block.js:1 build/block-three-portal-block.js:1
+#: build/block-three-video-block.js:1
+msgid "Replace Object"
+msgstr "オブジェクトを置き換える"
+
+#: blocks/model-block/Edit.js:156 blocks/three-portal-block/Edit.js:166
+#: build/block-model-block.js:1 build/block-three-portal-block.js:1
+msgid "Select Object"
+msgstr "オブジェクトを選択する"
+
+#: blocks/model-block/Edit.js:164 blocks/three-portal-block/Edit.js:173
+#: build/block-model-block.js:1 build/block-three-portal-block.js:1
+msgid "Model Attributes"
+msgstr "モデルの属性"
+
+#: blocks/model-block/Edit.js:170 blocks/three-portal-block/Edit.js:179
+#: build/block-model-block.js:1 build/block-three-portal-block.js:1
+msgid "Collidable"
+msgstr "衝突可能"
+
+#: blocks/model-block/Edit.js:173 blocks/three-portal-block/Edit.js:182
+#: build/block-model-block.js:1 build/block-three-portal-block.js:1
+msgid "Item is currently collidable."
+msgstr "アイテムは現在衝突可能です。"
+
+#: blocks/model-block/Edit.js:174 blocks/three-portal-block/Edit.js:183
+#: build/block-model-block.js:1 build/block-three-portal-block.js:1
+msgid "Item is not collidable. Users will walk through it."
+msgstr "アイテムは衝突しない設定です。ユーザーはそれを通り抜けます。"
+
+#: blocks/model-block/Edit.js:192 build/block-model-block.js:1
+msgid "Model Alt Text"
+msgstr "モデルの代替テキスト"
+
+#: blocks/model-block/Edit.js:193 build/block-model-block.js:1
+msgid "Describe your model to provide context for screen readers."
+msgstr ""
+"画面読み上げソフトウェアに対してコンテキストを提供するために、モデルを説明し"
+"てください。"
+
+#: blocks/model-block/Edit.js:200 blocks/npc-block/Edit.js:186
+#: blocks/three-audio-block/Edit.js:172 blocks/three-light-block/Edit.js:88
+#: blocks/three-text-block/Edit.js:152 build/block-model-block.js:1
+#: build/block-npc-block.js:1 build/block-three-audio-block.js:1
+#: build/block-three-light-block.js:1 build/block-three-text-block.js:1
+msgid "Position"
+msgstr "位置"
+
+#: blocks/model-block/Edit.js:228 blocks/npc-block/Edit.js:214
+#: blocks/spawn-point-block/Edit.js:84 blocks/three-audio-block/Edit.js:200
+#: blocks/three-image-block/Edit.js:181 blocks/three-light-block/Edit.js:116
+#: blocks/three-portal-block/Edit.js:277 blocks/three-text-block/Edit.js:180
+#: blocks/three-video-block/Edit.js:222 build/block-model-block.js:1
+#: build/block-npc-block.js:1 build/block-spawn-point-block.js:1
+#: build/block-three-audio-block.js:1 build/block-three-image-block.js:1
+#: build/block-three-light-block.js:1 build/block-three-portal-block.js:1
+#: build/block-three-text-block.js:1 build/block-three-video-block.js:1
+msgid "Rotation"
+msgstr "回転"
+
+#: blocks/model-block/Edit.js:302 blocks/model-block/Edit.js:360
+#: build/block-model-block.js:1
+msgid "Model block"
+msgstr "モデルブロック"
+
+#: blocks/model-block/Edit.js:335 blocks/model-block/Edit.js:393
+#: build/block-model-block.js:1
+msgid "Replace Model"
+msgstr "モデルを置き換える"
+
+#: blocks/model-block/Edit.js:336 blocks/model-block/Edit.js:394
+#: build/block-model-block.js:1
+msgid "Select Model"
+msgstr "モデルを選択する"
+
+#: blocks/npc-block/Edit.js:115 build/block-npc-block.js:1
+msgid "NPC Options"
+msgstr "NPCオプション"
+
+#: blocks/npc-block/Edit.js:122 build/block-npc-block.js:1
+msgid "Give your avatar a name."
+msgstr "アバターに名前を付けてください。"
+
+#: blocks/npc-block/Edit.js:129 build/block-npc-block.js:1
+msgid "Personality"
+msgstr "性格"
+
+#: blocks/npc-block/Edit.js:130 build/block-npc-block.js:1
+msgid "Give your avatar a personality in 600 characters."
+msgstr "600文字でアバターに性格を与えてください。"
+
+#: blocks/npc-block/Edit.js:138 build/block-npc-block.js:1
+msgid "Default Message"
+msgstr "デフォルトメッセージ"
+
+#: blocks/npc-block/Edit.js:139 build/block-npc-block.js:1
+msgid "Give your avatar a default message to initialize with."
+msgstr "アバターに初期化時のデフォルトメッセージを設定してください。"
+
+#: blocks/npc-block/Edit.js:147 build/block-npc-block.js:1
+msgid "Select a VRM file to be used as your NPC in world:"
+msgstr "ワールド内でNPCとして使用するためのVRMファイルを選択してください。"
+
+#: blocks/npc-block/Edit.js:170 build/block-npc-block.js:1
+msgid "Advanced Settings"
+msgstr "高度な設定"
+
+#: blocks/npc-block/Edit.js:176 build/block-npc-block.js:1
+msgid "Include World Objects in Prompt"
+msgstr "プロンプトにワールドオブジェクトを含める"
+
+#: blocks/npc-block/Edit.js:177 build/block-npc-block.js:1
+msgid ""
+"If enabled, will result in higher token costs with your AI service provider. "
+"Use with caution."
+msgstr ""
+"有効にすると、AIサービスプロバイダーのトークンコストが増加する可能性がありま"
+"す。注意して使用してください。"
+
+#: blocks/npc-block/Edit.js:260 blocks/npc-block/Edit.js:318
+#: build/block-npc-block.js:1
+msgid "NPC block"
+msgstr "NPCブロック"
+
+#: blocks/npc-block/Edit.js:293 blocks/npc-block/Edit.js:351
+#: build/block-npc-block.js:1
+msgid "Replace NPC"
+msgstr "NPCを置き換える"
+
+#: blocks/npc-block/Edit.js:294 blocks/npc-block/Edit.js:352
+#: build/block-npc-block.js:1
+msgid "Select NPC"
+msgstr "NPCを選択する"
+
+#: blocks/sky-block/Edit.js:60 build/block-sky-block.js:1
+msgid "Sky Object"
+msgstr "スカイオブジェクト"
+
+#: blocks/sky-block/Edit.js:66 build/block-sky-block.js:1
+msgid "Select an image to be used as your skybox. 360 panoramics recommended:"
+msgstr ""
+"スカイボックスに使用する画像を選択してください。360度のパノラミック画像が推奨"
+"されます。"
+
+#: blocks/sky-block/Edit.js:75 build/block-sky-block.js:1
+msgid "Sky File"
+msgstr "スカイファイル"
+
+#: blocks/sky-block/Edit.js:82 build/block-sky-block.js:1
+msgid "Replace Sky"
+msgstr "スカイを置き換える"
+
+#: blocks/sky-block/Edit.js:83 build/block-sky-block.js:1
+msgid "Select Sky"
+msgstr "スカイを選択する"
+
+#: blocks/sky-block/Edit.js:87 build/block-sky-block.js:1
+msgid "Remove Image"
+msgstr "画像を削除する"
+
+#: blocks/sky-block/Edit.js:96 build/block-sky-block.js:1
+msgid "distance"
+msgstr "距離"
+
+#: blocks/sky-block/Edit.js:106 build/block-sky-block.js:1
+msgid "rayleigh"
+msgstr "レイリー"
+
+#: blocks/sky-block/Edit.js:116 build/block-sky-block.js:1
+msgid "Sun Position"
+msgstr "太陽の位置"
+
+#: blocks/sky-block/Edit.js:163 blocks/sky-block/Edit.js:184
+#: build/block-sky-block.js:1
+msgid "Sky block"
+msgstr "スカイブロック"
+
+#: blocks/spawn-point-block/Edit.js:127 build/block-spawn-point-block.js:1
+msgid "Spawn Point"
+msgstr "スポーンポイント"
+
+#: blocks/three-audio-block/Edit.js:132 build/block-three-audio-block.js:1
+msgid "Audio Object"
+msgstr "オーディオオブジェクト"
+
+#: blocks/three-audio-block/Edit.js:139 build/block-three-audio-block.js:1
+msgid "Give your audio a name."
+msgstr "オーディオに名前を付けてください。"
+
+#: blocks/three-audio-block/Edit.js:146 build/block-three-audio-block.js:1
+msgid "Select an audio file to add to your scene."
+msgstr "シーンに追加するオーディオファイルを選択してください。"
+
+#: blocks/three-audio-block/Edit.js:158 build/block-three-audio-block.js:1
+msgid "Audio File"
+msgstr "オーディオファイル"
+
+#: blocks/three-audio-block/Edit.js:164 blocks/three-audio-block/Edit.js:442
+#: build/block-three-audio-block.js:1
+msgid "Replace Audio"
+msgstr "オーディオを置き換える"
+
+#: blocks/three-audio-block/Edit.js:165 blocks/three-audio-block/Edit.js:443
+#: blocks/three-audio-block/Edit.js:497 build/block-three-audio-block.js:1
+msgid "Select Audio"
+msgstr "オーディオを選択する"
+
+#: blocks/three-audio-block/Edit.js:228 build/block-three-audio-block.js:1
+msgid "AutoPlay"
+msgstr "自動再生"
+
+#: blocks/three-audio-block/Edit.js:231 blocks/three-video-block/Edit.js:155
+#: build/block-three-audio-block.js:1 build/block-three-video-block.js:1
+msgid "Item will autoplay."
+msgstr "アイテムは自動再生されます。"
+
+#: blocks/three-audio-block/Edit.js:232 blocks/three-video-block/Edit.js:156
+#: build/block-three-audio-block.js:1 build/block-three-video-block.js:1
+msgid "Item will not autoplay."
+msgstr "アイテムは自動再生されません。"
+
+#: blocks/three-audio-block/Edit.js:245 build/block-three-audio-block.js:1
+msgid "Item will loop."
+msgstr "アイテムはループ再生されます。"
+
+#: blocks/three-audio-block/Edit.js:246 build/block-three-audio-block.js:1
+msgid "Item will not loop."
+msgstr "アイテムはループ再生されません。"
+
+#: blocks/three-audio-block/Edit.js:259 build/block-three-audio-block.js:1
+msgid "Item will be spatial audio."
+msgstr "アイテムは空間音響として設定されます。"
+
+#: blocks/three-audio-block/Edit.js:260 build/block-three-audio-block.js:1
+msgid "Item will be global audio."
+msgstr "アイテムはグローバル音声として設定されます。"
+
+#: blocks/three-audio-block/Edit.js:271 build/block-three-audio-block.js:1
+msgid "Volume"
+msgstr "音量"
+
+#: blocks/three-audio-block/Edit.js:272 build/block-three-audio-block.js:1
+msgid ""
+"Unitless multiplier against original source volume for determining emitter "
+"loudness."
+msgstr ""
+"エミッターの音量を決定するための、元のソース音量に対する単位なしの乗数。"
+
+#: blocks/three-audio-block/Edit.js:284 build/block-three-audio-block.js:1
+msgid "Positional Volume Settings"
+msgstr "位置に基づく音量設定"
+
+#: blocks/three-audio-block/Edit.js:291 build/block-three-audio-block.js:1
+msgid "Cone Inner angle"
+msgstr "コーンの内側の角度"
+
+#: blocks/three-audio-block/Edit.js:292 blocks/three-audio-block/Edit.js:307
+#: build/block-three-audio-block.js:1
+msgid ""
+"The angle, in radians, of a cone outside of which the volume will be reduced "
+"to a constant value ofconeOuterGain."
+msgstr ""
+"コーンの外側にある角度（ラジアン単位）で、その外側では音量が「coneOuterGain」"
+"の定数値に減少する角度です。"
+
+#: blocks/three-audio-block/Edit.js:306 build/block-three-audio-block.js:1
+msgid "Cone Outer Angle"
+msgstr "コーンの外側の角度"
+
+#: blocks/three-audio-block/Edit.js:320 build/block-three-audio-block.js:1
+msgid "Cone Outer Gain"
+msgstr "コーンの外側のゲイン"
+
+#: blocks/three-audio-block/Edit.js:321 build/block-three-audio-block.js:1
+msgid ""
+"The gain of the audio emitter set when outside the cone defined by the "
+"coneOuterAngle property."
+msgstr ""
+"coneOuterAngleプロパティで定義されたコーンの外側にいる場合に設定される音声エ"
+"ミッターのゲインです。"
+
+#: blocks/three-audio-block/Edit.js:334 build/block-three-audio-block.js:1
+msgid "Distance Model"
+msgstr "距離モデル"
+
+#: blocks/three-audio-block/Edit.js:335 build/block-three-audio-block.js:1
+msgid "Specifies the distance model for the audio emitter."
+msgstr "音声エミッターの距離モデルを指定します。"
+
+#: blocks/three-audio-block/Edit.js:337 build/block-three-audio-block.js:1
+msgid "Inverse"
+msgstr "逆"
+
+#: blocks/three-audio-block/Edit.js:338 build/block-three-audio-block.js:1
+msgid "Linear"
+msgstr "線形"
+
+#: blocks/three-audio-block/Edit.js:340 build/block-three-audio-block.js:1
+msgid "Exponential"
+msgstr "指数"
+
+#: blocks/three-audio-block/Edit.js:352 build/block-three-audio-block.js:1
+msgid "Max Distance"
+msgstr "最大距離"
+
+#: blocks/three-audio-block/Edit.js:353 build/block-three-audio-block.js:1
+msgid ""
+"The maximum distance between the emitter and listener, after which the "
+"volume will not be reduced any further. maximumDistance may only be applied "
+"when the distanceModel is set to linear. Otherwise, it should be ignored."
+msgstr ""
+"エミッターとリスナーの間の最大距離で、この距離を超えると音量がさらに減少しな"
+"くなります。maximumDistanceは、distanceModelがlinearに設定されている場合にの"
+"み適用されます。それ以外の場合は無視されるべきです。"
+
+#: blocks/three-audio-block/Edit.js:366 build/block-three-audio-block.js:1
+msgid "Ref Distance"
+msgstr "リファレンス距離"
+
+#: blocks/three-audio-block/Edit.js:367 build/block-three-audio-block.js:1
+msgid ""
+"A reference distance for reducing volume as the emitter moves further from "
+"the listener. For distances less than this, the volume is not reduced."
+msgstr ""
+"エミッターがリスナーから遠ざかるにつれて音量を減少させるためのリファレンス距"
+"離。この距離未満では音量は減少しません。"
+
+#: blocks/three-audio-block/Edit.js:380 build/block-three-audio-block.js:1
+msgid "Rolloff Factor"
+msgstr "ロールオフファクター"
+
+#: blocks/three-audio-block/Edit.js:381 build/block-three-audio-block.js:1
+msgid ""
+"Describes how quickly the volume is reduced as the emitter moves away from "
+"listener. When distanceModel is set to linear, the maximum value is 1 "
+"otherwise there is no upper limit."
+msgstr ""
+"エミッターがリスナーから遠ざかるにつれて音量がどれだけ速く減少するかを示しま"
+"す。distanceModelがlinearに設定されている場合、最大値は1です。それ以外の場"
+"合、上限はありません。"
+
+#: blocks/three-audio-block/Edit.js:411 blocks/three-audio-block/Edit.js:467
+#: build/block-three-audio-block.js:1
+msgid "Audio block"
+msgstr "オーディオブロック"
+
+#: blocks/three-image-block/Edit.js:115 build/block-three-image-block.js:1
+msgid "Image Object"
+msgstr "イメージオブジェクト"
+
+#: blocks/three-image-block/Edit.js:121 blocks/three-video-block/Edit.js:129
+#: build/block-three-image-block.js:1 build/block-three-video-block.js:1
+msgid "Select an image to render in your environment:"
+msgstr "環境内にレンダリングする画像を選択してください。"
+
+#: blocks/three-image-block/Edit.js:130 build/block-three-image-block.js:1
+msgid "Image File"
+msgstr "画像ファイル"
+
+#: blocks/three-image-block/Edit.js:146 build/block-three-image-block.js:1
+msgid "Item is transparent."
+msgstr "アイテムは透明です。"
+
+#: blocks/three-image-block/Edit.js:147 build/block-three-image-block.js:1
+msgid "Item is not transparent."
+msgstr "アイテムは透明ではありません。"
+
+#: blocks/three-image-block/Edit.js:254 blocks/three-image-block/Edit.js:310
+#: build/block-three-image-block.js:1
+msgid "Image block"
+msgstr "イメージブロック"
+
+#: blocks/three-light-block/Edit.js:82 build/block-three-light-block.js:1
+msgid "Light Object"
+msgstr "ライトオブジェクト"
+
+#: blocks/three-light-block/Edit.js:151 build/block-three-light-block.js:1
+msgid "Light Type"
+msgstr "ライトの種類"
+
+#: blocks/three-light-block/Edit.js:154 build/block-three-light-block.js:1
+msgid "Point"
+msgstr "ポイント"
+
+#: blocks/three-light-block/Edit.js:155 build/block-three-light-block.js:1
+msgid "Ambient"
+msgstr "アンビエント"
+
+#: blocks/three-light-block/Edit.js:156 build/block-three-light-block.js:1
+msgid "Directional"
+msgstr "ディレクショナル"
+
+#: blocks/three-light-block/Edit.js:164 build/block-three-light-block.js:1
+msgid "Intensity"
+msgstr "強度"
+
+#: blocks/three-light-block/Edit.js:177 build/block-three-light-block.js:1
+msgid "Distance"
+msgstr "距離"
+
+#: blocks/three-light-block/Edit.js:190 build/block-three-light-block.js:1
+msgid "Decay"
+msgstr "減衰"
+
+#: blocks/three-light-block/Edit.js:203 build/block-three-light-block.js:1
+msgid "Angle"
+msgstr "角度"
+
+#: blocks/three-light-block/Edit.js:216 build/block-three-light-block.js:1
+msgid "Penumbra"
+msgstr "ペヌンブラ"
+
+#: blocks/three-light-block/Edit.js:244 blocks/three-light-block/Edit.js:265
+#: build/block-three-light-block.js:1
+msgid "Light Block"
+msgstr "ライトブロック"
+
+#: blocks/three-portal-block/Edit.js:150 build/block-three-portal-block.js:1
+msgid ""
+"Select a glb file from your media library to render an object in the canvas:"
+msgstr ""
+"メディアライブラリからGLBファイルを選択して、キャンバスにオブジェクトをレンダ"
+"リングしてください。"
+
+#: blocks/three-portal-block/Edit.js:201 build/block-three-portal-block.js:1
+msgid "Destination URL"
+msgstr "宛先のURL"
+
+#: blocks/three-portal-block/Edit.js:202 build/block-three-portal-block.js:1
+msgid "Define a url."
+msgstr "URLを定義してください。"
+
+#: blocks/three-portal-block/Edit.js:211 build/block-three-portal-block.js:1
+msgid "Link Label"
+msgstr "リンクのラベル"
+
+#: blocks/three-portal-block/Edit.js:212 build/block-three-portal-block.js:1
+msgid ""
+"This text will describe where the link goes. If blank, will use the url as "
+"the label."
+msgstr ""
+"このテキストはリンク先を説明します。空白の場合、URLがラベルとして使用されま"
+"す。"
+
+#: blocks/three-portal-block/Edit.js:220 blocks/three-text-block/Edit.js:146
+#: build/block-three-portal-block.js:1 build/block-three-text-block.js:1
+msgid "Text Color"
+msgstr "テキストの色"
+
+#: blocks/three-portal-block/Edit.js:226 build/block-three-portal-block.js:1
+msgid "Label Offset"
+msgstr "ラベルのオフセット"
+
+#: blocks/three-portal-block/Edit.js:232 build/block-three-portal-block.js:1
+msgid "X Offset"
+msgstr "Xオフセット"
+
+#: blocks/three-portal-block/Edit.js:239 build/block-three-portal-block.js:1
+msgid "Y Offset"
+msgstr "Yオフセット"
+
+#: blocks/three-portal-block/Edit.js:246 build/block-three-portal-block.js:1
+msgid "Z Offset"
+msgstr "Zオフセット"
+
+#: blocks/three-portal-block/Edit.js:350 blocks/three-portal-block/Edit.js:406
+#: build/block-three-portal-block.js:1
+msgid "Portal block"
+msgstr "ポータルブロック"
+
+#: blocks/three-portal-block/Edit.js:382 blocks/three-portal-block/Edit.js:436
+#: build/block-three-portal-block.js:1
+msgid "Select Portal"
+msgstr "ポータルを選択する"
+
+#: blocks/three-text-block/Edit.js:131 build/block-three-text-block.js:1
+msgid "Text Attributes"
+msgstr "テキスト属性"
+
+#: blocks/three-text-block/Edit.js:137 build/block-three-text-block.js:1
+msgid "Text"
+msgstr "テキスト"
+
+#: blocks/three-text-block/Edit.js:138 build/block-three-text-block.js:1
+msgid "Write here."
+msgstr "ここに書いてください。"
+
+#: blocks/three-text-block/Edit.js:253 blocks/three-text-block/Edit.js:272
+#: blocks/three-text-block/Edit.js:295 blocks/three-text-block/Edit.js:314
+#: build/block-three-text-block.js:1
+msgid "Text Block"
+msgstr "テキストブロック"
+
+#: blocks/three-video-block/Edit.js:138 build/block-three-video-block.js:1
+msgid "Video File"
+msgstr "ビデオファイル"
+
+#: blocks/three-video-block/Edit.js:144 build/block-three-video-block.js:1
+msgid "Replace Video"
+msgstr "ビデオを置き換える"
+
+#: blocks/three-video-block/Edit.js:145 blocks/three-video-block/Edit.js:327
+#: blocks/three-video-block/Edit.js:381 build/block-three-video-block.js:1
+msgid "Select Video"
+msgstr "ビデオを選択する"
+
+#: blocks/three-video-block/Edit.js:167 blocks/three-video-block/Edit.js:185
+#: build/block-three-video-block.js:1
+msgid "Custom Model"
+msgstr "カスタムモデル"
+
+#: blocks/three-video-block/Edit.js:170 build/block-three-video-block.js:1
+msgid "Item will use a custom model. Name your faces 'screen'."
+msgstr ""
+"アイテムはカスタムモデルを使用します。フェースを ‘screen’ と名前を付けてくだ"
+"さい。"
+
+#: blocks/three-video-block/Edit.js:171 build/block-three-video-block.js:1
+msgid "Item will not use a custom model."
+msgstr "アイテムはカスタムモデルを使用しません。"
+
+#: blocks/three-video-block/Edit.js:191 build/block-three-video-block.js:1
+msgid "Replace model"
+msgstr "モデルを置き換える"
+
+#: blocks/three-video-block/Edit.js:192 build/block-three-video-block.js:1
+msgid "Select model"
+msgstr "モデルを選択する"
+
+#: blocks/three-video-block/Edit.js:295 blocks/three-video-block/Edit.js:351
+#: build/block-three-video-block.js:1
+msgid "Video block"
+msgstr "ビデオブロック"
+
+#: blocks/three-object-block/block.json
+msgctxt "block title"
+msgid "Three Object Block"
+msgstr "三つのオブジェクトブロック"
+
+#: blocks/three-object-block/block.json
+msgctxt "block description"
+msgid "A 3D object viewer focused on glTF"
+msgstr "glTFに焦点を当てた3Dオブジェクトビューアー"

@@ -1,0 +1,1057 @@
+# Copyright (C) 2023 antpb
+# This file is distributed under the GPL v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Three Object Viewer 1.5.2\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/three-object-viewer\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2023-08-21T03:16:49+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.8.1\n"
+"X-Domain: three-object-viewer\n"
+
+#. Plugin Name of the plugin
+msgid "Three Object Viewer"
+msgstr ""
+
+#. Plugin URI of the plugin
+msgid "https://3ov.xyz/"
+msgstr ""
+
+#. Description of the plugin
+msgid "A plugin for viewing 3D files with support for WebXR and Open Metaverse Interoperability GLTF Extensions."
+msgstr ""
+
+#. Author of the plugin
+msgid "antpb"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://antpb.com"
+msgstr ""
+
+#: admin/three-object-viewer-settings/init.php:75
+#: admin/three-object-viewer-settings/init.php:76
+#: admin/three-object-viewer-settings/App.js:118
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "3OV Settings"
+msgstr ""
+
+#: blocks/environment/init.php:9
+msgctxt "block title"
+msgid "Environment Block"
+msgstr ""
+
+#: blocks/environment/init.php:10
+msgctxt "block description"
+msgid "A 3D environment component"
+msgstr ""
+
+#: blocks/model-block/init.php:9
+msgctxt "block title"
+msgid "Model Block"
+msgstr ""
+
+#: blocks/model-block/init.php:10
+msgctxt "block description"
+msgid "A 3D model for your environment"
+msgstr ""
+
+#: blocks/npc-block/init.php:9
+msgctxt "block title"
+msgid "NPC Block"
+msgstr ""
+
+#: blocks/npc-block/init.php:10
+msgctxt "block description"
+msgid "A NPC to live in your environment"
+msgstr ""
+
+#: blocks/sky-block/init.php:9
+msgctxt "block title"
+msgid "Sky Block"
+msgstr ""
+
+#: blocks/sky-block/init.php:10
+msgctxt "block description"
+msgid "A sky your environment"
+msgstr ""
+
+#: blocks/spawn-point-block/init.php:9
+msgctxt "block title"
+msgid "Spawn Point Block"
+msgstr ""
+
+#: blocks/spawn-point-block/init.php:10
+msgctxt "block description"
+msgid "A spawn point for your users"
+msgstr ""
+
+#: blocks/three-audio-block/init.php:9
+msgctxt "block title"
+msgid "Audio Block"
+msgstr ""
+
+#: blocks/three-audio-block/init.php:10
+msgctxt "block description"
+msgid "An audio block for your environment"
+msgstr ""
+
+#: blocks/three-image-block/init.php:9
+msgctxt "block title"
+msgid "3D Image Block"
+msgstr ""
+
+#: blocks/three-image-block/init.php:10
+msgctxt "block description"
+msgid "An image block for your environment"
+msgstr ""
+
+#: blocks/three-light-block/init.php:9
+msgctxt "block title"
+msgid "Light Block"
+msgstr ""
+
+#: blocks/three-light-block/init.php:10
+msgctxt "block description"
+msgid "A light block for your environment"
+msgstr ""
+
+#: blocks/three-portal-block/init.php:9
+msgctxt "block title"
+msgid "Portal Block"
+msgstr ""
+
+#: blocks/three-portal-block/init.php:10
+msgctxt "block description"
+msgid "A portal for traversal"
+msgstr ""
+
+#: blocks/three-text-block/init.php:9
+msgctxt "block title"
+msgid "Text Block"
+msgstr ""
+
+#: blocks/three-text-block/init.php:10
+msgctxt "block description"
+msgid "A 3D Text Block"
+msgstr ""
+
+#: blocks/three-video-block/init.php:9
+msgctxt "block title"
+msgid "3D Video Block"
+msgstr ""
+
+#: blocks/three-video-block/init.php:10
+msgctxt "block description"
+msgid "A video block for your environment"
+msgstr ""
+
+#: admin/three-object-viewer-settings/App.js:50
+#: admin/three-object-viewer-settings/App.js:80
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Select or Upload Media"
+msgstr ""
+
+#: admin/three-object-viewer-settings/App.js:52
+#: admin/three-object-viewer-settings/App.js:82
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Use this media"
+msgstr ""
+
+#: admin/three-object-viewer-settings/App.js:119
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Here you can manage the settings for 3OV to tweak global configuration options and save your API keys for connected serivces."
+msgstr ""
+
+#: admin/three-object-viewer-settings/App.js:123
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Avatar Settings"
+msgstr ""
+
+#: admin/three-object-viewer-settings/App.js:127
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Default animation"
+msgstr ""
+
+#: admin/three-object-viewer-settings/App.js:132
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "No custom default animation set"
+msgstr ""
+
+#: admin/three-object-viewer-settings/App.js:138
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Set Default Animation"
+msgstr ""
+
+#: admin/three-object-viewer-settings/App.js:145
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Clear Default Animation"
+msgstr ""
+
+#: admin/three-object-viewer-settings/App.js:157
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "No custom default avatar set"
+msgstr ""
+
+#: admin/three-object-viewer-settings/App.js:163
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Set Default Avatar"
+msgstr ""
+
+#: admin/three-object-viewer-settings/App.js:170
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Clear Default Avatar"
+msgstr ""
+
+#: admin/three-object-viewer-settings/App.js:175
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "AI Settings"
+msgstr ""
+
+#: admin/three-object-viewer-settings/App.js:178
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "NPC Settings"
+msgstr ""
+
+#: admin/three-object-viewer-settings/App.js:182
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Enable"
+msgstr ""
+
+#: admin/three-object-viewer-settings/App.js:197
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "AI Endpoint URL"
+msgstr ""
+
+#: admin/three-object-viewer-settings/App.js:213
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "OpenAI API Token"
+msgstr ""
+
+#: admin/three-object-viewer-settings/App.js:245
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "AI Access Level"
+msgstr ""
+
+#: admin/three-object-viewer-settings/App.js:254
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Public"
+msgstr ""
+
+#: admin/three-object-viewer-settings/App.js:255
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Logged In"
+msgstr ""
+
+#: admin/three-object-viewer-settings/App.js:262
+#: build/admin-page-three-object-viewer-settings.js:1
+msgid "Saving..."
+msgstr ""
+
+#: blocks/environment/Edit.js:126
+#: build/block-environment.js:1
+msgid "Environment Settings"
+msgstr ""
+
+#: blocks/environment/Edit.js:129
+#: build/block-environment.js:1
+msgid "Environment Object (Changing this value changes your scene ground planes)"
+msgstr ""
+
+#: blocks/environment/Edit.js:135
+#: build/block-environment.js:1
+msgid "Select a glb file from your media library. This will be treated as a collidable mesh that visitors can walk on:"
+msgstr ""
+
+#: blocks/environment/Edit.js:150
+#: build/block-environment.js:1
+msgid "Replace Environment"
+msgstr ""
+
+#: blocks/environment/Edit.js:151
+#: build/block-environment.js:1
+msgid "Select Environment"
+msgstr ""
+
+#: blocks/environment/Edit.js:158
+#: build/block-environment.js:1
+msgid "Select an image to be used as the preview image:"
+msgstr ""
+
+#: blocks/environment/Edit.js:188
+#: blocks/three-image-block/Edit.js:136
+#: build/block-environment.js:1
+#: build/block-three-image-block.js:1
+msgid "Replace Image"
+msgstr ""
+
+#: blocks/environment/Edit.js:189
+#: blocks/three-image-block/Edit.js:137
+#: blocks/three-image-block/Edit.js:340
+#: build/block-environment.js:1
+#: build/block-three-image-block.js:1
+msgid "Select Image"
+msgstr ""
+
+#: blocks/environment/Edit.js:207
+#: build/block-environment.js:1
+msgid "Replace HDR"
+msgstr ""
+
+#: blocks/environment/Edit.js:208
+#: build/block-environment.js:1
+msgid "Select HDR"
+msgstr ""
+
+#: blocks/environment/Edit.js:212
+#: build/block-environment.js:1
+msgid "Remove HDR"
+msgstr ""
+
+#: blocks/environment/Edit.js:221
+#: build/block-environment.js:1
+msgid "Scene Settings"
+msgstr ""
+
+#: blocks/environment/Edit.js:226
+#: build/block-environment.js:1
+msgid "Object Display Type:"
+msgstr ""
+
+#: blocks/environment/Edit.js:238
+#: blocks/model-block/Edit.js:184
+#: blocks/three-portal-block/Edit.js:193
+#: build/block-environment.js:1
+#: build/block-model-block.js:1
+#: build/block-three-portal-block.js:1
+msgid "Loop Animations"
+msgstr ""
+
+#: blocks/environment/Edit.js:239
+#: blocks/model-block/Edit.js:185
+#: blocks/three-portal-block/Edit.js:194
+#: build/block-environment.js:1
+#: build/block-model-block.js:1
+#: build/block-three-portal-block.js:1
+msgid "Separate each animation name you wish to loop with a comma"
+msgstr ""
+
+#: blocks/environment/Edit.js:246
+#: blocks/model-block/Edit.js:256
+#: blocks/three-image-block/Edit.js:209
+#: blocks/three-portal-block/Edit.js:305
+#: blocks/three-text-block/Edit.js:208
+#: blocks/three-video-block/Edit.js:250
+#: build/block-environment.js:1
+#: build/block-model-block.js:1
+#: build/block-three-image-block.js:1
+#: build/block-three-portal-block.js:1
+#: build/block-three-text-block.js:1
+#: build/block-three-video-block.js:1
+msgid "Scale"
+msgstr ""
+
+#: blocks/environment/Edit.js:255
+#: build/block-environment.js:1
+msgid "Position Y"
+msgstr ""
+
+#: blocks/environment/Edit.js:265
+#: build/block-environment.js:1
+msgid "Rotation Y"
+msgstr ""
+
+#: blocks/model-block/Edit.js:124
+#: blocks/npc-block/Edit.js:113
+#: blocks/sky-block/Edit.js:56
+#: blocks/spawn-point-block/Edit.js:53
+#: blocks/three-audio-block/Edit.js:130
+#: blocks/three-light-block/Edit.js:80
+#: blocks/three-portal-block/Edit.js:142
+#: blocks/three-video-block/Edit.js:121
+#: build/block-model-block.js:1
+#: build/block-npc-block.js:1
+#: build/block-sky-block.js:1
+#: build/block-spawn-point-block.js:1
+#: build/block-three-audio-block.js:1
+#: build/block-three-light-block.js:1
+#: build/block-three-portal-block.js:1
+#: build/block-three-video-block.js:1
+msgid "Settings"
+msgstr ""
+
+#: blocks/model-block/Edit.js:126
+#: blocks/three-portal-block/Edit.js:144
+#: build/block-model-block.js:1
+#: build/block-three-portal-block.js:1
+msgid "GLB Object"
+msgstr ""
+
+#: blocks/model-block/Edit.js:132
+#: blocks/npc-block/Edit.js:121
+#: blocks/three-audio-block/Edit.js:138
+#: build/block-model-block.js:1
+#: build/block-npc-block.js:1
+#: build/block-three-audio-block.js:1
+msgid "Name"
+msgstr ""
+
+#: blocks/model-block/Edit.js:133
+#: build/block-model-block.js:1
+msgid "Give your object a name."
+msgstr ""
+
+#: blocks/model-block/Edit.js:140
+#: build/block-model-block.js:1
+msgid "select a glb file from your media library to render an object in the canvas:"
+msgstr ""
+
+#: blocks/model-block/Edit.js:149
+#: build/block-model-block.js:1
+msgid "GLB File"
+msgstr ""
+
+#: blocks/model-block/Edit.js:155
+#: blocks/three-portal-block/Edit.js:165
+#: blocks/three-portal-block/Edit.js:381
+#: blocks/three-video-block/Edit.js:326
+#: build/block-model-block.js:1
+#: build/block-three-portal-block.js:1
+#: build/block-three-video-block.js:1
+msgid "Replace Object"
+msgstr ""
+
+#: blocks/model-block/Edit.js:156
+#: blocks/three-portal-block/Edit.js:166
+#: build/block-model-block.js:1
+#: build/block-three-portal-block.js:1
+msgid "Select Object"
+msgstr ""
+
+#: blocks/model-block/Edit.js:164
+#: blocks/three-portal-block/Edit.js:173
+#: build/block-model-block.js:1
+#: build/block-three-portal-block.js:1
+msgid "Model Attributes"
+msgstr ""
+
+#: blocks/model-block/Edit.js:170
+#: blocks/three-portal-block/Edit.js:179
+#: build/block-model-block.js:1
+#: build/block-three-portal-block.js:1
+msgid "Collidable"
+msgstr ""
+
+#: blocks/model-block/Edit.js:173
+#: blocks/three-portal-block/Edit.js:182
+#: build/block-model-block.js:1
+#: build/block-three-portal-block.js:1
+msgid "Item is currently collidable."
+msgstr ""
+
+#: blocks/model-block/Edit.js:174
+#: blocks/three-portal-block/Edit.js:183
+#: build/block-model-block.js:1
+#: build/block-three-portal-block.js:1
+msgid "Item is not collidable. Users will walk through it."
+msgstr ""
+
+#: blocks/model-block/Edit.js:192
+#: build/block-model-block.js:1
+msgid "Model Alt Text"
+msgstr ""
+
+#: blocks/model-block/Edit.js:193
+#: build/block-model-block.js:1
+msgid "Describe your model to provide context for screen readers."
+msgstr ""
+
+#: blocks/model-block/Edit.js:200
+#: blocks/npc-block/Edit.js:186
+#: blocks/three-audio-block/Edit.js:172
+#: blocks/three-light-block/Edit.js:88
+#: blocks/three-text-block/Edit.js:152
+#: build/block-model-block.js:1
+#: build/block-npc-block.js:1
+#: build/block-three-audio-block.js:1
+#: build/block-three-light-block.js:1
+#: build/block-three-text-block.js:1
+msgid "Position"
+msgstr ""
+
+#: blocks/model-block/Edit.js:228
+#: blocks/npc-block/Edit.js:214
+#: blocks/spawn-point-block/Edit.js:84
+#: blocks/three-audio-block/Edit.js:200
+#: blocks/three-image-block/Edit.js:181
+#: blocks/three-light-block/Edit.js:116
+#: blocks/three-portal-block/Edit.js:277
+#: blocks/three-text-block/Edit.js:180
+#: blocks/three-video-block/Edit.js:222
+#: build/block-model-block.js:1
+#: build/block-npc-block.js:1
+#: build/block-spawn-point-block.js:1
+#: build/block-three-audio-block.js:1
+#: build/block-three-image-block.js:1
+#: build/block-three-light-block.js:1
+#: build/block-three-portal-block.js:1
+#: build/block-three-text-block.js:1
+#: build/block-three-video-block.js:1
+msgid "Rotation"
+msgstr ""
+
+#: blocks/model-block/Edit.js:302
+#: blocks/model-block/Edit.js:360
+#: build/block-model-block.js:1
+msgid "Model block"
+msgstr ""
+
+#: blocks/model-block/Edit.js:335
+#: blocks/model-block/Edit.js:393
+#: build/block-model-block.js:1
+msgid "Replace Model"
+msgstr ""
+
+#: blocks/model-block/Edit.js:336
+#: blocks/model-block/Edit.js:394
+#: build/block-model-block.js:1
+msgid "Select Model"
+msgstr ""
+
+#: blocks/npc-block/Edit.js:115
+#: build/block-npc-block.js:1
+msgid "NPC Options"
+msgstr ""
+
+#: blocks/npc-block/Edit.js:122
+#: build/block-npc-block.js:1
+msgid "Give your avatar a name."
+msgstr ""
+
+#: blocks/npc-block/Edit.js:129
+#: build/block-npc-block.js:1
+msgid "Personality"
+msgstr ""
+
+#: blocks/npc-block/Edit.js:130
+#: build/block-npc-block.js:1
+msgid "Give your avatar a personality in 600 characters."
+msgstr ""
+
+#: blocks/npc-block/Edit.js:138
+#: build/block-npc-block.js:1
+msgid "Default Message"
+msgstr ""
+
+#: blocks/npc-block/Edit.js:139
+#: build/block-npc-block.js:1
+msgid "Give your avatar a default message to initialize with."
+msgstr ""
+
+#: blocks/npc-block/Edit.js:147
+#: build/block-npc-block.js:1
+msgid "Select a VRM file to be used as your NPC in world:"
+msgstr ""
+
+#: blocks/npc-block/Edit.js:170
+#: build/block-npc-block.js:1
+msgid "Advanced Settings"
+msgstr ""
+
+#: blocks/npc-block/Edit.js:176
+#: build/block-npc-block.js:1
+msgid "Include World Objects in Prompt"
+msgstr ""
+
+#: blocks/npc-block/Edit.js:177
+#: build/block-npc-block.js:1
+msgid "If enabled, will result in higher token costs with your AI service provider. Use with caution."
+msgstr ""
+
+#: blocks/npc-block/Edit.js:260
+#: blocks/npc-block/Edit.js:318
+#: build/block-npc-block.js:1
+msgid "NPC block"
+msgstr ""
+
+#: blocks/npc-block/Edit.js:293
+#: blocks/npc-block/Edit.js:351
+#: build/block-npc-block.js:1
+msgid "Replace NPC"
+msgstr ""
+
+#: blocks/npc-block/Edit.js:294
+#: blocks/npc-block/Edit.js:352
+#: build/block-npc-block.js:1
+msgid "Select NPC"
+msgstr ""
+
+#: blocks/sky-block/Edit.js:60
+#: build/block-sky-block.js:1
+msgid "Sky Object"
+msgstr ""
+
+#: blocks/sky-block/Edit.js:66
+#: build/block-sky-block.js:1
+msgid "Select an image to be used as your skybox. 360 panoramics recommended:"
+msgstr ""
+
+#: blocks/sky-block/Edit.js:75
+#: build/block-sky-block.js:1
+msgid "Sky File"
+msgstr ""
+
+#: blocks/sky-block/Edit.js:82
+#: build/block-sky-block.js:1
+msgid "Replace Sky"
+msgstr ""
+
+#: blocks/sky-block/Edit.js:83
+#: build/block-sky-block.js:1
+msgid "Select Sky"
+msgstr ""
+
+#: blocks/sky-block/Edit.js:87
+#: build/block-sky-block.js:1
+msgid "Remove Image"
+msgstr ""
+
+#: blocks/sky-block/Edit.js:96
+#: build/block-sky-block.js:1
+msgid "distance"
+msgstr ""
+
+#: blocks/sky-block/Edit.js:106
+#: build/block-sky-block.js:1
+msgid "rayleigh"
+msgstr ""
+
+#: blocks/sky-block/Edit.js:116
+#: build/block-sky-block.js:1
+msgid "Sun Position"
+msgstr ""
+
+#: blocks/sky-block/Edit.js:163
+#: blocks/sky-block/Edit.js:184
+#: build/block-sky-block.js:1
+msgid "Sky block"
+msgstr ""
+
+#: blocks/spawn-point-block/Edit.js:127
+#: build/block-spawn-point-block.js:1
+msgid "Spawn Point"
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:132
+#: build/block-three-audio-block.js:1
+msgid "Audio Object"
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:139
+#: build/block-three-audio-block.js:1
+msgid "Give your audio a name."
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:146
+#: build/block-three-audio-block.js:1
+msgid "Select an audio file to add to your scene."
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:158
+#: build/block-three-audio-block.js:1
+msgid "Audio File"
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:164
+#: blocks/three-audio-block/Edit.js:442
+#: build/block-three-audio-block.js:1
+msgid "Replace Audio"
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:165
+#: blocks/three-audio-block/Edit.js:443
+#: blocks/three-audio-block/Edit.js:497
+#: build/block-three-audio-block.js:1
+msgid "Select Audio"
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:228
+#: build/block-three-audio-block.js:1
+msgid "AutoPlay"
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:231
+#: blocks/three-video-block/Edit.js:155
+#: build/block-three-audio-block.js:1
+#: build/block-three-video-block.js:1
+msgid "Item will autoplay."
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:232
+#: blocks/three-video-block/Edit.js:156
+#: build/block-three-audio-block.js:1
+#: build/block-three-video-block.js:1
+msgid "Item will not autoplay."
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:245
+#: build/block-three-audio-block.js:1
+msgid "Item will loop."
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:246
+#: build/block-three-audio-block.js:1
+msgid "Item will not loop."
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:259
+#: build/block-three-audio-block.js:1
+msgid "Item will be spatial audio."
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:260
+#: build/block-three-audio-block.js:1
+msgid "Item will be global audio."
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:271
+#: build/block-three-audio-block.js:1
+msgid "Volume"
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:272
+#: build/block-three-audio-block.js:1
+msgid "Unitless multiplier against original source volume for determining emitter loudness."
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:284
+#: build/block-three-audio-block.js:1
+msgid "Positional Volume Settings"
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:291
+#: build/block-three-audio-block.js:1
+msgid "Cone Inner angle"
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:292
+#: blocks/three-audio-block/Edit.js:307
+#: build/block-three-audio-block.js:1
+msgid "The angle, in radians, of a cone outside of which the volume will be reduced to a constant value ofconeOuterGain."
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:306
+#: build/block-three-audio-block.js:1
+msgid "Cone Outer Angle"
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:320
+#: build/block-three-audio-block.js:1
+msgid "Cone Outer Gain"
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:321
+#: build/block-three-audio-block.js:1
+msgid "The gain of the audio emitter set when outside the cone defined by the coneOuterAngle property."
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:334
+#: build/block-three-audio-block.js:1
+msgid "Distance Model"
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:335
+#: build/block-three-audio-block.js:1
+msgid "Specifies the distance model for the audio emitter."
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:337
+#: build/block-three-audio-block.js:1
+msgid "Inverse"
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:338
+#: build/block-three-audio-block.js:1
+msgid "Linear"
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:340
+#: build/block-three-audio-block.js:1
+msgid "Exponential"
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:352
+#: build/block-three-audio-block.js:1
+msgid "Max Distance"
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:353
+#: build/block-three-audio-block.js:1
+msgid "The maximum distance between the emitter and listener, after which the volume will not be reduced any further. maximumDistance may only be applied when the distanceModel is set to linear. Otherwise, it should be ignored."
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:366
+#: build/block-three-audio-block.js:1
+msgid "Ref Distance"
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:367
+#: build/block-three-audio-block.js:1
+msgid "A reference distance for reducing volume as the emitter moves further from the listener. For distances less than this, the volume is not reduced."
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:380
+#: build/block-three-audio-block.js:1
+msgid "Rolloff Factor"
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:381
+#: build/block-three-audio-block.js:1
+msgid "Describes how quickly the volume is reduced as the emitter moves away from listener. When distanceModel is set to linear, the maximum value is 1 otherwise there is no upper limit."
+msgstr ""
+
+#: blocks/three-audio-block/Edit.js:411
+#: blocks/three-audio-block/Edit.js:467
+#: build/block-three-audio-block.js:1
+msgid "Audio block"
+msgstr ""
+
+#: blocks/three-image-block/Edit.js:115
+#: build/block-three-image-block.js:1
+msgid "Image Object"
+msgstr ""
+
+#: blocks/three-image-block/Edit.js:121
+#: blocks/three-video-block/Edit.js:129
+#: build/block-three-image-block.js:1
+#: build/block-three-video-block.js:1
+msgid "Select an image to render in your environment:"
+msgstr ""
+
+#: blocks/three-image-block/Edit.js:130
+#: build/block-three-image-block.js:1
+msgid "Image File"
+msgstr ""
+
+#: blocks/three-image-block/Edit.js:146
+#: build/block-three-image-block.js:1
+msgid "Item is transparent."
+msgstr ""
+
+#: blocks/three-image-block/Edit.js:147
+#: build/block-three-image-block.js:1
+msgid "Item is not transparent."
+msgstr ""
+
+#: blocks/three-image-block/Edit.js:254
+#: blocks/three-image-block/Edit.js:310
+#: build/block-three-image-block.js:1
+msgid "Image block"
+msgstr ""
+
+#: blocks/three-light-block/Edit.js:82
+#: build/block-three-light-block.js:1
+msgid "Light Object"
+msgstr ""
+
+#: blocks/three-light-block/Edit.js:151
+#: build/block-three-light-block.js:1
+msgid "Light Type"
+msgstr ""
+
+#: blocks/three-light-block/Edit.js:154
+#: build/block-three-light-block.js:1
+msgid "Point"
+msgstr ""
+
+#: blocks/three-light-block/Edit.js:155
+#: build/block-three-light-block.js:1
+msgid "Ambient"
+msgstr ""
+
+#: blocks/three-light-block/Edit.js:156
+#: build/block-three-light-block.js:1
+msgid "Directional"
+msgstr ""
+
+#: blocks/three-light-block/Edit.js:164
+#: build/block-three-light-block.js:1
+msgid "Intensity"
+msgstr ""
+
+#: blocks/three-light-block/Edit.js:177
+#: build/block-three-light-block.js:1
+msgid "Distance"
+msgstr ""
+
+#: blocks/three-light-block/Edit.js:190
+#: build/block-three-light-block.js:1
+msgid "Decay"
+msgstr ""
+
+#: blocks/three-light-block/Edit.js:203
+#: build/block-three-light-block.js:1
+msgid "Angle"
+msgstr ""
+
+#: blocks/three-light-block/Edit.js:216
+#: build/block-three-light-block.js:1
+msgid "Penumbra"
+msgstr ""
+
+#: blocks/three-light-block/Edit.js:244
+#: blocks/three-light-block/Edit.js:265
+#: build/block-three-light-block.js:1
+msgid "Light Block"
+msgstr ""
+
+#: blocks/three-portal-block/Edit.js:150
+#: build/block-three-portal-block.js:1
+msgid "Select a glb file from your media library to render an object in the canvas:"
+msgstr ""
+
+#: blocks/three-portal-block/Edit.js:201
+#: build/block-three-portal-block.js:1
+msgid "Destination URL"
+msgstr ""
+
+#: blocks/three-portal-block/Edit.js:202
+#: build/block-three-portal-block.js:1
+msgid "Define a url."
+msgstr ""
+
+#: blocks/three-portal-block/Edit.js:211
+#: build/block-three-portal-block.js:1
+msgid "Link Label"
+msgstr ""
+
+#: blocks/three-portal-block/Edit.js:212
+#: build/block-three-portal-block.js:1
+msgid "This text will describe where the link goes. If blank, will use the url as the label."
+msgstr ""
+
+#: blocks/three-portal-block/Edit.js:220
+#: blocks/three-text-block/Edit.js:146
+#: build/block-three-portal-block.js:1
+#: build/block-three-text-block.js:1
+msgid "Text Color"
+msgstr ""
+
+#: blocks/three-portal-block/Edit.js:226
+#: build/block-three-portal-block.js:1
+msgid "Label Offset"
+msgstr ""
+
+#: blocks/three-portal-block/Edit.js:232
+#: build/block-three-portal-block.js:1
+msgid "X Offset"
+msgstr ""
+
+#: blocks/three-portal-block/Edit.js:239
+#: build/block-three-portal-block.js:1
+msgid "Y Offset"
+msgstr ""
+
+#: blocks/three-portal-block/Edit.js:246
+#: build/block-three-portal-block.js:1
+msgid "Z Offset"
+msgstr ""
+
+#: blocks/three-portal-block/Edit.js:350
+#: blocks/three-portal-block/Edit.js:406
+#: build/block-three-portal-block.js:1
+msgid "Portal block"
+msgstr ""
+
+#: blocks/three-portal-block/Edit.js:382
+#: blocks/three-portal-block/Edit.js:436
+#: build/block-three-portal-block.js:1
+msgid "Select Portal"
+msgstr ""
+
+#: blocks/three-text-block/Edit.js:131
+#: build/block-three-text-block.js:1
+msgid "Text Attributes"
+msgstr ""
+
+#: blocks/three-text-block/Edit.js:137
+#: build/block-three-text-block.js:1
+msgid "Text"
+msgstr ""
+
+#: blocks/three-text-block/Edit.js:138
+#: build/block-three-text-block.js:1
+msgid "Write here."
+msgstr ""
+
+#: blocks/three-text-block/Edit.js:253
+#: blocks/three-text-block/Edit.js:272
+#: blocks/three-text-block/Edit.js:295
+#: blocks/three-text-block/Edit.js:314
+#: build/block-three-text-block.js:1
+msgid "Text Block"
+msgstr ""
+
+#: blocks/three-video-block/Edit.js:138
+#: build/block-three-video-block.js:1
+msgid "Video File"
+msgstr ""
+
+#: blocks/three-video-block/Edit.js:144
+#: build/block-three-video-block.js:1
+msgid "Replace Video"
+msgstr ""
+
+#: blocks/three-video-block/Edit.js:145
+#: blocks/three-video-block/Edit.js:327
+#: blocks/three-video-block/Edit.js:381
+#: build/block-three-video-block.js:1
+msgid "Select Video"
+msgstr ""
+
+#: blocks/three-video-block/Edit.js:167
+#: blocks/three-video-block/Edit.js:185
+#: build/block-three-video-block.js:1
+msgid "Custom Model"
+msgstr ""
+
+#: blocks/three-video-block/Edit.js:170
+#: build/block-three-video-block.js:1
+msgid "Item will use a custom model. Name your faces 'screen'."
+msgstr ""
+
+#: blocks/three-video-block/Edit.js:171
+#: build/block-three-video-block.js:1
+msgid "Item will not use a custom model."
+msgstr ""
+
+#: blocks/three-video-block/Edit.js:191
+#: build/block-three-video-block.js:1
+msgid "Replace model"
+msgstr ""
+
+#: blocks/three-video-block/Edit.js:192
+#: build/block-three-video-block.js:1
+msgid "Select model"
+msgstr ""
+
+#: blocks/three-video-block/Edit.js:295
+#: blocks/three-video-block/Edit.js:351
+#: build/block-three-video-block.js:1
+msgid "Video block"
+msgstr ""
+
+#: blocks/three-object-block/block.json
+msgctxt "block title"
+msgid "Three Object Block"
+msgstr ""
+
+#: blocks/three-object-block/block.json
+msgctxt "block description"
+msgid "A 3D object viewer focused on glTF"
+msgstr ""

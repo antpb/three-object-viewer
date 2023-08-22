@@ -32,8 +32,18 @@ const videosToAdd = document.querySelectorAll(
 const audiosToAdd = document.querySelectorAll(
 	".three-object-three-app-audio-block"
 );
+
+const lightsToAdd = document.querySelectorAll(
+	".three-object-three-app-light-block"
+);
 threeApp.forEach((threeApp) => {
 	if (threeApp) {
+		const hdr = document.querySelector(
+			"p.three-object-block-hdr"
+		)? document.querySelector(
+			"p.three-object-block-hdr"
+			).innerText : "";
+
 		const spawnPoint =
 			spawnToAdd.length !== 0
 				? [
@@ -124,11 +134,13 @@ threeApp.forEach((threeApp) => {
 					imagesToAdd={imagesToAdd}
 					videosToAdd={videosToAdd}
 					audiosToAdd={audiosToAdd}
+					lightsToAdd={lightsToAdd}
 					spawnPoint={spawnPoint ? spawnPoint : null}
 					htmlToAdd={htmlToAdd}
 					npcsToAdd={npcsToAdd}
 					sky={sky ? sky : ""}
 					previewImage={threePreviewImage}
+					hdr ={hdr ? hdr : ""}
 				/>
 			</>,
 			threeApp
