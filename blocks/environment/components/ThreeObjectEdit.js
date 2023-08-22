@@ -1778,7 +1778,7 @@ function ThreeObject(props) {
 					);
 				}
 			})}
-			{/* { lightElementsToAdd.length < 1 && (
+			{ lightElementsToAdd.length < 1 && (
 					<>
 						<ambientLight intensity={0.5} />
 						<directionalLight
@@ -1789,7 +1789,7 @@ function ThreeObject(props) {
 							castShadow
 						/>
 					</>
-			)} */}
+			)}
 			{Object.values(lightElementsToAdd).map((model, index) => {
 				if (model.lightObject.type) {
 					return (
