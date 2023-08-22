@@ -77,7 +77,10 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 	return (
 		<div {...useBlockProps()}>
 			<InspectorControls key="setting">
-				<Panel header={ __( "Settings", 'three-object-viewer' ) } >
+				<Panel 
+					header={ __( "Settings", 'three-object-viewer' ) }
+					className="three-object-viewer-edit-panel"
+				>
 					<PanelBody
 						title={ __( "Light Object", 'three-object-viewer' )	}
 						icon={more}
@@ -158,7 +161,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 								onChange={(target) => onChangeType(target)}
 							/>
 						</PanelRow>
-						<PanelRow>
+						<PanelRow className="wide-slider">
 							<RangeControl
 								className="position-inputs"
 								label={ __( "Intensity", "three-object-viewer" ) }
@@ -171,7 +174,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 								onChange={(value) => onChangeIntensity(value)}
 							/>
 						</PanelRow>
-						<PanelRow>
+						<PanelRow className="wide-slider">
 							<RangeControl
 								className="position-inputs"
 								label={ __( "Distance", "three-object-viewer" ) }
@@ -184,7 +187,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 								onChange={(value) => onChangeDistance(value)}
 							/>
 						</PanelRow>
-						<PanelRow>
+						<PanelRow className="wide-slider">
 							<RangeControl
 								className="position-inputs"
 								label={ __( "Decay", "three-object-viewer" ) }
@@ -197,7 +200,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 								onChange={(value) => onChangeDecay(value)}
 							/>
 						</PanelRow>
-						<PanelRow>
+						<PanelRow className="wide-slider">
 							<RangeControl
 								className="position-inputs"
 								label={__( "Angle", "three-object-viewer" )}
@@ -210,7 +213,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 								onChange={(value) => onChangeAngle(value)}
 							/>
 						</PanelRow>
-						<PanelRow>
+						<PanelRow className="wide-slider">
 							<RangeControl
 								className="position-inputs"
 								label={__( "Penumbra", "three-object-viewer" )}

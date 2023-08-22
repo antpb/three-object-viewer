@@ -54,7 +54,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 			<InspectorControls key="setting">
 				<Panel 
 					header={ __( "Settings", "three-object-viewer" ) }
-					className="three-object-environment-edit-container"
+					className="three-object-environment-edit-container three-object-viewer-edit-panel"
 				>
 					<PanelBody
 						title={ __( "Sky Object", "three-object-viewer" ) }
@@ -91,7 +91,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 								)}
 							/>
 						</PanelRow>
-						<PanelRow>
+						<PanelRow className="wide-slider">
 							<RangeControl
 								label={ __( "distance", "three-object-viewer" ) }
 								default={400000}
@@ -101,7 +101,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 								onChange={ onChangeDistance }
 							/>
 						</PanelRow>
-						<PanelRow>
+						<PanelRow className="wide-slider">
 							<RangeControl
 								label={ __( "rayleigh", "three-object-viewer" ) }
 								default={2}

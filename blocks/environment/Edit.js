@@ -122,7 +122,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 		<div {...useBlockProps()}>
 			<InspectorControls key="setting">
 				<Panel
-					className="three-object-environment-edit-container"
+					className="three-object-environment-edit-container three-object-viewer-edit-panel"
 					header={ __( "Environment Settings", "three-object-viewer" ) }
 				>
 					<PanelBody
@@ -246,7 +246,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 								onChange={(value) => onChangeAnimations(value)}
 							/>
 						</PanelRow>
-						<PanelRow>
+						<PanelRow className="wide-slider">
 							<RangeControl
 								label={ __( "Scale", "three-object-viewer" ) }
 								value={attributes.scale}
@@ -255,7 +255,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 								onChange={onChangeScale}
 							/>
 						</PanelRow>
-						<PanelRow>
+						<PanelRow className="wide-slider">
 							<RangeControl
 								label={ __( "Position Y", "three-object-viewer" ) }
 								value={attributes.positionY}
@@ -265,7 +265,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 								onChange={onChangePositionY}
 							/>
 						</PanelRow>
-						<PanelRow>
+						<PanelRow className="wide-slider">
 							<RangeControl
 								label={ __( "Rotation Y", "three-object-viewer" ) }
 								value={attributes.rotationY}

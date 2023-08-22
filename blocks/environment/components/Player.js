@@ -570,14 +570,6 @@ export default function Player(props) {
 			}
 			if(props.movement.current.respawn === true){
 
-				// camera.position.set(x, y, z);
-		
-				// participantObject.setTranslation({
-				//   x: x,
-				//   y: y,
-				//   z: z
-				// });
-
 				const x = Number(props.spawnPoint[0]);
 				const y = Number(props.spawnPoint[1]);
 				const z = Number(props.spawnPoint[2]);

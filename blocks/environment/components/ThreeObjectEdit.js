@@ -445,16 +445,6 @@ function LightObject(threeLight) {
 	const { scene } = useThree();
 	// add lightRef
 	const lightRef = useRef();
-    // useEffect(() => {
-    //     if (lightRef.current) {
-    //         scene.add(lightRef.current);
-    //     }
-    //     return () => {
-    //         if (lightRef.current) {
-    //             scene.remove(lightRef.current);
-    //         }
-    //     };
-    // }, []);
 
     let LightComponent;
 	var colorValue = parseInt ( threeLight.color.replace("#","0x"), 16 );

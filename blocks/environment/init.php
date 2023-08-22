@@ -9,8 +9,5 @@ add_action('init', function () {
             'title'           => _x( 'Environment Block', 'block title', 'three-object-viewer' ),
             'description'     => _x( 'A 3D environment component', 'block description', 'three-object-viewer' ),
         ] );
-        // if ( ! empty( $result->editor_script ) ) {
-        //     wp_set_script_translations($result->editor_script, 'three-object-viewer', plugin_dir_path(__FILE__) . 'languages');
-        // }
     }
 });
