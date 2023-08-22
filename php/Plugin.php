@@ -12,7 +12,7 @@ class Plugin
 		add_action('wp_enqueue_scripts',  array( $this, 'threeobjectviewer_frontend_assets'));
 		add_action( 'rest_api_init',  array( $this, 'callAlchemy' ));
 		add_action('enqueue_block_assets',  array( $this, 'threeobjectviewer_editor_assets'));
-		//Register JavaScript and CSS for threeobjectloaderinit
+ 		//Register JavaScript and CSS for threeobjectloaderinit
 		add_action( 'wp_enqueue_scripts',  array( $this, 'threeobjectviewer_register_threeobjectloaderinit'), 5 );
 		//Enqueue JavaScript and CSS for threeobjectloaderinit
 		add_action( 'wp_enqueue_scripts',  array( $this, 'threeobjectviewer_enqueue_threeobjectloaderinit'), 10 );
