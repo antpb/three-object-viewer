@@ -3,7 +3,7 @@
     "attributes": {
         "type": {
             "type": "string",
-            "default": "directional"
+            "default": "ambient"
         },
         "color": {
             "type": "string",
@@ -11,7 +11,7 @@
         },
         "intensity": {
             "type": "float",
-            "default": 1.0
+            "default": 0.7
         },
         "distance": {
             "type": "int",
