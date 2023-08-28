@@ -6,6 +6,9 @@
         "adminPages": [
             "three-object-viewer-settings"
         ],
+        "proAdminPages": [
+            "three-object-viewer-pro-settings"
+        ],
         "blocks": [
             "three-object-block",
             "environment",
@@ -18,6 +21,10 @@
             "three-portal-block",
             "three-text-block",
             "spawn-point-block"
+        ],
+        "proBlocks": [
+            "three-networking",
+            "three-mirror-block"
         ]
     },
     "buildIncludes": [
@@ -36,6 +43,7 @@
         "blocks/three-video-block/init.php",
         "blocks/three-portal-block/init.php",
         "blocks/spawn-point-block/init.php",
-        "admin/three-object-viewer-settings/init.php"
+        "admin/three-object-viewer-settings/init.php",
+        "pro/admin/three-object-viewer-pro-settings/init.php"
     ]
 }

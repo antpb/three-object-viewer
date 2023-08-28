@@ -134,4 +134,5 @@ add_action( 'plugins_loaded', function () {
 include_once dirname( __FILE__ ). '/inc/functions.php';
 include_once dirname( __FILE__ ). '/inc/hooks.php';
 include_once dirname( __FILE__ ) . '/admin/three-object-viewer-settings/init.php';
+include_once dirname( __FILE__ ) . '/pro/admin/three-object-viewer-pro-settings/init.php';
 include_once dirname( __FILE__ ) . '/php/Plugin.php';

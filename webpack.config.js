@@ -21,6 +21,14 @@ if (entryPoints.hasOwnProperty("adminPages")) {
 		);
 	});
 }
+if (entryPoints.hasOwnProperty("proAdminPages")) {
+	entryPoints.proAdminPages.forEach((entryPoint) => {
+		entry[`admin-page-${entryPoint}`] = path.resolve(
+			process.cwd(),
+			`pro/admin/${entryPoint}/index.js`
+		);
+	});
+}
 
 entry[`./assets/js/blocks.frontend`] =
 	"./blocks/three-object-block/frontend.js";
