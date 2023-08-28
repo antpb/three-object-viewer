@@ -12,6 +12,9 @@ export default function save({ attributes }) {
 					<p className="three-object-block-url">
 						{attributes.threeObjectUrl}
 					</p>
+					<p className="three-object-block-hdr">
+						{attributes.hdr}
+					</p>
 					<p className="three-object-scale">{attributes.scale}</p>
 					<p className="three-object-background-color">
 						{attributes.bg_color}

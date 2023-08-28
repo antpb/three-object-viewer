@@ -401,7 +401,11 @@ export function NPCObject(model) {
 			// console.log("that obj", outputJSON);
 
 		}
-
+		let defaultColor = "0xffffff";
+		let black = "0x000000";
+		var colorValue = parseInt ( defaultColor.replace("#","0x"), 16 );
+		var blackValue = parseInt ( black.replace("#","0x"), 16 );
+	
 		return (
 			<group
 				position={[model.positionX, model.positionY, model.positionZ]}
@@ -417,7 +421,7 @@ export function NPCObject(model) {
 					maxWidth={1}
 					wrap={0.1}
 					height={0.1}
-					color={0xffffff}
+					color={colorValue}
 					transform
 					name="npcText"
 				>
@@ -425,7 +429,7 @@ export function NPCObject(model) {
 				</Text>
 				<mesh name="npcBackground" position={[0.6,  (Number(headPositionY.current) - 0.5), -0.01]}>
 					<planeGeometry attach="geometry" args={[0.65, 1.5]} />
-					<meshBasicMaterial attach="material" color={0x000000} opacity={0.5}	transparent={ true } />
+					<meshBasicMaterial attach="material" color={blackValue} opacity={0.5}	transparent={ true } />
 				</mesh>
 				<primitive object={vrm.scene} />
 			</group>
@@ -485,6 +489,13 @@ export function NPCObject(model) {
 		// Extract the Output parameter
 		// console.log("that obj", outputJSON);
 	}
+	let defaultColor = "0xffffff";
+	let blackHex = "0x000000";
+	var colorValue = parseInt ( defaultColor.replace("#","0x"), 16 );
+	var blackValue = parseInt ( blackHex.replace("#","0x"), 16 );
+
+	const color = new THREE.Color( colorValue );
+	const black = new THREE.Color( blackValue );
 
 	return (
 		<>
@@ -502,7 +513,7 @@ export function NPCObject(model) {
 					maxWidth={1}
 					wrap={0.1}
 					height={0.1}
-					color={0xffffff}
+					color={color}
 					transform
 				>
 					{outputJSON && String(outputJSON)}
@@ -510,7 +521,7 @@ export function NPCObject(model) {
 				</Text>
 				<mesh position={[0.6, 0.9, -0.01]}>
 					<planeGeometry attach="geometry" args={[0.65, 1.5]} />
-					<meshBasicMaterial attach="material" color={0x000000} opacity={0.5}	transparent={ true } />
+					<meshBasicMaterial attach="material" color={black} opacity={0.5}	transparent={ true } />
 				</mesh>
 				<primitive object={gltf.scene} />
 			</group>

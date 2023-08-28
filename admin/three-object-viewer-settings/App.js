@@ -1,4 +1,6 @@
 import { Suspense, useState, useEffect } from "@wordpress/element";
+// import i18n from "@wordpress/i18n";
+import { __ } from "@wordpress/i18n";
   
 //Main component for admin page app
 export default function App({ getSettings, updateSettings }) {
@@ -45,9 +47,9 @@ export default function App({ getSettings, updateSettings }) {
 	
 		// Create a new media frame
 		frame = wp.media({
-			title: 'Select or Upload Media',
+			title: __( 'Select or Upload Media', 'three-object-viewer' ),
 			button: {
-				text: 'Use this media',
+				text: __( 'Use this media', 'three-object-viewer' ),
 			},
 			multiple: false,
 		})
@@ -75,9 +77,9 @@ export default function App({ getSettings, updateSettings }) {
 	
 		// Create a new media frame
 		frame = wp.media({
-			title: 'Select or Upload Media',
+			title: __( 'Select or Upload Media', 'three-object-viewer' ),
 			button: {
-				text: 'Use this media',
+				text: __( 'Use this media', 'three-object-viewer' ),
 			},
 			multiple: false,
 		})
@@ -113,34 +115,34 @@ export default function App({ getSettings, updateSettings }) {
 			<tbody>
 				<tr>
 					<td>
-						<div><h2>3OV Settings</h2></div>
-						<div><p>Here you can manage the settings for 3OV to tweak global configuration options and save your API keys for connected serivces.</p></div>
+						<div><h2>{ __( '3OV Settings', 'three-object-viewer') }</h2></div>
+						<div><p>{ __( 'Here you can manage the settings for 3OV to tweak global configuration options and save your API keys for connected serivces.', 'three-object-viewer' ) }</p></div>
 					</td>
 				</tr>
 				<tr>
-					<td><h3>Avatar Settings</h3></td>
+					<td><h3>{ __( 'Avatar Settings', 'three-object-viewer' ) }</h3></td>
 				</tr>
 				<tr>
 					<td>
-						<label htmlFor="defaultVRM"><b>Default animation</b></label>
+						<label htmlFor="defaultVRM"><b>{ __( 'Default animation', 'three-object-viewer' ) }</b></label>
 					</td>
 				</tr>
 				<tr>
 					<td>
-						{ settings.defaultVRM ? settings.defaultVRM : "No custom default animation set"}
+						{ settings.defaultVRM ? settings.defaultVRM : __( "No custom default animation set", 'three-object-viewer' ) }
 					</td>
 				</tr>
 				<tr>
 					<td>
 						<button type='button' onClick={runUploaderAnimation}>
-							Set Default Animation
+						{ __( 'Set Default Animation', 'three-object-viewer' ) }
 						</button>
 					</td>
 				</tr>
 				<tr>
 					<td>
 						<button type='button' onClick={clearDefaultAnimation}>
-							Clear Default Animation
+							{ __( 'Clear Default Animation', 'three-object-viewer' ) }
 						</button>
 					</td>
 				</tr>
@@ -152,32 +154,32 @@ export default function App({ getSettings, updateSettings }) {
 				</tr>
 				<tr>
 					<td>
-						{ settings.defaultAvatar ? settings.defaultAvatar : "No custom default avatar set"}
+						{ settings.defaultAvatar ? settings.defaultAvatar : __( "No custom default avatar set", 'three-object-viewer' ) }
 					</td>
 				</tr>
 				<tr>
 					<td>
 						<button type='button' onClick={runUploaderDefaultAvatar}>
-							Set Default Avatar
+							{ __( 'Set Default Avatar', 'three-object-viewer' ) }
 						</button>
 					</td>
 				</tr>
 				<tr>
 					<td>
 						<button type='button' onClick={clearDefaultAvatar}>
-							Clear Default Avatar
+							{ __( 'Clear Default Avatar', 'three-object-viewer' ) }
 						</button>
 					</td>
 				</tr>
 				<tr>
-					<td><h3>AI Settings</h3></td>
+					<td><h3>{__('AI Settings', 'three-object-viewer' ) }</h3></td>
 				</tr>
 				<tr>
-					<td>NPC Settings</td>
+					<td>{ __( 'NPC Settings', 'three-object-viewer' ) }</td>
 				</tr>
 				<tr>
 					<td>
-						<label htmlFor="enabled">Enable</label>
+						<label htmlFor="enabled">{ __( 'Enable', 'three-object-viewer' ) }</label>
 						<input
 							id="enabled"
 							type="checkbox"
@@ -192,7 +194,7 @@ export default function App({ getSettings, updateSettings }) {
 				</tr>
 				<tr>
 					<td>
-						<label htmlFor="networkWorker">AI Endpoint URL</label>
+						<label htmlFor="networkWorker">{ __( 'AI Endpoint URL', 'three-object-viewer' ) }</label>
 						<input
 							id="networkWorker"
 							type="input"
@@ -208,7 +210,7 @@ export default function App({ getSettings, updateSettings }) {
 				</tr>
 				<tr>
 					<td>
-						<label htmlFor="openApiKey">OpenAI API Token</label>
+						<label htmlFor="openApiKey">{ __( 'OpenAI API Token', 'three-object-viewer' ) }</label>
 						{isOpenApiKeyVisible ? (
 							<input
 							id="openApiKey"
@@ -240,7 +242,7 @@ export default function App({ getSettings, updateSettings }) {
 				{/* Select element with three options for AI type public, or logged in */}
 				<tr>
 					<td>
-						<label htmlFor="aiType">AI Access Level</label>
+						<label htmlFor="aiType">{ __( 'AI Access Level', 'three-object-viewer' ) }</label>
 						<select
 							id="aiType"
 							name="aiType"
@@ -249,15 +251,15 @@ export default function App({ getSettings, updateSettings }) {
 								setSettings({ ...settings, allowPublicAI: event.target.value });
 							}}
 						>
-							<option value="public">Public</option>
-							<option value="loggedIn">Logged In</option>
+							<option value="public">{ __( 'Public', 'three-object-viewer' ) }</option>
+							<option value="loggedIn">{ __( 'Logged In', 'three-object-viewer' ) }</option>
 						</select>
 					</td>
 				</tr>
 				<tr>
 					<td>
 						<input id="save" className="button button-small button-primary" type="submit" name="enabled" onClick={onSave} />
-						{saveIndicator && <span style={{color: "green", paddingLeft: "10px"}} className="save-indicator">Saving...</span>}
+						{saveIndicator && <span style={{color: "green", paddingLeft: "10px"}} className="save-indicator">{__('Saving...', 'three-object-viewer' ) }</span>}
 					</td>
 				</tr>
 			</tbody>

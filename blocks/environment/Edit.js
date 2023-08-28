@@ -38,6 +38,9 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 			setAttributes({ threeObjectUrl: (threeObjectPlugin + defaultEnvironment) });
 		}
 	}, []);
+	const removeHDR = (imageObject) => {
+		setAttributes({ hdr: null });
+	};
 
 	const onChangeAnimations = (animations) => {
 		setAttributes({ animations });
@@ -53,6 +56,11 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 	const onPreviewImageSelect = (imageObject) => {
 		setAttributes({ threePreviewImage: null });
 		setAttributes({ threePreviewImage: imageObject.url });
+	};
+
+	const onHDRImageSelect = (imageObject) => {
+		setAttributes({ hdr: null });
+		setAttributes({ hdr: imageObject.url });
 	};
 
 	const onChangePositionY = (posy) => {
@@ -78,6 +86,10 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 	const ALLOWED_MEDIA_TYPES = [
 		"model/gltf-binary",
 		"application/octet-stream"
+	];
+
+	const HDR = [
+		"image/vnd.radiance"
 	];
 
 	const TEMPLATE = [            
@@ -108,19 +120,17 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 		<div {...useBlockProps()}>
 			<InspectorControls key="setting">
 				<Panel
-					className="three-object-environment-edit-container"
-					header="Settings"
+					className="three-object-environment-edit-container three-object-viewer-edit-panel"
+					header={ __( "Environment Settings", "three-object-viewer" ) }
 				>
 					<PanelBody
-						title="Environment Object (Changing this value changes your scenes ground planes)"
+						title={ __( 'Environment Object (Changing this value changes your scene ground planes)', 'three-object-viewer' ) }
 						icon={more}
 						initialOpen={true}
 					>
 						<PanelRow>
 							<span>
-								Select a glb file from your media library. This
-								will be treated as a collidable mesh that
-								visitors can walk on:
+							{__( "Select a glb file from your media library. This will be treated as a collidable mesh that visitors can walk on:", "three-object-viewer" )}
 							</span>
 						</PanelRow>
 						<PanelRow>
@@ -135,15 +145,15 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 								render={({ open }) => (
 									<button onClick={open}>
 										{attributes.threeObjectUrl
-											? "Replace Environment"
-											: "Select Environment"}
+											? __( "Replace Environment", "three-object-viewer" )
+											: __( "Select Environment", "three-object-viewer" ) }
 									</button>
 								)}
 							/>
 						</PanelRow>
 						<PanelRow>
 							<span>
-								Select an image to be used as the preview image:
+								{__( "Select an image to be used as the preview image:", "three-object-viewer" )}
 							</span>
 						</PanelRow>
 						<PanelRow>
@@ -173,20 +183,50 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 								render={({ open }) => (
 									<button onClick={open}>
 										{attributes.threePreviewImage
-											? "Replace Image"
-											: "Select Image"}
+											? __( "Replace Image", "three-object-viewer" )
+											: __( "Select Image", "three-object-viewer" ) }
 									</button>
+								)}
+							/>
+						</PanelRow>
+						<PanelRow>
+							{attributes.hdr && (<span>
+								{ attributes.hdr }
+							</span>)}
+						</PanelRow>
+						<PanelRow>
+							<MediaUpload
+								onSelect={(imageObject) =>
+									onHDRImageSelect(imageObject)
+								}
+								type="image"
+								label="HDR Image"
+								allowedTypes={ HDR }
+								value={attributes.hdr}
+								render={({ open }) => (
+									<>
+										<button onClick={open}>
+											{attributes.hrd
+												? __( "Replace HDR", "three-object-viewer" )
+												: __( "Select HDR", "three-object-viewer" ) }
+										</button>
+										{attributes.hdr && (
+											<button onClick={removeHDR}>		
+													{ __( 'Remove HDR', 'three-object-viewer' ) }
+											</button>
+										)}
+									</>											
 								)}
 							/>
 						</PanelRow>
 					</PanelBody>
 					<PanelBody
-						title="Scene Settings"
+						title={__( "Scene Settings", "three-object-viewer" )}
 						icon={more}
 						initialOpen={true}
 					>
 						<PanelRow>
-							<span>Object Display Type:</span>
+							<span>{ __( "Object Display Type:", "three-object-viewer" ) }</span>
 						</PanelRow>
 						<PanelRow>
 							<SelectControl
@@ -198,24 +238,24 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 						</PanelRow>
 						<PanelRow>
 							<TextControl
-								label="Loop Animations"
-								help="Separate each animation name you wish to loop with a comma"
+								label={ __( "Loop Animations", "three-object-viewer" ) }
+								help={ __( "Separate each animation name you wish to loop with a comma", "three-object-viewer" ) }
 								value={attributes.animations}
 								onChange={(value) => onChangeAnimations(value)}
 							/>
 						</PanelRow>
-						<PanelRow>
+						<PanelRow className="wide-slider">
 							<RangeControl
-								label="scale"
+								label={ __( "Scale", "three-object-viewer" ) }
 								value={attributes.scale}
 								min={0}
 								max={200}
 								onChange={onChangeScale}
 							/>
 						</PanelRow>
-						<PanelRow>
+						<PanelRow className="wide-slider">
 							<RangeControl
-								label="positionY"
+								label={ __( "Position Y", "three-object-viewer" ) }
 								value={attributes.positionY}
 								min={-100}
 								max={100}
@@ -223,9 +263,9 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 								onChange={onChangePositionY}
 							/>
 						</PanelRow>
-						<PanelRow>
+						<PanelRow className="wide-slider">
 							<RangeControl
-								label="rotationY"
+								label={ __( "Rotation Y", "three-object-viewer" ) }
 								value={attributes.rotationY}
 								min={-10}
 								max={10}
@@ -259,6 +299,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 					{mainModel && (
 						<ThreeObjectEdit
 							url={mainModel}
+							hdr={attributes.hdr}
 							deviceTarget={attributes.deviceTarget}
 							backgroundColor={attributes.bg_color}
 							zoom={attributes.zoom}

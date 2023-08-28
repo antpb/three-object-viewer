@@ -110,24 +110,24 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 	return (
 		<div {...useBlockProps()}>
 			<InspectorControls key="setting">
-				<Panel header="Settings">
+				<Panel header={ __( "Settings", 'three-object-viewer') }>
 					<PanelBody
-						title="NPC Options"
+						title={ __( "NPC Options", 'three-object-viewer') }
 						icon={more}
 						initialOpen={true}
 					>
 						<PanelRow>
 							<TextControl
-								label="Name"
-								help="Give your avatar a name."
+								label={ __( "Name", 'three-object-viewer') }
+								help={__( "Give your avatar a name.", 'three-object-viewer')}
 								value={attributes.name}
 								onChange={(value) => onChangeName(value)}
 							/>
 						</PanelRow>
 						<PanelRow>
 							<TextareaControl
-								label="Personality"
-								help="Give your avatar a personality in 600 characters."
+								label={__( "Personality", 'three-object-viewer')}
+								help={__( "Give your avatar a personality in 600 characters.", 'three-object-viewer')}
 								value={attributes.personality}
 								onChange={(value) => onChangePersonality(value)}
 								maxLength={600}
@@ -135,8 +135,8 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 						</PanelRow>
 						<PanelRow>
 							<TextareaControl
-								label="Default Message"
-								help="Give your avatar a default message to initialize with."
+								label={__( "Default Message", 'three-object-viewer')}
+								help={ __( "Give your avatar a default message to initialize with.", 'three-object-viewer')}
 								value={attributes.defaultMessage}
 								onChange={(value) => onChangeDefaultMessage(value)}
 								maxLength={600}
@@ -144,7 +144,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 						</PanelRow>
 						<PanelRow>
 							<span>
-								Select a VRM file to be used as your NPC in world:
+								{ __( 'Select a VRM file to be used as your NPC in world:', 'three-object-viewer' ) }
 							</span>
 						</PanelRow>
 						<PanelRow>
@@ -167,14 +167,14 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 						</PanelRow>
 					</PanelBody>
 					<PanelBody
-						title="Advanced Settings"
+						title={__( "Advanced Settings", 'three-object-viewer')}
 						icon={more}
 						initialOpen={true}
 					>
 						<PanelRow>
 							<ToggleControl
-								label="Include World Objects in Prompt"
-								help={"If enabled, will result in higher token costs with your AI service provider. Use with caution."}
+								label={ __( "Include World Objects in Prompt", 'three-object-viewer') }
+								help={ __( "If enabled, will result in higher token costs with your AI service provider. Use with caution.", 'three-object-viewer')}
 								checked={attributes.objectAwareness}
 								onChange={(e) => {
 									onChangeObjectAwareness(e);
@@ -257,7 +257,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 										</g>
 									</svg>
 									<p>
-										<b>NPC block</b>
+										<b>{ __( 'NPC block', 'three-object-viewer' ) }</b>
 									</p>
 								</div>
 								{/* <p className="three-object-viewer-model-name">
@@ -290,8 +290,8 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 											onClick={open}
 										>
 											{attributes.threeObjectUrl
-												? "Replace NPC"
-												: "Select NPC"}
+												? __( "Replace NPC", "three-object-viewer" )
+												: __( "Select NPC", 'three-object-viewer' ) }
 										</button>
 									)}
 								/>
@@ -315,7 +315,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 										</g>
 									</svg>
 									<p>
-										<b>NPC block</b>
+										<b>{ __( 'NPC block', 'three-object-viewer' ) }</b>
 									</p>
 								</div>
 								{/* <p className="three-object-viewer-model-name">
@@ -348,8 +348,8 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 											onClick={open}
 										>
 											{attributes.threeObjectUrl
-												? "Replace NPC"
-												: "Select NPC"}
+												? __( "Replace NPC", "three-object-viewer" )
+												: __( "Select NPC", 'three-object-viewer' )}
 										</button>
 									)}
 								/>

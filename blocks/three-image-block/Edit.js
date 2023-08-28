@@ -110,15 +110,15 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 	return (
 		<div {...useBlockProps()}>
 			<InspectorControls key="setting">
-				<Panel header="Settings">
+				<Panel header={ __( "Settings", 'three-object-block' ) }>
 					<PanelBody
-						title="Image Object"
+						title={__( "Image Object", "three-object-viewer" )}
 						icon={more}
 						initialOpen={true}
 					>
 						<PanelRow>
 							<span>
-								Select an image to render in your environment:
+								{__( 'Select an image to render in your environment:', 'three-object-viewer' )}
 							</span>
 						</PanelRow>
 						<PanelRow>
@@ -127,14 +127,14 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									onImageSelect(imageObject)
 								}
 								type="image"
-								label="Image File"
+								label={__( "Image File", "three-object-viewer" )}
 								allowedTypes={ALLOWED_MEDIA_TYPES}
 								value={attributes.imageUrl}
 								render={({ open }) => (
 									<button onClick={open}>
 										{attributes.imageUrl
-											? "Replace Image"
-											: "Select Image"}
+											? __( "Replace Image", "three-object-viewer" )
+											: __( "Select Image", "three-object-viewer" )}
 									</button>
 								)}
 							/>
@@ -143,8 +143,8 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									label="Transparent"
 									help={
 										attributes.transparent
-											? "Item is transparent."
-											: "Item is not transparent."
+											? __( "Item is transparent.", "three-object-viewer" )
+											: __( "Item is not transparent.", "three-object-viewer" )
 									}
 									checked={attributes.transparent}
 									onChange={(e) => {
@@ -251,7 +251,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									</g>
 								</svg>
 								<p>
-									<b>Image block</b>
+									<b>{ __( 'Image block', 'three-object-viewer' ) }</b>
 								</p>
 								{/* <p>URL: {attributes.threeObjectUrl}</p> */}
 							</div>
@@ -307,7 +307,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									</g>
 								</svg>
 								<p>
-									<b>Image block</b>
+									<b>{ __( 'Image block', 'three-object-viewer' ) }</b>
 								</p>
 								{/* <p>URL: {attributes.threeObjectUrl}</p> */}
 							</div>
@@ -337,7 +337,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 											className="three-object-viewer-button"
 											onClick={open}
 										>
-											Select Image
+											{ __( 'Select Image', 'three-object-viewer' ) }
 										</button>
 									)}
 								/>

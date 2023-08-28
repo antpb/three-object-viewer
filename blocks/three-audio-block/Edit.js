@@ -127,23 +127,23 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 	return (
 		<div {...useBlockProps()}>
 			<InspectorControls key="setting">
-				<Panel header="Settings">
+				<Panel header={ __( "Settings", 'three-object-viewer' ) }>
 					<PanelBody
-						title="Audio Object"
+						title={ __( "Audio Object", 'three-object-viewer' ) }
 						icon={more}
 						initialOpen={true}
 					>
 						<PanelRow>
 							<TextControl
-								label="Name"
-								help="Give your audio a name."
+								label={ __( "Name", 'three-object-viewer' ) }
+								help={ __( "Give your audio a name.", 'three-object-viewer' ) }
 								value={attributes.name}
 								onChange={(value) => onChangeName(value)}
 							/>
 						</PanelRow>
 						<PanelRow>
 							<span>
-								Select an audio file to add to your scene.
+								{ __( 'Select an audio file to add to your scene.', 'three-object-viewer' ) }
 							</span>
 						</PanelRow>
 						{ attributes.audioUrl && (<span> { attributes.audioUrl } </span>)}
@@ -155,14 +155,14 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									onImageSelect(imageObject)
 								}
 								type="audio"
-								label="Audio File"
+								label={ __( "Audio File", 'three-object-viewer' ) }
 								allowedTypes={ALLOWED_MEDIA_TYPES}
 								value={attributes.audioUrl}
 								render={({ open }) => (
 									<button onClick={open}>
 										{attributes.audioUrl
-											? "Replace Audio"
-											: "Select Audio"}
+											? __( "Replace Audio", 'three-object-viewer' )
+											: __( "Select Audio", 'three-object-viewer' )}
 									</button>
 								)}
 							/>
@@ -225,11 +225,11 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 						</PanelRow>
 						<PanelRow>
 							<ToggleControl
-								label="AutoPlay"
+								label={__( "AutoPlay", 'three-object-viewer' )}
 								help={
 									attributes.autoPlay
-										? "Item will autoplay."
-										: "Item will not autoplay."
+										? __( "Item will autoplay.", 'three-object-viewer' )
+										: __( "Item will not autoplay.", 'three-object-viewer' )
 								}
 								checked={attributes.autoPlay}
 								onChange={(e) => {
@@ -242,8 +242,8 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 								label="Loop"
 								help={
 									attributes.loop
-										? "Item will loop."
-										: "Item will not loop."
+										? __( "Item will loop.", 'three-object-viewer' )
+										: __( "Item will not loop.", 'three-object-viewer' )
 								}
 								checked={attributes.loop}
 								onChange={(e) => {
@@ -256,8 +256,8 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 								label="Positional"
 								help={
 									attributes.positional
-										? "Item will be spatial audio."
-										: "Item will be global audio."
+										? __( "Item will be spatial audio.", 'three-object-viewer' )
+										: __( "Item will be global audio.", 'three-object-viewer' )
 								}
 								checked={attributes.positional}
 								onChange={(e) => {
@@ -268,8 +268,8 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 						<PanelRow>
 							<RangeControl
 								className="position-inputs"
-								label="Volume"
-								help="Unitless multiplier against original source volume for determining emitter loudness."
+								label={ __( "Volume", 'three-object-viewer' ) }
+								help={ __( "Unitless multiplier against original source volume for determining emitter loudness.", 'three-object-viewer' ) }
 								max={1}
 								min={0}
 								step={0.01}
@@ -281,15 +281,15 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 					</PanelBody>
 					{attributes.positional && (
 						<PanelBody
-							title="Positional Volume Settings"
+							title={ __( "Positional Volume Settings", 'three-object-viewer' ) }
 							icon={more}
 							initialOpen={false}
 						>
 							<PanelRow>
 								<RangeControl
 									className="position-inputs"
-									label="Cone Inner angle"
-									help="The angle, in radians, of a cone outside of which the volume will be reduced to a constant value ofconeOuterGain."
+									label={ __( "Cone Inner angle", 'three-object-viewer' ) }
+									help={ __( "The angle, in radians, of a cone outside of which the volume will be reduced to a constant value ofconeOuterGain.", 'three-object-viewer' ) }
 									max={360}
 									min={0}
 									step={0.01}
@@ -303,8 +303,8 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 							<PanelRow>
 								<RangeControl
 									className="position-inputs"
-									label="Cone Outer Angle"
-									help="The angle, in radians, of a cone outside of which the volume will be reduced to a constant value ofconeOuterGain."
+									label={__( "Cone Outer Angle", 'three-object-viewer' )}
+									help={ __( "The angle, in radians, of a cone outside of which the volume will be reduced to a constant value ofconeOuterGain.", 'three-object-viewer' ) }
 									max={360}
 									min={0}
 									step={0.01}
@@ -317,8 +317,8 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 							<PanelRow>
 								<RangeControl
 									className="position-inputs"
-									label="Cone Outer Gain"
-									help="The gain of the audio emitter set when outside the cone defined by the coneOuterAngle property."
+									label={ __( "Cone Outer Gain", 'three-object-viewer' ) }
+									help={ __( "The gain of the audio emitter set when outside the cone defined by the coneOuterAngle property.", 'three-object-viewer' ) }
 									max={1}
 									min={0}
 									step={0.01}
@@ -331,13 +331,13 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 							<PanelRow>
 								<SelectControl
 									value={attributes.distanceModel}
-									label="Distance Model"
-									help="Specifies the distance model for the audio emitter."
+									label={ __( "Distance Model", 'three-object-viewer' ) }
+									help={ __( "Specifies the distance model for the audio emitter.", 'three-object-viewer' ) }
 									options={[
-										{ label: "Inverse", value: "inverse" },
-										{ label: "Linear", value: "linear" },
+										{ label: __( "Inverse", 'three-object-viewer'), value: "inverse" },
+										{ label: __( "Linear", 'three-object-viewer'), value: "linear" },
 										{
-											label: "Exponential",
+											label: __( "Exponential", 'three-object-viewer'),
 											value: "exponential"
 										}
 									]}
@@ -349,8 +349,8 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 							<PanelRow>
 								<RangeControl
 									className="position-inputs"
-									label="Max Distance"
-									help="The maximum distance between the emitter and listener, after which the volume will not be reduced any further. maximumDistance may only be applied when the distanceModel is set to linear. Otherwise, it should be ignored."
+									label={__( "Max Distance", 'three-object-viewer' )}
+									help={__( "The maximum distance between the emitter and listener, after which the volume will not be reduced any further. maximumDistance may only be applied when the distanceModel is set to linear. Otherwise, it should be ignored.", 'three-object-viewer' )}
 									max={10000}
 									min={0}
 									step={0.01}
@@ -363,8 +363,8 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 							<PanelRow>
 								<RangeControl
 									className="position-inputs"
-									label="Ref Distance"
-									help="A reference distance for reducing volume as the emitter moves further from the listener. For distances less than this, the volume is not reduced."
+									label={ __( "Ref Distance", 'three-object-viewer' )}
+									help={ __( "A reference distance for reducing volume as the emitter moves further from the listener. For distances less than this, the volume is not reduced.", 'three-object-viewer' ) }
 									max={500}
 									min={0}
 									step={0.01}
@@ -377,8 +377,8 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 							<PanelRow>
 								<RangeControl
 									className="position-inputs"
-									label="Rolloff Factor"
-									help="Describes how quickly the volume is reduced as the emitter moves away from listener. When distanceModel is set to linear, the maximum value is 1 otherwise there is no upper limit."
+									label={ __( "Rolloff Factor", 'three-object-viewer' )}
+									help={ __( "Describes how quickly the volume is reduced as the emitter moves away from listener. When distanceModel is set to linear, the maximum value is 1 otherwise there is no upper limit.", 'three-object-viewer' ) }
 									max={500}
 									min={0}
 									step={0.01}
@@ -408,7 +408,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 								</g>
 							</svg>
 							<p>
-								<b>Audio block</b>
+								<b>{ __( "Audio block", "three-object-viewer" ) }</b>
 							</p>
 							{/* <p>URL: {attributes.threeObjectUrl}</p> */}
 						</div>
@@ -439,8 +439,8 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 											onClick={open}
 										>
 											{attributes.audioUrl
-												? "Replace Audio"
-												: "Select Audio"}
+												? __( "Replace Audio", 'three-object-viewer' )
+												: __( "Select Audio", 'three-object-viewer' )}
 										</button>
 									)}
 								/>
@@ -464,7 +464,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 								</g>
 							</svg>
 							<p>
-								<b>Audio block</b>
+								<b>{ __( "Audio block", "three-object-viewer" ) }</b>
 							</p>
 							{/* <p>URL: {attributes.threeObjectUrl}</p> */}
 						</div>
@@ -494,7 +494,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 											className="three-object-viewer-button"
 											onClick={open}
 										>
-											Select Audio
+											{ __( 'Select Audio', 'three-object-viewer' ) }
 										</button>
 									)}
 								/>

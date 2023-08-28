@@ -1,22 +1,29 @@
 <?php
 //Register assets for 3OV Settings
 add_action('admin_enqueue_scripts', function () {
+    
     wp_enqueue_media();
     $handle = 'three-object-viewer-settings';
     if( file_exists(dirname(__FILE__, 3). "/build/admin-page-$handle.asset.php" ) ){
         $assets = include dirname(__FILE__, 3). "/build/admin-page-$handle.asset.php";
         $dependencies = $assets['dependencies'];
+
         wp_register_script(
             $handle,
             plugins_url("/build/admin-page-$handle.js", dirname(__FILE__, 2)),
             $dependencies,
             $assets['version']
         );
+
         $three_object_plugin = plugins_url() . '/three-object-viewer/build/';
         $three_object_plugin_root = plugins_url() . '/three-object-viewer/';
         wp_localize_script( $handle, 'threeObjectPlugin', $three_object_plugin );
         wp_localize_script( $handle, 'threeObjectPluginRoot', $three_object_plugin_root );
-    
+        if ( function_exists( 'wp_set_script_translations' ) ) {
+			$path = plugin_dir_path( __FILE__ ) . 'languages';
+			$language_directory = plugin_dir_path( dirname(__DIR__) ) . 'languages/';
+			wp_set_script_translations( 'three-object-viewer-settings', 'three-object-viewer', $language_directory );
+		}    
     }
 });
 

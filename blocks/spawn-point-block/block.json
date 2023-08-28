@@ -1,7 +1,5 @@
 {
     "name": "three-object-viewer/spawn-point-block",
-    "title": "Spawn Point",
-    "description": "A spawn point for your users",
     "attributes": {
         "positionX": {
             "type": "int",
@@ -35,6 +33,7 @@
         "html": false,
         "multiple": false
     },
+    "textdomain": "three-object-viewer",
     "editorScript": "file:../../build/block-spawn-point-block.js",
 	"editorStyle": "file:../../build/block-spawn-point-block.css",
 	"style": "file:../../build/block-spawn-point-block.css"

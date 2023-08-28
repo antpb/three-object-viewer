@@ -1,0 +1,159 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Three Object Viewer 1.5.2\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/three-object-viewer\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2023-08-19T05:20:49+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Language: \n"
+"X-Generator: WP-CLI 2.8.1\n"
+"X-Domain: three-object-viewer\n"
+
+#. Plugin Name of the plugin
+msgid "Three Object Viewer"
+msgstr ""
+
+#. Plugin URI of the plugin
+msgid "https://3ov.xyz/"
+msgstr ""
+
+#. Description of the plugin
+msgid "A plugin for viewing 3D files with support for WebXR and Open Metaverse Interoperability GLTF Extensions."
+msgstr ""
+
+#. Author of the plugin
+msgid "antpb"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://antpb.com"
+msgstr ""
+
+#: admin/three-object-viewer-settings/init.php:75
+#: admin/three-object-viewer-settings/init.php:76
+msgid "3OV Settings"
+msgstr ""
+
+#: blocks/environment/block.json
+msgctxt "block title"
+msgid "3D Environment"
+msgstr ""
+
+#: blocks/environment/block.json
+msgctxt "block description"
+msgid "A 3D environment component"
+msgstr ""
+
+#: blocks/model-block/block.json
+msgctxt "block title"
+msgid "3D Model"
+msgstr ""
+
+#: blocks/model-block/block.json
+msgctxt "block description"
+msgid "A 3D model for your environment"
+msgstr ""
+
+#: blocks/npc-block/block.json
+msgctxt "block title"
+msgid "NPC Block"
+msgstr ""
+
+#: blocks/npc-block/block.json
+msgctxt "block description"
+msgid "A NPC to live in your environment"
+msgstr ""
+
+#: blocks/sky-block/block.json
+msgctxt "block title"
+msgid "3D Sky Block"
+msgstr ""
+
+#: blocks/sky-block/block.json
+msgctxt "block description"
+msgid "A sky your environment"
+msgstr ""
+
+#: blocks/spawn-point-block/block.json
+msgctxt "block title"
+msgid "Spawn Point"
+msgstr ""
+
+#: blocks/spawn-point-block/block.json
+msgctxt "block description"
+msgid "A spawn point for your users"
+msgstr ""
+
+#: blocks/three-audio-block/block.json
+msgctxt "block title"
+msgid "3D Audio"
+msgstr ""
+
+#: blocks/three-audio-block/block.json
+msgctxt "block description"
+msgid "An audio block for your environment"
+msgstr ""
+
+#: blocks/three-image-block/block.json
+msgctxt "block title"
+msgid "3D Image"
+msgstr ""
+
+#: blocks/three-image-block/block.json
+msgctxt "block description"
+msgid "An image block for your environment"
+msgstr ""
+
+#: blocks/three-light-block/block.json
+msgctxt "block title"
+msgid "3D Light"
+msgstr ""
+
+#: blocks/three-light-block/block.json
+msgctxt "block description"
+msgid "A light block for your environment"
+msgstr ""
+
+#: blocks/three-object-block/block.json
+msgctxt "block title"
+msgid "Three Object Block"
+msgstr ""
+
+#: blocks/three-object-block/block.json
+msgctxt "block description"
+msgid "A 3D object viewer focused on glTF"
+msgstr ""
+
+#: blocks/three-portal-block/block.json
+msgctxt "block title"
+msgid "3D Portal"
+msgstr ""
+
+#: blocks/three-portal-block/block.json
+msgctxt "block description"
+msgid "A 3D portal"
+msgstr ""
+
+#: blocks/three-text-block/block.json
+msgctxt "block title"
+msgid "Three Text Block"
+msgstr ""
+
+#: blocks/three-text-block/block.json
+msgctxt "block description"
+msgid "A 3D Text Block"
+msgstr ""
+
+#: blocks/three-video-block/block.json
+msgctxt "block title"
+msgid "3D Video"
+msgstr ""
+
+#: blocks/three-video-block/block.json
+msgctxt "block description"
+msgid "A video block for your environment"
+msgstr ""

@@ -139,16 +139,15 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 	return (
 		<div {...useBlockProps()}>
 			<InspectorControls key="setting">
-				<Panel header="Settings">
+				<Panel header={ __( 'Settings', 'three-object-viewer' ) }>
 					<PanelBody
-						title="GLB Object"
+						title={ __( "GLB Object", 'three-object-viewer' ) }
 						icon={more}
 						initialOpen={true}
 					>
 						<PanelRow>
 							<span>
-								select a glb file from your media library to
-								render an object in the canvas:
+								{ __( 'Select a glb file from your media library to render an object in the canvas:', 'three-object-viewer' ) }
 							</span>
 						</PanelRow>
 						<PanelRow>
@@ -157,31 +156,31 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									onImageSelect(imageObject)
 								}
 								type="image"
-								label="GLB File"
+								label={ __( "GLB File", 'three-object-block' ) }
 								allowedTypes={ALLOWED_MEDIA_TYPES}
 								value={attributes.threeObjectUrl}
 								render={({ open }) => (
 									<button onClick={open}>
 										{attributes.threeObjectUrl
-											? "Replace Object"
-											: "Select Object"}
+											? __( "Replace Object", 'three-object-viewer' )
+											: __( "Select Object", 'three-object-viewer' ) }
 									</button>
 								)}
 							/>
 						</PanelRow>
 					</PanelBody>
 					<PanelBody
-						title="Model Attributes"
+						title={ __( "Model Attributes", 'three-object-viewer' ) }
 						icon={more}
 						initialOpen={true}
 					>
 						<PanelRow>
 							<ToggleControl
-								label="Collidable"
+								label={ __( "Collidable", 'three-object-viewer' ) }
 								help={
 									attributes.collidable
-										? "Item is currently collidable."
-										: "Item is not collidable. Users will walk through it."
+										? __( "Item is currently collidable.", 'three-object-viewer' )
+										: __( "Item is not collidable. Users will walk through it.", 'three-object-viewer' )
 								}
 								checked={attributes.collidable}
 								onChange={(e) => {
@@ -191,16 +190,16 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 						</PanelRow>
 						<PanelRow>
 							<TextControl
-								label="Loop Animations"
-								help="Separate each animation name you wish to loop with a comma"
+								label={ __( "Loop Animations", 'three-object-viewer' ) }
+								help={ __( "Separate each animation name you wish to loop with a comma", 'three-object-viewer' ) }
 								value={attributes.animations}
 								onChange={(value) => onChangeAnimations(value)}
 							/>
 						</PanelRow>
 						<PanelRow>
 							<TextControl
-								label="Destination URL"
-								help="Define a url."
+								label={ __( "Destination URL", 'three-object-viewer' ) }
+								help={ __( "Define a url.", 'three-object-viewer' ) }
 								value={attributes.destinationUrl}
 								onChange={(value) =>
 									onChangeDestinationUrl(value)
@@ -209,8 +208,8 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 						</PanelRow>
 						<PanelRow>
 							<TextControl
-								label="Link Label"
-								help="This text will describe where the link goes. If blank, will use the url as the label."
+								label={ __( "Link Label", 'three-object-viewer' ) }
+								help={ __( "This text will describe where the link goes. If blank, will use the url as the label.", 'three-object-viewer' ) }
 								value={attributes.label}
 								onChange={(value) => onChangeLabel(value)}
 							/>
@@ -218,7 +217,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 						<PanelRow>
 							<ColorPalette
 								value={attributes.labelTextColor}
-								label="Text Color"
+								label={ __( "Text Color", 'three-object-viewer' ) }
 								onChange={onChangeLabelTextcolor}
 							/>
 						</PanelRow>
@@ -230,21 +229,21 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 						<PanelRow>
 							<TextControl
 								className="position-inputs"
-								label="X Offset"
+								label={ __( "X Offset", 'three-object-viewer' ) }
 								// help="position x"
 								value={attributes.labelOffsetX}
 								onChange={(value) => onChangeLabelX(value)}
 							/>
 							<TextControl
 								className="position-inputs"
-								label="Y Offset"
+								label={__( "Y Offset", 'three-object-viewer' )}
 								// help="position y"
 								value={attributes.labelOffsetY}
 								onChange={(value) => onChangeLabelY(value)}
 							/>
 							<TextControl
 								className="position-inputs"
-								label="Z Offset"
+								label={ __( "Z Offset", 'three-object-viewer' ) }
 								// help="position z"
 								value={attributes.labelOffsetZ}
 								onChange={(value) => onChangeLabelZ(value)}
@@ -348,7 +347,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									</g>
 								</svg>
 								<p>
-									<b>Portal block</b>
+									<b>{ __( 'Portal block', 'three-object-viewer' ) }</b>
 								</p>
 								{/* <p>URL: {attributes.threeObjectUrl}</p> */}
 							</div>
@@ -379,8 +378,8 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 											onClick={open}
 										>
 											{attributes.threeObjectUrl
-												? "Replace Object"
-												: "Select Portal"}
+												? __( "Replace Object", "three-object-viewer" )
+												: __( "Select Portal", "three-object-viewer" )}
 										</button>
 									)}
 								/>
@@ -404,7 +403,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									</g>
 								</svg>
 								<p>
-									<b>Portal block</b>
+									<b>{ __( 'Portal block', 'three-object-viewer' ) }</b>
 								</p>
 								{/* <p>URL: {attributes.threeObjectUrl}</p> */}
 							</div>
@@ -434,7 +433,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 											className="three-object-viewer-button"
 											onClick={open}
 										>
-											Select Portal
+											{__( 'Select Portal', 'three-object-viewer' )}
 										</button>
 									)}
 								/>

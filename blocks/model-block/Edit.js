@@ -121,24 +121,23 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 	return (
 		<div {...useBlockProps()}>
 			<InspectorControls key="setting">
-				<Panel header="Settings">
+				<Panel header={ __( "Settings", 'three-object-viewer' ) }>
 					<PanelBody
-						title="GLB Object"
+						title={ __( "GLB Object", 'three-object-viewer' ) }
 						icon={more}
 						initialOpen={true}
 					>
 						<PanelRow>
 							<TextControl
-								label="Name"
-								help="Give your object a name."
+								label={ __( "Name", 'three-object-viewer' ) }
+								help={ __( "Give your object a name.", 'three-object-viewer' ) }
 								value={attributes.name}
 								onChange={(value) => onChangeName(value)}
 							/>
 						</PanelRow>
 						<PanelRow>
 							<span>
-								select a glb file from your media library to
-								render an object in the canvas:
+							{ __( 'select a glb file from your media library to render an object in the canvas:', 'three-object-viewer' ) }
 							</span>
 						</PanelRow>
 						<PanelRow>
@@ -147,31 +146,32 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									onImageSelect(imageObject)
 								}
 								type="image"
-								label="GLB File"
+								label={ __( "GLB File", 'three-object-viewer' ) }
 								allowedTypes={ALLOWED_MEDIA_TYPES}
 								value={attributes.threeObjectUrl}
 								render={({ open }) => (
 									<button onClick={open}>
 										{attributes.threeObjectUrl
-											? "Replace Object"
-											: "Select Object"}
+											? ( __( "Replace Object", 'three-object-viewer' ) )
+											: ( __( "Select Object", 'three-object-viewer' ) )
+										}
 									</button>
 								)}
 							/>
 						</PanelRow>
 					</PanelBody>
 					<PanelBody
-						title="Model Attributes"
+						title={ __( "Model Attributes", 'three-object-viewer' ) }
 						icon={more}
 						initialOpen={true}
 					>
 						<PanelRow>
 							<ToggleControl
-								label="Collidable"
+								label={ __( "Collidable", 'three-object-viewer' ) }
 								help={
 									attributes.collidable
-										? "Item is currently collidable."
-										: "Item is not collidable. Users will walk through it."
+										? __( "Item is currently collidable.", 'three-object-viewer' )
+										: __( "Item is not collidable. Users will walk through it.", 'three-object-viewer' )
 								}
 								checked={attributes.collidable}
 								onChange={(e) => {
@@ -181,16 +181,16 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 						</PanelRow>
 						<PanelRow>
 							<TextControl
-								label="Loop Animations"
-								help="Separate each animation name you wish to loop with a comma"
+								label={ __( "Loop Animations", 'three-object-viewer' ) }
+								help={ __( "Separate each animation name you wish to loop with a comma", 'three-object-viewer' ) }
 								value={attributes.animations}
 								onChange={(value) => onChangeAnimations(value)}
 							/>
 						</PanelRow>
 						<PanelRow>
 							<TextareaControl
-								label="Model Alt Text"
-								help="Describe your model to provide context for screen readers."
+								label={ __( "Model Alt Text", 'three-object-viewer' ) }
+								help={ __( "Describe your model to provide context for screen readers.", 'three-object-viewer' ) }
 								value={attributes.alt}
 								onChange={(value) => onChangeAlt(value)}
 							/>
@@ -299,7 +299,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 										</g>
 									</svg>
 									<p>
-										<b>Model block</b>
+										<b>{ __( 'Model block', 'three-object-viewer' ) }</b>
 									</p>
 								</div>
 								{/* <p className="three-object-viewer-model-name">
@@ -332,8 +332,8 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 											onClick={open}
 										>
 											{attributes.threeObjectUrl
-												? "Replace Model"
-												: "Select Model"}
+												? __( "Replace Model", "three-object-viewer" )
+												: __( "Select Model", 'three-object-viewer' )}
 										</button>
 									)}
 								/>
@@ -357,7 +357,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 										</g>
 									</svg>
 									<p>
-										<b>Model block</b>
+										<b>{ __( 'Model block', 'three-object-viewer' ) }</b>
 									</p>
 								</div>
 								{/* <p className="three-object-viewer-model-name">
@@ -390,8 +390,8 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 											onClick={open}
 										>
 											{attributes.threeObjectUrl
-												? "Replace Model"
-												: "Select Model"}
+												? __( "Replace Model", "three-object-viewer" )
+												: __( "Select Model", 'three-object-viewer' )}
 										</button>
 									)}
 								/>

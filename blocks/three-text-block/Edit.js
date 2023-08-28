@@ -126,16 +126,16 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 	return (
 		<div {...useBlockProps()}>
 			<InspectorControls key="setting">
-				<Panel header="Settings">
+				<Panel header={ __( "Settings", 'three-text-block' ) }>
 					<PanelBody
-						title="Text Attributes"
+						title={__( "Text Attributes", "three-object-viewer" )}
 						icon={more}
 						initialOpen={true}
 					>
 						<PanelRow>
 							<TextareaControl
-								label="Text"
-								help="Write here."
+								label={ __( "Text", "three-object-viewer" ) }
+								help={__( "Write here.", "three-object-viewer" )}
 								value={attributes.textContent}
 								onChange={(value) => onChangeText(value)}
 							/>
@@ -143,7 +143,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 						<PanelRow>
 							<ColorPalette
 								value={attributes.textColor}
-								label="Text Color"
+								label={__( "Text Color", "three-object-viewer" )}
 								onChange={onChangeTextcolor}
 							/>
 						</PanelRow>
@@ -250,7 +250,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									</g>
 								</svg>
 								<p>
-									<b>Text Block</b>
+									<b>{__( 'Text Block', 'three-object-viewer' ) }</b>
 								</p>
 								{/* <p>URL: {attributes.threeObjectUrl}</p> */}
 							</div>
@@ -269,7 +269,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									</g>
 								</svg>
 								<p>
-									<b>Text Block</b>
+									<b>{__( 'Text Block', 'three-object-viewer' ) }</b>
 								</p>
 								{/* <p>URL: {attributes.threeObjectUrl}</p> */}
 							</div>
@@ -292,7 +292,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									</g>
 								</svg>
 								<p>
-									<b>Text Block</b>
+									<b>{__( 'Text Block', 'three-object-viewer' ) }</b>
 								</p>
 								{/* <p>URL: {attributes.threeObjectUrl}</p> */}
 							</div>
@@ -311,7 +311,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									</g>
 								</svg>
 								<p>
-									<b>Text Block</b>
+									<b>{__( 'Text Block', 'three-object-viewer' ) }</b>
 								</p>
 								{/* <p>URL: {attributes.threeObjectUrl}</p> */}
 							</div>
