@@ -14,7 +14,8 @@ import {
 	Text,
 	useAspect,
 	Sky,
-	Environment
+	Environment,
+	useContextBridge
 } from "@react-three/drei";
 import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import { GLTFAudioEmitterExtension } from "three-omi";
@@ -26,7 +27,7 @@ import { Resizable } from "re-resizable";
 import defaultFont from "../../../inc/fonts/roboto.woff";
 import audioIcon from "../../../inc/assets/audio_icon.png";
 import lightIcon from "../../../inc/assets/light_icon.png";
-import { EditorPluginProvider, useEditorPlugins } from './EditorPluginProvider';  // Import the PluginProvider
+import { EditorPluginProvider, useEditorPlugins, EditorPluginContext } from './EditorPluginProvider';  // Import the PluginProvider
 
 const { registerStore } = wp.data;
 
@@ -1393,17 +1394,18 @@ function PortalObject(model) {
 function ThreeObject(props) {
 	const [registeredThreeovBlocks, setRegisteredThreeovBlocks] = useState([]);
 
-	const { plugins } = useEditorPlugins(); // Retrieve the plugins array from the context
-	useEffect(() => {
-		// if plugins is not empty
-		if(plugins.length > 0) {
-			plugins.forEach(plugin => {
-				// add the plugin to the registered blocks
-				setRegisteredThreeovBlocks(registeredThreeovBlocks => [...registeredThreeovBlocks, plugin]);
-			});
-		}
-		console.log(plugins);
+	const { plugins } = useEditorPlugins();  // From your own context
 
+	useEffect(() => {
+		if (plugins.length > 0) {
+			plugins.forEach((plugin) => {
+			  // add the plugin to the registered blocks
+			  setRegisteredThreeovBlocks((registeredThreeovBlocks) => [
+				...registeredThreeovBlocks,
+				plugin,
+			  ]);
+			});
+		  }
 	}, [plugins]);
 	  
 	let skyobject;
@@ -1599,14 +1601,51 @@ function ThreeObject(props) {
 	gltf.scene.rotation.set(0, props.rotationY, 0);
 	gltf.scene.scale.set(props.scale, props.scale, props.scale);
 	// const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene])
+	const TransformController = ({ condition, wrap, children }) =>
+		condition ? wrap(children) : children;
 
 	return (
 		<>
-		{/* @todo figure out why r3f barfs here */}
-			{/* {registeredThreeovBlocks.length > 0 && registeredThreeovBlocks.map((blockElement, index) => {
+			{registeredThreeovBlocks.length > 0 && registeredThreeovBlocks.map((blockElement, index) => {
+				console.log(blockElement);
 				const BlockComponent = blockElement.type;
-				return <BlockComponent key={index} {...blockElement.props} />;
-			})} */}
+				return (
+					<TransformController 
+						condition={props.focusID === blockElement.props.htmlobjectId}
+						wrap={(children) => (
+							<TransformControls
+								mode={props.transformMode}
+								enabled={true}
+								size={0.5}
+								onObjectChange={(e) => {
+									const rot = new THREE.Euler(0, 0, 0, "XYZ");
+									const scale = e?.target.worldScale;
+									rot.setFromQuaternion(
+										e?.target.worldQuaternion
+									);
+									wp.data
+										.dispatch("core/block-editor")
+										.updateBlockAttributes(blockElement.props.htmlobjectId, {
+											positionX: e?.target.worldPosition.x,
+											positionY: e?.target.worldPosition.y,
+											positionZ: e?.target.worldPosition.z,
+											rotationX: rot.x,
+											rotationY: rot.y,
+											rotationZ: rot.z,
+											scaleX: scale.x,
+											scaleY: scale.y,
+											scaleZ: scale.z
+										});
+								}}
+							>
+						  {children}
+						</TransformControls>
+					  )}
+					>
+						<BlockComponent key={index} {...blockElement.props} />
+					</TransformController>
+				  );
+			})}
 			{skyobject && <ThreeSky skyobjectId={skyobjectId} src={skyobject} />}
 			{spawnpoint && (
 				<Spawn
@@ -1972,6 +2011,7 @@ export default function ThreeObjectEdit(props) {
 		gl.setPixelRatio(viewport.dpr);
 		gl.setSize(size.width, size.height);
 	};
+	const ContextBridge = useContextBridge(EditorPluginContext);  // Bridging EditorPluginContext
 
 	return (
 		<>
@@ -1996,43 +2036,43 @@ export default function ThreeObjectEdit(props) {
 						boxSizing: "border-box"
 					}}
 				>
-					{/* <Perf className="stats" /> */}
-					<PerspectiveCamera
-						fov={50}
-						position={[0, 0, 20]}
-						makeDefault
-						zoom={1}
-					/>
-					{props.url && (
-						<Suspense fallback={null}>
-							{props.hdr && 
-								<Environment
-									blur={0.05}
-									files={props.hdr}
-									background
-								/>
-							}
-							{/* <EditControls/> */}
-							<EditorPluginProvider>
-								<ThreeObject
-									url={props.url}
-									positionY={props.positionY}
-									rotationY={props.rotationY}
-									scale={props.scale}
-									animations={props.animations}
-									transformMode={transformMode}
-									setFocus={props.setFocus}
-									focusID={focusID}
-									setFocusPosition={props.setFocusPosition}
-									focusPosition={props.focusPosition}
-									shouldFocus={shouldFocus}
-									changeFocusPoint={props.changeFocusPoint}
-									clientId={props.clientId}
-								/>
-							</EditorPluginProvider>
-						</Suspense>
-					)}
-					<OrbitControls makeDefault enableZoom={props.selected} target={props.focusPoint}/>
+					<ContextBridge>
+						{/* <Perf className="stats" /> */}
+						<PerspectiveCamera
+							fov={50}
+							position={[0, 0, 20]}
+							makeDefault
+							zoom={1}
+						/>
+						{props.url && (
+							<Suspense fallback={null}>
+								{props.hdr && 
+									<Environment
+										blur={0.05}
+										files={props.hdr}
+										background
+									/>
+								}
+								{/* <EditControls/> */}
+									<ThreeObject
+										url={props.url}
+										positionY={props.positionY}
+										rotationY={props.rotationY}
+										scale={props.scale}
+										animations={props.animations}
+										transformMode={transformMode}
+										setFocus={props.setFocus}
+										focusID={focusID}
+										setFocusPosition={props.setFocusPosition}
+										focusPosition={props.focusPosition}
+										shouldFocus={shouldFocus}
+										changeFocusPoint={props.changeFocusPoint}
+										clientId={props.clientId}
+									/>
+							</Suspense>
+						)}
+						<OrbitControls makeDefault enableZoom={props.selected} target={props.focusPoint}/>
+					</ContextBridge>
 				</Canvas>
 		</>
 	);
