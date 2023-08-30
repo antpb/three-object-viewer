@@ -26,7 +26,7 @@ import { Resizable } from "re-resizable";
 import defaultFont from "../../../inc/fonts/roboto.woff";
 import audioIcon from "../../../inc/assets/audio_icon.png";
 import lightIcon from "../../../inc/assets/light_icon.png";
-import { EditorPluginProvider } from './EditorPluginProvider';  // Import the PluginProvider
+import { EditorPluginProvider, useEditorPlugins } from './EditorPluginProvider';  // Import the PluginProvider
 
 const { registerStore } = wp.data;
 
@@ -1391,6 +1391,17 @@ function PortalObject(model) {
 }
 
 function ThreeObject(props) {
+	const { plugins } = useEditorPlugins(); // Retrieve the plugins array from the context
+	useEffect(() => {
+		//if plugins is not empty
+		if(plugins.length > 0) {
+			plugins.forEach(plugin => {
+				console.log("some plugin", plugin);
+			// Initialize or render each plugin
+			});
+		}
+	}, [plugins]);
+	  
 	let skyobject;
 	let skyobjectId;
 
@@ -1586,7 +1597,7 @@ function ThreeObject(props) {
 	// const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene])
 
 	return (
-		<EditorPluginProvider>
+		<>
 			{skyobject && <ThreeSky skyobjectId={skyobjectId} src={skyobject} />}
 			{spawnpoint && (
 				<Spawn
@@ -1837,7 +1848,7 @@ function ThreeObject(props) {
 				);
 			})}
 			<primitive object={gltf.scene} />
-		</EditorPluginProvider>
+		</>
 	);
 }
 
@@ -1993,21 +2004,23 @@ export default function ThreeObjectEdit(props) {
 								/>
 							}
 							{/* <EditControls/> */}
-							<ThreeObject
-								url={props.url}
-								positionY={props.positionY}
-								rotationY={props.rotationY}
-								scale={props.scale}
-								animations={props.animations}
-								transformMode={transformMode}
-								setFocus={props.setFocus}
-								focusID={focusID}
-								setFocusPosition={props.setFocusPosition}
-								focusPosition={props.focusPosition}
-								shouldFocus={shouldFocus}
-								changeFocusPoint={props.changeFocusPoint}
-								clientId={props.clientId}
-							/>
+							<EditorPluginProvider>
+								<ThreeObject
+									url={props.url}
+									positionY={props.positionY}
+									rotationY={props.rotationY}
+									scale={props.scale}
+									animations={props.animations}
+									transformMode={transformMode}
+									setFocus={props.setFocus}
+									focusID={focusID}
+									setFocusPosition={props.setFocusPosition}
+									focusPosition={props.focusPosition}
+									shouldFocus={shouldFocus}
+									changeFocusPoint={props.changeFocusPoint}
+									clientId={props.clientId}
+								/>
+							</EditorPluginProvider>
 						</Suspense>
 					)}
 					<OrbitControls makeDefault enableZoom={props.selected} target={props.focusPoint}/>

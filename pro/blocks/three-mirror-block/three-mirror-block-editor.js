@@ -16,7 +16,7 @@ export function ThreeMirror(threeMirror) {
 	const [isSelected, setIsSelected] = useState();
 	const mirrorBlockAttributes = wp.data
 		.select("core/block-editor")
-		.getBlockAttributes(text.htmlobjectId);
+		.getBlockAttributes(text.mirrorObjectId);
 	const TransformController = ({ condition, wrap, children }) =>
 		condition ? wrap(children) : children;
 
@@ -53,11 +53,12 @@ export function ThreeMirror(threeMirror) {
 			filter={(items) => items}
 		>
 			<TransformController
-				condition={threeMirror.focusID === threeMirror.htmlobjectId}
+				condition={threeMirror.focusID === threeMirror.mirrorObjectId}
 				wrap={(children) => (
 					<TransformControls
 						mode={threeMirror.transformMode}
-						enabled={threeMirror.focusID === threeMirror.htmlobjectId}
+						// enabled={threeMirror.focusID === threeMirror.mirrorObjectId}
+						enabled={true}
 						object={mirrorObj}
 						size={0.5}
 						onObjectChange={(e) => {
@@ -68,7 +69,7 @@ export function ThreeMirror(threeMirror) {
 							);
 							wp.data
 								.dispatch("core/block-editor")
-								.updateBlockAttributes(text.htmlobjectId, {
+								.updateBlockAttributes(text.mirrorObjectId, {
 									positionX: e?.target.worldPosition.x,
 									positionY: e?.target.worldPosition.y,
 									positionZ: e?.target.worldPosition.z,

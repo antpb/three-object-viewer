@@ -18,8 +18,29 @@ import {
 	TextControl
 } from "@wordpress/components";
 import { more } from "@wordpress/icons";
+import { ThreeMirror } from "./three-mirror-block-editor";
 
 export default function Edit({ attributes, setAttributes, isSelected, clientId }) {
+	window.addEventListener('registerEditorPluginReady', function() {
+		window.registerEditorPlugin(
+			<ThreeMirror
+				scaleX={attributes.scaleX}
+				scaleY={attributes.scaleY}
+				scaleZ={attributes.scaleZ}
+				positionX={attributes.positionX}
+				positionY={attributes.positionY}
+				positionZ={attributes.positionZ}
+				rotationX={attributes.rotationX}
+				rotationY={attributes.rotationY}
+				rotationZ={attributes.rotationZ}
+				height={attributes.height}
+				width={attributes.width}
+				transformMode={"translate"}
+				htmlobjectId={clientId}
+			/>
+		);
+	});
+
 
 	const { select, dispatch } = wp.data;
 	const { onSelectionChange, getSelectedBlock } = wp.blocks;

@@ -1,19 +1,30 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 
 const EditorPluginContext = React.createContext();
 
 export function EditorPluginProvider({ children }) {
-  const [plugins, setPlugins] = useState([]);
-  
-  const registerPlugin = (plugin) => {
-    setPlugins([...plugins, plugin]);
-  };
+	useEffect(() => {
+		// Expose the registerPlugin method globally
+		window.registerEditorPlugin = registerEditorPlugin;
+		window.dispatchEvent(new Event('registerEditorPluginReady'));
 
-  return (
-    <EditorPluginContext.Provider value={{ plugins, registerPlugin }}>
-      {children}
-    </EditorPluginContext.Provider>
-  );
+		return () => {
+			// Cleanup
+			window.registerEditorPlugin = null;
+		};
+	}, [registerEditorPlugin]);
+	
+	const [plugins, setPlugins] = useState([]);
+
+	const registerEditorPlugin = (plugin) => {
+		setPlugins([...plugins, plugin]);
+	};
+
+	return (
+		<EditorPluginContext.Provider value={{ plugins, registerEditorPlugin }}>
+			{children}
+		</EditorPluginContext.Provider>
+	);
 }
 
 export const useEditorPlugins = () => useContext(EditorPluginContext);
