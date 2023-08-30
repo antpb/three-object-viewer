@@ -1391,15 +1391,19 @@ function PortalObject(model) {
 }
 
 function ThreeObject(props) {
+	const [registeredThreeovBlocks, setRegisteredThreeovBlocks] = useState([]);
+
 	const { plugins } = useEditorPlugins(); // Retrieve the plugins array from the context
 	useEffect(() => {
-		//if plugins is not empty
+		// if plugins is not empty
 		if(plugins.length > 0) {
 			plugins.forEach(plugin => {
-				console.log("some plugin", plugin);
-			// Initialize or render each plugin
+				// add the plugin to the registered blocks
+				setRegisteredThreeovBlocks(registeredThreeovBlocks => [...registeredThreeovBlocks, plugin]);
 			});
 		}
+		console.log(plugins);
+
 	}, [plugins]);
 	  
 	let skyobject;
@@ -1598,6 +1602,11 @@ function ThreeObject(props) {
 
 	return (
 		<>
+		{/* @todo figure out why r3f barfs here */}
+			{/* {registeredThreeovBlocks.length > 0 && registeredThreeovBlocks.map((blockElement, index) => {
+				const BlockComponent = blockElement.type;
+				return <BlockComponent key={index} {...blockElement.props} />;
+			})} */}
 			{skyobject && <ThreeSky skyobjectId={skyobjectId} src={skyobject} />}
 			{spawnpoint && (
 				<Spawn

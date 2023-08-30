@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useThree } from "@react-three/fiber";
 import { Reflector } from 'three/examples/jsm/objects/Reflector';
 import {
@@ -16,7 +16,7 @@ export function ThreeMirror(threeMirror) {
 	const [isSelected, setIsSelected] = useState();
 	const mirrorBlockAttributes = wp.data
 		.select("core/block-editor")
-		.getBlockAttributes(text.mirrorObjectId);
+		.getBlockAttributes(threeMirror.mirrorObjectId);
 	const TransformController = ({ condition, wrap, children }) =>
 		condition ? wrap(children) : children;
 
@@ -69,7 +69,7 @@ export function ThreeMirror(threeMirror) {
 							);
 							wp.data
 								.dispatch("core/block-editor")
-								.updateBlockAttributes(text.mirrorObjectId, {
+								.updateBlockAttributes(threeMirror.mirrorObjectId, {
 									positionX: e?.target.worldPosition.x,
 									positionY: e?.target.worldPosition.y,
 									positionZ: e?.target.worldPosition.z,
