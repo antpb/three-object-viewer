@@ -7,7 +7,8 @@ import {
 
 import {
   PlaneGeometry,
-  Color
+  Color,
+  Euler
 } from "three";
 
 export function ThreeMirror(threeMirror) {
@@ -60,7 +61,7 @@ export function ThreeMirror(threeMirror) {
 						object={mirrorObj}
 						size={0.5}
 						onObjectChange={(e) => {
-							const rot = new THREE.Euler(0, 0, 0, "XYZ");
+							const rot = new Euler(0, 0, 0, "XYZ");
 							const scale = e?.target.worldScale;
 							rot.setFromQuaternion(
 								e?.target.worldQuaternion

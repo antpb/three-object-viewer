@@ -26,6 +26,7 @@ import { Resizable } from "re-resizable";
 import defaultFont from "../../../inc/fonts/roboto.woff";
 import audioIcon from "../../../inc/assets/audio_icon.png";
 import lightIcon from "../../../inc/assets/light_icon.png";
+import { EditorPluginProvider } from './EditorPluginProvider';  // Import the PluginProvider
 
 const { registerStore } = wp.data;
 
@@ -1585,7 +1586,7 @@ function ThreeObject(props) {
 	// const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene])
 
 	return (
-		<>
+		<EditorPluginProvider>
 			{skyobject && <ThreeSky skyobjectId={skyobjectId} src={skyobject} />}
 			{spawnpoint && (
 				<Spawn
@@ -1836,7 +1837,7 @@ function ThreeObject(props) {
 				);
 			})}
 			<primitive object={gltf.scene} />
-		</>
+		</EditorPluginProvider>
 	);
 }
 
