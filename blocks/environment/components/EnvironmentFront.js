@@ -510,15 +510,22 @@ function SavedObject(props) {
 		});
 
 		// Mirror logic.
-		// const mirror = new Reflector(
-		// 	new THREE.PlaneGeometry(10, 10),
-		// 	{
-		// 		color: new THREE.Color(0x7f7f7f),
-		// 		textureWidth: window.innerWidth * window.devicePixelRatio,
-		// 		textureHeight: window.innerHeight * window.devicePixelRatio
-		// 	}
-		// )
-		// gltf.scene.add(mirror);
+		const mirror = new Reflector(
+			new THREE.PlaneGeometry(10, 10),
+			{
+				color: new THREE.Color(0x7f7f7f),
+				textureWidth: window.innerWidth * window.devicePixelRatio,
+				textureHeight: window.innerHeight * window.devicePixelRatio
+			}
+		)
+		// set the scale of the mirror 
+		mirror.scale.set(0.5, 0.5, 0.5);
+		// set the position of the mirror
+		mirror.position.set(0, 0, 0);
+		// set the rotation
+		mirror.rotation.set(0, 0, 0);
+		// add the mirror to the scene
+		gltf.scene.add(mirror);
 
 		meshesToAdd.forEach((mesh) => {
 			meshesScene.attach(mesh);

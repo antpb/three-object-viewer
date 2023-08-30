@@ -28,7 +28,7 @@ add_action('rest_api_init', function (){
             'methods' => ['GET'],
 			'callback' => function($request){
 				return rest_ensure_response( [
-					'proKey' => get_option( 'threeov_api_key', false ),
+					'threeovProKey' => get_option( 'threeovProKey', false ),
 				], 200);
 			},
 					'permission_callback' => function(){
@@ -40,7 +40,7 @@ add_action('rest_api_init', function (){
             'methods' => ['POST'],
 			'callback' => function($request){
 				$data = $request->get_json_params();
-				update_option( '3ov_ai_openApiKey', $data['proKey'] );
+				update_option( 'threeovProKey', $data['threeovProKey'] );
 				return rest_ensure_response( $data, 200);
 			},
 			'permission_callback' => function(){
@@ -62,7 +62,7 @@ add_action('admin_menu', function () {
     add_submenu_page(
         'three-object-viewer-settings',  // Parent slug
         __('3OV Pro Settings', 'three-object-viewer'),
-        __('Pro', 'three-object-viewer'),  // Menu title
+        __('3OV Pro', 'three-object-viewer'),  // Menu title
         'manage_options',
         'three-object-viewer-pro-settings',
         function () {

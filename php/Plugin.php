@@ -406,13 +406,12 @@ class Plugin
 		];
 		// if in the directory above this one a folder named "pro" exists, add "three-mirror-block" to the array
 		// use the threeobjectviewer_is_pro function to check if pro
-		// if (threeobjectviewer_is_pro()) {
-		// 	$PRO_BLOCKS = [
-		// 		'three-object-viewer/three-portal-block',
-		// 		'three-object-viewer/three-text-block',
-		// 	];
-		// 	array_push( $DEFAULT_BLOCKS, $PRO_BLOCKS );
-		// }
+		if ($this->threeobjectviewer_is_pro()) {
+			$PRO_BLOCKS = [
+				'three-object-viewer/three-mirror-block',
+			];
+			array_push( $DEFAULT_BLOCKS, $PRO_BLOCKS );
+		}
 
 		$ALLOWED_BLOCKS = apply_filters( 'three-object-environment-inner-allowed-blocks', $DEFAULT_BLOCKS );
 

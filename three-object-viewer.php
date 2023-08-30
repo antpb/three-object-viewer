@@ -24,7 +24,6 @@ define('THREEOV_PLUGIN_VERSION', '1.4.0');
 
 class MainOptions
 {
-
 	public static function my_plugin_activate() {
 		if( ! get_option( '3ov_ai_enabled' ) ) {
 			update_option( '3ov_ai_enabled', true );
@@ -85,6 +84,17 @@ class MainOptions
 		update_option('3ov_plugin_version', THREEOV_PLUGIN_VERSION);
 	}
 
+	/**
+	 * Check if pro version is installed
+	 */
+	public function threeov_is_pro() {
+		if ( file_exists( __DIR__ .'/pro' )) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 }
 
 MainOptions::check_plugin_update();
@@ -126,6 +136,13 @@ include_once dirname( __FILE__ ) . '/blocks/three-text-block/init.php';
 // Include spawn point
 include_once dirname( __FILE__ ) . '/blocks/spawn-point-block/init.php';
 
+if ( MainOptions::threeov_is_pro() ) {
+	// Include mirror block
+	include_once dirname( __FILE__ ) . '/pro/blocks/three-mirror-block/init.php';
+	include_once dirname( __FILE__ ) . '/pro/admin/three-object-viewer-pro-settings/init.php';
+}
+
+
 /**
 * Include the autoloader
 */
@@ -138,5 +155,4 @@ add_action( 'plugins_loaded', function () {
 include_once dirname( __FILE__ ). '/inc/functions.php';
 include_once dirname( __FILE__ ). '/inc/hooks.php';
 include_once dirname( __FILE__ ) . '/admin/three-object-viewer-settings/init.php';
-include_once dirname( __FILE__ ) . '/pro/admin/three-object-viewer-pro-settings/init.php';
 include_once dirname( __FILE__ ) . '/php/Plugin.php';

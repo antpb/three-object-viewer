@@ -118,27 +118,27 @@ export default function App({ getSettings, updateSettings }) {
 				</tr>
 				<tr>
 					<td>
-						<label htmlFor="proKey">3OV Pro API Token</label>
+						<label htmlFor="threeovProKey">3OV Pro API Token</label>
 						{isOpenApiKeyVisible ? (
 							<input
-							id="proKey"
+							id="threeovProKey"
 							type="text"
-							name="openApiKey"
+							name="threeovProKey"
 							autoComplete="off"
-							value={settings.openApiKey}
+							value={settings.threeovProKey}
 							onChange={(event) => {
-								setSettings({ ...settings, openApiKey: event.target.value });
+								setSettings({ ...settings, threeovProKey: event.target.value });
 							}}
 							/>
 						) : (
 							<input
-							id="openApiKey"
+							id="threeovProKey"
 							type="password"
-							name="openApiKey"
+							name="threeovProKey"
 							autoComplete="off"
-							value={settings.openApiKey}
+							value={settings.threeovProKey}
 							onChange={(event) => {
-								setSettings({ ...settings, openApiKey: event.target.value });
+								setSettings({ ...settings, threeovProKey: event.target.value });
 							}}
 							/>
 						)}

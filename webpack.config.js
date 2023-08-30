@@ -13,6 +13,15 @@ if (entryPoints.hasOwnProperty("blocks")) {
 	});
 }
 
+if (entryPoints.hasOwnProperty("proBlocks")) {
+	entryPoints.proBlocks.forEach((entryPoint) => {
+		entry[`block-${entryPoint}`] = path.resolve(
+			process.cwd(),
+			`pro/blocks/${entryPoint}/index.js`
+		);
+	});
+}
+
 if (entryPoints.hasOwnProperty("adminPages")) {
 	entryPoints.adminPages.forEach((entryPoint) => {
 		entry[`admin-page-${entryPoint}`] = path.resolve(

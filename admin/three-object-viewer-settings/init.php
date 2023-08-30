@@ -88,7 +88,7 @@ add_action('admin_menu', function () {
             echo '<div id="three-object-viewer-settings"></div>';
         }
     );
-});
+}, 9);
 
 function three_encrypt($value = ""){
     if( empty( $value ) ) {
