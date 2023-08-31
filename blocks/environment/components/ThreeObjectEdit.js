@@ -1609,7 +1609,11 @@ function ThreeObject(props) {
 			{registeredThreeovBlocks.length > 0 && registeredThreeovBlocks.map((blockElement, index) => {
 				console.log(blockElement);
 				const BlockComponent = blockElement.type;
-				return (
+				const blockPosition = wp.data
+				.select("core/block-editor")
+				.getBlockAttributes(blockElement.props.htmlobjectId);
+				console.log(blockPosition);
+				return ( props.focusID === blockElement.props.htmlobjectId ) ? (
 					<TransformController 
 						condition={props.focusID === blockElement.props.htmlobjectId}
 						wrap={(children) => (
@@ -1617,6 +1621,7 @@ function ThreeObject(props) {
 								mode={props.transformMode}
 								enabled={true}
 								size={0.5}
+								position={ [ blockPosition.positionX, blockPosition.positionY, blockPosition.positionZ ] }
 								onObjectChange={(e) => {
 									const rot = new THREE.Euler(0, 0, 0, "XYZ");
 									const scale = e?.target.worldScale;
@@ -1644,6 +1649,14 @@ function ThreeObject(props) {
 					>
 						<BlockComponent key={index} {...blockElement.props} />
 					</TransformController>
+				  ) : (
+					<group 
+						position={ [ blockPosition.positionX, blockPosition.positionY, blockPosition.positionZ ] }
+						rotation={ [ blockPosition.rotationX, blockPosition.rotationY, blockPosition.rotationZ ] }
+						scale={ [ blockPosition.scaleX, blockPosition.scaleY, blockPosition.scaleZ ] }
+					>
+						<BlockComponent key={index} {...blockElement.props} />
+					</group>
 				  );
 			})}
 			{skyobject && <ThreeSky skyobjectId={skyobjectId} src={skyobject} />}

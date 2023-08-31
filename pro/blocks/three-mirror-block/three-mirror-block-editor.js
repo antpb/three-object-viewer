@@ -31,34 +31,21 @@ export function ThreeMirror(threeMirror) {
 			textureHeight: window.innerHeight * window.devicePixelRatio
 		}
 	);
-	// make the mirror outlined using the three.js outline 
-
-  useEffect(() => {
-
-    // set the scale of the mirror 
-    mirror.scale.set(threeMirror.scaleX, threeMirror.scaleY, threeMirror.scaleZ);
-    // set the position of the mirror
-    mirror.position.set(threeMirror.positionX, threeMirror.positionY, threeMirror.positionZ);
-    // set the rotation
-    mirror.rotation.set(threeMirror.rotationX, threeMirror.rotationY, threeMirror.rotationZ);
-    // add the mirror to the scene
-    // scene.add(mirror);
-  }, [threeMirror.positionX, threeMirror.positionY, threeMirror.positionZ, threeMirror.rotationX, threeMirror.rotationY, threeMirror.rotationZ, threeMirror.scaleX, threeMirror.scaleY, threeMirror.scaleZ]);
 
 	return ( mirrorBlockAttributes && (
 					<group
 						ref={mirrorObj}
-						position={[
-							mirrorBlockAttributes.positionX,
-							mirrorBlockAttributes.positionY,
-							mirrorBlockAttributes.positionZ
-						]}
-						rotation={[
-							mirrorBlockAttributes.rotationX,
-							mirrorBlockAttributes.rotationY,
-							mirrorBlockAttributes.rotationZ
-						]}
-						scale={[mirrorBlockAttributes.scaleX, mirrorBlockAttributes.scaleY, mirrorBlockAttributes.scaleZ]}
+						// position={[
+						// 	mirrorBlockAttributes.positionX,
+						// 	mirrorBlockAttributes.positionY,
+						// 	mirrorBlockAttributes.positionZ
+						// ]}
+						// rotation={[
+						// 	mirrorBlockAttributes.rotationX,
+						// 	mirrorBlockAttributes.rotationY,
+						// 	mirrorBlockAttributes.rotationZ
+						// ]}
+						// scale={[mirrorBlockAttributes.scaleX, mirrorBlockAttributes.scaleY, mirrorBlockAttributes.scaleZ]}
 					>
 						<primitive object={mirror} />
 					</group>
