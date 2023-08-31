@@ -1607,15 +1607,14 @@ function ThreeObject(props) {
 	return (
 		<>
 			{registeredThreeovBlocks.length > 0 && registeredThreeovBlocks.map((blockElement, index) => {
-				console.log(blockElement);
 				const BlockComponent = blockElement.type;
 				const blockPosition = wp.data
 				.select("core/block-editor")
-				.getBlockAttributes(blockElement.props.htmlobjectId);
-				console.log(blockPosition);
-				return ( props.focusID === blockElement.props.htmlobjectId ) ? (
+				.getBlockAttributes(blockElement.props.pluginObjectId);
+
+				return ( props.focusID === blockElement.props.pluginObjectId ) ? (
 					<TransformController 
-						condition={props.focusID === blockElement.props.htmlobjectId}
+						condition={ props.focusID === blockElement.props.pluginObjectId }
 						wrap={(children) => (
 							<TransformControls
 								mode={props.transformMode}
@@ -1630,7 +1629,7 @@ function ThreeObject(props) {
 									);
 									wp.data
 										.dispatch("core/block-editor")
-										.updateBlockAttributes(blockElement.props.htmlobjectId, {
+										.updateBlockAttributes(blockElement.props.pluginObjectId, {
 											positionX: e?.target.worldPosition.x,
 											positionY: e?.target.worldPosition.y,
 											positionZ: e?.target.worldPosition.z,

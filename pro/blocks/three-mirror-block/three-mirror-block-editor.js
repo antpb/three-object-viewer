@@ -18,7 +18,7 @@ export function ThreeMirror(threeMirror) {
 	const [isSelected, setIsSelected] = useState();
 	const mirrorBlockAttributes = wp.data
 		.select("core/block-editor")
-		.getBlockAttributes(threeMirror.htmlobjectId);
+		.getBlockAttributes(threeMirror.pluginObjectId);
 	const TransformController = ({ condition, wrap, children }) =>
 		condition ? wrap(children) : children;
 

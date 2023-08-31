@@ -36,7 +36,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 				height={attributes.height}
 				width={attributes.width}
 				transformMode={"translate"}
-				htmlobjectId={clientId}
+				pluginObjectId={clientId}
 			/>
 		);
 	});
