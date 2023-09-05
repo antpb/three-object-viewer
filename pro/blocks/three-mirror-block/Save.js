@@ -5,6 +5,7 @@ export default function save({ attributes }) {
 	return (
 		<div {...useBlockProps.save()}>
 			<>
+			<div id="three-mirror-block-container"></div>
 				<div className="three-object-three-app-three-mirror-block">
 					<p className="three-mirror-block-scaleX">{attributes.scaleX}</p>
 					<p className="three-mirror-block-scaleY">{attributes.scaleY}</p>

@@ -13,7 +13,8 @@ import axios from "axios";
 import ReactNipple from 'react-nipple';
 import ScrollableFeed from 'react-scrollable-feed'
 import { Resizable } from "re-resizable";
-import { Environment } from "@react-three/drei";
+import { Environment, useContextBridge } from "@react-three/drei";
+import { FrontPluginProvider, FrontPluginContext } from './FrontPluginProvider';  // Import the PluginProvider
 
 import {
 	useAnimations,
@@ -43,6 +44,7 @@ import { Portal } from "./core/front/Portal";
 import { ThreeSky } from "./core/front/ThreeSky";
 import { TextObject } from "./core/front/TextObject";
 import { useKeyboardControls } from "./Controls";
+import { ContextBridgeComponent } from "./ContextBridgeComponent";
 
 function isMobile() {
 	return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -658,7 +660,7 @@ export default function EnvironmentFront(props) {
 	const [messageObject, setMessageObject] = useState({"tone": "happy", "message": "hello!"});
 	const [objectsInRoom, setObjectsInRoom] = useState([]);
 	const [url, setURL] = useState(props.threeUrl ? props.threeUrl : (threeObjectPlugin + defaultEnvironment));
-	
+
 	if (loaded === true) {
 		// find the element that contains the text "WEBXR NOT AVAILABLE" and hide it
 		// set an element const that selects the body of the document
@@ -667,6 +669,8 @@ export default function EnvironmentFront(props) {
 		if (webXRNotAvail) {
 			webXRNotAvail.style.display = "none";
 		}
+		// const [registeredThreeovBlocks, setRegisteredThreeovBlocks] = useState([]);
+
 		if (props.deviceTarget === "vr") {
 			return (
 				<>
@@ -691,6 +695,7 @@ export default function EnvironmentFront(props) {
 							zIndex: 1
 						}}
 					>
+							<FrontPluginProvider>
 							{ isVRCompatible() && <XRButton mode={'VR' | 'inline'}/>}
 							{/* <Perf className="stats" /> */}
 							{/* <fog attach="fog" color="hotpink" near={100} far={20} /> */}
@@ -704,6 +709,7 @@ export default function EnvironmentFront(props) {
 										background
 									/>
 								}
+								<ContextBridgeComponent/>
 								<Physics
 									// debug
 								>
@@ -1902,6 +1908,7 @@ export default function EnvironmentFront(props) {
 							{/* <OrbitControls
 								enableZoom={ true }
 							/> */}
+							</FrontPluginProvider>
 					</VRCanvas>
 					{Object.values(
 						props.npcsToAdd

@@ -39,11 +39,11 @@ if (entryPoints.hasOwnProperty("proAdminPages")) {
 	});
 }
 
-entry[`./assets/js/blocks.frontend`] =
-	"./blocks/three-object-block/frontend.js";
+entry[`./assets/js/blocks.frontend`] = "./blocks/three-object-block/frontend.js";
 
-entry[`./assets/js/blocks.frontend-versepress`] =
-	"./blocks/environment/frontend.js";
+entry[`./assets/js/blocks.frontend-versepress`] = "./blocks/environment/frontend.js";
+
+entry[`./assets/js/blocks.three-mirror-block`] = "./pro/blocks/three-mirror-block/three-mirror-block-front.js";
 
 module.exports = {
 	mode: isProduction ? "production" : "development",

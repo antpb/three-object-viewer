@@ -3,7 +3,6 @@ import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
 
 import EnvironmentFront from "./components/EnvironmentFront";
 import Networking from "./components/Networking";
-
 const threeApp = document.querySelectorAll(
 	".three-object-three-app-environment"
 );
@@ -115,34 +114,34 @@ threeApp.forEach((threeApp) => {
 						postSlug={postSlug}
 						userData={userData}
 				/> */}
-				<EnvironmentFront
-					threeUrl={threeUrl}
-					deviceTarget={deviceTarget}
-					zoom={zoom}
-					scale={scale}
-					hasTip={hasTip}
-					hasZoom={hasZoom}
-					positionY={positionY}
-					rotationY={rotationY}
-					animations={animations}
-					backgroundColor={backgroundColor}
-					userData={userData}
-					postSlug={postSlug}
-					defaultAvatarAnimation={defaultAvatarAnimation}
-					modelsToAdd={modelsToAdd}
-					portalsToAdd={portalsToAdd}
-					imagesToAdd={imagesToAdd}
-					videosToAdd={videosToAdd}
-					audiosToAdd={audiosToAdd}
-					lightsToAdd={lightsToAdd}
-					spawnPoint={spawnPoint ? spawnPoint : null}
-					htmlToAdd={htmlToAdd}
-					npcsToAdd={npcsToAdd}
-					sky={sky ? sky : ""}
-					previewImage={threePreviewImage}
-					hdr ={hdr ? hdr : ""}
-				/>
-			</>,
+					<EnvironmentFront
+						threeUrl={threeUrl}
+						deviceTarget={deviceTarget}
+						zoom={zoom}
+						scale={scale}
+						hasTip={hasTip}
+						hasZoom={hasZoom}
+						positionY={positionY}
+						rotationY={rotationY}
+						animations={animations}
+						backgroundColor={backgroundColor}
+						userData={userData}
+						postSlug={postSlug}
+						defaultAvatarAnimation={defaultAvatarAnimation}
+						modelsToAdd={modelsToAdd}
+						portalsToAdd={portalsToAdd}
+						imagesToAdd={imagesToAdd}
+						videosToAdd={videosToAdd}
+						audiosToAdd={audiosToAdd}
+						lightsToAdd={lightsToAdd}
+						spawnPoint={spawnPoint ? spawnPoint : null}
+						htmlToAdd={htmlToAdd}
+						npcsToAdd={npcsToAdd}
+						sky={sky ? sky : ""}
+						previewImage={threePreviewImage}
+						hdr ={hdr ? hdr : ""}
+					/>
+\			</>,
 			threeApp
 		);
 	}
