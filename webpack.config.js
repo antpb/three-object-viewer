@@ -2,6 +2,7 @@ const defaultConfig = require("@wordpress/scripts/config/webpack.config");
 const path = require("path");
 const isProduction = "production" === process.env.NODE_ENV;
 const { entryPoints } = require("./pluginMachine.json");
+const isPro = process.env.ISPRO === 'true';
 
 const entry = {};
 if (entryPoints.hasOwnProperty("blocks")) {
@@ -13,13 +14,15 @@ if (entryPoints.hasOwnProperty("blocks")) {
 	});
 }
 
-if (entryPoints.hasOwnProperty("proBlocks")) {
-	entryPoints.proBlocks.forEach((entryPoint) => {
-		entry[`block-${entryPoint}`] = path.resolve(
-			process.cwd(),
-			`pro/blocks/${entryPoint}/index.js`
-		);
-	});
+if (isPro) {
+	if (entryPoints.hasOwnProperty("proBlocks")) {
+		entryPoints.proBlocks.forEach((entryPoint) => {
+			entry[`block-${entryPoint}`] = path.resolve(
+				process.cwd(),
+				`pro/blocks/${entryPoint}/index.js`
+			);
+		});
+	}
 }
 
 if (entryPoints.hasOwnProperty("adminPages")) {
@@ -30,20 +33,25 @@ if (entryPoints.hasOwnProperty("adminPages")) {
 		);
 	});
 }
-if (entryPoints.hasOwnProperty("proAdminPages")) {
-	entryPoints.proAdminPages.forEach((entryPoint) => {
-		entry[`admin-page-${entryPoint}`] = path.resolve(
-			process.cwd(),
-			`pro/admin/${entryPoint}/index.js`
-		);
-	});
+
+if (isPro) {
+	if (entryPoints.hasOwnProperty("proAdminPages")) {
+		entryPoints.proAdminPages.forEach((entryPoint) => {
+			entry[`admin-page-${entryPoint}`] = path.resolve(
+				process.cwd(),
+				`pro/admin/${entryPoint}/index.js`
+			);
+		});
+	}
 }
 
 entry[`./assets/js/blocks.frontend`] = "./blocks/three-object-block/frontend.js";
 
 entry[`./assets/js/blocks.frontend-versepress`] = "./blocks/environment/frontend.js";
 
-entry[`./assets/js/blocks.three-mirror-block`] = "./pro/blocks/three-mirror-block/three-mirror-block-front.js";
+if (isPro) {
+    entry[`./assets/js/blocks.three-mirror-block`] = "./pro/blocks/three-mirror-block/three-mirror-block-front.js";
+}
 
 module.exports = {
 	mode: isProduction ? "production" : "development",

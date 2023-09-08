@@ -9,7 +9,6 @@ export function ContextBridgeComponent(props) {
 	const [registeredThreeovBlocks, setRegisteredThreeovBlocks] = useState([]);
 	const ContextBridge = useContextBridge(FrontPluginContext);  // Bridging EditorPluginContext
 
-	console.log("plugins", plugins);
 	useEffect(() => {
 		if (plugins.length > 0) {
 			plugins.forEach((plugin) => {
@@ -26,7 +25,6 @@ export function ContextBridgeComponent(props) {
 		<ContextBridge>
 			{
 				registeredThreeovBlocks.length > 0 && registeredThreeovBlocks.map((blockElement, index) => {
-					console.log("block Element in front", blockElement)
 					const BlockComponent = blockElement.type;
 					// Missing return statement here
 					return ( // Added return

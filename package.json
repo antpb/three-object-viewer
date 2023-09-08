@@ -8,6 +8,8 @@
         "test": "yarn test:unit",
         "test:unit": "wp-scripts test-unit-js",
         "build": "wp-scripts build",
+        "build:pro": "ISPRO=true wp-scripts build",
+        "build:free": "wp-scripts build",
         "test:ci": "wp-scripts test-unit-js --passWithNoTests",
         "format:js": "wp-scripts format-js",
         "lint:css": "wp-scripts lint-style",
