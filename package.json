@@ -8,16 +8,16 @@
         "test": "yarn test:unit",
         "test:unit": "wp-scripts test-unit-js",
         "build": "wp-scripts build",
-        "build:pro": "ISPRO=true wp-scripts build",
-        "build:free": "wp-scripts build",
+        "build:pro": "ISPRO=true wp-scripts build && node package.js pro",
+        "build:free": "wp-scripts build && node package.js free",
         "test:ci": "wp-scripts test-unit-js --passWithNoTests",
         "format:js": "wp-scripts format-js",
         "lint:css": "wp-scripts lint-style",
         "lint:js": "wp-scripts lint-js",
         "start": "wp-scripts start",
         "rename": "node rename.js",
-	"make-pot": "vendor/bin/wp i18n make-pot . ./languages/three-object-viewer.pot --slug=three-object-viewer --domain=three-object-viewer",
-	"make-json": "vendor/bin/wp i18n make-json ./languages/ --no-purge"
+        "make-pot": "vendor/bin/wp i18n make-pot . ./languages/three-object-viewer.pot --slug=three-object-viewer --domain=three-object-viewer",
+        "make-json": "vendor/bin/wp i18n make-json ./languages/ --no-purge"
     },
     "devDependencies": {
         "@babel/core": "^7",
@@ -28,6 +28,7 @@
         "browserify": "^17.0.0",
         "esbuild": "^0.15.5",
         "eslint": "^8.7.0",
+        "fs-extra": "^11.1.1",
         "lint-staged": "^13.0.3",
         "prettier": "^2.7.1",
         "prettier-standard": "^16.4.1",
