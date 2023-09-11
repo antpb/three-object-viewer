@@ -6,22 +6,34 @@ const isPro = process.argv.includes('pro');
 const sourceDirectory = path.join(__dirname);
 const targetDirectory = path.join(__dirname, 'plugin-build', isPro ? 'pro' : 'free');
 
-// Copy the entire directory to the target
-fs.copySync(sourceDirectory, targetDirectory, {
-    filter: (src, dest) => {
-        // Exclude node_modules and plugin-build directories
-        if (src.includes('node_modules') || src.includes('plugin-build')) {
-            return false;
-        }
+// Explicitly specify directories or files you want to copy for the free version
+const itemsToCopy = [
+    'LICENSE',
+    'admin',
+    'blocks',
+    'build',
+    'inc',
+    'languages',
+    'php',
+    'readme.txt',
+    'three-object-viewer.php',
+];
 
-        // If it's the free build, exclude the pro directory
-        if (!isPro && src.includes('/pro/')) {
-            return false;
-        }
+// Ensure the target directory is clean before copying
+fs.removeSync(targetDirectory);
+fs.ensureDirSync(targetDirectory);
 
-        return true;
-    }
+itemsToCopy.forEach(item => {
+    const sourcePath = path.join(sourceDirectory, item);
+    const targetPath = path.join(targetDirectory, item);
+    fs.copySync(sourcePath, targetPath);
 });
 
-console.log(`Packaged the ${isPro ? 'pro' : 'free'} version to ${targetDirectory}`);
+// If it's the pro build, include the 'pro' directory plus all free version files/directories
+if (isPro) {
+    const sourcePro = path.join(sourceDirectory, 'pro');
+    const targetPro = path.join(targetDirectory, 'pro');
+    fs.copySync(sourcePro, targetPro);
+}
 
+console.log(`Packaged the ${isPro ? 'pro' : 'free'} version to ${targetDirectory}`);
