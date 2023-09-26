@@ -6,6 +6,9 @@ import Networking from "./components/Networking";
 const threeApp = document.querySelectorAll(
 	".three-object-three-app-environment"
 );
+
+window.threeApp = threeApp[0].querySelectorAll("p");
+
 const modelsToAdd = document.querySelectorAll(
 	".three-object-three-app-model-block"
 );
@@ -35,6 +38,7 @@ const audiosToAdd = document.querySelectorAll(
 const lightsToAdd = document.querySelectorAll(
 	".three-object-three-app-light-block"
 );
+
 threeApp.forEach((threeApp) => {
 	if (threeApp) {
 		const hdr = document.querySelector(

@@ -7,10 +7,10 @@ import {
 import { useMyThree } from "../../../blocks/environment/components/FrontPluginProvider";
 
 export function ThreeMirrorBlockRender(threeMirror) {
-    console.log("hi from the front render");
+    console.log("hi from the front render", window.threeApp.querySelector("p.three-mirror-block-positionX"));
 
-    const { scene } = useMyThree();
-	console.log("scene", scene);
+    // const { scene } = useMyThree();
+	// console.log("scene", scene);
 	const mirror = new Reflector(
 		new PlaneGeometry(10, 10),
 		{
