@@ -4,7 +4,7 @@ const path = require('path');
 const isPro = process.argv.includes('pro');
 
 const sourceDirectory = path.join(__dirname);
-const targetDirectory = path.join(__dirname, 'plugin-build', isPro ? 'pro' : 'free');
+const targetDirectory = path.join(__dirname, 'plugin-build', isPro ? 'pro/three-object-viewer' : 'free/three-object-viewer');
 
 // Explicitly specify directories or files you want to copy for the free version
 const itemsToCopy = [
