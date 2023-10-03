@@ -22,6 +22,7 @@ vendor/
 vendor
 wordpress
 build
+pro
 .phpunit.result.cache
 plugin-build/pro/three-object-viewer/*
 !plugin-build/pro/three-object-viewer/.gitkeep
