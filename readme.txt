@@ -2,7 +2,7 @@
 Requires at least: 6.0
 Tested up to: 6.3
 Requires PHP: 7.2
-Stable tag: 1.6.0
+Stable tag: 1.7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Author: antpb
@@ -42,6 +42,11 @@ It can also be installed manually using a zip file.
 
 
 == Changelog ==
+= 1.7 =
+Added: Plugin system for custom 3OV blocks in Environment inner blocks. Experimental but getting very solid! Example plugin coming soon.
+Fixed: fixed bug where state was changing on scroll of the page.
+Fixed: Environment Editor states where values did not exist caused the editor to crash in some cases.
+
 = 1.6 =
 Fixed: Player Controller - Respawn while falling works again.
 Added: Light Block - You can now control the individual lights in your worlds. Note: highly recommend not having more than two Libhg Blocks in a world for performance reasons.
