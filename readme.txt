@@ -2,7 +2,7 @@
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 7.2
-Stable tag: 1.7.0
+Stable tag: 1.7.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Author: antpb
@@ -42,6 +42,9 @@ It can also be installed manually using a zip file.
 
 
 == Changelog ==
+= 1.7.1 =
+Fix: Change pro check to static
+
 = 1.7 =
 Added: Plugin system for custom 3OV blocks in Environment inner blocks. Experimental but getting very solid! Example plugin coming soon.
 Fixed: fixed bug where state was changing on scroll of the page.
