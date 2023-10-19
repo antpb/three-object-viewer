@@ -7,6 +7,7 @@ import Networking from "./components/Networking";
 const threeApp = document.querySelectorAll(
 	".three-object-three-app-environment"
 );
+
 const modelsToAdd = document.querySelectorAll(
 	".three-object-three-app-model-block"
 );
@@ -36,6 +37,10 @@ const audiosToAdd = document.querySelectorAll(
 const lightsToAdd = document.querySelectorAll(
 	".three-object-three-app-light-block"
 );
+
+// All blocks.
+window.threeApp = threeApp[0].querySelectorAll("div");
+
 threeApp.forEach((threeApp) => {
 	if (threeApp) {
 		const hdr = document.querySelector(
@@ -115,34 +120,34 @@ threeApp.forEach((threeApp) => {
 						postSlug={postSlug}
 						userData={userData}
 				/> */}
-				<EnvironmentFront
-					threeUrl={threeUrl}
-					deviceTarget={deviceTarget}
-					zoom={zoom}
-					scale={scale}
-					hasTip={hasTip}
-					hasZoom={hasZoom}
-					positionY={positionY}
-					rotationY={rotationY}
-					animations={animations}
-					backgroundColor={backgroundColor}
-					userData={userData}
-					postSlug={postSlug}
-					defaultAvatarAnimation={defaultAvatarAnimation}
-					modelsToAdd={modelsToAdd}
-					portalsToAdd={portalsToAdd}
-					imagesToAdd={imagesToAdd}
-					videosToAdd={videosToAdd}
-					audiosToAdd={audiosToAdd}
-					lightsToAdd={lightsToAdd}
-					spawnPoint={spawnPoint ? spawnPoint : null}
-					htmlToAdd={htmlToAdd}
-					npcsToAdd={npcsToAdd}
-					sky={sky ? sky : ""}
-					previewImage={threePreviewImage}
-					hdr ={hdr ? hdr : ""}
-				/>
-			</>,
+					<EnvironmentFront
+						threeUrl={threeUrl}
+						deviceTarget={deviceTarget}
+						zoom={zoom}
+						scale={scale}
+						hasTip={hasTip}
+						hasZoom={hasZoom}
+						positionY={positionY}
+						rotationY={rotationY}
+						animations={animations}
+						backgroundColor={backgroundColor}
+						userData={userData}
+						postSlug={postSlug}
+						defaultAvatarAnimation={defaultAvatarAnimation}
+						modelsToAdd={modelsToAdd}
+						portalsToAdd={portalsToAdd}
+						imagesToAdd={imagesToAdd}
+						videosToAdd={videosToAdd}
+						audiosToAdd={audiosToAdd}
+						lightsToAdd={lightsToAdd}
+						spawnPoint={spawnPoint ? spawnPoint : null}
+						htmlToAdd={htmlToAdd}
+						npcsToAdd={npcsToAdd}
+						sky={sky ? sky : ""}
+						previewImage={threePreviewImage}
+						hdr ={hdr ? hdr : ""}
+					/>
+\			</>,
 			threeApp
 		);
 	}

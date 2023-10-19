@@ -21,11 +21,10 @@ import {
 import { Icon, moveTo, more, rotateLeft, resizeCornerNE } from "@wordpress/icons";
 import * as THREE from "three";
 import defaultEnvironment from "../../inc/assets/default_grid.glb";
-
 import ThreeObjectEdit from "./components/ThreeObjectEdit";
+import { EditorPluginProvider, useEditorPlugins, EditorPluginContext } from './components/EditorPluginProvider';  // Import the PluginProvider
 
 export default function Edit({ attributes, setAttributes, isSelected }) {
-	
 	const ALLOWED_BLOCKS = allowed_blocks;
 	const [focusPosition, setFocusPosition] = useState(new THREE.Vector3());
 	const [focusPoint, setFocus] = useState(new THREE.Vector3());
@@ -299,26 +298,30 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 					/>
 				</div>
 					{mainModel && (
-						<ThreeObjectEdit
-							url={mainModel}
-							hdr={attributes.hdr}
-							deviceTarget={attributes.deviceTarget}
-							backgroundColor={attributes.bg_color}
-							zoom={attributes.zoom}
-							scale={attributes.scale}
-							hasZoom={attributes.hasZoom}
-							hasTip={attributes.hasTip}
-							positionX={attributes.positionX}
-							positionY={attributes.positionY}
-							animations={attributes.animations}
-							rotationY={attributes.rotationY}
-							setFocusPosition={setFocusPosition}
-							setFocus={setFocus}
-							changeFocusPoint={changeFocusPoint}
-							focusPosition={focusPosition}
-							focusPoint={focusPoint}
-							selected={isSelected}
-						/>
+						<>
+							<EditorPluginProvider>
+								<ThreeObjectEdit
+									url={mainModel}
+									hdr={attributes.hdr}
+									deviceTarget={attributes.deviceTarget}
+									backgroundColor={attributes.bg_color}
+									zoom={attributes.zoom}
+									scale={attributes.scale}
+									hasZoom={attributes.hasZoom}
+									hasTip={attributes.hasTip}
+									positionX={attributes.positionX}
+									positionY={attributes.positionY}
+									animations={attributes.animations}
+									rotationY={attributes.rotationY}
+									setFocusPosition={setFocusPosition}
+									setFocus={setFocus}
+									changeFocusPoint={changeFocusPoint}
+									focusPosition={focusPosition}
+									focusPoint={focusPoint}
+									selected={isSelected}
+								/>
+							</EditorPluginProvider>
+						</>
 					)}
 				</>
 		</div>

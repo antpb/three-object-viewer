@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import { Fog } from 'three/src/scenes/Fog'
-// import { Reflector } from 'three/examples/jsm/objects/Reflector';
 import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
 import { useLoader, useThree, useFrame, Canvas } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
@@ -14,7 +13,8 @@ import axios from "axios";
 import ReactNipple from 'react-nipple';
 import ScrollableFeed from 'react-scrollable-feed'
 import { Resizable } from "re-resizable";
-import { Environment } from "@react-three/drei";
+import { Environment, useContextBridge } from "@react-three/drei";
+import { FrontPluginProvider, FrontPluginContext } from './FrontPluginProvider';  // Import the PluginProvider
 
 import {
 	useAnimations,
@@ -44,6 +44,7 @@ import { Portal } from "./core/front/Portal";
 import { ThreeSky } from "./core/front/ThreeSky";
 import { TextObject } from "./core/front/TextObject";
 import { useKeyboardControls } from "./Controls";
+import { ContextBridgeComponent } from "./ContextBridgeComponent";
 
 function isMobile() {
 	return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -509,17 +510,6 @@ function SavedObject(props) {
 			}
 		});
 
-		// Mirror logic.
-		// const mirror = new Reflector(
-		// 	new THREE.PlaneGeometry(10, 10),
-		// 	{
-		// 		color: new THREE.Color(0x7f7f7f),
-		// 		textureWidth: window.innerWidth * window.devicePixelRatio,
-		// 		textureHeight: window.innerHeight * window.devicePixelRatio
-		// 	}
-		// )
-		// gltf.scene.add(mirror);
-
 		meshesToAdd.forEach((mesh) => {
 			meshesScene.attach(mesh);
 		});
@@ -670,19 +660,19 @@ export default function EnvironmentFront(props) {
 	const [messageObject, setMessageObject] = useState({"tone": "happy", "message": "hello!"});
 	const [objectsInRoom, setObjectsInRoom] = useState([]);
 	const [url, setURL] = useState(props.threeUrl ? props.threeUrl : (threeObjectPlugin + defaultEnvironment));
-	
+
 	if (loaded === true) {
-		// find the element that contains the text "WEBXR NOT AVAILABLE" and hide it
-		// set an element const that selects the body of the document
 		const elements = document.body.getElementsByTagName('*');
 		const webXRNotAvail = Array.from(elements).find((el) => el.textContent === 'WEBXR NOT AVAILABLE');
 		if (webXRNotAvail) {
 			webXRNotAvail.style.display = "none";
 		}
+
 		if (props.deviceTarget === "vr") {
 			return (
 				<>
 					<VRCanvas
+						resize={{ scroll: false }}
 						camera={{
 							fov: 70,
 							zoom: 1,
@@ -702,6 +692,7 @@ export default function EnvironmentFront(props) {
 							zIndex: 1
 						}}
 					>
+							<FrontPluginProvider>
 							{ isVRCompatible() && <XRButton mode={'VR' | 'inline'}/>}
 							{/* <Perf className="stats" /> */}
 							{/* <fog attach="fog" color="hotpink" near={100} far={20} /> */}
@@ -715,6 +706,7 @@ export default function EnvironmentFront(props) {
 										background
 									/>
 								}
+								<ContextBridgeComponent/>
 								<Physics
 									// debug
 								>
@@ -1913,6 +1905,7 @@ export default function EnvironmentFront(props) {
 							{/* <OrbitControls
 								enableZoom={ true }
 							/> */}
+							</FrontPluginProvider>
 					</VRCanvas>
 					{Object.values(
 						props.npcsToAdd

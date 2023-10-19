@@ -2,9 +2,20 @@ import { registerBlockType } from "@wordpress/blocks";
 import Edit from "./Edit";
 import Save from "./Save";
 import { useBlockProps } from "@wordpress/block-editor";
-import { useSelect, useDispatch } from '@wordpress/data';
-import { useEffect } from '@wordpress/element';
-import React, { Suspense, useRef, useMemo } from "react";
+import React from "react";
+
+import { useState } from '@wordpress/element';
+
+function Loading() {
+	return (
+	  <Html center>
+		<div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100vh", width: "400px" }}>
+		  <div className="threeov-spinner"></div>
+		  <div style={{ backgroundColor: "black", minWidth: "100px", maxHeight: "50px", color: "white", textAlign: "center" }}>Loading...</div>
+		</div>
+	  </Html>
+	);
+}
 
 const icon = (
 	<svg

@@ -334,21 +334,62 @@ class Plugin
 	}
 	
 	// The function that checks the bearer token. Make the bearer token a secret using get_option(). This is a crude example.
-	  function check_bearer_token( $request ) {
+	function check_bearer_token( $request ) {
 		$nonce = $request->get_header( 'X-WP-Nonce' );
 		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
 		  return new \WP_Error( 'invalid_nonce', 'The nonce provided in the X-WP-Nonce header is invalid', array( 'status' => 401 ) );
 		}
 		return true;
-	  }
-	  
-	
+	}
+
+	/**
+	 * Check if pro version is installed
+	 */
+	function threeobjectviewer_is_pro() {
+		if (file_exists(dirname(__DIR__) . '/pro')) {
+			return true;
+		} else {
+			return false;
+		}
+	}	  
+
 	/**
 	 * Enqueue block frontend JavaScript
 	 */
 	function threeobjectviewer_editor_assets() {
 		$three_object_plugin = plugins_url() . '/three-object-viewer/build/';
 		$three_object_plugin_root = plugins_url() . '/three-object-viewer/';
+		$current_user = wp_get_current_user();
+		$vrm = wp_get_attachment_url($current_user->avatar);
+		if ( is_user_logged_in() && get_option('3ov_ai_allow') === "loggedIn" ) {
+			$user_data_passed = array(
+			  'userId' => $current_user->user_login,
+			  'inWorldName' => $current_user->in_world_name,
+			  'banner' => $current_user->custom_banner,
+			  'vrm' => $vrm,
+			  'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
+			  'nonce' => wp_create_nonce( 'wp_rest' )
+			);
+		} else if ( get_option('3ov_ai_allow') === "public") {
+			$user_data_passed = array(
+				'userId' => $current_user->user_login,
+				'inWorldName' => $current_user->in_world_name,
+				'banner' => $current_user->custom_banner,
+				'vrm' => $vrm,
+				'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
+				'nonce' => wp_create_nonce( 'wp_rest' )
+			  );  
+		}
+		else {
+			$user_data_passed = array(
+			  'userId' => $current_user->user_login,
+			  'inWorldName' => $current_user->in_world_name,
+			  'banner' => $current_user->custom_banner,
+			  'vrm' => $vrm,
+			  'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
+			);
+		}
+
 	
 		$DEFAULT_BLOCKS = [
 							'three-object-viewer/three-portal-block',
@@ -363,8 +404,21 @@ class Plugin
 							'three-object-viewer/three-video-block',
 							'three-object-viewer/spawn-point-block' 
 		];
+		// if in the directory above this one a folder named "pro" exists, add "three-mirror-block" to the array
+		// use the threeobjectviewer_is_pro function to check if pro
+		if ($this->threeobjectviewer_is_pro()) {
+			$PRO_BLOCKS = [
+				'three-object-viewer/three-mirror-block',
+			];
+			array_push( $DEFAULT_BLOCKS, $PRO_BLOCKS );
+		}
+
 		$ALLOWED_BLOCKS = apply_filters( 'three-object-environment-inner-allowed-blocks', $DEFAULT_BLOCKS );
-	
+
+		$default_avatar = get_option('3ov_defaultAvatar');
+		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'defaultAvatar', $default_avatar );	
+		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'userData', $user_data_passed );
+
 		wp_enqueue_script( 'three-object-viewer-three-object-block-editor-script', 'three-object-viewer', ['wp-element', 'wp-data', 'wp-i18n', 'wp-hooks'], '', true );
 		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'threeObjectPlugin', $three_object_plugin );	
 		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'threeObjectPluginRoot', $three_object_plugin_root );	
