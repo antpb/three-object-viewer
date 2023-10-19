@@ -669,7 +669,6 @@ export default function EnvironmentFront(props) {
 		if (webXRNotAvail) {
 			webXRNotAvail.style.display = "none";
 		}
-		// const [registeredThreeovBlocks, setRegisteredThreeovBlocks] = useState([]);
 
 		if (props.deviceTarget === "vr") {
 			return (

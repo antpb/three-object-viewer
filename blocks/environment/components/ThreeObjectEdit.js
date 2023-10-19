@@ -1611,52 +1611,54 @@ function ThreeObject(props) {
 				const blockPosition = wp.data
 				.select("core/block-editor")
 				.getBlockAttributes(blockElement.props.pluginObjectId);
-
-				return ( props.focusID === blockElement.props.pluginObjectId ) ? (
-					<TransformController 
-						condition={ props.focusID === blockElement.props.pluginObjectId }
-						wrap={(children) => (
-							<TransformControls
-								mode={props.transformMode}
-								enabled={true}
-								size={0.5}
-								position={ [ blockPosition.positionX, blockPosition.positionY, blockPosition.positionZ ] }
-								onObjectChange={(e) => {
-									const rot = new THREE.Euler(0, 0, 0, "XYZ");
-									const scale = e?.target.worldScale;
-									rot.setFromQuaternion(
-										e?.target.worldQuaternion
-									);
-									wp.data
-										.dispatch("core/block-editor")
-										.updateBlockAttributes(blockElement.props.pluginObjectId, {
-											positionX: e?.target.worldPosition.x,
-											positionY: e?.target.worldPosition.y,
-											positionZ: e?.target.worldPosition.z,
-											rotationX: rot.x,
-											rotationY: rot.y,
-											rotationZ: rot.z,
-											scaleX: scale.x,
-											scaleY: scale.y,
-											scaleZ: scale.z
-										});
-								}}
-							>
-						  {children}
-						</TransformControls>
-					  )}
-					>
-						<BlockComponent key={index} {...blockElement.props} />
-					</TransformController>
-				  ) : (
-					<group 
-						position={ [ blockPosition.positionX, blockPosition.positionY, blockPosition.positionZ ] }
-						rotation={ [ blockPosition.rotationX, blockPosition.rotationY, blockPosition.rotationZ ] }
-						scale={ [ blockPosition.scaleX, blockPosition.scaleY, blockPosition.scaleZ ] }
-					>
-						<BlockComponent key={index} {...blockElement.props} />
-					</group>
-				  );
+				// if blockPosition.positionX is undefined, set it to 0
+				if (blockPosition !== null) {
+					return ( props.focusID === blockElement.props.pluginObjectId ) ? (
+						<TransformController 
+							condition={ props.focusID === blockElement.props.pluginObjectId }
+							wrap={(children) => (
+								<TransformControls
+									mode={props.transformMode}
+									enabled={true}
+									size={0.5}
+									position={ [ blockPosition.positionX, blockPosition.positionY, blockPosition.positionZ ] }
+									onObjectChange={(e) => {
+										const rot = new THREE.Euler(0, 0, 0, "XYZ");
+										const scale = e?.target.worldScale;
+										rot.setFromQuaternion(
+											e?.target.worldQuaternion
+										);
+										wp.data
+											.dispatch("core/block-editor")
+											.updateBlockAttributes(blockElement.props.pluginObjectId, {
+												positionX: e?.target.worldPosition.x,
+												positionY: e?.target.worldPosition.y,
+												positionZ: e?.target.worldPosition.z,
+												rotationX: rot.x,
+												rotationY: rot.y,
+												rotationZ: rot.z,
+												scaleX: scale.x,
+												scaleY: scale.y,
+												scaleZ: scale.z
+											});
+									}}
+								>
+							{children}
+							</TransformControls>
+						)}
+						>
+							<BlockComponent key={index} {...blockElement.props} />
+						</TransformController>
+					) : (
+						<group 
+							position={ [ blockPosition.positionX, blockPosition.positionY, blockPosition.positionZ ] }
+							rotation={ [ blockPosition.rotationX, blockPosition.rotationY, blockPosition.rotationZ ] }
+							scale={ [ blockPosition.scaleX, blockPosition.scaleY, blockPosition.scaleZ ] }
+						>
+							<BlockComponent key={index} {...blockElement.props} />
+						</group>
+					);
+				}
 			})}
 			{skyobject && <ThreeSky skyobjectId={skyobjectId} src={skyobject} />}
 			{spawnpoint && (
