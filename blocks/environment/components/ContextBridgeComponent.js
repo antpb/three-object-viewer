@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useFrontPlugins, FrontPluginContext } from './FrontPluginProvider';
-import { Environment, useContextBridge } from "@react-three/drei";
+import { useContextBridge } from "@react-three/drei";
 
 //import contextBridgef
 // add function for context
 export function ContextBridgeComponent(props) {
 	const { plugins } = useFrontPlugins(); // From your own context
 	const [registeredThreeovBlocks, setRegisteredThreeovBlocks] = useState([]);
-	const ContextBridge = useContextBridge(FrontPluginContext);  // Bridging EditorPluginContext
+	const ContextBridge = useContextBridge(FrontPluginContext);
 
 	useEffect(() => {
 		if (plugins.length > 0) {
@@ -26,8 +26,7 @@ export function ContextBridgeComponent(props) {
 			{
 				registeredThreeovBlocks.length > 0 && registeredThreeovBlocks.map((blockElement, index) => {
 					const BlockComponent = blockElement.type;
-					// Missing return statement here
-					return ( // Added return
+					return (
 						<group
 							key={index}
 							position={[0, 0, 0]}
@@ -36,7 +35,7 @@ export function ContextBridgeComponent(props) {
 						>
 							<BlockComponent key={index} {...blockElement.props} />
 						</group>
-					) // Added closing parenthesis for return
+					)
 				})
 			}
 		</ContextBridge>

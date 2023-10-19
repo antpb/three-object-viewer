@@ -273,7 +273,7 @@ export default function Player(props) {
 		setTimeout(() => {
 			fetchProfile()
 			  .then((response) => {
-				// You can handle the response here if needed
+				// handle the response here if needed
 			  })
 			  .catch((err) => {
 				// Handle the error here if needed

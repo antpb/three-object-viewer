@@ -662,8 +662,6 @@ export default function EnvironmentFront(props) {
 	const [url, setURL] = useState(props.threeUrl ? props.threeUrl : (threeObjectPlugin + defaultEnvironment));
 
 	if (loaded === true) {
-		// find the element that contains the text "WEBXR NOT AVAILABLE" and hide it
-		// set an element const that selects the body of the document
 		const elements = document.body.getElementsByTagName('*');
 		const webXRNotAvail = Array.from(elements).find((el) => el.textContent === 'WEBXR NOT AVAILABLE');
 		if (webXRNotAvail) {

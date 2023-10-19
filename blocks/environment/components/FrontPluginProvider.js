@@ -1,13 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useThree } from '@react-three/fiber';
 
-// Your existing FrontPlugin context
 export const FrontPluginContext = React.createContext();
 
 export function FrontPluginProvider({ children }) {
 
   const [plugins, setPlugins] = useState([]);
-  const { scene, camera } = useThree();  // Fetch scene and camera here
+  const { scene, camera } = useThree();
   
   const registerFrontPlugin = useCallback((plugin) => {
     setPlugins(prevPlugins => [...prevPlugins, plugin]);

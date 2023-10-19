@@ -1611,7 +1611,6 @@ function ThreeObject(props) {
 				const blockPosition = wp.data
 				.select("core/block-editor")
 				.getBlockAttributes(blockElement.props.pluginObjectId);
-				// if blockPosition.positionX is undefined, set it to 0
 				if (blockPosition !== null) {
 					return ( props.focusID === blockElement.props.pluginObjectId ) ? (
 						<TransformController 
@@ -2025,7 +2024,7 @@ export default function ThreeObjectEdit(props) {
 		gl.setPixelRatio(viewport.dpr);
 		gl.setSize(size.width, size.height);
 	};
-	const ContextBridge = useContextBridge(EditorPluginContext);  // Bridging EditorPluginContext
+	const ContextBridge = useContextBridge(EditorPluginContext);
 
 	return (
 		<>
