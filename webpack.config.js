@@ -114,6 +114,7 @@ module.exports = {
 	externals: {
 		react: "React",
 		"react-dom": "ReactDOM",
+		'react-dom/client': 'ReactDOM'
 	},
 	resolve: {
 		modules: ['node_modules'],

@@ -1,4 +1,4 @@
-import { Mesh, Raycaster, DoubleSide, MeshBasicMaterial, RingGeometry, AudioListener, Group, Quaternion, Matrix4, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, Vector2, BufferGeometry, CircleGeometry, sRGBEncoding, MathUtils } from "three";
+import { Mesh, Raycaster, DoubleSide, MeshBasicMaterial, RingGeometry, BoxGeometry, AudioListener, Group, Quaternion, Matrix4, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, Vector2, BufferGeometry, CircleGeometry, sRGBEncoding, MathUtils } from "three";
 import { TextureLoader } from "three/src/loaders/TextureLoader";
 import { useFrame, useLoader, useThree, Interactive } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
@@ -244,8 +244,6 @@ export default function Player(props) {
 
 	if (someSceneState?.userData?.gltfExtensions?.VRM) {
 		const playerController = someSceneState.userData.vrm;
-		// Check if the avatar is reachable with a 200 response code.
-		// Check if the avatar is reachable with a 200 response code.
 		const fetchProfile = async () => {
 			try {
 			const response = await fetch(userData.profileImage);
@@ -289,14 +287,74 @@ export default function Player(props) {
 		// 	0, 0, 0
 		// ]);
 
-		// const movement = useKeyboardControls();
-		const velocity = useRef(spawnPoint);  // Use a ref instead of state for velocity
+		const velocity = useRef(spawnPoint);
 		let lastUpdateTime = 0;
-		let blinkTimer = 0;  // Initialize the blinkTimer outside the useFrame loop.
-		let blinkInterval = 5 + Math.random() * 10;  // Blink roughly every 2 to 6 seconds
+		let blinkTimer = 0;
+		let blinkInterval = getRandomBlinkInterval();
+		
+		function getRandomBlinkInterval() {
+			return 5 + Math.random() * 10;
+		}
+		
+		function handleBlinking(delta) {
+			blinkTimer += delta;
+			if (blinkTimer > blinkInterval && currentVrm) {
+				performBlink(currentVrm);
+				blinkTimer = 0;
+				blinkInterval = getRandomBlinkInterval();
+			}
+		}
+		
+		function performBlink(vrm) {
+			const blinkDuration = 0.05 + Math.random() * 0.1;
+			const steps = Math.round(blinkDuration / 0.01);
+		
+			for (let i = 0; i <= steps; i++) {
+				const s = i / steps;
+				setTimeout(() => {
+					vrm.expressionManager.setValue('blinkLeft', s);
+					vrm.expressionManager.setValue('blinkRight', s);
+				}, s * blinkDuration * 1000);
+			}
+		
+			setTimeout(() => {
+				for (let i = 0; i <= steps; i++) {
+					const s = 1 - i / steps;
+					setTimeout(() => {
+						vrm.expressionManager.setValue('blinkLeft', s);
+						vrm.expressionManager.setValue('blinkRight', s);
+					}, (1 - s) * blinkDuration * 1000);
+				}
+			}, blinkDuration * 1000 + 200);
+		}
+		
+		function getMovementSpeeds(shiftPressed) {
+			const baseSpeeds = {
+				FB: 3.6,
+				LR: 1.8
+			};
+		
+			if (shiftPressed) {
+				return {
+					FB: 7.2,
+					LR: 4.2
+				};
+			}
+			return baseSpeeds;
+		}
+
+		let initialHeadPosition = null;
+		if (playerController && !initialHeadPosition) {
+			initialHeadPosition = playerController.firstPerson.humanoid.humanBones.head.node.getWorldPosition(new Vector3()).y;
+		}
+		
+		
+		let cameraTargetPosition = new Vector3();
 
 		// frame loop
 		useFrame((state, delta) => {
+			handleBlinking(delta);
+
 			let isMoving = false;
 			const currentTime = state.clock.elapsedTime;
 			const timeSinceLastUpdate = currentTime - lastUpdateTime;
@@ -322,39 +380,7 @@ export default function Player(props) {
 			if (currentMixer) {
 				currentMixer.update(delta);
 			}
-			blinkTimer += delta;  // Increment timer
-		
-			//blink
-			if (blinkTimer > blinkInterval) {
-				if (currentVrm) {
-					// Randomize the duration of the blink between 0.05 and 0.15 seconds
-					const blinkDuration = 0.05 + Math.random() * 0.1;
-					const steps = Math.round(blinkDuration / 0.01);  // We want each step to be roughly 0.01 seconds
-			
-					// Close both eyes over the course of the blink duration
-					for(let i = 0; i <= steps; i++) {
-						const s = i / steps;
-						setTimeout(() => {
-							currentVrm.expressionManager.setValue('blinkLeft', s);
-							currentVrm.expressionManager.setValue('blinkRight', s);
-						}, s * blinkDuration * 1000);
-					}
-			
-					// Open both eyes over the course of the blink duration, after a small delay
-					setTimeout(() => {
-						for(let i = 0; i <= steps; i++) {
-							const s = 1 - i / steps;
-							setTimeout(() => {
-								currentVrm.expressionManager.setValue('blinkLeft', s);
-								currentVrm.expressionManager.setValue('blinkRight', s);
-							}, (1 - s) * blinkDuration * 1000);
-						}
-					}, blinkDuration * 1000 + 200);  // Add a small delay before opening the eyes
-			
-					blinkTimer = 0;  // Reset the timer
-					blinkInterval = 5 + Math.random() * 10;  // Blink roughly every 10 to 25 seconds
-				}
-			}
+
 			let speedPerSecondFB = 3.6;  // This is equivalent to 0.06 per frame at 60 FPS
 			let speedPerSecondLR = 1.8;  // This is equivalent to 0.03 per frame at 60 FPS
 			
@@ -537,19 +563,24 @@ export default function Player(props) {
 			}
 
 			if (participantObject) {
+				// Get the desired head position.
+				const desiredY = playerController.firstPerson.humanoid.humanBones.head.node.getWorldPosition(new Vector3()).y;
+				
+				// Smoothly update the camera target position using lerp.
+				cameraTargetPosition.y = MathUtils.lerp(cameraTargetPosition.y, desiredY, 0.15); // 0.05 is the lerp factor. Adjust it for faster/slower transitions.
+
 				camera.lookAt(
 					participantObject.parent.position.x,
-					playerController.firstPerson.humanoid.humanBones.head.node.getWorldPosition(new Vector3()).y,
+					cameraTargetPosition.y,
 					participantObject.parent.position.z
 				);
 				
-				if (orbitRef.current){
+				if (orbitRef.current) {
 					let newTarget = new Vector3(
 						participantObject.parent.position.x,
-						playerController.firstPerson.humanoid.humanBones.head.node.getWorldPosition(new Vector3()).y + 1.5,
+						cameraTargetPosition.y + 1.5,
 						participantObject.parent.position.z
 					);
-					// lerpVectors() orbitRef from current position target to newTarget
 					orbitRef.current.target.lerpVectors(orbitRef.current.target, newTarget, 0.5);
 				}
 			}

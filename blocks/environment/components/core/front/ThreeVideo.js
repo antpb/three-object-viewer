@@ -153,7 +153,7 @@ export function ThreeVideo(threeVideo) {
 	return (
 		<Select
 		  box
-		  onChange={(e) => {
+		  onChangePointerUp={(e) => {
 			if (e.length !== 0) {
 			  setClickEvent(!clicked);
 			  if (clicked) {
@@ -169,7 +169,7 @@ export function ThreeVideo(threeVideo) {
 			  }
 			}
 		  }}
-		  filter={(items) => items}
+		  filter={items => items}
 		>
 		  <group
 			name="video"

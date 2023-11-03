@@ -23,7 +23,7 @@ import {
 
 // import { A11y } from "@react-three/a11y";
 import { GLTFAudioEmitterExtension } from "three-omi";
-import { VRCanvas, DefaultXRControllers, Hands, XRButton, XR } from "@react-three/xr";
+import { VRButton, ARButton, XR, Controllers, Hands } from '@react-three/xr'
 import { Perf } from "r3f-perf";
 import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import TeleportTravel from "./TeleportTravel";
@@ -309,6 +309,7 @@ function ChatBox(props) {
 function Participant(participant) {
 	// Participant VRM.
 	const fallbackURL = threeObjectPlugin + defaultVRM;
+	console.log(fallbackURL);
 	const playerURL = userData.vrm ? userData.vrm : fallbackURL;
 
 	const someSceneState = useLoader(GLTFLoader, playerURL, (loader) => {
@@ -667,11 +668,12 @@ export default function EnvironmentFront(props) {
 		if (webXRNotAvail) {
 			webXRNotAvail.style.display = "none";
 		}
-
+		
 		if (props.deviceTarget === "vr") {
 			return (
 				<>
-					<VRCanvas
+					{ isVRCompatible() && <VRButton/>}
+					<Canvas
 						resize={{ scroll: false }}
 						camera={{
 							fov: 70,
@@ -692,12 +694,12 @@ export default function EnvironmentFront(props) {
 							zIndex: 1
 						}}
 					>
+						<XR>
 							<FrontPluginProvider>
-							{ isVRCompatible() && <XRButton mode={'VR' | 'inline'}/>}
 							{/* <Perf className="stats" /> */}
 							{/* <fog attach="fog" color="hotpink" near={100} far={20} /> */}
 							<Hands />
-							<DefaultXRControllers />
+							<Controllers />
 							<Suspense fallback={<Loading />}>
 								{props.hdr && 
 									<Environment
@@ -1906,7 +1908,8 @@ export default function EnvironmentFront(props) {
 								enableZoom={ true }
 							/> */}
 							</FrontPluginProvider>
-					</VRCanvas>
+						</XR>
+					</Canvas>
 					{Object.values(
 						props.npcsToAdd
 					).map((npc, index) => {
