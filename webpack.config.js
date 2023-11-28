@@ -63,6 +63,11 @@ module.exports = {
 			...defaultConfig.module.rules,
 			{
 				test: /\.js$/,
+				exclude: /node_modules\/(?!chess\.js)/,
+				use: 'babel-loader'
+			},
+			{
+				test: /\.js$/,
 				exclude: /node_modules/,
 				use: 'babel-loader'
 			},			  

@@ -415,6 +415,7 @@ export function NPCObject(model) {
 					font={model.threeObjectPlugin + model.defaultFont}
 					position={[0.6, (Number(headPositionY.current) - 0.5), 0]}
 					className="content"
+					fontSize={0.1}
 					scale={[0.5, 0.5, 0.5]}
 					// rotation-y={-Math.PI / 2}
 					width={0.1}

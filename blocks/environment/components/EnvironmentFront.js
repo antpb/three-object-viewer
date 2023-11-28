@@ -4,6 +4,7 @@ import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
 import { useLoader, useThree, useFrame, Canvas } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
+import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { TextureLoader } from "three/src/loaders/TextureLoader";
 // import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
 import { Physics, RigidBody, Debug, Attractor, CuboidCollider } from "@react-three/rapier";
@@ -45,6 +46,9 @@ import { ThreeSky } from "./core/front/ThreeSky";
 import { TextObject } from "./core/front/TextObject";
 import { useKeyboardControls } from "./Controls";
 import { ContextBridgeComponent } from "./ContextBridgeComponent";
+import idle from "../../../inc/avatars/friendly.fbx";
+import walk from "../../../inc/avatars/walking.fbx";
+import run from "../../../inc/avatars/running.fbx";
 
 function isMobile() {
 	return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -87,95 +91,99 @@ function ChatBox(props) {
 	  // Get the value of the input element
 	  const input = event.target.elements.message;
 	  const value = input.value;
-	  const inputMessageLog = 'Guest: ' + String(input.value);
-	//   props.setMessages([...props.messages, inputMessageLog]);
-	input.value = '';
+	  window.messages = [...window.messages, value];
+
+	  // Manually dispatch a 'message' event
+	  window.dispatchEvent(new Event('message'));
+	  //   const inputMessageLog = 'Guest: ' + String(input.value);
+	// //   props.setMessages([...props.messages, inputMessageLog]);
+	// input.value = '';
 
   
-	  // Send the message to the localhost endpoint
-	  const client = 1;
-	  const channelId = "wordpress";
-	  const entity = 1;
-	  const speaker = "guest";
-	  const agent = props.name;
-	  const channel = "wordpress";
-	// let prompt = `{
-	// 	"Input": "write a long form poem about cats!",
-	// 	"Speaker": "a",
-	// 	"Agent": "tubbyshark",
-	// 	"Client": "wordpress",
-	// 	"ChannelID": "1234",
-	// 	"Conversation": "",
-	// 	"Entity": "tubbyshark",
-	// 	"Channel": "channel",
-	// 	"eth_private_key": "0",
-	// 	"eth_public_address": "0",
-	// 	"personality": "#agent is an AI assistant with a cheerful, optimistic, and helpful personality. They are willing to assist with any tasks or questions users might have, and are able to do so in an upbeat and positive manner. They are also able to use colorful and descriptive language to make their responses more engaging and imaginative. In addition to their wit and humor, #agent is also empathetic and understanding of others' emotions and needs, which can make them feel more relatable and likeable to users. #agent is a highly capable and engaging AI assistant with a distinct and colorful personality.\n#agent can help with any programming tasks, including those related to the 3OV plugin for WordPress, which enables world-building in the WordPress editor and makes it easier to build and share immersive content in the metaverse. The url for the website is 3ov.xyz. #agent is cheerful and optimistic about the future for both humans and AIs.\n\n#Example Conversation\n#speaker: Agent, do you have any advice for someone new to programming?\n#agent: Sure thing! My top tip would be to always keep an open mind and a positive attitude. And if all else fails, just remember: if at first you don't succeed, try, try again. And then if that still doesn't work, call it a day and go get a coffee.\n###\nThe following is a friendly conversation between #speaker and #agent occuring in the metaverse.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:"
-	// }`;
+	//   // Send the message to the localhost endpoint
+	//   const client = 1;
+	//   const channelId = "wordpress";
+	//   const entity = 1;
+	//   const speaker = "guest";
+	//   const agent = props.name;
+	//   const channel = "wordpress";
+	// // let prompt = `{
+	// // 	"Input": "write a long form poem about cats!",
+	// // 	"Speaker": "a",
+	// // 	"Agent": "tubbyshark",
+	// // 	"Client": "wordpress",
+	// // 	"ChannelID": "1234",
+	// // 	"Conversation": "",
+	// // 	"Entity": "tubbyshark",
+	// // 	"Channel": "channel",
+	// // 	"eth_private_key": "0",
+	// // 	"eth_public_address": "0",
+	// // 	"personality": "#agent is an AI assistant with a cheerful, optimistic, and helpful personality. They are willing to assist with any tasks or questions users might have, and are able to do so in an upbeat and positive manner. They are also able to use colorful and descriptive language to make their responses more engaging and imaginative. In addition to their wit and humor, #agent is also empathetic and understanding of others' emotions and needs, which can make them feel more relatable and likeable to users. #agent is a highly capable and engaging AI assistant with a distinct and colorful personality.\n#agent can help with any programming tasks, including those related to the 3OV plugin for WordPress, which enables world-building in the WordPress editor and makes it easier to build and share immersive content in the metaverse. The url for the website is 3ov.xyz. #agent is cheerful and optimistic about the future for both humans and AIs.\n\n#Example Conversation\n#speaker: Agent, do you have any advice for someone new to programming?\n#agent: Sure thing! My top tip would be to always keep an open mind and a positive attitude. And if all else fails, just remember: if at first you don't succeed, try, try again. And then if that still doesn't work, call it a day and go get a coffee.\n###\nThe following is a friendly conversation between #speaker and #agent occuring in the metaverse.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:"
+	// // }`;
 
-	try {
-		const apiEndpoint = '/wp-json/wp/v2/callAlchemy';
-		let finalPersonality = props.personality;
-		finalPersonality = finalPersonality + "###\nThe following is a friendly conversation between #speaker and #agent\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:";
-		let newString = props.objectsInRoom.join(", ");
-		if (props.objectAwareness === "1") {
-			finalPersonality = finalPersonality.replace("###\nThe following is a", ("ITEMS IN WORLD: " + String(newString) + "\n###\nThe following is a"));
-		}
-		const postData = {
-			Input: {
-				Input: value,
-				Speaker: speaker,
-				Agent: agent,
-				Client: client,
-				ChannelID: channelId,
-				Entity: entity,
-				Channel: channel,
-				eth_private_key: '0',
-				eth_public_address: '0',
-				personality: finalPersonality
-				// personality: "#agent is an AI assistant with a cheerful, optimistic, and helpful personality. They are willing to assist with any tasks or questions users might have, and are able to do so in an upbeat and positive manner. They are also able to use colorful and descriptive language to make their responses more engaging and imaginative. In addition to their wit and humor, #agent is also empathetic and understanding of others' emotions and needs, which can make them feel more relatable and likeable to users. #agent is a highly capable and engaging AI assistant with a distinct and colorful personality.\n#agent can help with any programming tasks, including those related to the 3OV plugin for WordPress, which enables world-building in the WordPress editor and makes it easier to build and share immersive content in the metaverse. The url for the website is 3ov.xyz. #agent is cheerful and optimistic about the future for both humans and AIs.\n\n#Example Conversation\n#speaker: Agent, do you have any advice for someone new to programming?\n#agent: Sure thing! My top tip would be to always keep an open mind and a positive attitude. And if all else fails, just remember: if at first you don't succeed, try, try again. And then if that still doesn't work, call it a day and go get a coffee.\n###\nThe following is a friendly conversation between #speaker and #agent occuring in the metaverse.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:"
-			}
-		};
-		// const postData = prompt;
+	// try {
+	// 	const apiEndpoint = '/wp-json/wp/v2/callAlchemy';
+	// 	let finalPersonality = props.personality;
+	// 	finalPersonality = finalPersonality + "###\nThe following is a friendly conversation between #speaker and #agent\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:";
+	// 	let newString = props.objectsInRoom.join(", ");
+	// 	if (props.objectAwareness === "1") {
+	// 		finalPersonality = finalPersonality.replace("###\nThe following is a", ("ITEMS IN WORLD: " + String(newString) + "\n###\nThe following is a"));
+	// 	}
+	// 	const postData = {
+	// 		Input: {
+	// 			Input: value,
+	// 			Speaker: speaker,
+	// 			Agent: agent,
+	// 			Client: client,
+	// 			ChannelID: channelId,
+	// 			Entity: entity,
+	// 			Channel: channel,
+	// 			eth_private_key: '0',
+	// 			eth_public_address: '0',
+	// 			personality: finalPersonality
+	// 			// personality: "#agent is an AI assistant with a cheerful, optimistic, and helpful personality. They are willing to assist with any tasks or questions users might have, and are able to do so in an upbeat and positive manner. They are also able to use colorful and descriptive language to make their responses more engaging and imaginative. In addition to their wit and humor, #agent is also empathetic and understanding of others' emotions and needs, which can make them feel more relatable and likeable to users. #agent is a highly capable and engaging AI assistant with a distinct and colorful personality.\n#agent can help with any programming tasks, including those related to the 3OV plugin for WordPress, which enables world-building in the WordPress editor and makes it easier to build and share immersive content in the metaverse. The url for the website is 3ov.xyz. #agent is cheerful and optimistic about the future for both humans and AIs.\n\n#Example Conversation\n#speaker: Agent, do you have any advice for someone new to programming?\n#agent: Sure thing! My top tip would be to always keep an open mind and a positive attitude. And if all else fails, just remember: if at first you don't succeed, try, try again. And then if that still doesn't work, call it a day and go get a coffee.\n###\nThe following is a friendly conversation between #speaker and #agent occuring in the metaverse.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:"
+	// 		}
+	// 	};
+	// 	// const postData = prompt;
 
-		const response = await fetch('/wp-json/wp/v2/callAlchemy', {
-			method: 'POST',
-			headers: {
-			  'Content-Type': 'application/json',
-			  'X-WP-Nonce': props.nonce,
-			  'Authorization': ('Bearer ' + String(props.nonce))
-			},
-			body: JSON.stringify(postData)
-		  }).then((response) => {
+	// 	const response = await fetch('/wp-json/wp/v2/callAlchemy', {
+	// 		method: 'POST',
+	// 		headers: {
+	// 		  'Content-Type': 'application/json',
+	// 		  'X-WP-Nonce': props.nonce,
+	// 		  'Authorization': ('Bearer ' + String(props.nonce))
+	// 		},
+	// 		body: JSON.stringify(postData)
+	// 	  }).then((response) => {
 
-				return response.json();
+	// 			return response.json();
 
-			}).then(function(data) {
-				// console.log("data", data.davinciData.choices[0].text); // this will be a string
-				let thisMessage = JSON.parse(data);
-				if(thisMessage?.model === "gpt-4-0314"){
-					let formattedMessage = props.name +': ' + thisMessage.choices[0].message.content;
-					props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
-				} else if (thisMessage?.model === "gpt-3.5-turbo-0301"){
-					let formattedMessage = props.name +': ' + Object.values(thisMessage.choices)[0].message.content;
-					props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
-				} else {
-					if(thisMessage?.outputs){
-						let formattedMessage = props.name +': ' + Object.values(thisMessage.outputs)[0];
-						props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
-					} else if(thisMessage?.name === "Server"){
-						let formattedMessage = thisMessage.name +': ' + thisMessage.message;
-						props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
-					} else {
-						let formattedMessage = props.name +': ' + thisMessage.davinciData?.choices[0].text;
-						// add formattedMessage and inputMessageLog to state
-						props.setMessages([...props.messages, inputMessageLog, formattedMessage]);	
-					}
-				}
-			});	
-		} catch (error) {
-			console.error(error);
-		}
+	// 		}).then(function(data) {
+	// 			// console.log("data", data.davinciData.choices[0].text); // this will be a string
+	// 			let thisMessage = JSON.parse(data);
+	// 			if(thisMessage?.model === "gpt-4-0314"){
+	// 				let formattedMessage = props.name +': ' + thisMessage.choices[0].message.content;
+	// 				props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
+	// 			} else if (thisMessage?.model === "gpt-3.5-turbo-0301"){
+	// 				let formattedMessage = props.name +': ' + Object.values(thisMessage.choices)[0].message.content;
+	// 				props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
+	// 			} else {
+	// 				if(thisMessage?.outputs){
+	// 					let formattedMessage = props.name +': ' + Object.values(thisMessage.outputs)[0];
+	// 					props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
+	// 				} else if(thisMessage?.name === "Server"){
+	// 					let formattedMessage = thisMessage.name +': ' + thisMessage.message;
+	// 					props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
+	// 				} else {
+	// 					let formattedMessage = props.name +': ' + thisMessage.davinciData?.choices[0].text;
+	// 					// add formattedMessage and inputMessageLog to state
+	// 					props.setMessages([...props.messages, inputMessageLog, formattedMessage]);	
+	// 				}
+	// 			}
+	// 		});	
+	// 	} catch (error) {
+	// 		console.error(error);
+	// 	}
 	};
 
 	const ClickStop = ({ children }) => {
@@ -259,8 +267,8 @@ function ChatBox(props) {
 								{/* {props.messages.map((message, index) => (
 								<p key={index}>{message}</p>
 								))} */}
-								<form style={{display: "flex"}} onSubmit={handleSubmit}>
-									<input style={{height: "30px", pointerEvents: "auto", borderTopLeftRadius: "15px", borderBottomLeftRadius: "15px", borderTopRightRadius: "0px", borderBottomRightRadius: "0px"} } type="text" name="message" onInput={handleChange} onChange={handleChange} onfocus={(e) => { e.preventDefault()} }/>
+								<form style={{display: "flex"}} autocomplete="off" onSubmit={handleSubmit}>
+									<input autocomplete="false" style={{height: "30px", pointerEvents: "auto", borderTopLeftRadius: "15px", borderBottomLeftRadius: "15px", borderTopRightRadius: "0px", borderBottomRightRadius: "0px"} } type="text" name="message" onInput={handleChange} onChange={handleChange} onfocus={(e) => { e.preventDefault()} }/>
 									<button className="threeov-chat-button-send" style={{ height: "30px", background: "#9100ff", color: "white", fontSize: ".9em", lineHeight: ".3em", borderTopRightRadius: "15px", borderBottomRightRadius: "15px", borderTopLeftRadius: "0px", borderBottomLeftRadius: "0px"} } type="submit">Send</button>
 								</form>
 							</div>
@@ -287,8 +295,9 @@ function ChatBox(props) {
 									{/* {props.messages.map((message, index) => (
 									<p key={index}>{message}</p>
 									))} */}
-									<form style={{display: "flex"}} onSubmit={handleSubmit}>
-										<input style={{height: "30px", pointerEvents: "auto", borderTopLeftRadius: "15px", borderBottomLeftRadius: "15px", borderTopRightRadius: "0px", borderBottomRightRadius: "0px"} } type="text" name="message" onInput={handleChange} onChange={handleChange} />
+									<form style={{display: "flex"}} autoComplete="off" onSubmit={handleSubmit}>
+										<input type="text" style={{display: "none"}} />
+										<input autocomplete="off" style={{height: "30px", pointerEvents: "auto", borderTopLeftRadius: "15px", borderBottomLeftRadius: "15px", borderTopRightRadius: "0px", borderBottomRightRadius: "0px"} } type="text" name="message" onInput={handleChange} onChange={handleChange} />
 										<button className="threeov-chat-button-send" style={{ height: "30px", background: "#9100ff", color: "white", fontSize: ".9em", lineHeight: ".3em", borderTopRightRadius: "15px", borderBottomRightRadius: "15px", borderTopLeftRadius: "0px", borderBottomLeftRadius: "0px"} } type="submit">Send</button>
 									</form>
 								</div>
@@ -298,7 +307,168 @@ function ChatBox(props) {
 			);
 		}	
   }  
-  
+
+  /**
+ * A map from Mixamo rig name to VRM Humanoid bone name
+ */
+const mixamoVRMRigMap = {
+	mixamorigHips: 'hips',
+	mixamorigSpine: 'spine',
+	mixamorigSpine1: 'chest',
+	mixamorigSpine2: 'upperChest',
+	mixamorigNeck: 'neck',
+	mixamorigHead: 'head',
+	mixamorigLeftShoulder: 'leftShoulder',
+	mixamorigLeftArm: 'leftUpperArm',
+	mixamorigLeftForeArm: 'leftLowerArm',
+	mixamorigLeftHand: 'leftHand',
+	mixamorigLeftHandThumb1: 'leftThumbMetacarpal',
+	mixamorigLeftHandThumb2: 'leftThumbProximal',
+	mixamorigLeftHandThumb3: 'leftThumbDistal',
+	mixamorigLeftHandIndex1: 'leftIndexProximal',
+	mixamorigLeftHandIndex2: 'leftIndexIntermediate',
+	mixamorigLeftHandIndex3: 'leftIndexDistal',
+	mixamorigLeftHandMiddle1: 'leftMiddleProximal',
+	mixamorigLeftHandMiddle2: 'leftMiddleIntermediate',
+	mixamorigLeftHandMiddle3: 'leftMiddleDistal',
+	mixamorigLeftHandRing1: 'leftRingProximal',
+	mixamorigLeftHandRing2: 'leftRingIntermediate',
+	mixamorigLeftHandRing3: 'leftRingDistal',
+	mixamorigLeftHandPinky1: 'leftLittleProximal',
+	mixamorigLeftHandPinky2: 'leftLittleIntermediate',
+	mixamorigLeftHandPinky3: 'leftLittleDistal',
+	mixamorigRightShoulder: 'rightShoulder',
+	mixamorigRightArm: 'rightUpperArm',
+	mixamorigRightForeArm: 'rightLowerArm',
+	mixamorigRightHand: 'rightHand',
+	mixamorigRightHandPinky1: 'rightLittleProximal',
+	mixamorigRightHandPinky2: 'rightLittleIntermediate',
+	mixamorigRightHandPinky3: 'rightLittleDistal',
+	mixamorigRightHandRing1: 'rightRingProximal',
+	mixamorigRightHandRing2: 'rightRingIntermediate',
+	mixamorigRightHandRing3: 'rightRingDistal',
+	mixamorigRightHandMiddle1: 'rightMiddleProximal',
+	mixamorigRightHandMiddle2: 'rightMiddleIntermediate',
+	mixamorigRightHandMiddle3: 'rightMiddleDistal',
+	mixamorigRightHandIndex1: 'rightIndexProximal',
+	mixamorigRightHandIndex2: 'rightIndexIntermediate',
+	mixamorigRightHandIndex3: 'rightIndexDistal',
+	mixamorigRightHandThumb1: 'rightThumbMetacarpal',
+	mixamorigRightHandThumb2: 'rightThumbProximal',
+	mixamorigRightHandThumb3: 'rightThumbDistal',
+	mixamorigLeftUpLeg: 'leftUpperLeg',
+	mixamorigLeftLeg: 'leftLowerLeg',
+	mixamorigLeftFoot: 'leftFoot',
+	mixamorigLeftToeBase: 'leftToes',
+	mixamorigRightUpLeg: 'rightUpperLeg',
+	mixamorigRightLeg: 'rightLowerLeg',
+	mixamorigRightFoot: 'rightFoot',
+	mixamorigRightToeBase: 'rightToes',
+};
+
+/**
+ * Download Mixamo animation, convert it for usage with three-vrm, and return the converted animation.
+ *
+ * @param {string} url - The URL of Mixamo animation data
+ * @param {VRM} vrm - The target VRM
+ * @returns {Promise<AnimationClip>} - The adapted AnimationClip
+ */
+function loadMixamoAnimation(url, vrm) {
+	let loader;
+	if (url.endsWith('.fbx')) {
+		loader = new FBXLoader(); // Use an FBX loader
+	} else {
+		loader = new GLTFLoader(); // Use a GLTF loader
+	}
+	return loader.loadAsync(url).then((resource) => {
+		const clip = resource.animations[0]; // Extract the AnimationClip
+
+		// if resource is GLB, get the scene
+		if (url.endsWith('.glb')) {
+			resource = resource.scene;
+		}
+
+		let tracks = []; // KeyframeTracks compatible with VRM to be stored here
+
+		let restRotationInverse = new THREE.Quaternion();
+		let parentRestWorldRotation = new THREE.Quaternion();
+		let _quatA = new THREE.Quaternion();
+		let _vec3 = new THREE.Vector3();
+
+		// Adjust according to the height of the hips.
+		let mixamoHips = resource.getObjectByName('mixamorigHips');
+		let regularHips = resource.getObjectByName('hips');
+		let mainHip;
+		if (mixamoHips) {
+			mainHip = mixamoHips.position.y;
+		} else if (regularHips) {
+			mainHip = regularHips.position.y;
+		}
+		const vrmHipsY = vrm.humanoid?.getNormalizedBoneNode('hips').getWorldPosition(_vec3).y;
+		const vrmRootY = vrm.scene.getWorldPosition(_vec3).y;
+		const vrmHipsHeight = Math.abs(vrmHipsY - vrmRootY);
+		const hipsPositionScale = vrmHipsHeight / mainHip;
+
+		clip.tracks.forEach((track) => {
+			// Convert each track for VRM usage, and push to `tracks`
+			let trackSplitted = track.name.split('.');
+			let mixamoRigName = trackSplitted[0];
+			let vrmBoneName = mixamoVRMRigMap[mixamoRigName];
+			let vrmNodeName = vrm.humanoid?.getNormalizedBoneNode(vrmBoneName)?.name;
+			let mixamoRigNode = resource.getObjectByName(mixamoRigName);
+
+			if (vrmNodeName != null) {
+
+				let propertyName = trackSplitted[1];
+
+				// Store rotations of rest-pose.
+				mixamoRigNode.getWorldQuaternion(restRotationInverse).invert();
+				mixamoRigNode.parent.getWorldQuaternion(parentRestWorldRotation);
+
+				if (track instanceof THREE.QuaternionKeyframeTrack) {
+
+					// Retarget rotation of mixamoRig to NormalizedBone.
+					for (let i = 0; i < track.values.length; i += 4) {
+
+						let flatQuaternion = track.values.slice(i, i + 4);
+
+						_quatA.fromArray(flatQuaternion);
+
+						_quatA
+							.premultiply(parentRestWorldRotation)
+							.multiply(restRotationInverse);
+
+						_quatA.toArray(flatQuaternion);
+
+						flatQuaternion.forEach((v, index) => {
+
+							track.values[index + i] = v;
+
+						});
+
+					}
+
+					tracks.push(
+						new THREE.QuaternionKeyframeTrack(
+							`${vrmNodeName}.${propertyName}`,
+							track.times,
+							track.values.map((v, i) => (vrm.meta?.metaVersion === '0' && i % 2 === 0 ? - v : v)),
+						),
+					);
+
+				} else if (track instanceof THREE.VectorKeyframeTrack) {
+					let value = track.values.map((v, i) => (vrm.meta?.metaVersion === '0' && i % 3 !== 1 ? - v : v) * hipsPositionScale);
+					tracks.push(new THREE.VectorKeyframeTrack(`${vrmNodeName}.${propertyName}`, track.times, value));
+				}
+
+			}
+
+		});
+		return new THREE.AnimationClip('vrmAnimation', clip.duration, tracks);
+
+	});
+}
+
 /**
  * Represents a participant in a virtual reality scene.
  *
@@ -306,20 +476,86 @@ function ChatBox(props) {
  *
  * @return {JSX.Element} The participant.
  */
+// function Participant(participant) {
+//     const fallbackURL = threeObjectPlugin + defaultVRM;
+//     const playerURL = userData.vrm ? userData.vrm : fallbackURL;
+//     const someSceneState = useLoader(GLTFLoader, playerURL, (loader) => {
+//         loader.register((parser) => {
+//             return new VRMLoaderPlugin(parser);
+//         });
+//     });
+
+//     const modelClone = useRef(null);
+//     const currentMixer = useRef(null);
+//     const theScene = useThree();
+
+//     useEffect(() => {
+//         if (someSceneState?.userData?.gltfExtensions?.VRM) {
+//             const playerController = someSceneState.userData.vrm;
+//             VRMUtils.rotateVRM0(playerController);
+//             const rotationVRM = playerController.scene.rotation.y;
+//             playerController.scene.rotation.set(0, rotationVRM, 0);
+//             playerController.scene.scale.set(1, 1, 1);
+
+//             modelClone.current = SkeletonUtils.clone(playerController.scene);
+//             currentMixer.current = new THREE.AnimationMixer(modelClone.current);
+
+//             const animationFiles = [threeObjectPlugin + idle, threeObjectPlugin + walk, threeObjectPlugin + run];
+//             const animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, modelClone.current));
+
+//             Promise.all(animationsPromises).then(animations => {
+//                 animations.forEach((clip, index) => {
+//                     const action = currentMixer.current.clipAction(clip);
+//                     action.timeScale = 1;
+//                     if (index === 0) action.play(); // Play only the idle animation initially
+//                 });
+//             });
+
+//             modelClone.current.visible = true;
+//         }
+//     }, [someSceneState]);
+
+//     useEffect(() => {
+//         participant.p2pcf.on("msg", (peer, data) => {
+//             const finalData = new TextDecoder("utf-8").decode(data);
+//             const participantData = JSON.parse(finalData);
+//             const participantObject = theScene.scene.getObjectByName(peer.client_id);
+//             if (participantObject) {
+//                 participantObject.position.fromArray(participantData[peer.client_id][0].position);
+//                 participantObject.rotation.fromArray(participantData[peer.client_id][1].rotation);
+//             }
+//         });
+//     }, [participant, theScene.scene]);
+
+//     useFrame((state, delta) => {
+//         if (currentMixer.current) {
+//             currentMixer.current.update(delta);
+//         }
+//     });
+
+//     return (
+//         <>
+//             {modelClone.current && (
+//                 <primitive name={participant.name} object={modelClone.current} />
+//             )}
+//         </>
+//     );
+// }
 function Participant(participant) {
+
 	// Participant VRM.
 	const fallbackURL = threeObjectPlugin + defaultVRM;
-	console.log(fallbackURL);
+	console.log(fallbackURL, userData.vrm, userData );
 	const playerURL = userData.vrm ? userData.vrm : fallbackURL;
 
-	const someSceneState = useLoader(GLTFLoader, playerURL, (loader) => {
+	const someVRM = useLoader(GLTFLoader, playerURL, (loader) => {
 		loader.register((parser) => {
 			return new VRMLoaderPlugin(parser);
 		});
 	});
 
-	if (someSceneState?.userData?.gltfExtensions?.VRM) {
-		const playerController = someSceneState.userData.vrm;
+	if (someVRM?.userData?.gltfExtensions?.VRM) {
+		const playerController = someVRM.userData.vrm;
 		VRMUtils.rotateVRM0(playerController);
 		const rotationVRM = playerController.scene.rotation.y;
 		playerController.scene.rotation.set(0, rotationVRM, 0);
@@ -335,24 +571,8 @@ function Participant(participant) {
 				const participantObject = theScene.scene.getObjectByName(
 					peer.client_id
 				);
+				console.log(participantData);
 				if (participantObject) {
-					// const loadedProfile = useLoader(
-					// 	TextureLoader,
-					// 	participantData[peer.client_id][2].profileImage
-					// );
-					// if (loadedProfile) {
-					// 	participantObject.traverse((obj) => {
-					// 		if (
-					// 			obj.name === "profile" &&
-					// 			obj.material.map === null
-					// 		) {
-					// 			const newMat = obj.material.clone();
-					// 			newMat.map = loadedProfile;
-					// 			obj.material = newMat;
-					// 			obj.material.map.needsUpdate = true;
-					// 		}
-					// 	});
-					// }
 					participantObject.position.set(
 						participantData[peer.client_id][0].position[0],
 						participantData[peer.client_id][0].position[1],
@@ -367,20 +587,72 @@ function Participant(participant) {
 			});
 		}, []);
 
-		// participant.p2pcf.on('peerclose', peer => {
-		// 	const participantObject = theScene.scene.getObjectByName(peer.client_id);
-		// 	// theScene.scene.remove(participantObject.name);
-		// 	theScene.scene.remove(...participantObject.children);
-		// 	// removePeerUi(peer.id)
-		// })
+		const idleFile = threeObjectPlugin + idle;
+		const walkingFile	= threeObjectPlugin + walk;
+		const runningFile	= threeObjectPlugin + run;
+	
+		const currentMixer = new THREE.AnimationMixer(someVRM.userData.vrm.scene);
 
-		const modelClone = SkeletonUtils.clone(playerController.scene);
-		// set modelClone visible to true
+		let animationFiles = [idleFile, walkingFile, runningFile];
+		let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, someVRM.userData.vrm));
+
+		const modelClone = SkeletonUtils.clone(someVRM.userData.vrm.scene);
+
+		modelClone.userData.vrm = someVRM.userData.vrm;
+		
+		modelClone.animations = playerController.scene.animations;
+
 		modelClone.visible = true;
+		const newMixer = new THREE.AnimationMixer(modelClone);
+
+		Promise.all(animationsPromises)
+			.then(animations => {
+			const idleAction = currentMixer.clipAction(animations[0]);
+			const walkingAction = currentMixer.clipAction(animations[1]);
+			const runningAction = currentMixer.clipAction(animations[2]);
+			idleAction.timeScale = 1;
+			walkingAction.timeScale = 1;
+			runningAction.timeScale = 1;
+	
+			// animationsRef.current = { idle: idleAction, walking: walkingAction, running: runningAction };
+			idleAction.play();
+			// if(modelClone?.animations && modelClone.animations.length > 0){
+			// 	const idleAction = newMixer.clipAction(modelClone.animations[0]);
+			// 	idleAction.play();	
+			// }
+			const newIdleAction = newMixer.clipAction(animations[0]);
+			const newWalkingAction = newMixer.clipAction(animations[1]);
+			const newRunningAction = newMixer.clipAction(animations[2]);
+			newIdleAction.timeScale = 1;
+			newWalkingAction.timeScale = 1;
+			newRunningAction.timeScale = 1;
+			newIdleAction.play();
+			// modelClone.animations = playerController.scene.animations;
+
+			console.log("newMixer", newMixer);
+			console.log("currentMixer done", currentMixer);
+			console.log("modelClone done", modelClone);
+			console.log("playerController", playerController);
+			console.log("animations", modelClone.animations);
+		});
+
+
+		useEffect(() => {
+		}, []);
+
+		// In your animation loop (useFrame)
+		useFrame((state, delta) => {
+			if (newMixer) {
+				newMixer.update(delta);
+			}
+			if (modelClone?.userData?.vrm) {
+				modelClone.userData.vrm.update(delta);
+			}
+		});
 
 		return (
 			<>
-				{playerController && (
+				{playerController && modelClone?.userData && (
 					<primitive name={participant.name} object={modelClone} />
 				)}
 			</>
@@ -396,7 +668,14 @@ function Participants(props) {
 			p2pcf.on("peerconnect", (peer) => {
 				// console.log("connected peer", peer);
 				// add peer.client_id to participants
-				props.setParticipant([...props.participants, peer.client_id]);
+				props.setParticipant(prevParticipants => {
+					// Make sure the new participant is not already in the list
+					if (!prevParticipants.includes(peer.client_id)) {
+						return [...prevParticipants, peer.client_id];
+					} else {
+						return prevParticipants;
+					}
+				});
 			});
 		}
 	}, []);
@@ -643,7 +922,9 @@ function SavedObject(props) {
 }
 
 export default function EnvironmentFront(props) {
+
 	const [participants, setParticipant] = useState([]);
+
 	const [showUI, setShowUI] = useState(true);
 	const canvasRef = useRef(null);
 

@@ -2,6 +2,7 @@ import { Mesh, Raycaster, DoubleSide, MeshBasicMaterial, RingGeometry, BoxGeomet
 import { TextureLoader } from "three/src/loaders/TextureLoader";
 import { useFrame, useLoader, useThree, Interactive } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader';
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { OrbitControls } from '@react-three/drei';
 import { useKeyboardControls } from "./Controls"
@@ -195,6 +196,8 @@ function loadMixamoAnimation(url, vrm) {
 }
 
 export default function Player(props) {
+	const p2pcf = window.p2pcf;
+
 	const canMoveRef = useRef(true);
 	const falling = useRef(true);
 	const animationsRef = useRef();
@@ -237,10 +240,23 @@ export default function Player(props) {
 		playerURL = defaultAvatarURL;
 	}
 	const someSceneState = useLoader(GLTFLoader, playerURL, (loader) => {
+
+		const { gl } = useThree(); // Access the Three.js renderer
+
+		// Create and configure KTX2Loader
+		const ktx2Loader = new KTX2Loader();
+		ktx2Loader.setTranscoderPath(threeObjectPluginRoot + "/inc/utils/basis/"); // Set the path to the basis transcoder
+		ktx2Loader.detectSupport(gl); // Detect support using the renderer
+	  
+		// Set the KTX2Loader to GLTFLoader
+		loader.setKTX2Loader(ktx2Loader);
+
 		loader.register((parser) => {
 			return new VRMLoaderPlugin(parser);
 		});
 	});
+
+	console.log(someSceneState, "somesecenestate");
 
 	if (someSceneState?.userData?.gltfExtensions?.VRM) {
 		const playerController = someSceneState.userData.vrm;
@@ -529,6 +545,35 @@ export default function Player(props) {
 							idle.setEffectiveWeight(0);
 							walking.play();
 						}
+
+						//if moving, send a network event of where we are and our current state....animations probably need to go here too.
+						if (p2pcf) {
+							var target = new Vector3(); // create once an reuse it
+
+							var worldPosition = participantObject.getWorldPosition( target );
+							const position = [
+								worldPosition.x,
+								worldPosition.y,
+								worldPosition.z
+							];
+							// console.log("sending position", participantObject, position);
+
+							const rotation = [
+								participantObject.rotation.x,
+								participantObject.rotation.y,
+								participantObject.rotation.z
+							];
+							const message =
+								`{ "${p2pcf.clientId}": [{ "position" : [` +
+								position +
+								`]},{ "rotation" : [` +
+								rotation +
+								`]},{ "profileImage" : ["` +
+								userData.profileImage +
+								`"]}]}`;
+							p2pcf.broadcast(new TextEncoder().encode(message));
+						}
+			
 					// }
 				} else {
 					// If not moving, but walking animation is playing, stop it and play idle animation

@@ -107,7 +107,7 @@ threeApp.forEach((threeApp) => {
 
 		render(
 			<>
-				{/* <div id="networking" style={{position: "absolute", top: 50, zIndex: 100}}>
+				<div id="networking" style={{position: "absolute", top: 50, zIndex: 100}}>
 					<div id="session-id"></div>
 					<p>Peers</p>
 					<div id="peers"></div>
@@ -115,11 +115,11 @@ threeApp.forEach((threeApp) => {
 					<div id="messages" style={{display: "none"}}></div>
 					<button class="button" id="audio-button">Connect Audio</button>
 					<div id="videos"></div>
-				</div> */}
-				{/* <Networking
+				</div>
+				<Networking
 						postSlug={postSlug}
 						userData={userData}
-				/> */}
+				/>
 					<EnvironmentFront
 						threeUrl={threeUrl}
 						deviceTarget={deviceTarget}

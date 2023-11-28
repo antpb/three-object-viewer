@@ -144,7 +144,8 @@ class Plugin
 		$frontend_js = apply_filters( 'three-object-environment-frontend-js', $default_frontend_js );
 	
 		$current_user = wp_get_current_user();
-		$vrm = wp_get_attachment_url($current_user->avatar);
+		// $vrm = wp_get_attachment_url($current_user->avatar);
+		$vrm = get_option('3ov_defaultAvatar');
 		if ( is_user_logged_in() && get_option('3ov_ai_allow') === "loggedIn" ) {
 			$user_data_passed = array(
 			  'userId' => $current_user->user_login,
