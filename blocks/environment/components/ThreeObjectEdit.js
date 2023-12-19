@@ -11,7 +11,7 @@ import {
   } from "three";
   
 import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
-import { Canvas, useLoader, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useLoader, useFrame, useThree, extend } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import {
@@ -39,6 +39,9 @@ import defaultFont from "../../../inc/fonts/roboto.woff";
 import audioIcon from "../../../inc/assets/audio_icon.png";
 import lightIcon from "../../../inc/assets/light_icon.png";
 import { EditorPluginProvider, useEditorPlugins, EditorPluginContext } from './EditorPluginProvider';  // Import the PluginProvider
+import { LumaSplatsThree } from "@lumaai/luma-web";
+// Make LumaSplatsThree available to R3F
+extend( { LumaSplats: LumaSplatsThree } );
 
 const { registerStore } = wp.data;
 
@@ -1460,6 +1463,10 @@ function ThreeObject(props) {
 	let videoobject;
 	const videoElementsToAdd = [];
 
+	let networkingID;
+	let networkingObject;
+	const networkingElementsToAdd = [];
+
 	let audioID;
 	let audioObject;
 	const audioElementsToAdd = [];
@@ -1536,6 +1543,14 @@ function ThreeObject(props) {
 							videoobject = innerBlock.attributes;
 							videoID = innerBlock.clientId;
 							videoElementsToAdd.push({ videoobject, videoID });
+						}
+						if (
+							innerBlock.name ===
+							"three-object-viewer/three-networking-block"
+						) {
+							networkingObject = innerBlock.attributes;
+							networkingID = innerBlock.clientId;
+							networkingElementsToAdd.push({ networkingObject, networkingID });
 						}
 						if (
 							innerBlock.name ===

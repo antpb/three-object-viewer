@@ -5,6 +5,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader';
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { OrbitControls } from '@react-three/drei';
+import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 import { useKeyboardControls } from "./Controls"
 import { useRef, useState, useEffect } from "react";
 import { RigidBody, CapsuleCollider, useRapier, vec3, interactionGroups, CuboidCollider } from "@react-three/rapier";
@@ -239,7 +240,7 @@ export default function Player(props) {
 	if(defaultAvatarURL){
 		playerURL = defaultAvatarURL;
 	}
-	const someSceneState = useLoader(GLTFLoader, playerURL, (loader) => {
+	const currentPlayerAvatar = useLoader(GLTFLoader, playerURL, (loader) => {
 
 		const { gl } = useThree(); // Access the Three.js renderer
 
@@ -256,10 +257,8 @@ export default function Player(props) {
 		});
 	});
 
-	console.log(someSceneState, "somesecenestate");
-
-	if (someSceneState?.userData?.gltfExtensions?.VRM) {
-		const playerController = someSceneState.userData.vrm;
+	if (currentPlayerAvatar?.userData?.gltfExtensions?.VRM) {
+		const playerController = currentPlayerAvatar.userData.vrm;
 		const fetchProfile = async () => {
 			try {
 			const response = await fetch(userData.profileImage);
@@ -294,8 +293,7 @@ export default function Player(props) {
 			  });
 		}, 1000);
 		// VRMUtils.rotateVRM0(playerController);
-		const currentVrm = playerController;
-		const currentMixer = new AnimationMixer(currentVrm.scene);
+		const currentMixer = new AnimationMixer(playerController.scene);
 
 	
 		// need to dynamically do this on scroll
@@ -314,8 +312,8 @@ export default function Player(props) {
 		
 		function handleBlinking(delta) {
 			blinkTimer += delta;
-			if (blinkTimer > blinkInterval && currentVrm) {
-				performBlink(currentVrm);
+			if (blinkTimer > blinkInterval && playerController) {
+				performBlink(playerController);
 				blinkTimer = 0;
 				blinkInterval = getRandomBlinkInterval();
 			}
@@ -390,8 +388,8 @@ export default function Player(props) {
 			if (timeSinceLastUpdate >= 0.1) {
 				lastUpdateTime = currentTime;
 			}
-			if (currentVrm) {
-				currentVrm.update(delta);
+			if (playerController) {
+				playerController.update(delta);
 			}
 			if (currentMixer) {
 				currentMixer.update(delta);
@@ -549,7 +547,6 @@ export default function Player(props) {
 						//if moving, send a network event of where we are and our current state....animations probably need to go here too.
 						if (p2pcf) {
 							var target = new Vector3(); // create once an reuse it
-
 							var worldPosition = participantObject.getWorldPosition( target );
 							const position = [
 								worldPosition.x,
@@ -691,7 +688,7 @@ export default function Player(props) {
 
 
 		let animationFiles = [idleFile, walkingFile, runningFile];
-		let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, currentVrm));
+		let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, playerController));
 	
 		Promise.all(animationsPromises)
 			.then(animations => {

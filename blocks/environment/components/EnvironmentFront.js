@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Fog } from 'three/src/scenes/Fog'
 import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
-import { useLoader, useThree, useFrame, Canvas } from "@react-three/fiber";
+import { useLoader, useThree, useFrame, Canvas, extend } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
@@ -16,6 +16,9 @@ import ScrollableFeed from 'react-scrollable-feed'
 import { Resizable } from "re-resizable";
 import { Environment, useContextBridge } from "@react-three/drei";
 import { FrontPluginProvider, FrontPluginContext } from './FrontPluginProvider';  // Import the PluginProvider
+import { LumaSplatsThree } from "@lumaai/luma-web";
+// Make LumaSplatsThree available to R3F
+extend( { LumaSplats: LumaSplatsThree } );
 
 import {
 	useAnimations,
@@ -30,6 +33,7 @@ import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import TeleportTravel from "./TeleportTravel";
 import Player from "./Player";
 import defaultVRM from "../../../inc/avatars/3ov_default_avatar.vrm";
+import defaultGuest from "../../../inc/avatars/guest_default_avatar.vrm";
 import defaultEnvironment from "../../../inc/assets/default_grid.glb";
 import defaultFont from "../../../inc/fonts/roboto.woff";
 import { ItemBaseUI } from "@wordpress/components/build/navigation/styles/navigation-styles";
@@ -59,7 +63,7 @@ function isVRCompatible() {
 	const webGLSupported = typeof window.WebGLRenderingContext !== 'undefined';
   
 	return xrSupported && webGLSupported;
-  }
+}
   
 
 function Loading() {
@@ -462,7 +466,6 @@ function loadMixamoAnimation(url, vrm) {
 				}
 
 			}
-
 		});
 		return new THREE.AnimationClip('vrmAnimation', clip.duration, tracks);
 
@@ -476,6 +479,192 @@ function loadMixamoAnimation(url, vrm) {
  *
  * @return {JSX.Element} The participant.
  */
+function Participant(participant) {
+    const fallbackURL = threeObjectPlugin + defaultVRM;
+    const playerURL = userData.vrm ? userData.vrm : fallbackURL;
+		const clonedModelRef = useRef(null); // Ref for the cloned model
+
+    const [someVRM, setSomeVRM] = useState(null);
+    const theScene = useThree();
+    const mixers = useRef([]);
+
+    // Load the VRM model
+    useEffect(() => {
+        const loader = new GLTFLoader();
+        loader.register(parser => new VRMLoaderPlugin(parser));
+        loader.load(playerURL, gltf => {
+            setSomeVRM(gltf);
+        });
+    }, [playerURL]);
+
+    useEffect(() => {
+        if (someVRM?.userData?.gltfExtensions?.VRM) {
+            const playerController = someVRM.userData.vrm;
+			const fetchProfile = async (pfp, modelToModify) => {
+				console.log("modelToModify", modelToModify);
+
+				try {
+					const response = await fetch(pfp);
+					console.log("pfp", pfp, response);
+					if (response.status === 200) {
+						const textureLoader = new THREE.TextureLoader();
+						textureLoader.crossOrigin = ''; // Ensure cross-origin requests are allowed
+						textureLoader.load(pfp, (loadedProfile) => {
+							// Now we are sure the texture is loaded
+							if(modelToModify.isObject3D){
+								modelToModify.traverse((obj) => {
+									obj.frustumCulled = false;
+				
+									if (obj.name === "profile" && obj.material) {
+										console.log("profile", obj);
+										const newMat = obj.material.clone();
+										newMat.map = loadedProfile;
+										newMat.map.needsUpdate = true;
+										newMat.needsUpdate = true; // Update material
+										obj.material = newMat;
+									}
+								});	
+							}
+						});
+						return response;
+					}
+				} catch (err) {
+					// Handle the error properly or rethrow it to be caught elsewhere.
+					// console.error("Error fetching profile:", err);
+					// throw err;
+				}
+			};
+				
+            VRMUtils.rotateVRM0(playerController);
+            playerController.scene.rotation.y = 0;
+            playerController.scene.scale.set(1, 1, 1);
+
+
+            // Animation files
+            const idleFile = threeObjectPlugin + idle;
+            const walkingFile = threeObjectPlugin + walk;
+            const runningFile = threeObjectPlugin + run;
+			if(modelClone?.isObject3D){
+				// Load animations
+				let animationFiles = [idleFile, walkingFile, runningFile];
+				let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, playerController));
+
+				// Clone the model
+				const clonedModel = SkeletonUtils.clone(modelClone);
+				clonedModel.userData.vrm = clonedModel;
+
+				// Create animation mixer for the cloned model
+				const newMixer = new THREE.AnimationMixer(clonedModel);
+				mixers.current.push(newMixer);
+
+				Promise.all(animationsPromises).then(animations => {
+					const idleAction = newMixer.clipAction(animations[0]);
+					const walkingAction = newMixer.clipAction(animations[1]);
+					const runningAction = newMixer.clipAction(animations[2]);
+					console.log("newMixer", newMixer, idleAction, walkingAction, runningAction);
+					idleAction.timeScale = 1;
+					idleAction.play();
+				});
+				let isProfileFetched = false; // flag to check if profile has been fetched
+
+				participant.p2pcf.on("msg", (peer, data) => {
+					const finalData = new TextDecoder("utf-8").decode(data);
+					const participantData = JSON.parse(finalData);
+					// console.log("participantData", participantData[peer.client_id][2].profileImage[0]);
+					const participantObject = theScene.scene.getObjectByName(peer.client_id);
+					if (!isProfileFetched) {
+						isProfileFetched = true; // set the flag to true after first fetch
+
+						setTimeout(() => {
+							if( modelClone.isObject3D ){
+								fetchProfile(participantData[peer.client_id][2].profileImage[0], modelClone)
+								.then((response) => {
+									// handle the response here if needed
+								})
+								.catch((err) => {
+									// Handle the error here if needed
+								});
+							}
+						}, 1000);
+					}		
+					if (participantObject) {
+						participantObject.position.fromArray(participantData[peer.client_id][0].position);
+						participantObject.rotation.fromArray(participantData[peer.client_id][1].rotation);
+						
+					}
+				});
+			}
+            return () => {
+                // Cleanup function to stop and dispose mixers
+                mixers.current.forEach(mixer => mixer.stopAllAction());
+                mixers.current = [];
+            };
+        }
+    }, [someVRM, theScene, participant.p2pcf]);
+
+	useFrame((state, delta) => {
+		mixers.current.forEach(mixer => {
+			// Log each action in the mixer
+			// mixer._actions.forEach(action => {
+			// 	console.log(`Action: ${action._clip.name}, Is Running: ${action.isRunning()}, Effective Weight: ${action.getEffectiveWeight()}, Current Time: ${action.time}`);
+			// });
+
+			// Find and play the idle animation explicitly
+			const idleAction = mixer._actions.find(action => action._clip.name === 'idle');
+			if (idleAction && !idleAction.isRunning()) {
+				idleAction.reset().play();
+			}
+	
+			// Update the mixer
+			mixer.update(delta);
+		});
+	
+		if (someVRM?.userData?.vrm) {
+			someVRM.userData.vrm.update(delta);  // Update the VRM model
+		}
+		if (clonedModelRef?.current?.userData?.vrm) {
+			clonedModelRef.current.userData.vrm.update(delta);  // Update the cloned VRM model
+		}
+	});
+	
+    if (!someVRM || !someVRM.userData?.gltfExtensions?.VRM) {
+        return null;
+    }
+
+    const playerController = someVRM.userData.vrm;
+    const modelClone = SkeletonUtils.clone(playerController.scene);
+    modelClone.userData.vrm = playerController;
+
+    return (
+        <primitive name={participant.name} object={modelClone} />
+    );
+}
+
+
+function Participants(props) {
+    useEffect(() => {
+        const p2pcf = window.p2pcf;
+        if (p2pcf) {
+            p2pcf.on("peerconnect", (peer) => {
+                props.setParticipant(prevParticipants => {
+                    if (!prevParticipants.includes(peer.client_id)) {
+                        return [...prevParticipants, peer.client_id];
+                    } else {
+                        return prevParticipants;
+                    }
+                });
+            });
+        }
+    }, []);
+
+    return (
+        <>
+            {props.participants && props.participants.map((item, index) => (
+                <Participant key={index} name={item} p2pcf={p2pcf} />
+            ))}
+        </>
+    );
+}
 // function Participant(participant) {
 //     const fallbackURL = threeObjectPlugin + defaultVRM;
 //     const playerURL = userData.vrm ? userData.vrm : fallbackURL;
@@ -541,163 +730,6 @@ function loadMixamoAnimation(url, vrm) {
 //         </>
 //     );
 // }
-function Participant(participant) {
-
-	// Participant VRM.
-	const fallbackURL = threeObjectPlugin + defaultVRM;
-	console.log(fallbackURL, userData.vrm, userData );
-	const playerURL = userData.vrm ? userData.vrm : fallbackURL;
-
-	const someVRM = useLoader(GLTFLoader, playerURL, (loader) => {
-		loader.register((parser) => {
-			return new VRMLoaderPlugin(parser);
-		});
-	});
-
-	if (someVRM?.userData?.gltfExtensions?.VRM) {
-		const playerController = someVRM.userData.vrm;
-		VRMUtils.rotateVRM0(playerController);
-		const rotationVRM = playerController.scene.rotation.y;
-		playerController.scene.rotation.set(0, rotationVRM, 0);
-		playerController.scene.scale.set(1, 1, 1);
-
-		const theScene = useThree();
-
-		useEffect(() => {
-			participant.p2pcf.on("msg", (peer, data) => {
-				// console.log(peer, data);
-				const finalData = new TextDecoder("utf-8").decode(data);
-				const participantData = JSON.parse(finalData);
-				const participantObject = theScene.scene.getObjectByName(
-					peer.client_id
-				);
-				console.log(participantData);
-				if (participantObject) {
-					participantObject.position.set(
-						participantData[peer.client_id][0].position[0],
-						participantData[peer.client_id][0].position[1],
-						participantData[peer.client_id][0].position[2]
-					);
-					participantObject.rotation.set(
-						participantData[peer.client_id][1].rotation[0],
-						participantData[peer.client_id][1].rotation[1],
-						participantData[peer.client_id][1].rotation[2]
-					);
-				}
-			});
-		}, []);
-
-		const idleFile = threeObjectPlugin + idle;
-		const walkingFile	= threeObjectPlugin + walk;
-		const runningFile	= threeObjectPlugin + run;
-	
-		const currentMixer = new THREE.AnimationMixer(someVRM.userData.vrm.scene);
-
-		let animationFiles = [idleFile, walkingFile, runningFile];
-		let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, someVRM.userData.vrm));
-
-		const modelClone = SkeletonUtils.clone(someVRM.userData.vrm.scene);
-
-		modelClone.userData.vrm = someVRM.userData.vrm;
-		
-		modelClone.animations = playerController.scene.animations;
-
-		modelClone.visible = true;
-		const newMixer = new THREE.AnimationMixer(modelClone);
-
-		Promise.all(animationsPromises)
-			.then(animations => {
-			const idleAction = currentMixer.clipAction(animations[0]);
-			const walkingAction = currentMixer.clipAction(animations[1]);
-			const runningAction = currentMixer.clipAction(animations[2]);
-			idleAction.timeScale = 1;
-			walkingAction.timeScale = 1;
-			runningAction.timeScale = 1;
-	
-			// animationsRef.current = { idle: idleAction, walking: walkingAction, running: runningAction };
-			idleAction.play();
-			// if(modelClone?.animations && modelClone.animations.length > 0){
-			// 	const idleAction = newMixer.clipAction(modelClone.animations[0]);
-			// 	idleAction.play();	
-			// }
-			const newIdleAction = newMixer.clipAction(animations[0]);
-			const newWalkingAction = newMixer.clipAction(animations[1]);
-			const newRunningAction = newMixer.clipAction(animations[2]);
-			newIdleAction.timeScale = 1;
-			newWalkingAction.timeScale = 1;
-			newRunningAction.timeScale = 1;
-			newIdleAction.play();
-			// modelClone.animations = playerController.scene.animations;
-
-			console.log("newMixer", newMixer);
-			console.log("currentMixer done", currentMixer);
-			console.log("modelClone done", modelClone);
-			console.log("playerController", playerController);
-			console.log("animations", modelClone.animations);
-		});
-
-
-		useEffect(() => {
-		}, []);
-
-		// In your animation loop (useFrame)
-		useFrame((state, delta) => {
-			if (newMixer) {
-				newMixer.update(delta);
-			}
-			if (modelClone?.userData?.vrm) {
-				modelClone.userData.vrm.update(delta);
-			}
-		});
-
-		return (
-			<>
-				{playerController && modelClone?.userData && (
-					<primitive name={participant.name} object={modelClone} />
-				)}
-			</>
-		);
-	}
-}
-
-function Participants(props) {
-
-	useEffect(() => {
-		const p2pcf = window.p2pcf;
-		if (p2pcf) {
-			p2pcf.on("peerconnect", (peer) => {
-				// console.log("connected peer", peer);
-				// add peer.client_id to participants
-				props.setParticipant(prevParticipants => {
-					// Make sure the new participant is not already in the list
-					if (!prevParticipants.includes(peer.client_id)) {
-						return [...prevParticipants, peer.client_id];
-					} else {
-						return prevParticipants;
-					}
-				});
-			});
-		}
-	}, []);
-
-	return (
-		<>
-			{props.participants &&
-				props.participants.map((item, index) => {
-					return (
-						<>
-							<Participant
-								key={index}
-								name={item}
-								p2pcf={p2pcf}
-							/>
-						</>
-					);
-				})}
-		</>
-	);	
-
-}
 
 /**
  * Represents a saved object in a virtual reality world.
@@ -707,6 +739,11 @@ function Participants(props) {
  * @return {JSX.Element} The saved object.
  */
 function SavedObject(props) {
+
+	useThree(({ camera, scene }) => {
+		window.scene = scene;
+		window.camera = camera;
+	});
 
 	const meshRef = useRef();
 	const [url, set] = useState(props.url);

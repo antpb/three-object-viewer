@@ -63,7 +63,7 @@ module.exports = {
 			...defaultConfig.module.rules,
 			{
 				test: /\.js$/,
-				exclude: /node_modules\/(?!chess\.js)/,
+				exclude: /node_modules\/(?!chess\.js|@lumaai\/luma-web)/,
 				use: 'babel-loader'
 			},
 			{

@@ -118,8 +118,11 @@ include_once dirname( __FILE__ ) . '/blocks/sky-block/init.php';
 // Include image
 include_once dirname( __FILE__ ) . '/blocks/three-image-block/init.php';
 
-// Include image
+// Include video
 include_once dirname( __FILE__ ) . '/blocks/three-video-block/init.php';
+
+// Include Networking
+include_once dirname( __FILE__ ) . '/blocks/three-networking-block/init.php';
 
 // Include audio
 include_once dirname( __FILE__ ) . '/blocks/three-audio-block/init.php';

@@ -40,6 +40,7 @@ class Plugin
 			wp_set_script_translations( 'three-object-viewer-sky-block-editor-script', 'three-object-viewer', $language_directory );
 			wp_set_script_translations( 'three-object-viewer-three-image-block-editor-script', 'three-object-viewer', $language_directory );
 			wp_set_script_translations( 'three-object-viewer-three-video-block-editor-script', 'three-object-viewer', $language_directory );
+			wp_set_script_translations( 'three-object-viewer-three-networking-block-editor-script', 'three-object-viewer', $language_directory );
 			wp_set_script_translations( 'three-object-viewer-spawn-point-block-editor-script', 'three-object-viewer', $language_directory );
 			wp_set_script_translations( 'three-object-viewer-environment-editor-script', 'three-object-viewer', $language_directory );
 		}
@@ -403,10 +404,10 @@ class Plugin
 							'three-object-viewer/npc-block',
 							'three-object-viewer/three-image-block',
 							'three-object-viewer/three-video-block',
-							'three-object-viewer/spawn-point-block' 
+							'three-object-viewer/spawn-point-block',
+							'three-object-viewer/three-networking-block'
 		];
-		// if in the directory above this one a folder named "pro" exists, add "three-mirror-block" to the array
-		// use the threeobjectviewer_is_pro function to check if pro
+
 		if ($this->threeobjectviewer_is_pro()) {
 			$PRO_BLOCKS = [
 				'three-object-viewer/three-mirror-block',
