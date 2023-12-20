@@ -482,8 +482,9 @@ function loadMixamoAnimation(url, vrm) {
 function Participant(participant) {
     const fallbackURL = threeObjectPlugin + defaultVRM;
     const playerURL = userData.vrm ? userData.vrm : fallbackURL;
-		const clonedModelRef = useRef(null); // Ref for the cloned model
-
+	const clonedModelRef = useRef(null); // Ref for the cloned model
+    const animationMixerRef = useRef(null); // Ref for the animation mixer of this participant
+	const animationsRef = useRef(null); // Ref to store animations
     const [someVRM, setSomeVRM] = useState(null);
     const theScene = useThree();
     const mixers = useRef([]);
@@ -544,56 +545,70 @@ function Participant(participant) {
             const idleFile = threeObjectPlugin + idle;
             const walkingFile = threeObjectPlugin + walk;
             const runningFile = threeObjectPlugin + run;
-			if(modelClone?.isObject3D){
-				// Load animations
-				let animationFiles = [idleFile, walkingFile, runningFile];
-				let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, playerController));
+			// Load animations
+			let animationFiles = [idleFile, walkingFile, runningFile];
+			let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, playerController));
 
-				// Clone the model
-				const clonedModel = SkeletonUtils.clone(modelClone);
-				clonedModel.userData.vrm = clonedModel;
+			// Clone the model
+			// const clonedModel = SkeletonUtils.clone(playerController.scene);
+			// clonedModel.userData.vrm = clonedModel;
 
-				// Create animation mixer for the cloned model
-				const newMixer = new THREE.AnimationMixer(clonedModel);
-				mixers.current.push(newMixer);
+			// Create animation mixer for the cloned model
+			const newMixer = new THREE.AnimationMixer(playerController.scene);
+			animationMixerRef.current = newMixer;
+			mixers.current.push(animationMixerRef.current);
 
-				Promise.all(animationsPromises).then(animations => {
-					const idleAction = newMixer.clipAction(animations[0]);
-					const walkingAction = newMixer.clipAction(animations[1]);
-					const runningAction = newMixer.clipAction(animations[2]);
-					console.log("newMixer", newMixer, idleAction, walkingAction, runningAction);
-					idleAction.timeScale = 1;
-					idleAction.play();
-				});
-				let isProfileFetched = false; // flag to check if profile has been fetched
+			Promise.all(animationsPromises).then(animations => {
+				animationsRef.current = animations; // Store animations in ref
 
-				participant.p2pcf.on("msg", (peer, data) => {
-					const finalData = new TextDecoder("utf-8").decode(data);
-					const participantData = JSON.parse(finalData);
-					// console.log("participantData", participantData[peer.client_id][2].profileImage[0]);
-					const participantObject = theScene.scene.getObjectByName(peer.client_id);
-					if (!isProfileFetched) {
-						isProfileFetched = true; // set the flag to true after first fetch
+				const idleAction = animationMixerRef.current.clipAction(animations[0]);
+				const walkingAction = animationMixerRef.current.clipAction(animations[1]);
+				const runningAction = animationMixerRef.current.clipAction(animations[2]);
+				console.log("animationmixer", animationMixerRef.current, idleAction, walkingAction, runningAction);
+				idleAction.timeScale = 1;
+				idleAction.play();
+			});
+			let isProfileFetched = false; // flag to check if profile has been fetched
 
-						setTimeout(() => {
-							if( modelClone.isObject3D ){
-								fetchProfile(participantData[peer.client_id][2].profileImage[0], modelClone)
-								.then((response) => {
-									// handle the response here if needed
-								})
-								.catch((err) => {
-									// Handle the error here if needed
-								});
-							}
-						}, 1000);
-					}		
-					if (participantObject) {
-						participantObject.position.fromArray(participantData[peer.client_id][0].position);
-						participantObject.rotation.fromArray(participantData[peer.client_id][1].rotation);
-						
+			participant.p2pcf.on("msg", (peer, data) => {
+				const finalData = new TextDecoder("utf-8").decode(data);
+				const participantData = JSON.parse(finalData);
+				// console.log("participantData", participantData[peer.client_id][2].profileImage[0]);
+				const participantObject = theScene.scene.getObjectByName(peer.client_id);
+				if (!isProfileFetched) {
+					isProfileFetched = true; // set the flag to true after first fetch
+
+					// setTimeout(() => {
+					// 	if( modelClone.isObject3D ){
+					// 		fetchProfile(participantData[peer.client_id][2].profileImage[0], modelClone)
+					// 		.then((response) => {
+					// 			// handle the response here if needed
+					// 		})
+					// 		.catch((err) => {
+					// 			// Handle the error here if needed
+					// 		});
+					// 	}
+					// }, 1000);
+				}		
+				if (participantObject) {
+					if (animationsRef.current) {
+						const walkAction = animationMixerRef.current.clipAction(animationsRef.current[1]); // Walking animation
+						const idleAction = animationMixerRef.current.clipAction(animationsRef.current[0]); // Idle animation
+			
+						if (participantData[peer.client_id].isMoving) {
+							walkAction.play();
+							idleAction.stop();
+						} else {
+							idleAction.play();
+							walkAction.stop();
+						}
 					}
-				});
-			}
+					if(participantData[peer.client_id]?.position){
+						participantObject.position.fromArray(participantData[peer.client_id].position);
+						participantObject.rotation.fromArray(participantData[peer.client_id].rotation);
+					}
+				}
+			});
             return () => {
                 // Cleanup function to stop and dispose mixers
                 mixers.current.forEach(mixer => mixer.stopAllAction());
@@ -614,7 +629,7 @@ function Participant(participant) {
 			if (idleAction && !idleAction.isRunning()) {
 				idleAction.reset().play();
 			}
-	
+
 			// Update the mixer
 			mixer.update(delta);
 		});
@@ -636,7 +651,7 @@ function Participant(participant) {
     modelClone.userData.vrm = playerController;
 
     return (
-        <primitive name={participant.name} object={modelClone} />
+        <primitive name={participant.name} object={playerController.scene} />
     );
 }
 

@@ -364,12 +364,14 @@ export default function Player(props) {
 		
 		
 		let cameraTargetPosition = new Vector3();
+		const movementTimeoutRef = useRef(null);
 
 		// frame loop
 		useFrame((state, delta) => {
 			handleBlinking(delta);
 
 			let isMoving = false;
+
 			const currentTime = state.clock.elapsedTime;
 			const timeSinceLastUpdate = currentTime - lastUpdateTime;
 			let rigidBodyPosition = [0, 0, 0]
@@ -506,7 +508,7 @@ export default function Player(props) {
 			if (animationsRef.current) {
 				const { idle, walking, running } = animationsRef.current;
 
-				if (isMoving) {
+				if (isMoving) {			
 					// If moving, but idle animation is playing, stop it and play walking animation
 					// if (idle.isRunning()) {
 						// blend from idle to walking
@@ -546,6 +548,7 @@ export default function Player(props) {
 
 						//if moving, send a network event of where we are and our current state....animations probably need to go here too.
 						if (p2pcf) {
+							
 							var target = new Vector3(); // create once an reuse it
 							var worldPosition = participantObject.getWorldPosition( target );
 							const position = [
@@ -560,14 +563,27 @@ export default function Player(props) {
 								participantObject.rotation.y,
 								participantObject.rotation.z
 							];
-							const message =
-								`{ "${p2pcf.clientId}": [{ "position" : [` +
-								position +
-								`]},{ "rotation" : [` +
-								rotation +
-								`]},{ "profileImage" : ["` +
-								userData.profileImage +
-								`"]}]}`;
+							const messageObject = {
+								[p2pcf.clientId]: {
+									position: position,
+									rotation: rotation,
+									profileImage: userData.profileImage,
+									isMoving: true
+								}
+							};
+							clearTimeout(movementTimeoutRef.current);
+							movementTimeoutRef.current = setTimeout(() => {
+								// Send "isMoving: false" message here
+								const messageStopObject = {
+									[p2pcf.clientId]: {
+										isMoving: false
+									}
+								};
+								const messageStop = JSON.stringify(messageStopObject);
+								p2pcf.broadcast(new TextEncoder().encode(messageStop));
+							}, 100);
+
+							const message = JSON.stringify(messageObject);
 							p2pcf.broadcast(new TextEncoder().encode(message));
 						}
 			
