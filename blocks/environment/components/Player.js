@@ -197,7 +197,7 @@ function loadMixamoAnimation(url, vrm) {
 }
 
 export default function Player(props) {
-	const p2pcf = window.p2pcf;
+	const p2pcf = props.p2pcf;
 
 	const canMoveRef = useRef(true);
 	const falling = useRef(true);
@@ -547,8 +547,7 @@ export default function Player(props) {
 						}
 
 						//if moving, send a network event of where we are and our current state....animations probably need to go here too.
-						if (p2pcf) {
-							
+						if (p2pcf) {	
 							var target = new Vector3(); // create once an reuse it
 							var worldPosition = participantObject.getWorldPosition( target );
 							const position = [
@@ -568,9 +567,12 @@ export default function Player(props) {
 									position: position,
 									rotation: rotation,
 									profileImage: userData.profileImage,
+									vrm: userData.vrm,
+									inWorldName: userData.inWorldName,
 									isMoving: true
 								}
 							};
+							console.log("userdata", userData);
 							clearTimeout(movementTimeoutRef.current);
 							movementTimeoutRef.current = setTimeout(() => {
 								// Send "isMoving: false" message here
@@ -584,7 +586,7 @@ export default function Player(props) {
 							}, 100);
 
 							const message = JSON.stringify(messageObject);
-							p2pcf.broadcast(new TextEncoder().encode(message));
+							p2pcf.broadcast(new TextEncoder().encode(message)), p2pcf;
 						}
 			
 					// }

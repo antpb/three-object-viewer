@@ -14,8 +14,9 @@ import axios from "axios";
 import ReactNipple from 'react-nipple';
 import ScrollableFeed from 'react-scrollable-feed'
 import { Resizable } from "re-resizable";
-import { Environment, useContextBridge } from "@react-three/drei";
+import { Environment, useContextBridge, Text, Billboard } from "@react-three/drei";
 import { FrontPluginProvider, FrontPluginContext } from './FrontPluginProvider';  // Import the PluginProvider
+import Networking from "./Networking";
 import { LumaSplatsThree } from "@lumaai/luma-web";
 // Make LumaSplatsThree available to R3F
 extend( { LumaSplats: LumaSplatsThree } );
@@ -480,27 +481,27 @@ function loadMixamoAnimation(url, vrm) {
  * @return {JSX.Element} The participant.
  */
 function Participant(participant) {
-    const fallbackURL = threeObjectPlugin + defaultVRM;
-    const playerURL = userData.vrm ? userData.vrm : fallbackURL;
+	const fallbackURL = threeObjectPlugin + defaultVRM;
+	const playerURL = userData.vrm ? userData.vrm : fallbackURL;
 	const clonedModelRef = useRef(null); // Ref for the cloned model
-    const animationMixerRef = useRef(null); // Ref for the animation mixer of this participant
+	const animationMixerRef = useRef(null); // Ref for the animation mixer of this participant
 	const animationsRef = useRef(null); // Ref to store animations
-    const [someVRM, setSomeVRM] = useState(null);
-    const theScene = useThree();
-    const mixers = useRef([]);
+	const [someVRM, setSomeVRM] = useState(null);
+	const theScene = useThree();
+	const mixers = useRef([]);
+	const displayNameTextRef = useRef(null);
+	// Load the VRM model
+	useEffect(() => {
+		const loader = new GLTFLoader();
+		loader.register(parser => new VRMLoaderPlugin(parser));
+		loader.load(playerURL, gltf => {
+			setSomeVRM(gltf);
+		});
+	}, [playerURL]);
 
-    // Load the VRM model
-    useEffect(() => {
-        const loader = new GLTFLoader();
-        loader.register(parser => new VRMLoaderPlugin(parser));
-        loader.load(playerURL, gltf => {
-            setSomeVRM(gltf);
-        });
-    }, [playerURL]);
-
-    useEffect(() => {
-        if (someVRM?.userData?.gltfExtensions?.VRM) {
-            const playerController = someVRM.userData.vrm;
+	useEffect(() => {
+		if (someVRM?.userData?.gltfExtensions?.VRM) {
+			const playerController = someVRM.userData.vrm;
 			const fetchProfile = async (pfp, modelToModify) => {
 				console.log("modelToModify", modelToModify);
 
@@ -521,7 +522,7 @@ function Participant(participant) {
 										const newMat = obj.material.clone();
 										newMat.map = loadedProfile;
 										newMat.map.needsUpdate = true;
-										newMat.needsUpdate = true; // Update material
+										newMat.needsUpdate = true;
 										obj.material = newMat;
 									}
 								});	
@@ -535,16 +536,47 @@ function Participant(participant) {
 					// throw err;
 				}
 			};
-				
-            VRMUtils.rotateVRM0(playerController);
-            playerController.scene.rotation.y = 0;
-            playerController.scene.scale.set(1, 1, 1);
+
+			const fetchProfilePlane = async (pfp, modelToModify) => {
+				console.log("fetchProfilePlane", pfp);
+
+				try {
+					const response = await fetch(pfp);
+					console.log("fetch in plane try", pfp, response);
+					if (response.status === 200) {
+						const textureLoader = new THREE.TextureLoader();
+						textureLoader.crossOrigin = ''; // Ensure cross-origin requests are allowed
+						textureLoader.load(pfp, (loadedProfile) => {
+								// Now we are sure the texture is loaded
+								if(modelToModify.isObject3D){
+									modelToModify.frustumCulled = false;				
+									console.log("traversed", modelToModify);
+									const newMat = modelToModify.material.clone();
+									newMat.map = loadedProfile;
+									newMat.map.needsUpdate = true;
+									newMat.needsUpdate = true;
+									modelToModify.material = newMat;
+								}	
+							}
+						);
+						return response;
+					}
+				} catch (err) {
+					// Handle the error properly or rethrow it to be caught elsewhere.
+					// console.error("Error fetching profile:", err);
+					// throw err;
+				}
+			};
+
+			VRMUtils.rotateVRM0(playerController);
+			playerController.scene.rotation.y = 0;
+			playerController.scene.scale.set(1, 1, 1);
 
 
-            // Animation files
-            const idleFile = threeObjectPlugin + idle;
-            const walkingFile = threeObjectPlugin + walk;
-            const runningFile = threeObjectPlugin + run;
+			// Animation files
+			const idleFile = threeObjectPlugin + idle;
+			const walkingFile = threeObjectPlugin + walk;
+			const runningFile = threeObjectPlugin + run;
 			// Load animations
 			let animationFiles = [idleFile, walkingFile, runningFile];
 			let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, playerController));
@@ -569,15 +601,14 @@ function Participant(participant) {
 				idleAction.play();
 			});
 			let isProfileFetched = false; // flag to check if profile has been fetched
-
-			participant.p2pcf.on("msg", (peer, data) => {
+			window.p2pcf.on("msg", (peer, data) => {
 				const finalData = new TextDecoder("utf-8").decode(data);
 				const participantData = JSON.parse(finalData);
 				// console.log("participantData", participantData[peer.client_id][2].profileImage[0]);
 				const participantObject = theScene.scene.getObjectByName(peer.client_id);
+				// console.log(participantData[peer.client_id].vrm);
 				if (!isProfileFetched) {
 					isProfileFetched = true; // set the flag to true after first fetch
-
 					// setTimeout(() => {
 					// 	if( modelClone.isObject3D ){
 					// 		fetchProfile(participantData[peer.client_id][2].profileImage[0], modelClone)
@@ -589,7 +620,34 @@ function Participant(participant) {
 					// 		});
 					// 	}
 					// }, 1000);
-				}		
+					setTimeout(() => {
+						if( modelClone.isObject3D ){
+							const displayNamePfp = participantObject.parent.parent.getObjectByName("displayNamePfp");
+							// console.log(participantData[peer.client_id]);
+							// fetch profile image and apply it to the material
+							fetchProfilePlane(participantData[peer.client_id].profileImage, displayNamePfp)
+							.then((response) => {
+								// handle the response here if needed
+							})
+							.catch((err) => {
+								// Handle the error here if needed
+							});
+						}
+					}, 1000);
+					setTimeout(() => {
+						if( modelClone.isObject3D ){
+							console.log("timeout finished here is", participantData[peer.client_id]);
+							// fetch profile image and apply it to the material
+							// fetchProfilePlane(participantData[peer.client_id].profileImage, displayNamePfp)
+							// .then((response) => {
+							// 	// handle the response here if needed
+							// })
+							// .catch((err) => {
+							// 	// Handle the error here if needed
+							// });
+						}
+					}, 1000);
+				}
 				if (participantObject) {
 					if (animationsRef.current) {
 						const walkAction = animationMixerRef.current.clipAction(animationsRef.current[1]); // Walking animation
@@ -604,18 +662,32 @@ function Participant(participant) {
 						}
 					}
 					if(participantData[peer.client_id]?.position){
-						participantObject.position.fromArray(participantData[peer.client_id].position);
-						participantObject.rotation.fromArray(participantData[peer.client_id].rotation);
+						participantObject.parent.position.fromArray(participantData[peer.client_id].position);
+						participantObject.parent.rotation.fromArray(participantData[peer.client_id].rotation);
+					}
+					if(participantData[peer.client_id]?.inWorldName && participantData[peer.client_id]?.inWorldName !== displayNameTextRef.current.text){
+						console.log("should only hit once", participantData[peer.client_id]);
+						// if the name is long make the background longer
+						if(participantData[peer.client_id].inWorldName.length > 8){
+							const displayNameBackground = participantObject.parent.parent.getObjectByName("displayNameBackground");
+							displayNameBackground.geometry = new THREE.PlaneGeometry(0.35, 0.07);
+							displayNameBackground.position.x = -0.005;
+							if(participantData[peer.client_id].inWorldName.length > 18){
+								displayNameTextRef.current.fontSize = 0.028;
+							}
+						}
+						displayNameTextRef.current.text = participantData[peer.client_id].inWorldName;
+						displayNameTextRef.current.textAlign = "left";
 					}
 				}
 			});
-            return () => {
-                // Cleanup function to stop and dispose mixers
-                mixers.current.forEach(mixer => mixer.stopAllAction());
-                mixers.current = [];
-            };
-        }
-    }, [someVRM, theScene, participant.p2pcf]);
+			return () => {
+				// Cleanup function to stop and dispose mixers
+				mixers.current.forEach(mixer => mixer.stopAllAction());
+				mixers.current = [];
+			};
+		}
+	}, [someVRM, theScene, participant.p2pcf]);
 
 	useFrame((state, delta) => {
 		mixers.current.forEach(mixer => {
@@ -642,44 +714,94 @@ function Participant(participant) {
 		}
 	});
 	
-    if (!someVRM || !someVRM.userData?.gltfExtensions?.VRM) {
-        return null;
-    }
+	if (!someVRM || !someVRM.userData?.gltfExtensions?.VRM) {
+		return null;
+	}
 
-    const playerController = someVRM.userData.vrm;
-    const modelClone = SkeletonUtils.clone(playerController.scene);
-    modelClone.userData.vrm = playerController;
+	const playerController = someVRM.userData.vrm;
+	const modelClone = SkeletonUtils.clone(playerController.scene);
+	modelClone.userData.vrm = playerController;
 
-    return (
-        <primitive name={participant.name} object={playerController.scene} />
-    );
+	//calculate the height of the avatar to be used in the Text component position below
+	const box = new THREE.Box3().setFromObject(modelClone);
+	const height = (box.max.y - box.min.y) + 0.1;
+	console.log("height", height);
+
+	return (
+		<group>
+			<group>
+				<mesh
+					visible={true}
+					position={[0.22, height, 0.005]}
+					rotation-y={-Math.PI}
+					geometry={new THREE.PlaneGeometry(0.1, 0.1)}
+					name="displayNamePfp"
+				>
+					<meshPhongMaterial side={THREE.DoubleSide} shininess={0} />
+				</mesh>
+				<mesh
+					visible={true}
+					position={[0.045, height, 0.005]}
+					rotation-y={-Math.PI}
+					geometry={new THREE.PlaneGeometry(0.25, 0.07)}
+					name="displayNameBackground"
+				>
+					<meshPhongMaterial side={THREE.DoubleSide} shininess={0} color={0x000000} />
+				</mesh>
+					<Text
+						font={threeObjectPlugin + defaultFont}
+						anchorX="left"
+						overflowWrap="break-word"
+						// whiteSpace="nowrap"
+						// anchorY="middle"				  
+						ref={displayNameTextRef}
+						className="content"
+						scale={[1, 1, 1]}
+						fontSize={0.04}
+						rotation-y={-Math.PI}
+						width={0.5}
+						maxWidth={0.5}
+						height={10}
+						position={[0.15, (height - 0.005), 0]}
+						// color={model.textColor}
+						transform
+					>
+						{participant.name}
+					</Text>
+			</group>
+			<primitive name={participant.name} object={playerController.scene} />
+		</group>
+	);
 }
 
 
 function Participants(props) {
-    useEffect(() => {
-        const p2pcf = window.p2pcf;
-        if (p2pcf) {
-            p2pcf.on("peerconnect", (peer) => {
-                props.setParticipant(prevParticipants => {
-                    if (!prevParticipants.includes(peer.client_id)) {
-                        return [...prevParticipants, peer.client_id];
-                    } else {
-                        return prevParticipants;
-                    }
-                });
-            });
-        }
-    }, []);
+	useEffect(() => {
+		const p2pcf = window.p2pcf;
+		if (p2pcf) {
+			p2pcf.on("peerconnect", (peer) => {
+				// emit the peer id to all other peers
+				props.setParticipant(prevParticipants => {
+					if (!prevParticipants.includes(peer.client_id)) {
+						return [...prevParticipants, peer.client_id];
+					} else {
+						return prevParticipants;
+					}
+				});
+			});
+		}
+	}, []);
 
-    return (
-        <>
-            {props.participants && props.participants.map((item, index) => (
-                <Participant key={index} name={item} p2pcf={p2pcf} />
-            ))}
-        </>
-    );
+	return (
+		<>
+			{props.participants && props.participants.map((item, index) => (
+				<Participant key={index} name={item} p2pcf={p2pcf} />
+			))}
+		</>
+	);
 }
+
+
 // function Participant(participant) {
 //     const fallbackURL = threeObjectPlugin + defaultVRM;
 //     const playerURL = userData.vrm ? userData.vrm : fallbackURL;
@@ -976,8 +1098,8 @@ function SavedObject(props) {
 export default function EnvironmentFront(props) {
 
 	const [participants, setParticipant] = useState([]);
-
 	const [showUI, setShowUI] = useState(true);
+	const [displayName, setDisplayName] = useState(props.userData.inWorldName);
 	const canvasRef = useRef(null);
 
 	// let string = '{\"spell\":\"complexQuery\",\"outputs\":{\"Output\":\"{\\\"message\\\": \\\" Hi there! How can I help you?\\\",\\\"tone\\\": \\\"friendly\\\"}\"},\"state\":{}}';
@@ -996,12 +1118,17 @@ export default function EnvironmentFront(props) {
 	const [url, setURL] = useState(props.threeUrl ? props.threeUrl : (threeObjectPlugin + defaultEnvironment));
 
 	if (loaded === true) {
+		// emit javascript event "loaded"
+		const event = new Event("loaded");
+		window.dispatchEvent(event);
 		const elements = document.body.getElementsByTagName('*');
 		const webXRNotAvail = Array.from(elements).find((el) => el.textContent === 'WEBXR NOT AVAILABLE');
 		if (webXRNotAvail) {
 			webXRNotAvail.style.display = "none";
 		}
-		
+		props.userData.inWorldName = displayName;
+		window.userData = props.userData;
+
 		if (props.deviceTarget === "vr") {
 			return (
 				<>
@@ -1058,6 +1185,7 @@ export default function EnvironmentFront(props) {
 													spawnPointsToAdd={spawnPoints}
 													spawnPoint={props.spawnPoint}
 													setShowUI={setShowUI}
+													p2pcf={window.p2pcf}
 													defaultAvatar={defaultAvatar}
 													movement={movement}
 												/>
@@ -2390,19 +2518,25 @@ export default function EnvironmentFront(props) {
 					width: "100%",
 					padding: "0",
 					alignItems: "center",
-					justifyContent: "center"
+					justifyContent: "center",
+					display: "flex",
 				}}
 			>
 				<div
+					className={"threeov-entry-flow"}
 					style={{
-						height: "20px",
+						height: "200px",
 						width: "200px",
 						position: "relative",
-						top: "50%",
-						left: "50%",
-						padding: "0"
+						padding: "10px"
 					}}
 				>
+					{ ( props.networkingBlock.length > 0 ) && (
+						<div>
+							<span>Display Name</span>
+							<input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+						</div>
+					)}
 					<button
 						class="threeov-load-world-button"
 						onClick={() => {

@@ -1,4 +1,6 @@
 import P2PCF from "./p2pcf/p2pcf.js";
+import React, { useEffect, useMemo } from "react";
+
 
 const Networking = (props) => {
 	if (!document.location.hash) {
@@ -80,46 +82,40 @@ const Networking = (props) => {
 		);
 	});
 
-	const go = () => {
-		document.getElementById("session-id").innerText =
+	useEffect(() => {
+		const go = () => {
+			document.getElementById("session-id").innerText =
 			p2pcf.sessionId.substring(0, 5) + "@" + p2pcf.roomId + ":";
 
-		// document.getElementById('send-button').addEventListener('click', () => {
-		//     const box = document.getElementById('send-box');
-		//     addMessage(p2pcf.sessionId.substring(0, 5) + ': ' + box.value);
-		//     p2pcf.broadcast(new TextEncoder().encode(box.value));
-		//     box.value = '';
-		// })
+			// document.getElementById('send-button').addEventListener('click', () => {
+			//     const box = document.getElementById('send-box');
+			//     addMessage(p2pcf.sessionId.substring(0, 5) + ': ' + box.value);
+			//     p2pcf.broadcast(new TextEncoder().encode(box.value));
+			//     box.value = '';
+			// })
 
-		document
-			.getElementById("audio-button")
-			.addEventListener("click", async () => {
-				stream = await navigator.mediaDevices.getUserMedia({
-					audio: true
+			document
+				.getElementById("audio-button")
+				.addEventListener("click", async () => {
+					stream = await navigator.mediaDevices.getUserMedia({
+						audio: true
+					});
+
+					for (const peer of p2pcf.peers.values()) {
+						peer.addStream(stream);
+					}
 				});
 
-				for (const peer of p2pcf.peers.values()) {
-					peer.addStream(stream);
-				}
-			});
+			p2pcf.start();
+		};
+		// listen for a "loaded" javascript event
+		window.addEventListener("loaded", (event) => {
+			go();
+		});
+		
+		// go();
 
-		p2pcf.start();
-	};
-	if (
-		document.readyState === "complete" ||
-		document.readyState === "interactive"
-	) {
-		document
-			.getElementById("join-button")
-			.addEventListener("click", async () => {
-				window.addEventListener("DOMContentLoaded", audio, {
-					once: true
-				});
-				// window.addEventListener('DOMContentLoaded', go, { once: true })
-			});
-	} else {
-		window.addEventListener("DOMContentLoaded", go, { once: true });
-	}
+	}, []);
 
 	return <></>;
 };

@@ -107,16 +107,15 @@ threeApp.forEach((threeApp) => {
 		const animations = threeApp.querySelector("p.three-object-animations")
 			? threeApp.querySelector("p.three-object-animations").innerText
 			: "";
-
 		render(
 			<>
 				{ ( networkingBlock.length > 0 ) && (
 					<>
 						<div id="networking" style={{position: "absolute", top: 50, zIndex: 100}}>
 							<div id="session-id"></div>
-							<p>Peers</p>
+							{/* <p>Peers</p> */}
 							<div id="peers"></div>
-							<p>Messages</p>
+							{/* <p>Messages</p> */}
 							<div id="messages" style={{display: "none"}}></div>
 							<button class="button" id="audio-button">Connect Audio</button>
 							<div id="videos"></div>
@@ -142,6 +141,7 @@ threeApp.forEach((threeApp) => {
 						userData={userData}
 						postSlug={postSlug}
 						defaultAvatarAnimation={defaultAvatarAnimation}
+						networkingBlock={networkingBlock}
 						modelsToAdd={modelsToAdd}
 						portalsToAdd={portalsToAdd}
 						imagesToAdd={imagesToAdd}

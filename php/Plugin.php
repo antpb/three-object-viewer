@@ -20,7 +20,58 @@ class Plugin
 		add_action( 'enqueue_block_editor_assets', array( $this, 'load_three_object_viewer_translations_blocks' ) );
 		add_action( 'init', array( $this, 'load_three_object_viewer_textdomain' ) );
 
+		// Add new actions for user profile fields and saving
+		add_action('show_user_profile', array($this, 'add_custom_user_profile_fields'));
+		add_action('edit_user_profile', array($this, 'add_custom_user_profile_fields'));
+		add_action('personal_options_update', array($this, 'save_custom_user_profile_fields'));
+		add_action('edit_user_profile_update', array($this, 'save_custom_user_profile_fields'));
+		
     }
+
+	    // New function to add custom field to user profiles
+		public function add_custom_user_profile_fields($user) {
+			?>
+			<h3><?php _e("Extra Profile Information", "blank"); ?></h3>
+			<table class="form-table">
+				<tr>
+					<th>
+						<label for="user_data_vrm"><?php _e("VRM File URL"); ?></label>
+					</th>
+					<td>
+						<input type="text" name="user_data_vrm" id="user_data_vrm" value="<?php echo esc_attr(get_the_author_meta('user_data_vrm', $user->ID)); ?>" class="regular-text" />
+						<input type="button" class="button" value="Select or Upload VRM File" id="upload_vrm_button" />
+						<p class="description"><?php _e("Please upload or select your VRM file."); ?></p>
+					</td>
+				</tr>
+			</table>
+			<script type="text/javascript">
+			jQuery(document).ready(function($) {
+				$('#upload_vrm_button').click(function(e) {
+					e.preventDefault();
+					var custom_uploader = wp.media({
+						title: 'Select VRM File',
+						button: {
+							text: 'Use this file'
+						},
+						multiple: false  // Set this to true to allow multiple files to be selected
+					}).on('select', function() {
+						var attachment = custom_uploader.state().get('selection').first().toJSON();
+						$('#user_data_vrm').val(attachment.url);
+					})
+					.open();
+				});
+			});
+			</script>
+			<?php
+		}
+	
+		// New function to save custom field value
+		public function save_custom_user_profile_fields($user_id) {
+			if (!current_user_can('edit_user', $user_id)) {
+				return false;
+			}
+			update_user_meta($user_id, 'user_data_vrm', $_POST['user_data_vrm']);
+		}
 
 	function load_three_object_viewer_textdomain() {
 		load_plugin_textdomain( 'three-object-viewer', false, dirname(dirname(plugin_basename(__FILE__))) . '/languages' );
@@ -145,21 +196,29 @@ class Plugin
 		$frontend_js = apply_filters( 'three-object-environment-frontend-js', $default_frontend_js );
 	
 		$current_user = wp_get_current_user();
-		// $vrm = wp_get_attachment_url($current_user->avatar);
-		$vrm = get_option('3ov_defaultAvatar');
+        $current_user = wp_get_current_user();
+        $vrm = get_user_meta($current_user->ID, 'user_data_vrm', true) ?: get_option('3ov_defaultAvatar');
+		// $vrm = get_option('3ov_defaultAvatar');
+		$inWorldName = "Guest";
 		if ( is_user_logged_in() && get_option('3ov_ai_allow') === "loggedIn" ) {
+			if($current_user->display_name){
+				$inWorldName = $current_user->display_name;
+			}
 			$user_data_passed = array(
 			  'userId' => $current_user->user_login,
-			  'inWorldName' => $current_user->in_world_name,
+			  'inWorldName' => $inWorldName,
 			  'banner' => $current_user->custom_banner,
 			  'vrm' => $vrm,
 			  'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
 			  'nonce' => wp_create_nonce( 'wp_rest' )
 			);
 		} else if ( get_option('3ov_ai_allow') === "public") {
+			if($current_user->display_name){
+				$inWorldName = $current_user->display_name;
+			}
 			$user_data_passed = array(
 				'userId' => $current_user->user_login,
-				'inWorldName' => $current_user->in_world_name,
+				'inWorldName' => $inWorldName,
 				'banner' => $current_user->custom_banner,
 				'vrm' => $vrm,
 				'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
@@ -167,9 +226,12 @@ class Plugin
 			  );  
 		}
 		else {
+			if($current_user->display_name){
+				$inWorldName = $current_user->display_name;
+			}
 			$user_data_passed = array(
 			  'userId' => $current_user->user_login,
-			  'inWorldName' => $current_user->in_world_name,
+			  'inWorldName' => $inWorldName,
 			  'banner' => $current_user->custom_banner,
 			  'vrm' => $vrm,
 			  'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
@@ -426,4 +488,4 @@ class Plugin
 		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'threeObjectPluginRoot', $three_object_plugin_root );	
 		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'allowed_blocks', $ALLOWED_BLOCKS );		
 	}
-	}
+}

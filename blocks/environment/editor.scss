@@ -27,7 +27,42 @@
 	bottom:auto !important;
 	background-color: rgba(76, 0, 99, 0.677) !important;
 }
- .glb-preview-container {
+.threeov-entry-flow {
+	background-color: #212121f4;
+	color: white;
+	text-align: center;
+	border-radius: 20px;
+}
+.threeov-entry-flow button {
+	background-color: #404040;
+	border-radius: 10px;
+	border: none;
+	// add dropshadow
+	box-shadow: 0px 0px 5px 1px #0000005e;
+	color: white;
+	cursor: pointer;
+	margin-top: 20px !important;
+}
+
+.threeov-entry-flow button:hover {
+	background-color: #5a5a5a;
+	border-radius: 10px;
+	border: none;
+	// add dropshadow
+	box-shadow: 0px 0px 5px 1px #7f7f7f5e;
+	color: white;
+	cursor: pointer;
+	margin-top: 20px !important;
+}
+
+.threeov-entry-flow input {
+	border-radius: 10px;
+	margin-top: 10px !important;
+	min-height: 30px;
+	padding-left: 10px;
+}
+
+.glb-preview-container {
 	 padding: 100px;
 	 text-align: center;
 	 align-items: center;
