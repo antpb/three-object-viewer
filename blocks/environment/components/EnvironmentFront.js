@@ -484,11 +484,11 @@ function Participant(participant) {
 	const fallbackURL = threeObjectPlugin + defaultVRM;
 	const playerURL = userData.vrm ? userData.vrm : fallbackURL;
 	const clonedModelRef = useRef(null); // Ref for the cloned model
-	const animationMixerRef = useRef(null); // Ref for the animation mixer of this participant
-	const animationsRef = useRef(null); // Ref to store animations
+	const animationMixerRef = participant.animationMixerRef; // Ref for the animation mixer of this participant
+	const animationsRef = participant.animationsRef; // Ref to store animations
+	const mixers = participant.mixers;
 	const [someVRM, setSomeVRM] = useState(null);
 	const theScene = useThree();
-	const mixers = useRef([]);
 	const displayNameTextRef = useRef(null);
 	// Load the VRM model
 	useEffect(() => {
@@ -587,124 +587,47 @@ function Participant(participant) {
 
 			// Create animation mixer for the cloned model
 			const newMixer = new THREE.AnimationMixer(playerController.scene);
-			animationMixerRef.current = newMixer;
-			mixers.current.push(animationMixerRef.current);
+			animationMixerRef.current[participant.name] = newMixer;
+			console.log("heres the current mixers", animationMixerRef.current[participant.name]);
+			mixers.current[participant.name] = animationMixerRef.current[participant.name];
 
 			Promise.all(animationsPromises).then(animations => {
-				animationsRef.current = animations; // Store animations in ref
+				animationsRef.current[participant.name] = animations; // Store animations in ref
 
-				const idleAction = animationMixerRef.current.clipAction(animations[0]);
-				const walkingAction = animationMixerRef.current.clipAction(animations[1]);
-				const runningAction = animationMixerRef.current.clipAction(animations[2]);
-				console.log("animationmixer", animationMixerRef.current, idleAction, walkingAction, runningAction);
+				const idleAction = animationMixerRef.current[participant.name].clipAction(animations[0]);
+				const walkingAction = animationMixerRef.current[participant.name].clipAction(animations[1]);
+				const runningAction = animationMixerRef.current[participant.name].clipAction(animations[2]);
+				console.log("animationmixer", animationMixerRef.current[participant.name] , idleAction, walkingAction, runningAction);
 				idleAction.timeScale = 1;
 				idleAction.play();
 			});
 			let isProfileFetched = false; // flag to check if profile has been fetched
-			window.p2pcf.on("msg", (peer, data) => {
-				const finalData = new TextDecoder("utf-8").decode(data);
-				const participantData = JSON.parse(finalData);
-				// console.log("participantData", participantData[peer.client_id][2].profileImage[0]);
-				const participantObject = theScene.scene.getObjectByName(peer.client_id);
-				// console.log(participantData[peer.client_id].vrm);
-				if (!isProfileFetched) {
-					isProfileFetched = true; // set the flag to true after first fetch
-					// setTimeout(() => {
-					// 	if( modelClone.isObject3D ){
-					// 		fetchProfile(participantData[peer.client_id][2].profileImage[0], modelClone)
-					// 		.then((response) => {
-					// 			// handle the response here if needed
-					// 		})
-					// 		.catch((err) => {
-					// 			// Handle the error here if needed
-					// 		});
-					// 	}
-					// }, 1000);
-					setTimeout(() => {
-						if( modelClone.isObject3D ){
-							const displayNamePfp = participantObject.parent.parent.getObjectByName("displayNamePfp");
-							// console.log(participantData[peer.client_id]);
-							// fetch profile image and apply it to the material
-							fetchProfilePlane(participantData[peer.client_id].profileImage, displayNamePfp)
-							.then((response) => {
-								// handle the response here if needed
-							})
-							.catch((err) => {
-								// Handle the error here if needed
-							});
-						}
-					}, 1000);
-					setTimeout(() => {
-						if( modelClone.isObject3D ){
-							console.log("timeout finished here is", participantData[peer.client_id]);
-							// fetch profile image and apply it to the material
-							// fetchProfilePlane(participantData[peer.client_id].profileImage, displayNamePfp)
-							// .then((response) => {
-							// 	// handle the response here if needed
-							// })
-							// .catch((err) => {
-							// 	// Handle the error here if needed
-							// });
-						}
-					}, 1000);
-				}
-				if (participantObject) {
-					if (animationsRef.current) {
-						const walkAction = animationMixerRef.current.clipAction(animationsRef.current[1]); // Walking animation
-						const idleAction = animationMixerRef.current.clipAction(animationsRef.current[0]); // Idle animation
-			
-						if (participantData[peer.client_id].isMoving) {
-							walkAction.play();
-							idleAction.stop();
-						} else {
-							idleAction.play();
-							walkAction.stop();
-						}
-					}
-					if(participantData[peer.client_id]?.position){
-						participantObject.parent.position.fromArray(participantData[peer.client_id].position);
-						participantObject.parent.rotation.fromArray(participantData[peer.client_id].rotation);
-					}
-					if(participantData[peer.client_id]?.inWorldName && participantData[peer.client_id]?.inWorldName !== displayNameTextRef.current.text){
-						console.log("should only hit once", participantData[peer.client_id]);
-						// if the name is long make the background longer
-						if(participantData[peer.client_id].inWorldName.length > 8){
-							const displayNameBackground = participantObject.parent.parent.getObjectByName("displayNameBackground");
-							displayNameBackground.geometry = new THREE.PlaneGeometry(0.35, 0.07);
-							displayNameBackground.position.x = -0.005;
-							if(participantData[peer.client_id].inWorldName.length > 18){
-								displayNameTextRef.current.fontSize = 0.028;
-							}
-						}
-						displayNameTextRef.current.text = participantData[peer.client_id].inWorldName;
-						displayNameTextRef.current.textAlign = "left";
-					}
-				}
-			});
-			return () => {
-				// Cleanup function to stop and dispose mixers
-				mixers.current.forEach(mixer => mixer.stopAllAction());
-				mixers.current = [];
-			};
+			// return () => {
+			// 	// Cleanup function to stop and dispose mixers
+			// 	mixers.current[participant.name].forEach(mixer => mixer.stopAllAction());
+			// 	mixers.current[participant.name] = [];
+			// };
 		}
 	}, [someVRM, theScene, participant.p2pcf]);
 
 	useFrame((state, delta) => {
-		mixers.current.forEach(mixer => {
-			// Log each action in the mixer
-			// mixer._actions.forEach(action => {
-			// 	console.log(`Action: ${action._clip.name}, Is Running: ${action.isRunning()}, Effective Weight: ${action.getEffectiveWeight()}, Current Time: ${action.time}`);
-			// });
-
-			// Find and play the idle animation explicitly
-			const idleAction = mixer._actions.find(action => action._clip.name === 'idle');
-			if (idleAction && !idleAction.isRunning()) {
-				idleAction.reset().play();
-			}
-
-			// Update the mixer
-			mixer.update(delta);
-		});
+		if(mixers.current[participant.name]){
+			console.log("mixers", mixers.current[participant.name]);
+				// Log each action in the mixer
+				// mixer._actions.forEach(action => {
+				// 	console.log(`Action: ${action._clip.name}, Is Running: ${action.isRunning()}, Effective Weight: ${action.getEffectiveWeight()}, Current Time: ${action.time}`);
+				// });
+	
+				// Find and play the idle animation explicitly
+				const idleAction = mixers.current[participant.name]._actions.find(action => action._clip.name === 'idle');
+				if (idleAction && !idleAction.isRunning()) {
+					console.log("idle action", idleAction);
+					idleAction.reset().play();
+				}
+	
+				// Update the mixer
+				mixers.current[participant.name].update(delta);
+		}
 	
 		if (someVRM?.userData?.vrm) {
 			someVRM.userData.vrm.update(delta);  // Update the VRM model
@@ -776,6 +699,43 @@ function Participant(participant) {
 
 
 function Participants(props) {
+	const theScene = useThree();
+	let isProfileFetched = false; // flag to check if profile has been fetched
+	// make ref for animation mixer for each participant
+	const animationMixerRef = useRef([]); // Ref for the animation mixer of this participant
+	const animationsRef = useRef([]); // Ref to store animations
+	const mixers = useRef([]);
+	const displayNameTextRef = useRef(null);
+
+	useEffect(() => {
+		window.p2pcf.on("msg", (peer, data) => {
+			const finalData = new TextDecoder("utf-8").decode(data);
+			const participantData = JSON.parse(finalData);
+			// console.log("refs", animationMixerRef, animationsRef, mixers);
+			const participantObject = theScene.scene.getObjectByName(peer.client_id);
+			if (animationsRef.current[peer.client_id]) {
+				console.log("we got into the animation refs", animationsRef.current[peer.client_id], "and the mixer", animationMixerRef.current[peer.client_id]);
+				const walkAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][1]); // Walking animation
+				const idleAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][0]); // Idle animation
+	
+				if (participantData[peer.client_id].isMoving) {
+					walkAction.play();
+					idleAction.stop();
+				} else {
+					idleAction.play();
+					walkAction.stop();
+				}
+			}
+
+			if (participantObject) {
+				if(participantData[peer.client_id]?.position){
+					participantObject.parent.position.fromArray(participantData[peer.client_id].position);
+					participantObject.parent.rotation.fromArray(participantData[peer.client_id].rotation);
+				}
+			}
+		});
+	}, []);
+
 	useEffect(() => {
 		const p2pcf = window.p2pcf;
 		if (p2pcf) {
@@ -795,12 +755,346 @@ function Participants(props) {
 	return (
 		<>
 			{props.participants && props.participants.map((item, index) => (
-				<Participant key={index} name={item} p2pcf={p2pcf} />
+				<Participant 
+					key={index}
+					name={item}
+					p2pcf={p2pcf}
+					animationMixerRef={animationMixerRef}
+					animationsRef={animationsRef}
+					mixers={mixers}
+				/>
 			))}
 		</>
 	);
 }
 
+// /**
+//  * Represents a participant in a virtual reality scene.
+//  *
+//  * @param {Object} participant - The props for the participant.
+//  *
+//  * @return {JSX.Element} The participant.
+//  */
+// function Participant(participant) {
+// 	const fallbackURL = threeObjectPlugin + defaultVRM;
+// 	const playerURL = userData.vrm ? userData.vrm : fallbackURL;
+// 	const clonedModelRef = useRef(null); // Ref for the cloned model
+// 	const animationMixerRef = useRef(null); // Ref for the animation mixer of this participant
+// 	const animationsRef = useRef(null); // Ref to store animations
+// 	const [someVRM, setSomeVRM] = useState(null);
+// 	const theScene = useThree();
+// 	const mixers = useRef([]);
+// 	const displayNameTextRef = useRef(null);
+// 	// Load the VRM model
+// 	useEffect(() => {
+// 		const loader = new GLTFLoader();
+// 		loader.register(parser => new VRMLoaderPlugin(parser));
+// 		loader.load(playerURL, gltf => {
+// 			setSomeVRM(gltf);
+// 		});
+// 	}, [playerURL]);
+
+// 	useEffect(() => {
+// 		if (someVRM?.userData?.gltfExtensions?.VRM) {
+// 			const playerController = someVRM.userData.vrm;
+// 			const fetchProfile = async (pfp, modelToModify) => {
+// 				console.log("modelToModify", modelToModify);
+
+// 				try {
+// 					const response = await fetch(pfp);
+// 					console.log("pfp", pfp, response);
+// 					if (response.status === 200) {
+// 						const textureLoader = new THREE.TextureLoader();
+// 						textureLoader.crossOrigin = ''; // Ensure cross-origin requests are allowed
+// 						textureLoader.load(pfp, (loadedProfile) => {
+// 							// Now we are sure the texture is loaded
+// 							if(modelToModify.isObject3D){
+// 								modelToModify.traverse((obj) => {
+// 									obj.frustumCulled = false;
+				
+// 									if (obj.name === "profile" && obj.material) {
+// 										console.log("profile", obj);
+// 										const newMat = obj.material.clone();
+// 										newMat.map = loadedProfile;
+// 										newMat.map.needsUpdate = true;
+// 										newMat.needsUpdate = true;
+// 										obj.material = newMat;
+// 									}
+// 								});	
+// 							}
+// 						});
+// 						return response;
+// 					}
+// 				} catch (err) {
+// 					// Handle the error properly or rethrow it to be caught elsewhere.
+// 					// console.error("Error fetching profile:", err);
+// 					// throw err;
+// 				}
+// 			};
+
+// 			const fetchProfilePlane = async (pfp, modelToModify) => {
+// 				console.log("fetchProfilePlane", pfp);
+
+// 				try {
+// 					const response = await fetch(pfp);
+// 					console.log("fetch in plane try", pfp, response);
+// 					if (response.status === 200) {
+// 						const textureLoader = new THREE.TextureLoader();
+// 						textureLoader.crossOrigin = ''; // Ensure cross-origin requests are allowed
+// 						textureLoader.load(pfp, (loadedProfile) => {
+// 								// Now we are sure the texture is loaded
+// 								if(modelToModify.isObject3D){
+// 									modelToModify.frustumCulled = false;				
+// 									console.log("traversed", modelToModify);
+// 									const newMat = modelToModify.material.clone();
+// 									newMat.map = loadedProfile;
+// 									newMat.map.needsUpdate = true;
+// 									newMat.needsUpdate = true;
+// 									modelToModify.material = newMat;
+// 								}	
+// 							}
+// 						);
+// 						return response;
+// 					}
+// 				} catch (err) {
+// 					// Handle the error properly or rethrow it to be caught elsewhere.
+// 					// console.error("Error fetching profile:", err);
+// 					// throw err;
+// 				}
+// 			};
+
+// 			VRMUtils.rotateVRM0(playerController);
+// 			playerController.scene.rotation.y = 0;
+// 			playerController.scene.scale.set(1, 1, 1);
+
+
+// 			// Animation files
+// 			const idleFile = threeObjectPlugin + idle;
+// 			const walkingFile = threeObjectPlugin + walk;
+// 			const runningFile = threeObjectPlugin + run;
+// 			// Load animations
+// 			let animationFiles = [idleFile, walkingFile, runningFile];
+// 			let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, playerController));
+
+// 			// Clone the model
+// 			// const clonedModel = SkeletonUtils.clone(playerController.scene);
+// 			// clonedModel.userData.vrm = clonedModel;
+
+// 			// Create animation mixer for the cloned model
+// 			const newMixer = new THREE.AnimationMixer(playerController.scene);
+// 			animationMixerRef.current = newMixer;
+// 			mixers.current.push(animationMixerRef.current);
+
+// 			Promise.all(animationsPromises).then(animations => {
+// 				animationsRef.current = animations; // Store animations in ref
+
+// 				const idleAction = animationMixerRef.current.clipAction(animations[0]);
+// 				const walkingAction = animationMixerRef.current.clipAction(animations[1]);
+// 				const runningAction = animationMixerRef.current.clipAction(animations[2]);
+// 				console.log("animationmixer", animationMixerRef.current, idleAction, walkingAction, runningAction);
+// 				idleAction.timeScale = 1;
+// 				idleAction.play();
+// 			});
+// 			let isProfileFetched = false; // flag to check if profile has been fetched
+// 			window.p2pcf.on("msg", (peer, data) => {
+// 				const finalData = new TextDecoder("utf-8").decode(data);
+// 				const participantData = JSON.parse(finalData);
+// 				// console.log("participantData", participantData[peer.client_id][2].profileImage[0]);
+// 				const participantObject = theScene.scene.getObjectByName(peer.client_id);
+// 				// console.log(participantData[peer.client_id].vrm);
+// 				if (!isProfileFetched) {
+// 					isProfileFetched = true; // set the flag to true after first fetch
+// 					// setTimeout(() => {
+// 					// 	if( modelClone.isObject3D ){
+// 					// 		fetchProfile(participantData[peer.client_id][2].profileImage[0], modelClone)
+// 					// 		.then((response) => {
+// 					// 			// handle the response here if needed
+// 					// 		})
+// 					// 		.catch((err) => {
+// 					// 			// Handle the error here if needed
+// 					// 		});
+// 					// 	}
+// 					// }, 1000);
+// 					setTimeout(() => {
+// 						if( modelClone.isObject3D ){
+// 							const displayNamePfp = participantObject.parent.parent.getObjectByName("displayNamePfp");
+// 							// console.log(participantData[peer.client_id]);
+// 							// fetch profile image and apply it to the material
+// 							fetchProfilePlane(participantData[peer.client_id].profileImage, displayNamePfp)
+// 							.then((response) => {
+// 								// handle the response here if needed
+// 							})
+// 							.catch((err) => {
+// 								// Handle the error here if needed
+// 							});
+// 						}
+// 					}, 1000);
+// 					setTimeout(() => {
+// 						if( modelClone.isObject3D ){
+// 							console.log("timeout finished here is", participantData[peer.client_id]);
+// 							// fetch profile image and apply it to the material
+// 							// fetchProfilePlane(participantData[peer.client_id].profileImage, displayNamePfp)
+// 							// .then((response) => {
+// 							// 	// handle the response here if needed
+// 							// })
+// 							// .catch((err) => {
+// 							// 	// Handle the error here if needed
+// 							// });
+// 						}
+// 					}, 1000);
+// 				}
+// 				if (participantObject) {
+// 					if (animationsRef.current) {
+// 						const walkAction = animationMixerRef.current.clipAction(animationsRef.current[1]); // Walking animation
+// 						const idleAction = animationMixerRef.current.clipAction(animationsRef.current[0]); // Idle animation
+			
+// 						if (participantData[peer.client_id].isMoving) {
+// 							walkAction.play();
+// 							idleAction.stop();
+// 						} else {
+// 							idleAction.play();
+// 							walkAction.stop();
+// 						}
+// 					}
+// 					if(participantData[peer.client_id]?.position){
+// 						participantObject.parent.position.fromArray(participantData[peer.client_id].position);
+// 						participantObject.parent.rotation.fromArray(participantData[peer.client_id].rotation);
+// 					}
+// 					if(participantData[peer.client_id]?.inWorldName && participantData[peer.client_id]?.inWorldName !== displayNameTextRef.current.text){
+// 						console.log("should only hit once", participantData[peer.client_id]);
+// 						// if the name is long make the background longer
+// 						if(participantData[peer.client_id].inWorldName.length > 8){
+// 							const displayNameBackground = participantObject.parent.parent.getObjectByName("displayNameBackground");
+// 							displayNameBackground.geometry = new THREE.PlaneGeometry(0.35, 0.07);
+// 							displayNameBackground.position.x = -0.005;
+// 							if(participantData[peer.client_id].inWorldName.length > 18){
+// 								displayNameTextRef.current.fontSize = 0.028;
+// 							}
+// 						}
+// 						displayNameTextRef.current.text = participantData[peer.client_id].inWorldName;
+// 						displayNameTextRef.current.textAlign = "left";
+// 					}
+// 				}
+// 			});
+// 			return () => {
+// 				// Cleanup function to stop and dispose mixers
+// 				mixers.current.forEach(mixer => mixer.stopAllAction());
+// 				mixers.current = [];
+// 			};
+// 		}
+// 	}, [someVRM, theScene, participant.p2pcf]);
+
+// 	useFrame((state, delta) => {
+// 		mixers.current.forEach(mixer => {
+// 			// Log each action in the mixer
+// 			// mixer._actions.forEach(action => {
+// 			// 	console.log(`Action: ${action._clip.name}, Is Running: ${action.isRunning()}, Effective Weight: ${action.getEffectiveWeight()}, Current Time: ${action.time}`);
+// 			// });
+
+// 			// Find and play the idle animation explicitly
+// 			const idleAction = mixer._actions.find(action => action._clip.name === 'idle');
+// 			if (idleAction && !idleAction.isRunning()) {
+// 				idleAction.reset().play();
+// 			}
+
+// 			// Update the mixer
+// 			mixer.update(delta);
+// 		});
+	
+// 		if (someVRM?.userData?.vrm) {
+// 			someVRM.userData.vrm.update(delta);  // Update the VRM model
+// 		}
+// 		if (clonedModelRef?.current?.userData?.vrm) {
+// 			clonedModelRef.current.userData.vrm.update(delta);  // Update the cloned VRM model
+// 		}
+// 	});
+	
+// 	if (!someVRM || !someVRM.userData?.gltfExtensions?.VRM) {
+// 		return null;
+// 	}
+
+// 	const playerController = someVRM.userData.vrm;
+// 	const modelClone = SkeletonUtils.clone(playerController.scene);
+// 	modelClone.userData.vrm = playerController;
+
+// 	//calculate the height of the avatar to be used in the Text component position below
+// 	const box = new THREE.Box3().setFromObject(modelClone);
+// 	const height = (box.max.y - box.min.y) + 0.1;
+// 	console.log("height", height);
+
+// 	return (
+// 		<group>
+// 			<group>
+// 				<mesh
+// 					visible={true}
+// 					position={[0.22, height, 0.005]}
+// 					rotation-y={-Math.PI}
+// 					geometry={new THREE.PlaneGeometry(0.1, 0.1)}
+// 					name="displayNamePfp"
+// 				>
+// 					<meshPhongMaterial side={THREE.DoubleSide} shininess={0} />
+// 				</mesh>
+// 				<mesh
+// 					visible={true}
+// 					position={[0.045, height, 0.005]}
+// 					rotation-y={-Math.PI}
+// 					geometry={new THREE.PlaneGeometry(0.25, 0.07)}
+// 					name="displayNameBackground"
+// 				>
+// 					<meshPhongMaterial side={THREE.DoubleSide} shininess={0} color={0x000000} />
+// 				</mesh>
+// 					<Text
+// 						font={threeObjectPlugin + defaultFont}
+// 						anchorX="left"
+// 						overflowWrap="break-word"
+// 						// whiteSpace="nowrap"
+// 						// anchorY="middle"				  
+// 						ref={displayNameTextRef}
+// 						className="content"
+// 						scale={[1, 1, 1]}
+// 						fontSize={0.04}
+// 						rotation-y={-Math.PI}
+// 						width={0.5}
+// 						maxWidth={0.5}
+// 						height={10}
+// 						position={[0.15, (height - 0.005), 0]}
+// 						// color={model.textColor}
+// 						transform
+// 					>
+// 						{participant.name}
+// 					</Text>
+// 			</group>
+// 			<primitive name={participant.name} object={playerController.scene} />
+// 		</group>
+// 	);
+// }
+
+
+// function Participants(props) {
+// 	useEffect(() => {
+// 		const p2pcf = window.p2pcf;
+// 		if (p2pcf) {
+// 			p2pcf.on("peerconnect", (peer) => {
+// 				// emit the peer id to all other peers
+// 				props.setParticipant(prevParticipants => {
+// 					if (!prevParticipants.includes(peer.client_id)) {
+// 						return [...prevParticipants, peer.client_id];
+// 					} else {
+// 						return prevParticipants;
+// 					}
+// 				});
+// 			});
+// 		}
+// 	}, []);
+
+// 	return (
+// 		<>
+// 			{props.participants && props.participants.map((item, index) => (
+// 				<Participant key={index} name={item} p2pcf={p2pcf} />
+// 			))}
+// 		</>
+// 	);
+// }
 
 // function Participant(participant) {
 //     const fallbackURL = threeObjectPlugin + defaultVRM;

@@ -572,7 +572,7 @@ export default function Player(props) {
 									isMoving: true
 								}
 							};
-							console.log("userdata", userData);
+							// console.log("userdata", userData);
 							clearTimeout(movementTimeoutRef.current);
 							movementTimeoutRef.current = setTimeout(() => {
 								// Send "isMoving: false" message here
