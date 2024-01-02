@@ -111,8 +111,8 @@ threeApp.forEach((threeApp) => {
 			<>
 				{ ( networkingBlock.length > 0 ) && (
 					<>
-						<div id="networking" style={{position: "absolute", top: 50, zIndex: 100}}>
-							<div id="session-id"></div>
+						<div id="networking" class="threeov-networking-controls">
+							<p>Room:</p> <div id="session-id"></div>
 							{/* <p>Peers</p> */}
 							<div id="peers"></div>
 							{/* <p>Messages</p> */}

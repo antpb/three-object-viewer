@@ -172,6 +172,26 @@ export default function App({ getSettings, updateSettings }) {
 					</td>
 				</tr>
 				<tr>
+					<td><h3>{__('Networking Settings', 'three-object-viewer' ) }</h3></td>
+				</tr>
+				<tr>
+					<td>
+						<label htmlFor="multiplayerWorker">{ __( 'Networking Endpoint URL', 'three-object-viewer' ) }</label>
+						<input
+							id="multiplayerWorker"
+							type="input"
+							className="regular-text"
+							name="multiplayerWorker"
+							autoComplete="off"
+							value={settings.multiplayerWorker}
+							onChange={(event) => {
+								setSettings({ ...settings, multiplayerWorker: event.target.value });
+							}}
+						/>
+						<p>Use <b>https://p2pcf.sxpdigital.workers.dev/</b> or host your own CloudFlare Worker using <a href="https://github.com/gfodor/p2pcf" target="_blank">p2pcf</a>. A tutorial for setting up your own worker can be found <a href="https://github.com/gfodor/p2pcf/blob/master/INSTALL.md" target="_blank">here</a>.</p>
+					</td>
+				</tr>
+				<tr>
 					<td><h3>{__('AI Settings', 'three-object-viewer' ) }</h3></td>
 				</tr>
 				<tr>

@@ -242,14 +242,12 @@ export default function Player(props) {
 	}
 	const currentPlayerAvatar = useLoader(GLTFLoader, playerURL, (loader) => {
 
-		const { gl } = useThree(); // Access the Three.js renderer
+		const { gl } = useThree();
 
 		// Create and configure KTX2Loader
 		const ktx2Loader = new KTX2Loader();
 		ktx2Loader.setTranscoderPath(threeObjectPluginRoot + "/inc/utils/basis/"); // Set the path to the basis transcoder
 		ktx2Loader.detectSupport(gl); // Detect support using the renderer
-	  
-		// Set the KTX2Loader to GLTFLoader
 		loader.setKTX2Loader(ktx2Loader);
 
 		loader.register((parser) => {
@@ -622,19 +620,20 @@ export default function Player(props) {
 				}
 			}
 
-			if (participantObject) {
+			if ( participantObject ) {
 				// Get the desired head position.
 				const desiredY = playerController.firstPerson.humanoid.humanBones.head.node.getWorldPosition(new Vector3()).y;
-				
+				// console.log("cameraTarget", cameraTargetPosition.y);
 				// Smoothly update the camera target position using lerp.
-				cameraTargetPosition.y = MathUtils.lerp(cameraTargetPosition.y, desiredY, 0.15); // 0.05 is the lerp factor. Adjust it for faster/slower transitions.
+
+				// cameraTargetPosition.y = MathUtils.lerp(cameraTargetPosition.y, desiredY, 0.15); // 0.05 is the lerp factor. Adjust it for faster/slower transitions.
+				cameraTargetPosition.y = desiredY;
 
 				camera.lookAt(
 					participantObject.parent.position.x,
 					cameraTargetPosition.y,
 					participantObject.parent.position.z
 				);
-				
 				if (orbitRef.current) {
 					let newTarget = new Vector3(
 						participantObject.parent.position.x,

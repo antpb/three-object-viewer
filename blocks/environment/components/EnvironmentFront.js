@@ -490,6 +490,11 @@ function Participant(participant) {
 	const [someVRM, setSomeVRM] = useState(null);
 	const theScene = useThree();
 	const displayNameTextRef = useRef(null);
+	const setTextRef = (el) => {
+        textRef(el);
+    };
+
+
 	// Load the VRM model
 	useEffect(() => {
 		const loader = new GLTFLoader();
@@ -537,37 +542,6 @@ function Participant(participant) {
 				}
 			};
 
-			const fetchProfilePlane = async (pfp, modelToModify) => {
-				console.log("fetchProfilePlane", pfp);
-
-				try {
-					const response = await fetch(pfp);
-					console.log("fetch in plane try", pfp, response);
-					if (response.status === 200) {
-						const textureLoader = new THREE.TextureLoader();
-						textureLoader.crossOrigin = ''; // Ensure cross-origin requests are allowed
-						textureLoader.load(pfp, (loadedProfile) => {
-								// Now we are sure the texture is loaded
-								if(modelToModify.isObject3D){
-									modelToModify.frustumCulled = false;				
-									console.log("traversed", modelToModify);
-									const newMat = modelToModify.material.clone();
-									newMat.map = loadedProfile;
-									newMat.map.needsUpdate = true;
-									newMat.needsUpdate = true;
-									modelToModify.material = newMat;
-								}	
-							}
-						);
-						return response;
-					}
-				} catch (err) {
-					// Handle the error properly or rethrow it to be caught elsewhere.
-					// console.error("Error fetching profile:", err);
-					// throw err;
-				}
-			};
-
 			VRMUtils.rotateVRM0(playerController);
 			playerController.scene.rotation.y = 0;
 			playerController.scene.scale.set(1, 1, 1);
@@ -588,16 +562,16 @@ function Participant(participant) {
 			// Create animation mixer for the cloned model
 			const newMixer = new THREE.AnimationMixer(playerController.scene);
 			animationMixerRef.current[participant.name] = newMixer;
-			console.log("heres the current mixers", animationMixerRef.current[participant.name]);
+			// console.log("heres the current mixers", animationMixerRef.current[participant.name]);
 			mixers.current[participant.name] = animationMixerRef.current[participant.name];
-
+			participant.profileUserData.current[participant.name] = {inWorldName : participant.name, pfp: participant.pfp };
 			Promise.all(animationsPromises).then(animations => {
 				animationsRef.current[participant.name] = animations; // Store animations in ref
 
 				const idleAction = animationMixerRef.current[participant.name].clipAction(animations[0]);
 				const walkingAction = animationMixerRef.current[participant.name].clipAction(animations[1]);
 				const runningAction = animationMixerRef.current[participant.name].clipAction(animations[2]);
-				console.log("animationmixer", animationMixerRef.current[participant.name] , idleAction, walkingAction, runningAction);
+				// console.log("animationmixer", animationMixerRef.current[participant.name] , idleAction, walkingAction, runningAction);
 				idleAction.timeScale = 1;
 				idleAction.play();
 			});
@@ -612,7 +586,6 @@ function Participant(participant) {
 
 	useFrame((state, delta) => {
 		if(mixers.current[participant.name]){
-			console.log("mixers", mixers.current[participant.name]);
 				// Log each action in the mixer
 				// mixer._actions.forEach(action => {
 				// 	console.log(`Action: ${action._clip.name}, Is Running: ${action.isRunning()}, Effective Weight: ${action.getEffectiveWeight()}, Current Time: ${action.time}`);
@@ -648,7 +621,6 @@ function Participant(participant) {
 	//calculate the height of the avatar to be used in the Text component position below
 	const box = new THREE.Box3().setFromObject(modelClone);
 	const height = (box.max.y - box.min.y) + 0.1;
-	console.log("height", height);
 
 	return (
 		<group>
@@ -677,7 +649,7 @@ function Participant(participant) {
 						overflowWrap="break-word"
 						// whiteSpace="nowrap"
 						// anchorY="middle"				  
-						ref={displayNameTextRef}
+						ref={participant.textRef}
 						className="content"
 						scale={[1, 1, 1]}
 						fontSize={0.04}
@@ -700,40 +672,125 @@ function Participant(participant) {
 
 function Participants(props) {
 	const theScene = useThree();
-	let isProfileFetched = false; // flag to check if profile has been fetched
+	// create a ref for the profile user data information for each participant to be held in an array
+	const profileUserData = useRef([]);
 	// make ref for animation mixer for each participant
 	const animationMixerRef = useRef([]); // Ref for the animation mixer of this participant
 	const animationsRef = useRef([]); // Ref to store animations
 	const mixers = useRef([]);
 	const displayNameTextRef = useRef(null);
+    const textRefs = useRef({});
+	const participantRefs = useRef({});
+
+	const fetchProfilePlane = async (pfp, modelToModify, displayNameBackground, inWorldName, displayNameText) => {
+		// console.log("fetchProfilePlane", pfp, modelToModify, displayNameBackground, inWorldName, displayNameText);
+		if(pfp){
+			try {
+				const response = await fetch(pfp);
+				if (response.status === 200) {
+					const textureLoader = new THREE.TextureLoader();
+					textureLoader.crossOrigin = '';
+					textureLoader.load(pfp, (loadedProfile) => {
+							// Now we are sure the texture is loaded
+							if( modelToModify.isObject3D ){
+								modelToModify.frustumCulled = false;				
+								const newMat = modelToModify.material.clone();
+								newMat.map = loadedProfile;
+								newMat.map.needsUpdate = true;
+								newMat.needsUpdate = true;
+								modelToModify.material = newMat;
+							}	
+						}
+					);
+					return response;
+				}
+			} catch (err) {
+				// Handle the error properly or rethrow it to be caught elsewhere.
+				// console.error("Error fetching profile:", err);
+				// throw err;
+			}	
+		}
+	};
 
 	useEffect(() => {
-		window.p2pcf.on("msg", (peer, data) => {
-			const finalData = new TextDecoder("utf-8").decode(data);
-			const participantData = JSON.parse(finalData);
-			// console.log("refs", animationMixerRef, animationsRef, mixers);
-			const participantObject = theScene.scene.getObjectByName(peer.client_id);
-			if (animationsRef.current[peer.client_id]) {
-				console.log("we got into the animation refs", animationsRef.current[peer.client_id], "and the mixer", animationMixerRef.current[peer.client_id]);
-				const walkAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][1]); // Walking animation
-				const idleAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][0]); // Idle animation
+		if(window.p2pcf){
+			window.p2pcf.on("msg", (peer, data) => {
+				const finalData = new TextDecoder("utf-8").decode(data);
+				const participantData = JSON.parse(finalData);
+				// console.log("refs", animationMixerRef, animationsRef, mixers);
+				const participantObject = theScene.scene.getObjectByName(peer.client_id);
+				if(!participantRefs.current[peer.client_id]) {
+					participantRefs.current[peer.client_id] = { profileFetched: false };
+				}
 	
-				if (participantData[peer.client_id].isMoving) {
-					walkAction.play();
-					idleAction.stop();
-				} else {
-					idleAction.play();
-					walkAction.stop();
+				// find the object in the parent of participantObject that is named displayNamePfp
+				const displayNamePfp = participantObject?.parent?.getObjectByName("displayNamePfp");
+				const displayNameBackground = participantObject?.parent?.getObjectByName("displayNameBackground");
+				if( ! participantRefs.current[peer.client_id].profileFetched && displayNameBackground ){
+					setTimeout(() => {
+						fetchProfilePlane( participantData[peer.client_id].profileImage, displayNamePfp, displayNameBackground, profileUserData.current[peer.client_id].inWorldName, textRefs.current[peer.client_id] )
+						.then((response) => {
+							participantRefs.current[peer.client_id].profileFetched = true;
+							if(participantData[peer.client_id]?.inWorldName){
+								if(participantData[peer.client_id]?.inWorldName.length > 8){
+									displayNameBackground.geometry = new THREE.PlaneGeometry(0.35, 0.07);
+									displayNameBackground.position.x = -0.005;
+									if(participantData[peer.client_id]?.inWorldName.length > 18){
+										textRefs.current[peer.client_id].fontSize = 0.028;
+									}
+								}	
+							}
+						});
+					}, 1000);
 				}
-			}
+		
+	
+				if (animationsRef.current[peer.client_id]) {
+					const walkAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][1]); // Walking animation
+					const idleAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][0]); // Idle animation
+		
+					if (participantData[peer.client_id].isMoving) {
+						walkAction.play();
+						idleAction.stop();
+					} else {
+						idleAction.play();
+						walkAction.stop();
+					}
+				}
+	
+				if (participantObject) {
+					if(participantData[peer.client_id]?.position){
+						participantObject.parent.position.fromArray(participantData[peer.client_id].position);
+						participantObject.parent.rotation.fromArray(participantData[peer.client_id].rotation);
+					}
+				}
+				if(textRefs.current[peer.client_id] && participantData[peer.client_id]?.inWorldName) {
+					textRefs.current[peer.client_id].text = participantData[peer.client_id].inWorldName;
+				}
+			});
+		}
+	}, []);
 
-			if (participantObject) {
-				if(participantData[peer.client_id]?.position){
-					participantObject.parent.position.fromArray(participantData[peer.client_id].position);
-					participantObject.parent.rotation.fromArray(participantData[peer.client_id].rotation);
+	useEffect(() => {
+		const p2pcf = window.p2pcf;
+		if (p2pcf) {
+			p2pcf.on("peerclose", (peer) => {
+				const participantObject = theScene.scene.getObjectByName(peer.client_id);
+				// remove the participantObject
+				if (participantObject) {
+					theScene.scene.remove(participantObject);
+					// remove array item animationMixerRef.current[peer.client_id], animationsRef.current[peer.client_id], mixers.current[peer.client_id];
+					delete animationMixerRef.current[peer.client_id];
+					delete animationsRef.current[peer.client_id];
+					delete mixers.current[peer.client_id];
 				}
-			}
-		});
+				// remove peer.client_id
+				props.setParticipant(prevParticipants => {
+					return prevParticipants.filter(item => item !== peer.client_id);
+				}
+				);
+			});
+		}
 	}, []);
 
 	useEffect(() => {
@@ -762,6 +819,8 @@ function Participants(props) {
 					animationMixerRef={animationMixerRef}
 					animationsRef={animationsRef}
 					mixers={mixers}
+					textRef={(ref) => textRefs.current[item] = ref}
+					profileUserData={profileUserData}
 				/>
 			))}
 		</>
@@ -1428,7 +1487,7 @@ export default function EnvironmentFront(props) {
 				<>
 					{ isVRCompatible() && <VRButton/>}
 					<Canvas
-						resize={{ scroll: false }}
+						resize={{ scroll: false, debounce: { scroll: 50, resize: 0 } }}
 						camera={{
 							fov: 70,
 							zoom: 1,

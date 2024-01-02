@@ -198,6 +198,7 @@ class Plugin
 		$current_user = wp_get_current_user();
         $current_user = wp_get_current_user();
         $vrm = get_user_meta($current_user->ID, 'user_data_vrm', true) ?: get_option('3ov_defaultAvatar');
+		$multiplayer_worker_url = get_option( '3ov_mp_multiplayerWorker', '' );
 		// $vrm = get_option('3ov_defaultAvatar');
 		$inWorldName = "Guest";
 		if ( is_user_logged_in() && get_option('3ov_ai_allow') === "loggedIn" ) {
@@ -276,6 +277,7 @@ class Plugin
 				wp_localize_script( 'threeobjectloader-frontend', 'threeObjectPluginRoot', $three_object_plugin_root );	
 				wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatarAnimation', $default_animation );	
 				wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatar', $default_avatar );	
+				wp_localize_script( 'threeobjectloader-frontend', 'multiplayerWorker', $multiplayer_worker_url );
 				wp_enqueue_script( 
 					"threeobjectloader-frontend"
 				);
@@ -294,6 +296,7 @@ class Plugin
 				wp_localize_script( 'versepress-frontend', 'threeObjectPluginRoot', $three_object_plugin_root );	
 				wp_localize_script( 'versepress-frontend', 'defaultAvatarAnimation', $default_animation );
 				wp_localize_script( 'versepress-frontend', 'defaultAvatar', $default_avatar );
+				wp_localize_script( 'versepress-frontend', 'multiplayerWorker', $multiplayer_worker_url );
 				wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatarAnimation', $default_animation );	
 				wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatar', $default_avatar );	
 				wp_enqueue_script( 
@@ -467,9 +470,15 @@ class Plugin
 							'three-object-viewer/three-image-block',
 							'three-object-viewer/three-video-block',
 							'three-object-viewer/spawn-point-block',
-							'three-object-viewer/three-networking-block'
 		];
 
+		// if option for multiplayerNetworking is not a value then add the network block to allowed blocks
+		if (get_option('3ov_mp_multiplayerWorker') != '') {
+			$NETWORK_BLOCKS = [
+				'three-object-viewer/three-networking-block',
+			];
+			array_push( $DEFAULT_BLOCKS, $NETWORK_BLOCKS );
+		}
 		if ($this->threeobjectviewer_is_pro()) {
 			$PRO_BLOCKS = [
 				'three-object-viewer/three-mirror-block',

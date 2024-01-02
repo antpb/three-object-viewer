@@ -7,7 +7,6 @@ const Networking = (props) => {
 		document.location =
 			document.location.toString() + `#xpp-${props.postSlug}`;
 	}
-
 	const userProfileName =
 		userData.userId === ""
 			? Math.floor(Math.random() * 100000)
@@ -16,7 +15,7 @@ const Networking = (props) => {
 		"user-" + userProfileName,
 		document.location.hash.substring(1),
 		{
-			workerUrl: "https://p2pcf.sxpdigital.workers.dev/",
+			workerUrl: multiplayerWorker,
 			slowPollingRateMs: 5000,
 			fastPollingRateMs: 1500
 		}

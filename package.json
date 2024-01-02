@@ -73,6 +73,7 @@
         "three-icosa": "^0.4.0",
         "three-omi": "^0.1.5",
         "tiny-simple-peer": "^10.1.1",
+        "troika-three-text": "^0.49.0",
         "webpack-glsl-loader": "^1.0.1"
     }
 }

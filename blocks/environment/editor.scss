@@ -23,9 +23,17 @@
 
 #VRButton{
 	position: fixed !important;
-	top: 20px !important;
 	bottom:auto !important;
 	background-color: rgba(76, 0, 99, 0.677) !important;
+	margin-top: -50px !important;
+}
+
+.threeov-networking-controls {
+	position: absolute;
+	top: 40px !important;
+	left: 20px;
+	background-color: rgba(76, 0, 99, 0.677) !important;
+	z-index: 1000;
 }
 .threeov-entry-flow {
 	background-color: #212121f4;
