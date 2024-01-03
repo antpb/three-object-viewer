@@ -2508,7 +2508,7 @@ export default function EnvironmentFront(props) {
 						}}
 					>
 						{" "}
-						Load World{" "}
+						{props.networkingBlock.length > 0 ? "Enter Room" : "Load World"}
 					</button>
 				</div>
 			</div>

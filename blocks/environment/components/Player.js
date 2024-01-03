@@ -712,7 +712,7 @@ export default function Player(props) {
 			const idleAction = currentMixer.clipAction(animations[0]);
 			const walkingAction = currentMixer.clipAction(animations[1]);
 			const runningAction = currentMixer.clipAction(animations[2]);
-			idleAction.timeScale = 1;
+			idleAction.timeScale = 0.6;
 			walkingAction.timeScale = 1;
 			runningAction.timeScale = 1;
 	

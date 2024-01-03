@@ -5,10 +5,11 @@ import { useCallback, useRef, useState, useEffect } from "react";
 import { useRapier, useRigidBody, RigidBody } from "@react-three/rapier";
 
 export function TeleportIndicator(props) {
+
 	return (
 		<>
 			<mesh position={[0, 0.25, 0]}>
-				<coneBufferGeometry args={[0.1, 0.5, 6]} attach="geometry" />
+				<boxGeometry args={[0.1, 0.1, 0.1]} attach="geometry"/>
 				<meshBasicMaterial attach="material" color={0xff00ff} />
 			</mesh>
 		</>

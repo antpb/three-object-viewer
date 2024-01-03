@@ -107,17 +107,24 @@ threeApp.forEach((threeApp) => {
 		const animations = threeApp.querySelector("p.three-object-animations")
 			? threeApp.querySelector("p.three-object-animations").innerText
 			: "";
+
 		render(
 			<>
 				{ ( networkingBlock.length > 0 ) && (
 					<>
 						<div id="networking" class="threeov-networking-controls">
-							<p>Room:</p> <div id="session-id"></div>
+							{/* <div id="session-id">Room: </div> */}
 							{/* <p>Peers</p> */}
-							<div id="peers"></div>
+							{/* <div id="peers"></div> */}
 							{/* <p>Messages</p> */}
 							<div id="messages" style={{display: "none"}}></div>
-							<button class="button" id="audio-button">Connect Audio</button>
+							<div id="network-ui-container" style={{display: "flex"}}>
+								<button class="button" id="audio-button">
+									<span style={{fontSize: "0.6em", display:"block" }}>JOIN</span>
+									<span>VOICE</span>
+								</button>
+							</div>
+							<div id="room-dropdown"></div>
 							<div id="videos"></div>
 						</div>
 						<Networking
