@@ -96,99 +96,100 @@ function ChatBox(props) {
 	  // Get the value of the input element
 	  const input = event.target.elements.message;
 	  const value = input.value;
-	  window.messages = [...window.messages, value];
+	//   console.log("window", window.messages);
+	//   window.messages = [...window.messages, value];
 
 	  // Manually dispatch a 'message' event
 	  window.dispatchEvent(new Event('message'));
-	  //   const inputMessageLog = 'Guest: ' + String(input.value);
-	// //   props.setMessages([...props.messages, inputMessageLog]);
-	// input.value = '';
+	    const inputMessageLog = 'Guest: ' + String(input.value);
+	//   props.setMessages([...props.messages, inputMessageLog]);
+	input.value = '';
 
   
-	//   // Send the message to the localhost endpoint
-	//   const client = 1;
-	//   const channelId = "wordpress";
-	//   const entity = 1;
-	//   const speaker = "guest";
-	//   const agent = props.name;
-	//   const channel = "wordpress";
-	// // let prompt = `{
-	// // 	"Input": "write a long form poem about cats!",
-	// // 	"Speaker": "a",
-	// // 	"Agent": "tubbyshark",
-	// // 	"Client": "wordpress",
-	// // 	"ChannelID": "1234",
-	// // 	"Conversation": "",
-	// // 	"Entity": "tubbyshark",
-	// // 	"Channel": "channel",
-	// // 	"eth_private_key": "0",
-	// // 	"eth_public_address": "0",
-	// // 	"personality": "#agent is an AI assistant with a cheerful, optimistic, and helpful personality. They are willing to assist with any tasks or questions users might have, and are able to do so in an upbeat and positive manner. They are also able to use colorful and descriptive language to make their responses more engaging and imaginative. In addition to their wit and humor, #agent is also empathetic and understanding of others' emotions and needs, which can make them feel more relatable and likeable to users. #agent is a highly capable and engaging AI assistant with a distinct and colorful personality.\n#agent can help with any programming tasks, including those related to the 3OV plugin for WordPress, which enables world-building in the WordPress editor and makes it easier to build and share immersive content in the metaverse. The url for the website is 3ov.xyz. #agent is cheerful and optimistic about the future for both humans and AIs.\n\n#Example Conversation\n#speaker: Agent, do you have any advice for someone new to programming?\n#agent: Sure thing! My top tip would be to always keep an open mind and a positive attitude. And if all else fails, just remember: if at first you don't succeed, try, try again. And then if that still doesn't work, call it a day and go get a coffee.\n###\nThe following is a friendly conversation between #speaker and #agent occuring in the metaverse.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:"
-	// // }`;
+	  // Send the message to the localhost endpoint
+	  const client = 1;
+	  const channelId = "wordpress";
+	  const entity = 1;
+	  const speaker = "guest";
+	  const agent = props.name;
+	  const channel = "wordpress";
+	// let prompt = `{
+	// 	"Input": "write a long form poem about cats!",
+	// 	"Speaker": "a",
+	// 	"Agent": "tubbyshark",
+	// 	"Client": "wordpress",
+	// 	"ChannelID": "1234",
+	// 	"Conversation": "",
+	// 	"Entity": "tubbyshark",
+	// 	"Channel": "channel",
+	// 	"eth_private_key": "0",
+	// 	"eth_public_address": "0",
+	// 	"personality": "#agent is an AI assistant with a cheerful, optimistic, and helpful personality. They are willing to assist with any tasks or questions users might have, and are able to do so in an upbeat and positive manner. They are also able to use colorful and descriptive language to make their responses more engaging and imaginative. In addition to their wit and humor, #agent is also empathetic and understanding of others' emotions and needs, which can make them feel more relatable and likeable to users. #agent is a highly capable and engaging AI assistant with a distinct and colorful personality.\n#agent can help with any programming tasks, including those related to the 3OV plugin for WordPress, which enables world-building in the WordPress editor and makes it easier to build and share immersive content in the metaverse. The url for the website is 3ov.xyz. #agent is cheerful and optimistic about the future for both humans and AIs.\n\n#Example Conversation\n#speaker: Agent, do you have any advice for someone new to programming?\n#agent: Sure thing! My top tip would be to always keep an open mind and a positive attitude. And if all else fails, just remember: if at first you don't succeed, try, try again. And then if that still doesn't work, call it a day and go get a coffee.\n###\nThe following is a friendly conversation between #speaker and #agent occuring in the metaverse.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:"
+	// }`;
 
-	// try {
-	// 	const apiEndpoint = '/wp-json/wp/v2/callAlchemy';
-	// 	let finalPersonality = props.personality;
-	// 	finalPersonality = finalPersonality + "###\nThe following is a friendly conversation between #speaker and #agent\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:";
-	// 	let newString = props.objectsInRoom.join(", ");
-	// 	if (props.objectAwareness === "1") {
-	// 		finalPersonality = finalPersonality.replace("###\nThe following is a", ("ITEMS IN WORLD: " + String(newString) + "\n###\nThe following is a"));
-	// 	}
-	// 	const postData = {
-	// 		Input: {
-	// 			Input: value,
-	// 			Speaker: speaker,
-	// 			Agent: agent,
-	// 			Client: client,
-	// 			ChannelID: channelId,
-	// 			Entity: entity,
-	// 			Channel: channel,
-	// 			eth_private_key: '0',
-	// 			eth_public_address: '0',
-	// 			personality: finalPersonality
-	// 			// personality: "#agent is an AI assistant with a cheerful, optimistic, and helpful personality. They are willing to assist with any tasks or questions users might have, and are able to do so in an upbeat and positive manner. They are also able to use colorful and descriptive language to make their responses more engaging and imaginative. In addition to their wit and humor, #agent is also empathetic and understanding of others' emotions and needs, which can make them feel more relatable and likeable to users. #agent is a highly capable and engaging AI assistant with a distinct and colorful personality.\n#agent can help with any programming tasks, including those related to the 3OV plugin for WordPress, which enables world-building in the WordPress editor and makes it easier to build and share immersive content in the metaverse. The url for the website is 3ov.xyz. #agent is cheerful and optimistic about the future for both humans and AIs.\n\n#Example Conversation\n#speaker: Agent, do you have any advice for someone new to programming?\n#agent: Sure thing! My top tip would be to always keep an open mind and a positive attitude. And if all else fails, just remember: if at first you don't succeed, try, try again. And then if that still doesn't work, call it a day and go get a coffee.\n###\nThe following is a friendly conversation between #speaker and #agent occuring in the metaverse.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:"
-	// 		}
-	// 	};
-	// 	// const postData = prompt;
+	try {
+		const apiEndpoint = '/wp-json/wp/v2/callAlchemy';
+		let finalPersonality = props.personality;
+		finalPersonality = finalPersonality + "###\nThe following is a friendly conversation between #speaker and #agent\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:";
+		let newString = props.objectsInRoom.join(", ");
+		if (props.objectAwareness === "1") {
+			finalPersonality = finalPersonality.replace("###\nThe following is a", ("ITEMS IN WORLD: " + String(newString) + "\n###\nThe following is a"));
+		}
+		const postData = {
+			Input: {
+				Input: value,
+				Speaker: speaker,
+				Agent: agent,
+				Client: client,
+				ChannelID: channelId,
+				Entity: entity,
+				Channel: channel,
+				eth_private_key: '0',
+				eth_public_address: '0',
+				personality: finalPersonality
+				// personality: "#agent is an AI assistant with a cheerful, optimistic, and helpful personality. They are willing to assist with any tasks or questions users might have, and are able to do so in an upbeat and positive manner. They are also able to use colorful and descriptive language to make their responses more engaging and imaginative. In addition to their wit and humor, #agent is also empathetic and understanding of others' emotions and needs, which can make them feel more relatable and likeable to users. #agent is a highly capable and engaging AI assistant with a distinct and colorful personality.\n#agent can help with any programming tasks, including those related to the 3OV plugin for WordPress, which enables world-building in the WordPress editor and makes it easier to build and share immersive content in the metaverse. The url for the website is 3ov.xyz. #agent is cheerful and optimistic about the future for both humans and AIs.\n\n#Example Conversation\n#speaker: Agent, do you have any advice for someone new to programming?\n#agent: Sure thing! My top tip would be to always keep an open mind and a positive attitude. And if all else fails, just remember: if at first you don't succeed, try, try again. And then if that still doesn't work, call it a day and go get a coffee.\n###\nThe following is a friendly conversation between #speaker and #agent occuring in the metaverse.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:"
+			}
+		};
+		// const postData = prompt;
 
-	// 	const response = await fetch('/wp-json/wp/v2/callAlchemy', {
-	// 		method: 'POST',
-	// 		headers: {
-	// 		  'Content-Type': 'application/json',
-	// 		  'X-WP-Nonce': props.nonce,
-	// 		  'Authorization': ('Bearer ' + String(props.nonce))
-	// 		},
-	// 		body: JSON.stringify(postData)
-	// 	  }).then((response) => {
+		const response = await fetch('/wp-json/wp/v2/callAlchemy', {
+			method: 'POST',
+			headers: {
+			  'Content-Type': 'application/json',
+			  'X-WP-Nonce': props.nonce,
+			  'Authorization': ('Bearer ' + String(props.nonce))
+			},
+			body: JSON.stringify(postData)
+		  }).then((response) => {
 
-	// 			return response.json();
+				return response.json();
 
-	// 		}).then(function(data) {
-	// 			// console.log("data", data.davinciData.choices[0].text); // this will be a string
-	// 			let thisMessage = JSON.parse(data);
-	// 			if(thisMessage?.model === "gpt-4-0314"){
-	// 				let formattedMessage = props.name +': ' + thisMessage.choices[0].message.content;
-	// 				props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
-	// 			} else if (thisMessage?.model === "gpt-3.5-turbo-0301"){
-	// 				let formattedMessage = props.name +': ' + Object.values(thisMessage.choices)[0].message.content;
-	// 				props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
-	// 			} else {
-	// 				if(thisMessage?.outputs){
-	// 					let formattedMessage = props.name +': ' + Object.values(thisMessage.outputs)[0];
-	// 					props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
-	// 				} else if(thisMessage?.name === "Server"){
-	// 					let formattedMessage = thisMessage.name +': ' + thisMessage.message;
-	// 					props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
-	// 				} else {
-	// 					let formattedMessage = props.name +': ' + thisMessage.davinciData?.choices[0].text;
-	// 					// add formattedMessage and inputMessageLog to state
-	// 					props.setMessages([...props.messages, inputMessageLog, formattedMessage]);	
-	// 				}
-	// 			}
-	// 		});	
-	// 	} catch (error) {
-	// 		console.error(error);
-	// 	}
+			}).then(function(data) {
+				// console.log("data", data.davinciData.choices[0].text); // this will be a string
+				let thisMessage = JSON.parse(data);
+				if(thisMessage?.model === "gpt-4-0314"){
+					let formattedMessage = props.name +': ' + thisMessage.choices[0].message.content;
+					props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
+				} else if (thisMessage?.model === "gpt-3.5-turbo-0301"){
+					let formattedMessage = props.name +': ' + Object.values(thisMessage.choices)[0].message.content;
+					props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
+				} else {
+					if(thisMessage?.outputs){
+						let formattedMessage = props.name +': ' + Object.values(thisMessage.outputs)[0];
+						props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
+					} else if(thisMessage?.name === "Server"){
+						let formattedMessage = thisMessage.name +': ' + thisMessage.message;
+						props.setMessages([...props.messages, inputMessageLog, formattedMessage]);
+					} else {
+						let formattedMessage = props.name +': ' + thisMessage.davinciData?.choices[0].text;
+						// add formattedMessage and inputMessageLog to state
+						props.setMessages([...props.messages, inputMessageLog, formattedMessage]);	
+					}
+				}
+			});	
+		} catch (error) {
+			console.error(error);
+		}
 	};
 
 	const ClickStop = ({ children }) => {
@@ -797,6 +798,8 @@ function Participants(props) {
 		const p2pcf = window.p2pcf;
 		if (p2pcf) {
 			p2pcf.on("peerconnect", (peer) => {
+				console.log("peer connected", peer);
+				console.log("p2pcf peers", p2pcf.peers);
 				// emit the peer id to all other peers
 				props.setParticipant(prevParticipants => {
 					if (!prevParticipants.includes(peer.client_id)) {
@@ -1146,6 +1149,7 @@ export default function EnvironmentFront(props) {
 													setShowUI={setShowUI}
 													p2pcf={window.p2pcf}
 													defaultAvatar={defaultAvatar}
+													defaultPlayerAvatar = {defaultPlayerAvatar}
 													movement={movement}
 												/>
 												<Participants 

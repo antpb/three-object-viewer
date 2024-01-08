@@ -235,8 +235,8 @@ export default function Player(props) {
 
 	// Participant VRM.
 	const fallbackURL = threeObjectPlugin + defaultVRM;
-	const defaultAvatarURL = props.defaultAvatar;
-	let playerURL = userData.vrm ? userData.vrm : fallbackURL;
+	const defaultAvatarURL = props.defaultPlayerAvatar;
+	let playerURL = userData.playerVRM ? userData.playerVRM : fallbackURL;
 	if(defaultAvatarURL){
 		playerURL = defaultAvatarURL;
 	}
@@ -712,7 +712,7 @@ export default function Player(props) {
 			const idleAction = currentMixer.clipAction(animations[0]);
 			const walkingAction = currentMixer.clipAction(animations[1]);
 			const runningAction = currentMixer.clipAction(animations[2]);
-			idleAction.timeScale = 0.6;
+			idleAction.timeScale = 0.8;
 			walkingAction.timeScale = 1;
 			runningAction.timeScale = 1;
 	

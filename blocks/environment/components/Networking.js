@@ -5,6 +5,7 @@ import audioIconMute from '../../../inc/assets/mic_icon_mute.png';
 import participants from '../../../inc/assets/participants.png';
 import worldIcon from '../../../inc/assets/world_icon.png';
 import cornerAccent from '../../../inc/assets/corner_accent.png';
+import settingsIcon from '../../../inc/assets/settings_icon.png';
 import { color } from "@wordpress/icons";
 
 const Networking = (props) => {
@@ -14,19 +15,321 @@ const Networking = (props) => {
 	let localStream = null;  // To hold the local media stream
     const RoomDropdownContent = () => {
         let dropdown = document.getElementById("room-dropdown");
+		// empty the contents of the dropdown
+		dropdown.innerHTML = "";
+		dropdown.innerText = "Room: " + p2pcf.roomId;
+
+		// create a paragraph element to be added after the dropdown
+		let roomParagraph = document.createElement("p");
+		roomParagraph.innerText = "User: " + p2pcf.clientId;
+		roomParagraph.style.marginTop = "10px";
+		roomParagraph.style.marginBottom = "10px";
+		roomParagraph.style.textAlign = "left";
+		
+		dropdown.appendChild(roomParagraph);
+
         dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
     };
 
+	const AudioDropdownContent = async (button) => {
+
+		let dropdown = document.getElementById("room-dropdown");
+		// empty the contents of the dropdown
+		dropdown.innerHTML = "";
+		// add a h3 heading that says "Select Microphone"
+		let heading = document.createElement("h4");
+		heading.innerText = "Select Microphone";
+		heading.style.marginTop = "10px";
+		heading.style.marginBottom = "10px";
+		heading.style.textAlign = "left";
+		heading.style.fontSize = "0.7em";
+		heading.style.textAlign = "left";
+		heading.style.fontWeight = "600";
+		heading.style.color = "white";
+		heading.style.paddingLeft = "5px";
+		heading.style.fontWeight = "600";
+		heading.style.fontFamily = "Arial";
+		dropdown.appendChild(heading);
+		// make the inner text of the dropdown a list of the users in the room
+		// loop with index for each peer
+			// add a select toggle and a button to change the microphone device
+			let select = document.createElement("select");
+			select.id = "audio-select";
+			select.style.marginTop = "10px";
+			select.style.marginBottom = "10px";
+			select.style.textAlign = "left";
+			select.style.fontSize = "0.6em";
+			select.style.width = "100%";
+			select.style.height = "30px";
+			select.style.borderRadius = "5px";
+			select.style.cursor = "pointer";
+			select.style.backgroundColor = "white";
+			select.style.color = "black";
+			select.style.padding = "5px";
+			select.style.marginBottom = "10px";
+			select.style.marginTop = "10px";
+			select.style.marginLeft = "0px";
+			select.style.marginRight = "0px";
+			select.style.border = "solid 1px #959595";
+			select.style.boxSizing = "border-box";
+			// populate the select with the available audio devices
+			navigator.mediaDevices.enumerateDevices().then(function(devices) {
+				devices.forEach(function(device) {
+					if (device.kind === 'audioinput') {
+						let option = document.createElement("option");
+						option.value = device.deviceId;
+						option.text = device.label;
+						select.appendChild(option);
+					}
+				});
+			});
+			dropdown.appendChild(select);
+			// create a button for submitting the audio device change
+			let submit = document.createElement("button");
+			submit.innerText = "Join";
+			submit.style.marginTop = "10px";
+			submit.style.marginBottom = "10px";
+			submit.style.textAlign = "center";
+			submit.style.fontSize = "0.6em";
+			submit.style.fontWeight = "600";
+			submit.style.height = "35px";
+			submit.style.borderRadius = "15px";
+			submit.style.backgroundColor = "white";
+			submit.style.color = "black";
+			submit.style.width = "55px";
+			submit.style.padding = "10px";
+			submit.style.marginBottom = "10px";
+			submit.style.marginTop = "10px";
+			submit.style.marginLeft = "0px";
+			submit.style.marginRight = "0px";
+			submit.style.border = "solid 1px #959595";
+			submit.style.cursor = "pointer";
+			submit.style.boxSizing = "border-box";
+			submit.addEventListener("click", async (event) => {
+				// get the selected audio device
+				let audioSelect = document.getElementById("audio-select");
+				let audioDevice = audioSelect.options[audioSelect.selectedIndex].value;
+				// set the audio device
+				navigator.mediaDevices.getUserMedia({ audio: { deviceId: audioDevice } }).then(function(stream) {
+					// set the local stream to the new stream
+					localStream = stream;
+					// loop through the peers and set their streams to the new stream
+					for (const peer of p2pcf.peers.values()) {
+						peer.addStream(stream);
+					}
+				});
+				// getUserMedia();  // Initialize media stream
+
+				stream = await navigator.mediaDevices.getUserMedia({
+					audio: true
+				});
+		
+				// for (const peer of p2pcf.peers.values()) {
+				// 	peer.addStream(stream);
+				// }
+				var audioJoin = button.target.parentNode;
+				audioJoin.style.display = "none";
+				dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
+				var muteIcon = document.createElement("button");
+				console.log("icon", threeObjectPlugin + audioIcon);
+				muteIcon.style.backgroundImage = `url(${threeObjectPlugin + audioIcon})`;
+				muteIcon.style.backgroundSize = "cover";
+				muteIcon.id = "mute-icon";
+				muteIcon.style.width = "40px";
+				muteIcon.style.height = "40px";
+				muteIcon.style.padding = "10px";
+				muteIcon.style.marginTop = "3px";
+				muteIcon.style.marginRight = "5px";
+				muteIcon.style.boxSizing = "border-box";
+				muteIcon.style.borderRadius = "50%";
+				muteIcon.style.backgroundPosition = "center";
+				muteIcon.style.backgroundRepeat = "no-repeat";
+				muteIcon.style.backgroundColor = "#FFFFFF";
+				muteIcon.style.border = "solid 1px #959595";
+				muteIcon.style.backgroundSize = "30px";
+				muteIcon.addEventListener("click", (event) => {
+					// console.log("mute", event);
+					// stream.getAudioTracks()[0].enabled = !stream.getAudioTracks()[0]
+					// 	.enabled;
+					onMuteButtonPressed(stream);
+				});
+				var settingsIconElement = document.createElement("button");
+				settingsIconElement.style.backgroundImage = `url(${threeObjectPlugin + settingsIcon})`;
+				settingsIconElement.style.backgroundSize = "cover";
+				settingsIconElement.id = "mute-icon";
+				settingsIconElement.style.width = "40px";
+				settingsIconElement.style.height = "40px";
+				settingsIconElement.style.padding = "10px";
+				settingsIconElement.style.marginTop = "3px";
+				settingsIconElement.style.marginRight = "5px";
+				settingsIconElement.style.boxSizing = "border-box";
+				settingsIconElement.style.borderRadius = "50%";
+				settingsIconElement.style.backgroundPosition = "center";
+				settingsIconElement.style.backgroundRepeat = "no-repeat";
+				settingsIconElement.style.backgroundColor = "#FFFFFF";
+				settingsIconElement.style.border = "solid 1px #959595";
+				settingsIconElement.style.backgroundSize = "30px";
+				settingsIconElement.addEventListener("click", (event) => {
+					// console.log("mute", event);
+					// stream.getAudioTracks()[0].enabled = !stream.getAudioTracks()[0]
+					// 	.enabled;
+					SettingsDopdownContent()
+				});
+
+				//append to the audio button
+				if(audioJoin.parentNode){
+					audioJoin.parentNode.appendChild(muteIcon);
+					audioJoin.parentNode.appendChild(settingsIconElement);
+					// remove the audioJoin button
+					//audioJoin.remove();
+					toggleMute(stream);
+				}
+
+			});
+			dropdown.appendChild(submit);
+	
+			dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
+		
+	};
+
+	const SettingsDopdownContent = async (button) => {
+
+		let dropdown = document.getElementById("room-dropdown");
+		// empty the contents of the dropdown
+		dropdown.innerHTML = "";
+		// add a h3 heading that says "Select Microphone"
+		let heading = document.createElement("h4");
+		heading.innerText = "Select Microphone";
+		heading.style.marginTop = "10px";
+		heading.style.marginBottom = "10px";
+		heading.style.textAlign = "left";
+		heading.style.fontSize = "0.7em";
+		heading.style.textAlign = "left";
+		heading.style.fontWeight = "600";
+		heading.style.color = "white";
+		heading.style.paddingLeft = "5px";
+		heading.style.fontWeight = "600";
+		heading.style.fontFamily = "Arial";
+		dropdown.appendChild(heading);
+		// make the inner text of the dropdown a list of the users in the room
+		// loop with index for each peer
+			// add a select toggle and a button to change the microphone device
+			let select = document.createElement("select");
+			select.id = "audio-select";
+			select.style.marginTop = "10px";
+			select.style.marginBottom = "10px";
+			select.style.textAlign = "left";
+			select.style.fontSize = "0.6em";
+			select.style.width = "100%";
+			select.style.height = "30px";
+			select.style.borderRadius = "5px";
+			select.style.cursor = "pointer";
+			select.style.backgroundColor = "white";
+			select.style.color = "black";
+			select.style.padding = "5px";
+			select.style.marginBottom = "10px";
+			select.style.marginTop = "10px";
+			select.style.marginLeft = "0px";
+			select.style.marginRight = "0px";
+			select.style.border = "solid 1px #959595";
+			select.style.boxSizing = "border-box";
+			// populate the select with the available audio devices
+			navigator.mediaDevices.enumerateDevices().then(function(devices) {
+				devices.forEach(function(device) {
+					if (device.kind === 'audioinput') {
+						let option = document.createElement("option");
+						option.value = device.deviceId;
+						option.text = device.label;
+						select.appendChild(option);
+					}
+				});
+			});
+			dropdown.appendChild(select);
+			// create a button for submitting the audio device change
+			let submit = document.createElement("button");
+			submit.innerText = "Switch";
+			submit.style.marginTop = "10px";
+			submit.style.marginBottom = "10px";
+			submit.style.textAlign = "center";
+			submit.style.fontSize = "0.6em";
+			submit.style.fontWeight = "600";
+			submit.style.height = "35px";
+			submit.style.borderRadius = "15px";
+			submit.style.backgroundColor = "white";
+			submit.style.color = "black";
+			submit.style.width = "55px";
+			submit.style.padding = "10px";
+			submit.style.marginBottom = "10px";
+			submit.style.marginTop = "10px";
+			submit.style.marginLeft = "0px";
+			submit.style.marginRight = "0px";
+			submit.style.border = "solid 1px #959595";
+			submit.style.cursor = "pointer";
+			submit.style.boxSizing = "border-box";
+			submit.addEventListener("click", async (event) => {
+				// get the selected audio device
+				let audioSelect = document.getElementById("audio-select");
+				let audioDevice = audioSelect.options[audioSelect.selectedIndex].value;
+				// set the audio device
+				navigator.mediaDevices.getUserMedia({ audio: { deviceId: audioDevice } }).then(function(stream) {
+					// loop through the peers and set their streams to the new stream
+					for (const peer of p2pcf.peers.values()) {
+						peer.removeStream(localStream);
+						peer.addStream(stream);
+					}
+					// set the local stream to the new stream
+					localStream = stream;
+
+				});
+				getUserMedia();  // Initialize media stream
+
+				stream = await navigator.mediaDevices.getUserMedia({
+					audio: true
+				});
+		
+				for (const peer of p2pcf.peers.values()) {
+					peer.addStream(stream);
+				}
+			});
+			dropdown.appendChild(submit);
+	
+			dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
+		
+	};
+
+
+    const PeerDropdownContent = () => {
+        let dropdown = document.getElementById("room-dropdown");
+		// empty the contents of the dropdown
+		dropdown.innerHTML = "";
+		// make the inner text of the dropdown a list of the users in the room
+		// loop with index for each peer
+		for (const peer of p2pcf.peers.values()) {
+			// set up an index
+			let index = 0;
+
+			let peerParagraph = document.createElement("p");
+			peerParagraph.innerHTML = '<b>' + index + ": </b>" + peer.id;
+			peerParagraph.style.marginTop = "10px";
+			peerParagraph.style.marginBottom = "10px";
+			peerParagraph.style.textAlign = "left";
+			peerParagraph.style.fontSize = "0.6em";
+			dropdown.appendChild(peerParagraph);
+		}
+
+        dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
+    };
 	// Function to toggle mute on the local audio stream
 	const toggleMute = async (stream) => {
+		console.log("togglemute stream", stream);
 		if (stream) {
 			var muteIcon = document.getElementById("mute-icon");
 
 			isMuted = !isMuted;
 			// mute the local stream microphone
-			stream.getAudioTracks()[0].enabled = !isMuted;
+			localStream.getAudioTracks()[0].enabled = !isMuted;
 			if(muteIcon){
-				if (stream.getAudioTracks()[0].enabled) {
+				if (localStream.getAudioTracks()[0].enabled) {
 					muteIcon.style.backgroundImage = `url(${threeObjectPlugin + audioIcon})`;
 				} else {
 					muteIcon.style.backgroundImage = `url(${threeObjectPlugin + audioIconMute})`;
@@ -103,6 +406,15 @@ const Networking = (props) => {
 		// peerEl.id = sessionId;
 		// peerEl.appendChild(name);
 
+		// add click listener
+		peerIcon.addEventListener("click", (event) => {
+			PeerDropdownContent();
+            // Position the dropdown near the roomIcon
+			let dropdown = document.getElementById("room-dropdown");
+			dropdown.style.left = roomIcon.offsetLeft + "px";
+			dropdown.style.top = roomIcon.offsetTop + roomIcon.offsetHeight + "px";
+		});
+
 		document.getElementById("network-ui-container").prepend(peerIcon);
 	};
 	const addRoomUi = (sessionId) => {
@@ -136,22 +448,18 @@ const Networking = (props) => {
 		let dropdown = document.getElementById("room-dropdown");
 		dropdown.style.display = "none";
 		dropdown.style.position = "absolute";
-		dropdown.style.backgroundColor = "black";
+		dropdown.style.backgroundColor = "#000000cc";
 		dropdown.style.color = "white";
 		dropdown.style.padding = "10px";
 		dropdown.style.width = "200px";
 		dropdown.style.height = "150px";
-		dropdown.style.borderRadius = "5px";
-		dropdown.innerText = "Room: " + p2pcf.roomId;
-
-		// create a paragraph element to be added after the dropdown
-		let roomParagraph = document.createElement("p");
-		roomParagraph.innerText = "User: " + p2pcf.clientId;
-		roomParagraph.style.marginTop = "10px";
-		roomParagraph.style.marginBottom = "10px";
-		roomParagraph.style.textAlign = "left";
+		dropdown.style.borderRadius = "15px";
+		// add corner accent
+		dropdown.style.backgroundImage = `url(${threeObjectPlugin + cornerAccent})`;
+		dropdown.style.backgroundSize = "auto";
+		dropdown.style.backgroundPosition = "top left"
+		dropdown.style.backgroundRepeat = "no-repeat";
 		
-		dropdown.appendChild(roomParagraph);
 
 		document.getElementById("network-ui-container").prepend(roomIcon);
 	};
@@ -213,49 +521,11 @@ const Networking = (props) => {
 			const audioButton = document.getElementById("audio-button");
 			if(audioButton){
 				audioButton.addEventListener("click", async (button) => {
-					getUserMedia();  // Initialize media stream
-
-					stream = await navigator.mediaDevices.getUserMedia({
-						audio: true
+					console.log("are we even trying here?")
+					// request permissions for microphone devices then do audioDropdownContent
+					navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+						AudioDropdownContent(button);
 					});
-
-					for (const peer of p2pcf.peers.values()) {
-						peer.addStream(stream);
-					}
-					console.log("button", button.target.parentNode);
-					var audioJoin = button.target.parentNode;
-					audioJoin.style.display = "none";
-
-					var muteIcon = document.createElement("button");
-					console.log("icon", threeObjectPlugin + audioIcon);
-					muteIcon.style.backgroundImage = `url(${threeObjectPlugin + audioIcon})`;
-					muteIcon.style.backgroundSize = "cover";
-					muteIcon.id = "mute-icon";
-					muteIcon.style.width = "40px";
-					muteIcon.style.height = "40px";
-					muteIcon.style.padding = "10px";
-					muteIcon.style.marginTop = "3px";
-					muteIcon.style.marginRight = "5px";
-					muteIcon.style.boxSizing = "border-box";
-					muteIcon.style.borderRadius = "50%";
-					muteIcon.style.backgroundPosition = "center";
-					muteIcon.style.backgroundRepeat = "no-repeat";
-					muteIcon.style.backgroundColor = "#FFFFFF";
-					muteIcon.style.border = "solid 1px #959595";
-					muteIcon.style.backgroundSize = "30px";
-					muteIcon.addEventListener("click", (event) => {
-						// console.log("mute", event);
-						// stream.getAudioTracks()[0].enabled = !stream.getAudioTracks()[0]
-						// 	.enabled;
-						onMuteButtonPressed(stream);
-					});
-					//append to the audio button
-					if(audioJoin.parentNode){
-						audioJoin.parentNode.appendChild(muteIcon);
-						// remove the audioJoin button
-						//audioJoin.remove();
-						toggleMute(stream);
-					}
 				});
 			}
 

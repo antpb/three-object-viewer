@@ -197,7 +197,9 @@ class Plugin
 	
 		$current_user = wp_get_current_user();
         $current_user = wp_get_current_user();
-        $vrm = get_user_meta($current_user->ID, 'user_data_vrm', true) ?: get_option('3ov_defaultAvatar');
+        $playerVRM = get_user_meta($current_user->ID, 'user_data_vrm', true) ?: get_option('3ov_defaultAvatar');
+		$vrm = get_option('3ov_defaultAvatar');
+
 		$multiplayer_worker_url = get_option( '3ov_mp_multiplayerWorker', '' );
 		// $vrm = get_option('3ov_defaultAvatar');
 		$inWorldName = "Guest";
@@ -210,6 +212,7 @@ class Plugin
 			  'inWorldName' => $inWorldName,
 			  'banner' => $current_user->custom_banner,
 			  'vrm' => $vrm,
+			  'playerVRM' => $playerVRM,
 			  'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
 			  'nonce' => wp_create_nonce( 'wp_rest' )
 			);
@@ -222,6 +225,7 @@ class Plugin
 				'inWorldName' => $inWorldName,
 				'banner' => $current_user->custom_banner,
 				'vrm' => $vrm,
+				'playerVRM' => $playerVRM,
 				'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
 				'nonce' => wp_create_nonce( 'wp_rest' )
 			  );  
@@ -235,6 +239,7 @@ class Plugin
 			  'inWorldName' => $inWorldName,
 			  'banner' => $current_user->custom_banner,
 			  'vrm' => $vrm,
+			  'playerVRM' => $playerVRM,
 			  'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
 			);
 		}
@@ -246,6 +251,7 @@ class Plugin
 		$default_animation = get_option('3ov_defaultVRM');
 
 		$default_avatar = get_option('3ov_defaultAvatar');
+		$default_player_avatar = get_option('user_data_vrm');
 
 		// $user_data_passed = array(
 		//     'userId' => 'something',
@@ -268,7 +274,7 @@ class Plugin
 					$openbrush_enabled = true;
 					$three_icosa_brushes_url = plugin_dir_url( "three-object-viewer-three-icosa/three-object-viewer-three-icosa.php" ) . 'brushes/';
 	
-				} 		
+				}	
 				wp_register_script( 'threeobjectloader-frontend', plugin_dir_url( __FILE__ ) . $default_frontend_js_three_viewer, ['wp-element', 'wp-data', 'wp-hooks'], '', true );
 				wp_localize_script( 'threeobjectloader-frontend', 'userData', $user_data_passed );
 				wp_localize_script( 'threeobjectloader-frontend', 'openbrushEnabled', $openbrush_enabled );
@@ -277,6 +283,7 @@ class Plugin
 				wp_localize_script( 'threeobjectloader-frontend', 'threeObjectPluginRoot', $three_object_plugin_root );	
 				wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatarAnimation', $default_animation );	
 				wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatar', $default_avatar );	
+				wp_localize_script( 'threeobjectloader-frontend', 'defaultPlayerAvatar', $default_avatar );	
 				wp_localize_script( 'threeobjectloader-frontend', 'multiplayerWorker', $multiplayer_worker_url );
 				wp_enqueue_script( 
 					"threeobjectloader-frontend"
@@ -286,8 +293,12 @@ class Plugin
 				if ( is_plugin_active( 'three-object-viewer-three-icosa/three-object-viewer-three-icosa.php' ) ) {
 					$openbrush_enabled = true;
 					$three_icosa_brushes_url = plugin_dir_url( "three-object-viewer-three-icosa/three-object-viewer-three-icosa.php" ) . 'brushes/';
-				} 
-				wp_register_script( 'versepress-frontend', plugin_dir_url( __FILE__ ) . $frontend_js, ['wp-element', 'wp-data', 'wp-hooks'], '', true );
+				}
+				$script_path = plugin_dir_path( __FILE__ ) . $frontend_js; // Path to the JS file on the server.
+				$script_version = filemtime($script_path); // Gets the file modification time.
+			
+			
+				wp_register_script( 'versepress-frontend', plugin_dir_url( __FILE__ ) . $frontend_js, ['wp-element', 'wp-data', 'wp-hooks'], $script_version, true );
 				wp_localize_script( 'versepress-frontend', 'userData', $user_data_passed );
 				wp_localize_script( 'versepress-frontend', 'postSlug', $post_slug );
 				wp_localize_script( 'versepress-frontend', 'openbrushDirectory', $three_icosa_brushes_url );
@@ -296,6 +307,7 @@ class Plugin
 				wp_localize_script( 'versepress-frontend', 'threeObjectPluginRoot', $three_object_plugin_root );	
 				wp_localize_script( 'versepress-frontend', 'defaultAvatarAnimation', $default_animation );
 				wp_localize_script( 'versepress-frontend', 'defaultAvatar', $default_avatar );
+				wp_localize_script( 'versepress-frontend', 'defaultPlayerAvatar', $default_avatar );	
 				wp_localize_script( 'versepress-frontend', 'multiplayerWorker', $multiplayer_worker_url );
 				wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatarAnimation', $default_animation );	
 				wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatar', $default_avatar );	
