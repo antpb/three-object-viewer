@@ -76,6 +76,7 @@ export default function TeleportTravel(props) {
 			reticle.visible = false;
 		}
 	}, [controllers]);
+	const movementTimeoutRef = useRef(null);
 
 	useFrame(() => {
 		if (
@@ -141,11 +142,57 @@ export default function TeleportTravel(props) {
 		if (isHovered && !canInteract) {
 			targetLoc.current.position.set(
 				targetLoc.current.position.x,
-				targetLoc.current.position.y + 0.1,
+				targetLoc.current.position.y + 0.3,
 				targetLoc.current.position.z
 			);
 			if (canTeleport) {
 				player.position.copy(targetLoc.current.position);
+				const p2pcf = window.p2pcf;
+				const participantObject = scene.getObjectByName("playerOne");
+				participantObject.position.copy(targetLoc.current.position);
+				//if moving, send a network event of where we are and our current state....animations probably need to go here too.
+				if (p2pcf) {	
+					var target = new Vector3(); // create once an reuse it
+					var worldPosition = participantObject.getWorldPosition( target );
+					const position = [
+						worldPosition.x,
+						worldPosition.y,
+						worldPosition.z
+					];
+					// console.log("sending position", participantObject, position);
+					// get the z rotation of the headset
+					const rotation = [
+						participantObject.rotation.x,
+						participantObject.rotation.y,
+						participantObject.rotation.z
+					];
+					const messageObject = {
+						[p2pcf.clientId]: {
+							position: position,
+							rotation: rotation,
+							profileImage: userData.profileImage,
+							vrm: userData.vrm,
+							inWorldName: userData.inWorldName,
+							isMoving: "walking"
+						}
+					};
+					console.log("sending message", messageObject, p2pcf, p2pcf.clientId);
+					// console.log("userdata", userData);
+					clearTimeout(movementTimeoutRef.current);
+					movementTimeoutRef.current = setTimeout(() => {
+						// Send "isMoving: false" message here
+						const messageStopObject = {
+							[p2pcf.clientId]: {
+								isMoving: false
+							}
+						};
+						const messageStop = JSON.stringify(messageStopObject);
+						p2pcf.broadcast(new TextEncoder().encode(messageStop));
+					}, 100);
+
+					const message = JSON.stringify(messageObject);
+					p2pcf.broadcast(new TextEncoder().encode(message)), p2pcf;
+				}		
 			}
 		}
 		if (isHovered && canInteract) {

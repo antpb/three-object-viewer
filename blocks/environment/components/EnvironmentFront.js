@@ -736,10 +736,10 @@ function Participants(props) {
 								if(participantData[peer.client_id]?.inWorldName.length > 8){
 									displayNameBackground.geometry = new THREE.PlaneGeometry(0.35, 0.07);
 									displayNameBackground.position.x = -0.005;
-									if(participantData[peer.client_id]?.inWorldName.length > 18){
-										textRefs.current[peer.client_id].fontSize = 0.028;
+									if(participantData[peer.client_id]?.inWorldName.length > 16){
+										textRefs.current[peer.client_id].fontSize = 0.034;
 									}
-								}	
+								}
 							}
 						});
 					}, 1000);
@@ -749,14 +749,22 @@ function Participants(props) {
 				if (animationsRef.current[peer.client_id]) {
 					const walkAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][1]); // Walking animation
 					const idleAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][0]); // Idle animation
+					const runAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][2]); // Running animation
 		
-					if (participantData[peer.client_id].isMoving) {
+					if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "walking") {
 						walkAction.play();
+						runAction.stop();
+						idleAction.stop();
+					} else if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "running") {
+						walkAction.stop();
+						runAction.play();
 						idleAction.stop();
 					} else {
 						idleAction.play();
 						walkAction.stop();
+						runAction.stop();
 					}
+
 				}
 	
 				if (participantObject) {

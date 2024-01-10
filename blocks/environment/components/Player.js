@@ -567,9 +567,12 @@ export default function Player(props) {
 									profileImage: userData.profileImage,
 									vrm: userData.vrm,
 									inWorldName: userData.inWorldName,
-									isMoving: true
+									isMoving: "walking"
 								}
 							};
+							if(props.movement.current.shift) {
+								messageObject[p2pcf.clientId].isMoving = "running";
+							}
 							// console.log("userdata", userData);
 							clearTimeout(movementTimeoutRef.current);
 							movementTimeoutRef.current = setTimeout(() => {

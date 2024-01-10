@@ -9,8 +9,6 @@ import settingsIcon from '../../../inc/assets/settings_icon.png';
 import { color } from "@wordpress/icons";
 
 const Networking = (props) => {
-
-
 	let isMuted = false;  // Initial state of the microphone
 	let localStream = null;  // To hold the local media stream
     const RoomDropdownContent = () => {
@@ -32,7 +30,6 @@ const Networking = (props) => {
     };
 
 	const AudioDropdownContent = async (button) => {
-
 		let dropdown = document.getElementById("room-dropdown");
 		// empty the contents of the dropdown
 		dropdown.innerHTML = "";
@@ -52,143 +49,143 @@ const Networking = (props) => {
 		dropdown.appendChild(heading);
 		// make the inner text of the dropdown a list of the users in the room
 		// loop with index for each peer
-			// add a select toggle and a button to change the microphone device
-			let select = document.createElement("select");
-			select.id = "audio-select";
-			select.style.marginTop = "10px";
-			select.style.marginBottom = "10px";
-			select.style.textAlign = "left";
-			select.style.fontSize = "0.6em";
-			select.style.width = "100%";
-			select.style.height = "30px";
-			select.style.borderRadius = "5px";
-			select.style.cursor = "pointer";
-			select.style.backgroundColor = "white";
-			select.style.color = "black";
-			select.style.padding = "5px";
-			select.style.marginBottom = "10px";
-			select.style.marginTop = "10px";
-			select.style.marginLeft = "0px";
-			select.style.marginRight = "0px";
-			select.style.border = "solid 1px #959595";
-			select.style.boxSizing = "border-box";
-			// populate the select with the available audio devices
-			navigator.mediaDevices.enumerateDevices().then(function(devices) {
-				devices.forEach(function(device) {
-					if (device.kind === 'audioinput') {
-						let option = document.createElement("option");
-						option.value = device.deviceId;
-						option.text = device.label;
-						select.appendChild(option);
-					}
-				});
-			});
-			dropdown.appendChild(select);
-			// create a button for submitting the audio device change
-			let submit = document.createElement("button");
-			submit.innerText = "Join";
-			submit.style.marginTop = "10px";
-			submit.style.marginBottom = "10px";
-			submit.style.textAlign = "center";
-			submit.style.fontSize = "0.6em";
-			submit.style.fontWeight = "600";
-			submit.style.height = "35px";
-			submit.style.borderRadius = "15px";
-			submit.style.backgroundColor = "white";
-			submit.style.color = "black";
-			submit.style.width = "55px";
-			submit.style.padding = "10px";
-			submit.style.marginBottom = "10px";
-			submit.style.marginTop = "10px";
-			submit.style.marginLeft = "0px";
-			submit.style.marginRight = "0px";
-			submit.style.border = "solid 1px #959595";
-			submit.style.cursor = "pointer";
-			submit.style.boxSizing = "border-box";
-			submit.addEventListener("click", async (event) => {
-				// get the selected audio device
-				let audioSelect = document.getElementById("audio-select");
-				let audioDevice = audioSelect.options[audioSelect.selectedIndex].value;
-				// set the audio device
-				navigator.mediaDevices.getUserMedia({ audio: { deviceId: audioDevice } }).then(function(stream) {
-					// set the local stream to the new stream
-					localStream = stream;
-					// loop through the peers and set their streams to the new stream
-					for (const peer of p2pcf.peers.values()) {
-						peer.addStream(stream);
-					}
-				});
-				// getUserMedia();  // Initialize media stream
-
-				stream = await navigator.mediaDevices.getUserMedia({
-					audio: true
-				});
-		
-				// for (const peer of p2pcf.peers.values()) {
-				// 	peer.addStream(stream);
-				// }
-				var audioJoin = button.target.parentNode;
-				audioJoin.style.display = "none";
-				dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
-				var muteIcon = document.createElement("button");
-				console.log("icon", threeObjectPlugin + audioIcon);
-				muteIcon.style.backgroundImage = `url(${threeObjectPlugin + audioIcon})`;
-				muteIcon.style.backgroundSize = "cover";
-				muteIcon.id = "mute-icon";
-				muteIcon.style.width = "40px";
-				muteIcon.style.height = "40px";
-				muteIcon.style.padding = "10px";
-				muteIcon.style.marginTop = "3px";
-				muteIcon.style.marginRight = "5px";
-				muteIcon.style.boxSizing = "border-box";
-				muteIcon.style.borderRadius = "50%";
-				muteIcon.style.backgroundPosition = "center";
-				muteIcon.style.backgroundRepeat = "no-repeat";
-				muteIcon.style.backgroundColor = "#FFFFFF";
-				muteIcon.style.border = "solid 1px #959595";
-				muteIcon.style.backgroundSize = "30px";
-				muteIcon.addEventListener("click", (event) => {
-					// console.log("mute", event);
-					// stream.getAudioTracks()[0].enabled = !stream.getAudioTracks()[0]
-					// 	.enabled;
-					onMuteButtonPressed(stream);
-				});
-				var settingsIconElement = document.createElement("button");
-				settingsIconElement.style.backgroundImage = `url(${threeObjectPlugin + settingsIcon})`;
-				settingsIconElement.style.backgroundSize = "cover";
-				settingsIconElement.id = "mute-icon";
-				settingsIconElement.style.width = "40px";
-				settingsIconElement.style.height = "40px";
-				settingsIconElement.style.padding = "10px";
-				settingsIconElement.style.marginTop = "3px";
-				settingsIconElement.style.marginRight = "5px";
-				settingsIconElement.style.boxSizing = "border-box";
-				settingsIconElement.style.borderRadius = "50%";
-				settingsIconElement.style.backgroundPosition = "center";
-				settingsIconElement.style.backgroundRepeat = "no-repeat";
-				settingsIconElement.style.backgroundColor = "#FFFFFF";
-				settingsIconElement.style.border = "solid 1px #959595";
-				settingsIconElement.style.backgroundSize = "30px";
-				settingsIconElement.addEventListener("click", (event) => {
-					// console.log("mute", event);
-					// stream.getAudioTracks()[0].enabled = !stream.getAudioTracks()[0]
-					// 	.enabled;
-					SettingsDopdownContent()
-				});
-
-				//append to the audio button
-				if(audioJoin.parentNode){
-					audioJoin.parentNode.appendChild(muteIcon);
-					audioJoin.parentNode.appendChild(settingsIconElement);
-					// remove the audioJoin button
-					//audioJoin.remove();
-					toggleMute(stream);
+		// add a select toggle and a button to change the microphone device
+		let select = document.createElement("select");
+		select.id = "audio-select";
+		select.style.marginTop = "10px";
+		select.style.marginBottom = "10px";
+		select.style.textAlign = "left";
+		select.style.fontSize = "0.6em";
+		select.style.width = "100%";
+		select.style.height = "30px";
+		select.style.borderRadius = "5px";
+		select.style.cursor = "pointer";
+		select.style.backgroundColor = "white";
+		select.style.color = "black";
+		select.style.padding = "5px";
+		select.style.marginBottom = "10px";
+		select.style.marginTop = "10px";
+		select.style.marginLeft = "0px";
+		select.style.marginRight = "0px";
+		select.style.border = "solid 1px #959595";
+		select.style.boxSizing = "border-box";
+		// populate the select with the available audio devices
+		navigator.mediaDevices.enumerateDevices().then(function(devices) {
+			devices.forEach(function(device) {
+				if (device.kind === 'audioinput') {
+					let option = document.createElement("option");
+					option.value = device.deviceId;
+					option.text = device.label;
+					select.appendChild(option);
 				}
-
 			});
-			dropdown.appendChild(submit);
+		});
+		dropdown.appendChild(select);
+		// create a button for submitting the audio device change
+		let submit = document.createElement("button");
+		submit.innerText = "Join";
+		submit.style.marginTop = "10px";
+		submit.style.marginBottom = "10px";
+		submit.style.textAlign = "center";
+		submit.style.fontSize = "0.6em";
+		submit.style.fontWeight = "600";
+		submit.style.height = "35px";
+		submit.style.borderRadius = "15px";
+		submit.style.backgroundColor = "white";
+		submit.style.color = "black";
+		submit.style.width = "55px";
+		submit.style.padding = "10px";
+		submit.style.marginBottom = "10px";
+		submit.style.marginTop = "10px";
+		submit.style.marginLeft = "0px";
+		submit.style.marginRight = "0px";
+		submit.style.border = "solid 1px #959595";
+		submit.style.cursor = "pointer";
+		submit.style.boxSizing = "border-box";
+		submit.addEventListener("click", async (event) => {
+			// get the selected audio device
+			let audioSelect = document.getElementById("audio-select");
+			let audioDevice = audioSelect.options[audioSelect.selectedIndex].value;
+			// set the audio device
+			navigator.mediaDevices.getUserMedia({ audio: { deviceId: audioDevice } }).then(function(stream) {
+				// set the local stream to the new stream
+				localStream = stream;
+				// loop through the peers and set their streams to the new stream
+				for (const peer of p2pcf.peers.values()) {
+					peer.addStream(stream);
+				}
+			});
+			// getUserMedia();  // Initialize media stream
+
+			stream = await navigator.mediaDevices.getUserMedia({
+				audio: true
+			});
 	
+			// for (const peer of p2pcf.peers.values()) {
+			// 	peer.addStream(stream);
+			// }
+			var audioJoin = button.target.parentNode;
+			audioJoin.style.display = "none";
 			dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
+			var muteIcon = document.createElement("button");
+			console.log("icon", threeObjectPlugin + audioIcon);
+			muteIcon.style.backgroundImage = `url(${threeObjectPlugin + audioIcon})`;
+			muteIcon.style.backgroundSize = "cover";
+			muteIcon.id = "mute-icon";
+			muteIcon.style.width = "40px";
+			muteIcon.style.height = "40px";
+			muteIcon.style.padding = "10px";
+			muteIcon.style.marginTop = "3px";
+			muteIcon.style.marginRight = "5px";
+			muteIcon.style.boxSizing = "border-box";
+			muteIcon.style.borderRadius = "50%";
+			muteIcon.style.backgroundPosition = "center";
+			muteIcon.style.backgroundRepeat = "no-repeat";
+			muteIcon.style.backgroundColor = "#FFFFFF";
+			muteIcon.style.border = "solid 1px #959595";
+			muteIcon.style.backgroundSize = "30px";
+			muteIcon.addEventListener("click", (event) => {
+				// console.log("mute", event);
+				// stream.getAudioTracks()[0].enabled = !stream.getAudioTracks()[0]
+				// 	.enabled;
+				onMuteButtonPressed(stream);
+			});
+			var settingsIconElement = document.createElement("button");
+			settingsIconElement.style.backgroundImage = `url(${threeObjectPlugin + settingsIcon})`;
+			settingsIconElement.style.backgroundSize = "cover";
+			settingsIconElement.id = "mute-icon";
+			settingsIconElement.style.width = "40px";
+			settingsIconElement.style.height = "40px";
+			settingsIconElement.style.padding = "10px";
+			settingsIconElement.style.marginTop = "3px";
+			settingsIconElement.style.marginRight = "5px";
+			settingsIconElement.style.boxSizing = "border-box";
+			settingsIconElement.style.borderRadius = "50%";
+			settingsIconElement.style.backgroundPosition = "center";
+			settingsIconElement.style.backgroundRepeat = "no-repeat";
+			settingsIconElement.style.backgroundColor = "#FFFFFF";
+			settingsIconElement.style.border = "solid 1px #959595";
+			settingsIconElement.style.backgroundSize = "30px";
+			settingsIconElement.addEventListener("click", (event) => {
+				// console.log("mute", event);
+				// stream.getAudioTracks()[0].enabled = !stream.getAudioTracks()[0]
+				// 	.enabled;
+				SettingsDopdownContent()
+			});
+
+			//append to the audio button
+			if(audioJoin.parentNode){
+				audioJoin.parentNode.appendChild(muteIcon);
+				audioJoin.parentNode.appendChild(settingsIconElement);
+				// remove the audioJoin button
+				//audioJoin.remove();
+				toggleMute(stream);
+			}
+
+		});
+		dropdown.appendChild(submit);
+
+		dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
 		
 	};
 
