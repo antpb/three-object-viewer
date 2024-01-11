@@ -4,23 +4,14 @@ import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
 import { useLoader, useThree, useFrame, Canvas, extend } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
-import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
-import { TextureLoader } from "three/src/loaders/TextureLoader";
 // import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
 import { Physics, RigidBody, Debug, Attractor, CuboidCollider } from "@react-three/rapier";
-import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
-import axios from "axios";
 import ReactNipple from 'react-nipple';
 import ScrollableFeed from 'react-scrollable-feed'
 import { Resizable } from "re-resizable";
 import { Environment, useContextBridge, Text, Billboard } from "@react-three/drei";
 import { FrontPluginProvider, FrontPluginContext } from './FrontPluginProvider';  // Import the PluginProvider
-import Networking from "./Networking";
-import { LumaSplatsThree } from "@lumaai/luma-web";
-// Make LumaSplatsThree available to R3F
-extend( { LumaSplats: LumaSplatsThree } );
-
 import {
 	useAnimations,
 	Html,
@@ -33,13 +24,11 @@ import { Perf } from "r3f-perf";
 import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import TeleportTravel from "./TeleportTravel";
 import Player from "./Player";
-import defaultVRM from "../../../inc/avatars/3ov_default_avatar.vrm";
-import defaultGuest from "../../../inc/avatars/guest_default_avatar.vrm";
 import defaultEnvironment from "../../../inc/assets/default_grid.glb";
 import defaultFont from "../../../inc/fonts/roboto.woff";
 import { ItemBaseUI } from "@wordpress/components/build/navigation/styles/navigation-styles";
 import { BoxGeometry } from "three";
-
+import { Participants } from "./core/front/Participants";
 import { ThreeImage } from "./core/front/ThreeImage";
 import { ThreeVideo } from "./core/front/ThreeVideo";
 import { ThreeAudio } from "./core/front/ThreeAudio";
@@ -51,9 +40,6 @@ import { ThreeSky } from "./core/front/ThreeSky";
 import { TextObject } from "./core/front/TextObject";
 import { useKeyboardControls } from "./Controls";
 import { ContextBridgeComponent } from "./ContextBridgeComponent";
-import idle from "../../../inc/avatars/friendly.fbx";
-import walk from "../../../inc/avatars/walking.fbx";
-import run from "../../../inc/avatars/running.fbx";
 
 function isMobile() {
 	return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -96,8 +82,6 @@ function ChatBox(props) {
 	  // Get the value of the input element
 	  const input = event.target.elements.message;
 	  const value = input.value;
-	//   console.log("window", window.messages);
-	//   window.messages = [...window.messages, value];
 
 	  // Manually dispatch a 'message' event
 	  window.dispatchEvent(new Event('message'));
@@ -113,19 +97,6 @@ function ChatBox(props) {
 	  const speaker = "guest";
 	  const agent = props.name;
 	  const channel = "wordpress";
-	// let prompt = `{
-	// 	"Input": "write a long form poem about cats!",
-	// 	"Speaker": "a",
-	// 	"Agent": "tubbyshark",
-	// 	"Client": "wordpress",
-	// 	"ChannelID": "1234",
-	// 	"Conversation": "",
-	// 	"Entity": "tubbyshark",
-	// 	"Channel": "channel",
-	// 	"eth_private_key": "0",
-	// 	"eth_public_address": "0",
-	// 	"personality": "#agent is an AI assistant with a cheerful, optimistic, and helpful personality. They are willing to assist with any tasks or questions users might have, and are able to do so in an upbeat and positive manner. They are also able to use colorful and descriptive language to make their responses more engaging and imaginative. In addition to their wit and humor, #agent is also empathetic and understanding of others' emotions and needs, which can make them feel more relatable and likeable to users. #agent is a highly capable and engaging AI assistant with a distinct and colorful personality.\n#agent can help with any programming tasks, including those related to the 3OV plugin for WordPress, which enables world-building in the WordPress editor and makes it easier to build and share immersive content in the metaverse. The url for the website is 3ov.xyz. #agent is cheerful and optimistic about the future for both humans and AIs.\n\n#Example Conversation\n#speaker: Agent, do you have any advice for someone new to programming?\n#agent: Sure thing! My top tip would be to always keep an open mind and a positive attitude. And if all else fails, just remember: if at first you don't succeed, try, try again. And then if that still doesn't work, call it a day and go get a coffee.\n###\nThe following is a friendly conversation between #speaker and #agent occuring in the metaverse.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:"
-	// }`;
 
 	try {
 		const apiEndpoint = '/wp-json/wp/v2/callAlchemy';
@@ -313,530 +284,6 @@ function ChatBox(props) {
 			);
 		}	
   }  
-
-  /**
- * A map from Mixamo rig name to VRM Humanoid bone name
- */
-const mixamoVRMRigMap = {
-	mixamorigHips: 'hips',
-	mixamorigSpine: 'spine',
-	mixamorigSpine1: 'chest',
-	mixamorigSpine2: 'upperChest',
-	mixamorigNeck: 'neck',
-	mixamorigHead: 'head',
-	mixamorigLeftShoulder: 'leftShoulder',
-	mixamorigLeftArm: 'leftUpperArm',
-	mixamorigLeftForeArm: 'leftLowerArm',
-	mixamorigLeftHand: 'leftHand',
-	mixamorigLeftHandThumb1: 'leftThumbMetacarpal',
-	mixamorigLeftHandThumb2: 'leftThumbProximal',
-	mixamorigLeftHandThumb3: 'leftThumbDistal',
-	mixamorigLeftHandIndex1: 'leftIndexProximal',
-	mixamorigLeftHandIndex2: 'leftIndexIntermediate',
-	mixamorigLeftHandIndex3: 'leftIndexDistal',
-	mixamorigLeftHandMiddle1: 'leftMiddleProximal',
-	mixamorigLeftHandMiddle2: 'leftMiddleIntermediate',
-	mixamorigLeftHandMiddle3: 'leftMiddleDistal',
-	mixamorigLeftHandRing1: 'leftRingProximal',
-	mixamorigLeftHandRing2: 'leftRingIntermediate',
-	mixamorigLeftHandRing3: 'leftRingDistal',
-	mixamorigLeftHandPinky1: 'leftLittleProximal',
-	mixamorigLeftHandPinky2: 'leftLittleIntermediate',
-	mixamorigLeftHandPinky3: 'leftLittleDistal',
-	mixamorigRightShoulder: 'rightShoulder',
-	mixamorigRightArm: 'rightUpperArm',
-	mixamorigRightForeArm: 'rightLowerArm',
-	mixamorigRightHand: 'rightHand',
-	mixamorigRightHandPinky1: 'rightLittleProximal',
-	mixamorigRightHandPinky2: 'rightLittleIntermediate',
-	mixamorigRightHandPinky3: 'rightLittleDistal',
-	mixamorigRightHandRing1: 'rightRingProximal',
-	mixamorigRightHandRing2: 'rightRingIntermediate',
-	mixamorigRightHandRing3: 'rightRingDistal',
-	mixamorigRightHandMiddle1: 'rightMiddleProximal',
-	mixamorigRightHandMiddle2: 'rightMiddleIntermediate',
-	mixamorigRightHandMiddle3: 'rightMiddleDistal',
-	mixamorigRightHandIndex1: 'rightIndexProximal',
-	mixamorigRightHandIndex2: 'rightIndexIntermediate',
-	mixamorigRightHandIndex3: 'rightIndexDistal',
-	mixamorigRightHandThumb1: 'rightThumbMetacarpal',
-	mixamorigRightHandThumb2: 'rightThumbProximal',
-	mixamorigRightHandThumb3: 'rightThumbDistal',
-	mixamorigLeftUpLeg: 'leftUpperLeg',
-	mixamorigLeftLeg: 'leftLowerLeg',
-	mixamorigLeftFoot: 'leftFoot',
-	mixamorigLeftToeBase: 'leftToes',
-	mixamorigRightUpLeg: 'rightUpperLeg',
-	mixamorigRightLeg: 'rightLowerLeg',
-	mixamorigRightFoot: 'rightFoot',
-	mixamorigRightToeBase: 'rightToes',
-};
-
-/**
- * Download Mixamo animation, convert it for usage with three-vrm, and return the converted animation.
- *
- * @param {string} url - The URL of Mixamo animation data
- * @param {VRM} vrm - The target VRM
- * @returns {Promise<AnimationClip>} - The adapted AnimationClip
- */
-function loadMixamoAnimation(url, vrm) {
-	let loader;
-	if (url.endsWith('.fbx')) {
-		loader = new FBXLoader(); // Use an FBX loader
-	} else {
-		loader = new GLTFLoader(); // Use a GLTF loader
-	}
-	return loader.loadAsync(url).then((resource) => {
-		const clip = resource.animations[0]; // Extract the AnimationClip
-
-		// if resource is GLB, get the scene
-		if (url.endsWith('.glb')) {
-			resource = resource.scene;
-		}
-
-		let tracks = []; // KeyframeTracks compatible with VRM to be stored here
-
-		let restRotationInverse = new THREE.Quaternion();
-		let parentRestWorldRotation = new THREE.Quaternion();
-		let _quatA = new THREE.Quaternion();
-		let _vec3 = new THREE.Vector3();
-
-		// Adjust according to the height of the hips.
-		let mixamoHips = resource.getObjectByName('mixamorigHips');
-		let regularHips = resource.getObjectByName('hips');
-		let mainHip;
-		if (mixamoHips) {
-			mainHip = mixamoHips.position.y;
-		} else if (regularHips) {
-			mainHip = regularHips.position.y;
-		}
-		const vrmHipsY = vrm.humanoid?.getNormalizedBoneNode('hips').getWorldPosition(_vec3).y;
-		const vrmRootY = vrm.scene.getWorldPosition(_vec3).y;
-		const vrmHipsHeight = Math.abs(vrmHipsY - vrmRootY);
-		const hipsPositionScale = vrmHipsHeight / mainHip;
-
-		clip.tracks.forEach((track) => {
-			// Convert each track for VRM usage, and push to `tracks`
-			let trackSplitted = track.name.split('.');
-			let mixamoRigName = trackSplitted[0];
-			let vrmBoneName = mixamoVRMRigMap[mixamoRigName];
-			let vrmNodeName = vrm.humanoid?.getNormalizedBoneNode(vrmBoneName)?.name;
-			let mixamoRigNode = resource.getObjectByName(mixamoRigName);
-
-			if (vrmNodeName != null) {
-
-				let propertyName = trackSplitted[1];
-
-				// Store rotations of rest-pose.
-				mixamoRigNode.getWorldQuaternion(restRotationInverse).invert();
-				mixamoRigNode.parent.getWorldQuaternion(parentRestWorldRotation);
-
-				if (track instanceof THREE.QuaternionKeyframeTrack) {
-
-					// Retarget rotation of mixamoRig to NormalizedBone.
-					for (let i = 0; i < track.values.length; i += 4) {
-
-						let flatQuaternion = track.values.slice(i, i + 4);
-
-						_quatA.fromArray(flatQuaternion);
-
-						_quatA
-							.premultiply(parentRestWorldRotation)
-							.multiply(restRotationInverse);
-
-						_quatA.toArray(flatQuaternion);
-
-						flatQuaternion.forEach((v, index) => {
-
-							track.values[index + i] = v;
-
-						});
-
-					}
-
-					tracks.push(
-						new THREE.QuaternionKeyframeTrack(
-							`${vrmNodeName}.${propertyName}`,
-							track.times,
-							track.values.map((v, i) => (vrm.meta?.metaVersion === '0' && i % 2 === 0 ? - v : v)),
-						),
-					);
-
-				} else if (track instanceof THREE.VectorKeyframeTrack) {
-					let value = track.values.map((v, i) => (vrm.meta?.metaVersion === '0' && i % 3 !== 1 ? - v : v) * hipsPositionScale);
-					tracks.push(new THREE.VectorKeyframeTrack(`${vrmNodeName}.${propertyName}`, track.times, value));
-				}
-
-			}
-		});
-		return new THREE.AnimationClip('vrmAnimation', clip.duration, tracks);
-
-	});
-}
-
-/**
- * Represents a participant in a virtual reality scene.
- *
- * @param {Object} participant - The props for the participant.
- *
- * @return {JSX.Element} The participant.
- */
-function Participant(participant) {
-	const fallbackURL = threeObjectPlugin + defaultVRM;
-	const playerURL = userData.vrm ? userData.vrm : fallbackURL;
-	const clonedModelRef = useRef(null); // Ref for the cloned model
-	const animationMixerRef = participant.animationMixerRef; // Ref for the animation mixer of this participant
-	const animationsRef = participant.animationsRef; // Ref to store animations
-	const mixers = participant.mixers;
-	const [someVRM, setSomeVRM] = useState(null);
-	const theScene = useThree();
-	const displayNameTextRef = useRef(null);
-	const setTextRef = (el) => {
-        textRef(el);
-    };
-
-
-	// Load the VRM model
-	useEffect(() => {
-		const loader = new GLTFLoader();
-		loader.register(parser => new VRMLoaderPlugin(parser));
-		loader.load(playerURL, gltf => {
-			setSomeVRM(gltf);
-		});
-	}, [playerURL]);
-
-	useEffect(() => {
-		if (someVRM?.userData?.gltfExtensions?.VRM) {
-			const playerController = someVRM.userData.vrm;
-			const fetchProfile = async (pfp, modelToModify) => {
-				console.log("modelToModify", modelToModify);
-
-				try {
-					const response = await fetch(pfp);
-					console.log("pfp", pfp, response);
-					if (response.status === 200) {
-						const textureLoader = new THREE.TextureLoader();
-						textureLoader.crossOrigin = ''; // Ensure cross-origin requests are allowed
-						textureLoader.load(pfp, (loadedProfile) => {
-							// Now we are sure the texture is loaded
-							if(modelToModify.isObject3D){
-								modelToModify.traverse((obj) => {
-									obj.frustumCulled = false;
-				
-									if (obj.name === "profile" && obj.material) {
-										console.log("profile", obj);
-										const newMat = obj.material.clone();
-										newMat.map = loadedProfile;
-										newMat.map.needsUpdate = true;
-										newMat.needsUpdate = true;
-										obj.material = newMat;
-									}
-								});	
-							}
-						});
-						return response;
-					}
-				} catch (err) {
-					// Handle the error properly or rethrow it to be caught elsewhere.
-					// console.error("Error fetching profile:", err);
-					// throw err;
-				}
-			};
-
-			VRMUtils.rotateVRM0(playerController);
-			playerController.scene.rotation.y = 0;
-			playerController.scene.scale.set(1, 1, 1);
-
-
-			// Animation files
-			const idleFile = threeObjectPlugin + idle;
-			const walkingFile = threeObjectPlugin + walk;
-			const runningFile = threeObjectPlugin + run;
-			// Load animations
-			let animationFiles = [idleFile, walkingFile, runningFile];
-			let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, playerController));
-
-			// Clone the model
-			// const clonedModel = SkeletonUtils.clone(playerController.scene);
-			// clonedModel.userData.vrm = clonedModel;
-
-			// Create animation mixer for the cloned model
-			const newMixer = new THREE.AnimationMixer(playerController.scene);
-			animationMixerRef.current[participant.name] = newMixer;
-			// console.log("heres the current mixers", animationMixerRef.current[participant.name]);
-			mixers.current[participant.name] = animationMixerRef.current[participant.name];
-			participant.profileUserData.current[participant.name] = {inWorldName : participant.name, pfp: participant.pfp };
-			Promise.all(animationsPromises).then(animations => {
-				animationsRef.current[participant.name] = animations; // Store animations in ref
-
-				const idleAction = animationMixerRef.current[participant.name].clipAction(animations[0]);
-				const walkingAction = animationMixerRef.current[participant.name].clipAction(animations[1]);
-				const runningAction = animationMixerRef.current[participant.name].clipAction(animations[2]);
-				// console.log("animationmixer", animationMixerRef.current[participant.name] , idleAction, walkingAction, runningAction);
-				idleAction.timeScale = 1;
-				idleAction.play();
-			});
-			let isProfileFetched = false; // flag to check if profile has been fetched
-			// return () => {
-			// 	// Cleanup function to stop and dispose mixers
-			// 	mixers.current[participant.name].forEach(mixer => mixer.stopAllAction());
-			// 	mixers.current[participant.name] = [];
-			// };
-		}
-	}, [someVRM, theScene, participant.p2pcf]);
-
-	useFrame((state, delta) => {
-		if(mixers.current[participant.name]){
-				// Log each action in the mixer
-				// mixer._actions.forEach(action => {
-				// 	console.log(`Action: ${action._clip.name}, Is Running: ${action.isRunning()}, Effective Weight: ${action.getEffectiveWeight()}, Current Time: ${action.time}`);
-				// });
-	
-				// Find and play the idle animation explicitly
-				const idleAction = mixers.current[participant.name]._actions.find(action => action._clip.name === 'idle');
-				if (idleAction && !idleAction.isRunning()) {
-					console.log("idle action", idleAction);
-					idleAction.reset().play();
-				}
-	
-				// Update the mixer
-				mixers.current[participant.name].update(delta);
-		}
-	
-		if (someVRM?.userData?.vrm) {
-			someVRM.userData.vrm.update(delta);  // Update the VRM model
-		}
-		if (clonedModelRef?.current?.userData?.vrm) {
-			clonedModelRef.current.userData.vrm.update(delta);  // Update the cloned VRM model
-		}
-	});
-	
-	if (!someVRM || !someVRM.userData?.gltfExtensions?.VRM) {
-		return null;
-	}
-
-	const playerController = someVRM.userData.vrm;
-	const modelClone = SkeletonUtils.clone(playerController.scene);
-	modelClone.userData.vrm = playerController;
-
-	//calculate the height of the avatar to be used in the Text component position below
-	const box = new THREE.Box3().setFromObject(modelClone);
-	const height = (box.max.y - box.min.y) + 0.1;
-
-	return (
-		<group>
-			<group>
-				<mesh
-					visible={true}
-					position={[0.22, height, 0.005]}
-					rotation-y={-Math.PI}
-					geometry={new THREE.PlaneGeometry(0.1, 0.1)}
-					name="displayNamePfp"
-				>
-					<meshPhongMaterial side={THREE.DoubleSide} shininess={0} />
-				</mesh>
-				<mesh
-					visible={true}
-					position={[0.045, height, 0.005]}
-					rotation-y={-Math.PI}
-					geometry={new THREE.PlaneGeometry(0.25, 0.07)}
-					name="displayNameBackground"
-				>
-					<meshPhongMaterial side={THREE.DoubleSide} shininess={0} color={0x000000} />
-				</mesh>
-					<Text
-						font={threeObjectPlugin + defaultFont}
-						anchorX="left"
-						overflowWrap="break-word"
-						// whiteSpace="nowrap"
-						// anchorY="middle"				  
-						ref={participant.textRef}
-						className="content"
-						scale={[1, 1, 1]}
-						fontSize={0.04}
-						rotation-y={-Math.PI}
-						width={0.5}
-						maxWidth={0.5}
-						height={10}
-						position={[0.15, (height - 0.005), 0]}
-						// color={model.textColor}
-						transform
-					>
-						{participant.name}
-					</Text>
-			</group>
-			<primitive name={participant.name} object={playerController.scene} />
-		</group>
-	);
-}
-
-
-function Participants(props) {
-	const theScene = useThree();
-	// create a ref for the profile user data information for each participant to be held in an array
-	const profileUserData = useRef([]);
-	// make ref for animation mixer for each participant
-	const animationMixerRef = useRef([]); // Ref for the animation mixer of this participant
-	const animationsRef = useRef([]); // Ref to store animations
-	const mixers = useRef([]);
-	const displayNameTextRef = useRef(null);
-    const textRefs = useRef({});
-	const participantRefs = useRef({});
-
-	const fetchProfilePlane = async (pfp, modelToModify, displayNameBackground, inWorldName, displayNameText) => {
-		// console.log("fetchProfilePlane", pfp, modelToModify, displayNameBackground, inWorldName, displayNameText);
-		if(pfp){
-			try {
-				const response = await fetch(pfp);
-				if (response.status === 200) {
-					const textureLoader = new THREE.TextureLoader();
-					textureLoader.crossOrigin = '';
-					textureLoader.load(pfp, (loadedProfile) => {
-							// Now we are sure the texture is loaded
-							if( modelToModify.isObject3D ){
-								modelToModify.frustumCulled = false;				
-								const newMat = modelToModify.material.clone();
-								newMat.map = loadedProfile;
-								newMat.map.needsUpdate = true;
-								newMat.needsUpdate = true;
-								modelToModify.material = newMat;
-							}	
-						}
-					);
-					return response;
-				}
-			} catch (err) {
-				// Handle the error properly or rethrow it to be caught elsewhere.
-				// console.error("Error fetching profile:", err);
-				// throw err;
-			}	
-		}
-	};
-
-	useEffect(() => {
-		if(window.p2pcf){
-			window.p2pcf.on("msg", (peer, data) => {
-				const finalData = new TextDecoder("utf-8").decode(data);
-				const participantData = JSON.parse(finalData);
-				// console.log("refs", animationMixerRef, animationsRef, mixers);
-				const participantObject = theScene.scene.getObjectByName(peer.client_id);
-				if(!participantRefs.current[peer.client_id]) {
-					participantRefs.current[peer.client_id] = { profileFetched: false };
-				}
-	
-				// find the object in the parent of participantObject that is named displayNamePfp
-				const displayNamePfp = participantObject?.parent?.getObjectByName("displayNamePfp");
-				const displayNameBackground = participantObject?.parent?.getObjectByName("displayNameBackground");
-				if( ! participantRefs.current[peer.client_id].profileFetched && displayNameBackground ){
-					setTimeout(() => {
-						fetchProfilePlane( participantData[peer.client_id].profileImage, displayNamePfp, displayNameBackground, profileUserData.current[peer.client_id].inWorldName, textRefs.current[peer.client_id] )
-						.then((response) => {
-							participantRefs.current[peer.client_id].profileFetched = true;
-							if(participantData[peer.client_id]?.inWorldName){
-								if(participantData[peer.client_id]?.inWorldName.length > 8){
-									displayNameBackground.geometry = new THREE.PlaneGeometry(0.35, 0.07);
-									displayNameBackground.position.x = -0.005;
-									if(participantData[peer.client_id]?.inWorldName.length > 16){
-										textRefs.current[peer.client_id].fontSize = 0.034;
-									}
-								}
-							}
-						});
-					}, 1000);
-				}
-		
-	
-				if (animationsRef.current[peer.client_id]) {
-					const walkAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][1]); // Walking animation
-					const idleAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][0]); // Idle animation
-					const runAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][2]); // Running animation
-		
-					if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "walking") {
-						walkAction.play();
-						runAction.stop();
-						idleAction.stop();
-					} else if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "running") {
-						walkAction.stop();
-						runAction.play();
-						idleAction.stop();
-					} else {
-						idleAction.play();
-						walkAction.stop();
-						runAction.stop();
-					}
-
-				}
-	
-				if (participantObject) {
-					if(participantData[peer.client_id]?.position){
-						participantObject.parent.position.fromArray(participantData[peer.client_id].position);
-						participantObject.parent.rotation.fromArray(participantData[peer.client_id].rotation);
-					}
-				}
-				if(textRefs.current[peer.client_id] && participantData[peer.client_id]?.inWorldName) {
-					textRefs.current[peer.client_id].text = participantData[peer.client_id].inWorldName;
-				}
-			});
-		}
-	}, []);
-
-	useEffect(() => {
-		const p2pcf = window.p2pcf;
-		if (p2pcf) {
-			p2pcf.on("peerclose", (peer) => {
-				const participantObject = theScene.scene.getObjectByName(peer.client_id);
-				// remove the participantObject
-				if (participantObject) {
-					theScene.scene.remove(participantObject);
-					// remove array item animationMixerRef.current[peer.client_id], animationsRef.current[peer.client_id], mixers.current[peer.client_id];
-					delete animationMixerRef.current[peer.client_id];
-					delete animationsRef.current[peer.client_id];
-					delete mixers.current[peer.client_id];
-				}
-				// remove peer.client_id
-				props.setParticipant(prevParticipants => {
-					return prevParticipants.filter(item => item !== peer.client_id);
-				}
-				);
-			});
-		}
-	}, []);
-
-	useEffect(() => {
-		const p2pcf = window.p2pcf;
-		if (p2pcf) {
-			p2pcf.on("peerconnect", (peer) => {
-				console.log("peer connected", peer);
-				console.log("p2pcf peers", p2pcf.peers);
-				// emit the peer id to all other peers
-				props.setParticipant(prevParticipants => {
-					if (!prevParticipants.includes(peer.client_id)) {
-						return [...prevParticipants, peer.client_id];
-					} else {
-						return prevParticipants;
-					}
-				});
-			});
-		}
-	}, []);
-
-	return (
-		<>
-			{props.participants && props.participants.map((item, index) => (
-				<Participant 
-					key={index}
-					name={item}
-					p2pcf={p2pcf}
-					animationMixerRef={animationMixerRef}
-					animationsRef={animationsRef}
-					mixers={mixers}
-					textRef={(ref) => textRefs.current[item] = ref}
-					profileUserData={profileUserData}
-				/>
-			))}
-		</>
-	);
-}
 
 /**
  * Represents a saved object in a virtual reality world.
@@ -1161,8 +608,8 @@ export default function EnvironmentFront(props) {
 													movement={movement}
 												/>
 												<Participants 
-												setParticipant={setParticipant}
-												participants={participants}
+													setParticipant={setParticipant}
+													participants={participants}
 												/>
 												<SavedObject
 													positionY={props.positionY}
@@ -2449,28 +1896,6 @@ export default function EnvironmentFront(props) {
 								movement.current.right = false;
 							}}
 						/>
-						/* <ReactNipple
-							// supports all nipplejs options
-							// see https://github.com/yoannmoinet/nipplejs#options
-							options={{ mode: 'static', position: { top: '50%', left: '50%' } }}
-							// any unknown props will be passed to the container element, e.g. 'title', 'style' etc
-							style={{
-								outline: '1px dashed red',
-								width: 150,
-								height: 150,
-								position: "absolute",
-								bottom: 30,
-								right: 30,
-								userSelect: "none",
-								transition: "opacity 0.5s" 
-							}}
-							// all events supported by nipplejs are available as callbacks
-							// see https://github.com/yoannmoinet/nipplejs#start
-							onMove={( evt, data ) => {
-								console.log(data.direction.angle);
-							}}
-							// onEnd={(evt, data) => setMobileRotControls(null)}
-						/> */
 					) }
 					</>
 				</>
