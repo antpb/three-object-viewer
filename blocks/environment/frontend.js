@@ -42,7 +42,9 @@ const lightsToAdd = document.querySelectorAll(
 );
 
 // All blocks.
-window.threeApp = threeApp[0].querySelectorAll("div");
+if(threeApp[0]){
+	window.threeApp = threeApp[0].querySelectorAll("div");
+}
 
 threeApp.forEach((threeApp) => {
 	if (threeApp) {

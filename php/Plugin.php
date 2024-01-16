@@ -195,7 +195,6 @@ class Plugin
 		// Apply frontend filter
 		$frontend_js = apply_filters( 'three-object-environment-frontend-js', $default_frontend_js );
 	
-		$current_user = wp_get_current_user();
         $current_user = wp_get_current_user();
         $playerVRM = get_user_meta($current_user->ID, 'user_data_vrm', true) ?: get_option('3ov_defaultAvatar');
 		$vrm = get_option('3ov_defaultAvatar');
@@ -229,8 +228,7 @@ class Plugin
 				'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
 				'nonce' => wp_create_nonce( 'wp_rest' )
 			  );  
-		}
-		else {
+		} else {
 			if($current_user->display_name){
 				$inWorldName = $current_user->display_name;
 			}
@@ -458,8 +456,7 @@ class Plugin
 				'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
 				'nonce' => wp_create_nonce( 'wp_rest' )
 			  );  
-		}
-		else {
+		} else {
 			$user_data_passed = array(
 			  'userId' => $current_user->user_login,
 			  'inWorldName' => $current_user->in_world_name,
@@ -503,8 +500,8 @@ class Plugin
 		$default_avatar = get_option('3ov_defaultAvatar');
 		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'defaultAvatar', $default_avatar );	
 		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'userData', $user_data_passed );
-
-		wp_enqueue_script( 'three-object-viewer-three-object-block-editor-script', 'three-object-viewer', ['wp-element', 'wp-data', 'wp-i18n', 'wp-hooks'], '', true );
+		// @todo find out if this is really needed
+		// wp_enqueue_script( 'three-object-viewer-three-object-block-editor-script', 'three-object-viewer', ['wp-element', 'wp-data', 'wp-i18n', 'wp-hooks'], '', true );
 		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'threeObjectPlugin', $three_object_plugin );	
 		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'threeObjectPluginRoot', $three_object_plugin_root );	
 		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'allowed_blocks', $ALLOWED_BLOCKS );		

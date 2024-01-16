@@ -145,6 +145,7 @@ function loadMixamoAnimation(url, vrm) {
 }
 
 export default function Player(props) {
+	let heightOffset = 0;
 	const p2pcf = props.p2pcf;
 
 	const canMoveRef = useRef(true);
@@ -303,6 +304,13 @@ export default function Player(props) {
 			return baseSpeeds;
 		}
 
+		if(playerController){
+			// calculate the height of the character from head bone to foot bone
+			const headBone = playerController.firstPerson.humanoid.humanBones.head.node.getWorldPosition(new Vector3());
+			const footBone = playerController.firstPerson.humanoid.humanBones.leftFoot.node.getWorldPosition(new Vector3());
+			heightOffset = headBone.y - footBone.y;
+		}
+
 		let initialHeadPosition = null;
 		if (playerController && !initialHeadPosition) {
 			initialHeadPosition = playerController.firstPerson.humanoid.humanBones.head.node.getWorldPosition(new Vector3()).y;
@@ -332,7 +340,8 @@ export default function Player(props) {
 			right.crossVectors(camera.up, forward);
 			right.normalize();
 			// initialize the moving state to false
-			const raycaster = state.raycaster;		
+			const raycaster = state.raycaster;
+
 			if (timeSinceLastUpdate >= 0.1) {
 				lastUpdateTime = currentTime;
 			}
@@ -424,7 +433,7 @@ export default function Player(props) {
 			// Define the desired rotation matrix
 			let matrix = new Matrix4();
 			matrix.lookAt(new Vector3(0,0,0), direction, new Vector3(0,1,0));
-		
+
 			// Create a quaternion from the rotation matrix
 			let desiredQuaternion = new Quaternion();
 			desiredQuaternion.setFromRotationMatrix(matrix);
@@ -508,13 +517,15 @@ export default function Player(props) {
 								participantObject.rotation.y,
 								participantObject.rotation.z
 							];
+							// console.log("userData", userData);
 							const messageObject = {
 								[p2pcf.clientId]: {
 									position: position,
 									rotation: rotation,
 									profileImage: userData.profileImage,
+									playerVRM: userData.playerVRM,
 									vrm: userData.vrm,
-									inWorldName: userData.inWorldName,
+									inWorldName: window.userData.inWorldName ? window.userData.inWorldName : userData.inWorldName,
 									isMoving: "walking"
 								}
 							};
@@ -573,13 +584,18 @@ export default function Player(props) {
 
 			if ( participantObject ) {
 				// Get the desired head position.
-				const desiredY = playerController.firstPerson.humanoid.humanBones.head.node.getWorldPosition(new Vector3()).y;
+				// const desiredY = playerController.firstPerson.humanoid.humanBones.head.node.getWorldPosition(new Vector3()).y;
+				const desiredY = participantObject.parent.position.y;
+				// const initialHeadPosition = playerController.firstPerson.humanoid.humanBones.head.node.getWorldPosition(new Vector3()).y;
+				// calculate the height between head and the sphere location
+				const newY = desiredY + (heightOffset + 0.22);
 				// console.log("cameraTarget", cameraTargetPosition.y);
-				// Smoothly update the camera target position using lerp.
+
+				cameraTargetPosition.y = newY;
+				// cameraTargetPosition.y = MathUtils.damp(cameraTargetPosition.y, newY, 6, delta);
 
 				// cameraTargetPosition.y = MathUtils.lerp(cameraTargetPosition.y, desiredY, 0.15); // 0.05 is the lerp factor. Adjust it for faster/slower transitions.
-				cameraTargetPosition.y = desiredY;
-
+				// cameraTargetPosition.y = MathUtils.damp(cameraTargetPosition.y, desiredY, 0.8, delta);
 				camera.lookAt(
 					participantObject.parent.position.x,
 					cameraTargetPosition.y,
@@ -594,8 +610,6 @@ export default function Player(props) {
 					orbitRef.current.target.lerpVectors(orbitRef.current.target, newTarget, 0.5);
 				}
 			}
-		
-			// update rigidBody's position
 			if (rigidRef.current && participantObject?.parent?.position?.x) {
 				// // match the rigidBody's position to the participantObject's position.
 				// set the rigidbody type to one that can be moved by setTranslation
@@ -605,10 +619,9 @@ export default function Player(props) {
 				} else {
 					rigidRef.current.setBodyType(rapier.RigidBodyType.Fixed, 1);
 				}
-
-				// set a const of the rigidBody's current position
 				rigidRef.current.setTranslation({ x: participantObject.parent.position.x, y: rigidBodyPosition.y, z: participantObject.parent.position.z});
 			}
+			// Respawn logic
 			if(props.movement.current.respawn === true){
 
 				const x = Number(props.spawnPoint[0]);

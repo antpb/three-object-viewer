@@ -16,6 +16,7 @@ import {
 	useAnimations,
 	Html,
 } from "@react-three/drei";
+import zoomBackground from '../../../inc/assets/zoom.jpg';
 
 // import { A11y } from "@react-three/a11y";
 import { GLTFAudioEmitterExtension } from "three-omi";
@@ -53,10 +54,76 @@ function isVRCompatible() {
 }
   
 
-function Loading() {
+function Loading(props) {
+	const backgroundImageUrl = props.previewImage !== "" ? props.previewImage : (threeObjectPlugin + zoomBackground);
 	return (
 	  <Html center>
 		<div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100vh", width: "400px" }}>
+			<div class="scene">
+				<div class="wrap">
+					<div 
+						style={{
+							backgroundImage: "url(" + backgroundImageUrl + ")",
+							backgroundSize: "cover",
+						}}
+						class="wall wall-right"
+					/>
+					<div 
+						style={{
+							backgroundImage: "url(" + backgroundImageUrl + ")",
+						}}
+						class="wall wall-left"
+					/>
+					<div 
+						style={{
+							backgroundImage: "url(" + backgroundImageUrl + ")",
+							backgroundSize: "cover",
+						}}
+						class="wall wall-top"
+					/>
+					<div 
+						style={{
+							backgroundImage: "url(" + backgroundImageUrl + ")",
+							backgroundSize: "cover",
+						}}
+						class="wall wall-bottom"
+					/>
+					{/* <div class="wall wall-left"></div>   
+					<div class="wall wall-top"></div>
+					<div class="wall wall-bottom"></div> 
+					<div class="wall wall-back"></div>     */}
+				</div>
+				<div class="wrap">
+					<div 
+						style={{
+							backgroundImage: "url(" + backgroundImageUrl + ")",
+							backgroundSize: "cover",
+						}}
+						class="wall wall-right"
+					/>
+					<div 
+						style={{
+							backgroundImage: "url(" + backgroundImageUrl + ")",
+							backgroundSize: "cover",
+						}}
+						class="wall wall-left"
+					/>
+					<div 
+						style={{
+							backgroundImage: "url(" + backgroundImageUrl + ")",
+							backgroundSize: "cover",
+						}}
+						class="wall wall-top"
+					/>
+					<div 
+						style={{
+							backgroundImage: "url(" + backgroundImageUrl + ")",
+							backgroundSize: "cover",
+						}}
+						class="wall wall-bottom"
+					/>
+				</div>
+			</div>
 		  <div className="threeov-spinner"></div>
 		  <div style={{ backgroundColor: "black", minWidth: "100px", maxHeight: "50px", color: "white", textAlign: "center" }}>Loading...</div>
 		</div>
@@ -513,7 +580,6 @@ function SavedObject(props) {
 }
 
 export default function EnvironmentFront(props) {
-
 	const [participants, setParticipant] = useState([]);
 	const [showUI, setShowUI] = useState(true);
 	const [displayName, setDisplayName] = useState(props.userData.inWorldName);
@@ -577,7 +643,7 @@ export default function EnvironmentFront(props) {
 							{/* <fog attach="fog" color="hotpink" near={100} far={20} /> */}
 							<Hands />
 							<Controllers />
-							<Suspense fallback={<Loading />}>
+							<Suspense fallback={<Loading previewImage={props.previewImage} />}>
 								{props.hdr && 
 									<Environment
 										blur={0.05}
@@ -588,6 +654,15 @@ export default function EnvironmentFront(props) {
 								<ContextBridgeComponent/>
 								<Physics
 									// debug
+									erp = {1}
+									iterations = {10}
+									// timestep = {1/60}
+									gravity={[0, -9.8, 0]}
+									allowSleep={true}
+									allowDeactivation={true}
+									allowCcd={true}
+									broadphase={true}
+
 								>
 									{/* <Perf className="stats" /> */}
 									{/* Debug physics */}
@@ -1909,6 +1984,7 @@ export default function EnvironmentFront(props) {
 					backgroundColor: props.backgroundColor,
 					backgroundImage: `url(${props.previewImage})`,
 					backgroundPosition: "center",
+					backgroundSize: "cover",
 					margin: "0",
 					height: "900px",
 					width: "100%",
@@ -1947,6 +2023,11 @@ export default function EnvironmentFront(props) {
 						{" "}
 						{props.networkingBlock.length > 0 ? "Enter Room" : "Load World"}
 					</button>
+					{ ( props.networkingBlock.length > 0 ) && (
+						<div>
+							<p style={ { fontSize: "0.7em" } }>After entering, use the "Join Voice" button to select your microphone.</p>
+						</div>
+				)}
 				</div>
 			</div>
 		);

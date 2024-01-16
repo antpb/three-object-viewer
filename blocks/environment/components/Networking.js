@@ -11,22 +11,22 @@ import { color } from "@wordpress/icons";
 const Networking = (props) => {
 	let isMuted = false;  // Initial state of the microphone
 	let localStream = null;  // To hold the local media stream
-    const RoomDropdownContent = () => {
-        let dropdown = document.getElementById("room-dropdown");
+	const RoomDropdownContent = () => {
+		let dropdown = document.getElementById("room-dropdown");
 		// empty the contents of the dropdown
 		dropdown.innerHTML = "";
 		dropdown.innerText = "Room: " + p2pcf.roomId;
 
 		// create a paragraph element to be added after the dropdown
 		let roomParagraph = document.createElement("p");
-		roomParagraph.innerText = "User: " + p2pcf.clientId;
+		roomParagraph.innerText = "Description: ";
 		roomParagraph.style.marginTop = "10px";
 		roomParagraph.style.marginBottom = "10px";
 		roomParagraph.style.textAlign = "left";
-		
+
 		dropdown.appendChild(roomParagraph);
 
-        dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
+		dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
     };
 
 	const AudioDropdownContent = async (button) => {
@@ -128,7 +128,6 @@ const Networking = (props) => {
 			audioJoin.style.display = "none";
 			dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
 			var muteIcon = document.createElement("button");
-			console.log("icon", threeObjectPlugin + audioIcon);
 			muteIcon.style.backgroundImage = `url(${threeObjectPlugin + audioIcon})`;
 			muteIcon.style.backgroundSize = "cover";
 			muteIcon.id = "mute-icon";
@@ -296,29 +295,55 @@ const Networking = (props) => {
 
 
     const PeerDropdownContent = () => {
+		const userProfileName =
+		userData.userId === ""
+			? Math.floor(Math.random() * 100000)
+			: userData.userId;
+
+		window.participants[p2pcf.sessionId] = window.userData.inWorldName ? window.userData.inWorldName : "User-" + userProfileName;
+	
         let dropdown = document.getElementById("room-dropdown");
 		// empty the contents of the dropdown
 		dropdown.innerHTML = "";
 		// make the inner text of the dropdown a list of the users in the room
 		// loop with index for each peer
-		for (const peer of p2pcf.peers.values()) {
-			// set up an index
-			let index = 0;
+		let index = 1;
+		if( index === 1 ){
+			let playerParagraph = document.createElement("p");
+			if(window.participants[p2pcf.sessionId]){
+				playerParagraph.innerHTML = '<b>' + index + ": </b>" + window.participants[p2pcf.sessionId];
+			} else {
+				playerParagraph.innerHTML = '<b>' + index + ": </b>" + peer.client_id;
+			}
+			playerParagraph.style.marginTop = "10px";
+			playerParagraph.style.marginBottom = "10px";
+			playerParagraph.style.textAlign = "left";
+			playerParagraph.style.fontSize = "0.6em";
+			dropdown.appendChild(playerParagraph);
+			index++;
+		}
 
+		for (const peer of p2pcf.peers.values()) {
 			let peerParagraph = document.createElement("p");
-			peerParagraph.innerHTML = '<b>' + index + ": </b>" + peer.id;
+
+			if(window.participants[peer.id]){
+				peerParagraph.innerHTML = '<b>' + index + ": </b>" + window.participants[peer.id];
+			} else {
+				peerParagraph.innerHTML = '<b>' + index + ": </b>" + peer.client_id;
+			}
+			// peerParagraph.innerHTML = '<b>' + index + ": </b>" + window.participants[peer.id].inWorldName;
 			peerParagraph.style.marginTop = "10px";
 			peerParagraph.style.marginBottom = "10px";
 			peerParagraph.style.textAlign = "left";
 			peerParagraph.style.fontSize = "0.6em";
 			dropdown.appendChild(peerParagraph);
+			index++;
 		}
 
         dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
     };
 	// Function to toggle mute on the local audio stream
 	const toggleMute = async (stream) => {
-		console.log("togglemute stream", stream);
 		if (stream) {
 			var muteIcon = document.getElementById("mute-icon");
 
@@ -349,7 +374,7 @@ const Networking = (props) => {
 	const onMuteButtonPressed = (stream) => {
 		toggleMute(stream);
 	};
-	
+
 	if (!document.location.hash) {
 		document.location = document.location.toString() + `#3ov-${props.postSlug}`;
 	}
@@ -368,7 +393,7 @@ const Networking = (props) => {
 	);
 
 	window.p2pcf = p2pcf;
-	console.log("client id:", p2pcf.clientId);
+	window.participants = [];
 
 	const removePeerUi = (clientId) => {
 		document.getElementById(clientId)?.remove();
@@ -408,8 +433,6 @@ const Networking = (props) => {
 			PeerDropdownContent();
             // Position the dropdown near the roomIcon
 			let dropdown = document.getElementById("room-dropdown");
-			dropdown.style.left = roomIcon.offsetLeft + "px";
-			dropdown.style.top = roomIcon.offsetTop + roomIcon.offsetHeight + "px";
 		});
 
 		document.getElementById("network-ui-container").prepend(peerIcon);
@@ -417,7 +440,6 @@ const Networking = (props) => {
 	const addRoomUi = (sessionId) => {
 		// if (document.getElementById(sessionId)) return;
 		var roomIcon = document.createElement("button");
-		console.log("icon", threeObjectPlugin + audioIcon);
 		roomIcon.style.backgroundImage = `url(${threeObjectPlugin + worldIcon})`;
 		roomIcon.style.backgroundSize = "cover";
 		roomIcon.style.width = "40px";
@@ -469,14 +491,10 @@ const Networking = (props) => {
 	};
 	let stream;
 	p2pcf.on("peerconnect", (peer) => {
-		console.log("Peer connect", peer.id, peer);
-		console.log(peer.client_id);
-
 		if (stream) {
 			peer.addStream(stream);
 		}
 		peer.on("track", (track, stream) => {
-			console.log("got track", track);
 			const video = document.createElement("audio");
 			video.id = `${peer.id}-audio`;
 			video.srcObject = stream;
@@ -518,7 +536,6 @@ const Networking = (props) => {
 			const audioButton = document.getElementById("audio-button");
 			if(audioButton){
 				audioButton.addEventListener("click", async (button) => {
-					console.log("are we even trying here?")
 					// request permissions for microphone devices then do audioDropdownContent
 					navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
 						AudioDropdownContent(button);
@@ -526,12 +543,11 @@ const Networking = (props) => {
 				});
 			}
 
-			p2pcf.start();
+			p2pcf.start({ playerVRM: userData.playerVRM ? userData.playerVRM : defaultAvatar });
 			addPeerUi();
 			addRoomUi();
 		};
 		const handleLoaded = (event) => {
-			console.log("loaded", event);
 			go();
 			// Remove the event listener after handling the first 'loaded' event
 			window.removeEventListener("loaded", handleLoaded);

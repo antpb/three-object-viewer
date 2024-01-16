@@ -15,6 +15,7 @@ import {
 } from "base64-arraybuffer";
 import { hexToBytes } from "convert-hex";
 import arrayBufferToHex from "array-buffer-to-hex";
+import defaultVRM from "../../../../inc/avatars/3ov_default_avatar.vrm";
 
 // Based on Chrome
 const MAX_MESSAGE_LENGTH_BYTES = 16000;
@@ -292,7 +293,7 @@ export default class P2PCF extends EventEmitter {
 			packages,
 			fastPollingDurationMs,
 			fastPollingRateMs,
-			slowPollingRateMs
+			slowPollingRateMs,
 		} = this;
 
 		const now = Date.now();
@@ -320,7 +321,7 @@ export default class P2PCF extends EventEmitter {
 				this.isSymmetric,
 				localDtlsFingerprintBase64,
 				this.startedAtTimestamp,
-				[...this.reflexiveIps]
+				[...this.reflexiveIps],
 			];
 
 			const payload = { r: roomId, k: contextId };
@@ -368,7 +369,6 @@ export default class P2PCF extends EventEmitter {
 					this.lastPackages = JSON.stringify(packages);
 				}
 			}
-
 			const body = JSON.stringify(payload);
 			const headers = { "Content-Type": "application/json " };
 			let keepalive = false;
@@ -405,7 +405,6 @@ export default class P2PCF extends EventEmitter {
 				payload.x = this.stateExpirationIntervalMs;
 				payload.p = packages;
 				this.lastPackages = JSON.stringify(packages);
-
 				const res = await fetch(this.workerUrl, {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
@@ -490,7 +489,7 @@ export default class P2PCF extends EventEmitter {
 				remoteDtlsFingerprintBase64,
 				remoteStartedAtTimestamp,
 				remoteReflexiveIps,
-				remoteDataTimestamp
+				remoteDataTimestamp,
 			] = remotePeerData;
 
 			// Don't process the same messages twice. This covers disconnect cases where stale data re-creates a peer too early.
@@ -586,6 +585,7 @@ export default class P2PCF extends EventEmitter {
 
 				peer.id = remoteSessionId;
 				peer.client_id = remoteClientId;
+
 
 				this._wireUpCommonPeerEvents(peer);
 
@@ -814,7 +814,7 @@ export default class P2PCF extends EventEmitter {
 	/**
 	 * Connect to network and start discovering peers
 	 */
-	async start() {
+	async start(props) {
 		this.startedAtTimestamp = Date.now();
 		await this._init();
 
@@ -827,6 +827,9 @@ export default class P2PCF extends EventEmitter {
 		this.isSymmetric = isSymmetric;
 		this.reflexiveIps = reflexiveIps;
 		this.dtlsFingerprint = dtlsFingerprint;
+
+		let guestDefaultAvatar = defaultAvatar === '' ? threeObjectPlugin + defaultVRM : defaultAvatar;
+		this.playerVRM = userData.playerVRM ? userData.playerVRM : guestDefaultAvatar;
 
 		this.networkSettingsInterval = setInterval(async () => {
 			const [
@@ -1173,6 +1176,10 @@ export default class P2PCF extends EventEmitter {
 		peer.on("connect", () => {
 			this.emit("peerconnect", peer);
 
+			// after connecting, send the player data to participant
+			const playerData = { playerVRM: this.playerVRM, inWorldName: userData.inWorldName, profileImage: userData.profileImage};
+			peer.send(new TextEncoder().encode(JSON.stringify(playerData)));
+		
 			// Remove packages for the peer once connected
 			removeInPlace(this.packages, (pkg) => pkg[0] === peer.id);
 			this._updateConnectedSessions();

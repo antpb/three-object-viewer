@@ -153,6 +153,11 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 							/>
 						</PanelRow>
 						<PanelRow>
+							<button onClick={() => setAttributes({ threeObjectUrl: null })}>
+								{ __( 'Remove Environment', 'three-object-viewer' ) }
+							</button>
+						</PanelRow>
+						<PanelRow>
 							<span>
 								{__( "Select an image to be used as the preview image:", "three-object-viewer" )}
 							</span>

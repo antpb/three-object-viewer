@@ -131,7 +131,7 @@ function loadMixamoAnimation(url, vrm) {
  */
 function Participant(participant) {
 	const fallbackURL = threeObjectPlugin + defaultVRM;
-	const playerURL = userData.vrm ? userData.vrm : fallbackURL;
+	const playerURL = participant.playerVRM;
 	const clonedModelRef = useRef(null); // Ref for the cloned model
 	const animationMixerRef = participant.animationMixerRef; // Ref for the animation mixer of this participant
 	const animationsRef = participant.animationsRef; // Ref to store animations
@@ -271,6 +271,25 @@ function Participant(participant) {
 	const box = new THREE.Box3().setFromObject(modelClone);
 	const height = (box.max.y - box.min.y) + 0.1;
 
+	// use textureLoader to load the profile image.
+	const textureLoader = new THREE.TextureLoader();
+	textureLoader.crossOrigin = ''; // Ensure cross-origin requests are allowed
+	const profileImage = textureLoader.load(participant.profileImage);
+	const displayName = participant.inWorldName ? participant.inWorldName : participant.name;
+
+	let planeWidth = 0.25;
+	let fontSize = 0.04;
+	let xPos = 0.045;
+	if(displayName.length > 8){
+		planeWidth = 0.35;
+		xPos = -0.005;
+	}
+	if(displayName.length >= 16){
+		planeWidth = 0.35;
+		fontSize = 0.032;
+		xPos = -0.005;
+	}
+
 	return (
 		<group>
 			<group>
@@ -281,13 +300,13 @@ function Participant(participant) {
 					geometry={new THREE.PlaneGeometry(0.1, 0.1)}
 					name="displayNamePfp"
 				>
-					<meshPhongMaterial side={THREE.DoubleSide} shininess={0} />
+					<meshPhongMaterial side={THREE.DoubleSide} shininess={0} map={profileImage} />
 				</mesh>
 				<mesh
 					visible={true}
-					position={[0.045, height, 0.005]}
+					position={[xPos, height, 0.005]}
 					rotation-y={-Math.PI}
-					geometry={new THREE.PlaneGeometry(0.25, 0.07)}
+					geometry={new THREE.PlaneGeometry(planeWidth, 0.07)}
 					name="displayNameBackground"
 				>
 					<meshPhongMaterial side={THREE.DoubleSide} shininess={0} color={0x000000} />
@@ -301,7 +320,7 @@ function Participant(participant) {
 						ref={participant.textRef}
 						className="content"
 						scale={[1, 1, 1]}
-						fontSize={0.04}
+						fontSize={fontSize}
 						rotation-y={-Math.PI}
 						width={0.5}
 						maxWidth={0.5}
@@ -310,7 +329,7 @@ function Participant(participant) {
 						// color={model.textColor}
 						transform
 					>
-						{participant.name}
+						{displayName}
 					</Text>
 			</group>
 			<primitive name={participant.name} object={playerController.scene} />
@@ -331,69 +350,17 @@ export function Participants(props) {
     const textRefs = useRef({});
 	const participantRefs = useRef({});
 
-	const fetchProfilePlane = async (pfp, modelToModify, displayNameBackground, inWorldName, displayNameText) => {
-		// console.log("fetchProfilePlane", pfp, modelToModify, displayNameBackground, inWorldName, displayNameText);
-		if(pfp){
-			try {
-				const response = await fetch(pfp);
-				if (response.status === 200) {
-					const textureLoader = new THREE.TextureLoader();
-					textureLoader.crossOrigin = '';
-					textureLoader.load(pfp, (loadedProfile) => {
-							// Now we are sure the texture is loaded
-							if( modelToModify.isObject3D ){
-								modelToModify.frustumCulled = false;				
-								const newMat = modelToModify.material.clone();
-								newMat.map = loadedProfile;
-								newMat.map.needsUpdate = true;
-								newMat.needsUpdate = true;
-								modelToModify.material = newMat;
-							}	
-						}
-					);
-					return response;
-				}
-			} catch (err) {
-				// Handle the error properly or rethrow it to be caught elsewhere.
-				// console.error("Error fetching profile:", err);
-				// throw err;
-			}	
-		}
-	};
-
 	useEffect(() => {
 		if(window.p2pcf){
 			window.p2pcf.on("msg", (peer, data) => {
+				// if window.participants does not have peer.id key, return
+				if(!(peer.id in window.participants)){
+					return;
+				}
 				const finalData = new TextDecoder("utf-8").decode(data);
 				const participantData = JSON.parse(finalData);
-				// console.log("refs", animationMixerRef, animationsRef, mixers);
 				const participantObject = theScene.scene.getObjectByName(peer.client_id);
-				if(!participantRefs.current[peer.client_id]) {
-					participantRefs.current[peer.client_id] = { profileFetched: false };
-				}
-	
-				// find the object in the parent of participantObject that is named displayNamePfp
-				const displayNamePfp = participantObject?.parent?.getObjectByName("displayNamePfp");
-				const displayNameBackground = participantObject?.parent?.getObjectByName("displayNameBackground");
-				if( ! participantRefs.current[peer.client_id].profileFetched && displayNameBackground ){
-					setTimeout(() => {
-						fetchProfilePlane( participantData[peer.client_id].profileImage, displayNamePfp, displayNameBackground, profileUserData.current[peer.client_id].inWorldName, textRefs.current[peer.client_id] )
-						.then((response) => {
-							participantRefs.current[peer.client_id].profileFetched = true;
-							if(participantData[peer.client_id]?.inWorldName){
-								if(participantData[peer.client_id]?.inWorldName.length > 8){
-									displayNameBackground.geometry = new THREE.PlaneGeometry(0.35, 0.07);
-									displayNameBackground.position.x = -0.005;
-									if(participantData[peer.client_id]?.inWorldName.length > 16){
-										textRefs.current[peer.client_id].fontSize = 0.034;
-									}
-								}
-							}
-						});
-					}, 1000);
-				}
-		
-	
+			
 				if (animationsRef.current[peer.client_id]) {
 					const walkAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][1]); // Walking animation
 					const idleAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][0]); // Idle animation
@@ -423,6 +390,9 @@ export function Participants(props) {
 				}
 				if(textRefs.current[peer.client_id] && participantData[peer.client_id]?.inWorldName) {
 					textRefs.current[peer.client_id].text = participantData[peer.client_id].inWorldName;
+					window.participants[peer.id] = participantData[peer.client_id].inWorldName;
+				} else {
+					window.participants[peer.id] = participantData[peer.client_id].inWorldName;
 				}
 			});
 		}
@@ -432,6 +402,8 @@ export function Participants(props) {
 		const p2pcf = window.p2pcf;
 		if (p2pcf) {
 			p2pcf.on("peerclose", (peer) => {
+				// remove window.participants[peer.id]
+				delete window.participants[peer.id];
 				const participantObject = theScene.scene.getObjectByName(peer.client_id);
 				// remove the participantObject
 				if (participantObject) {
@@ -443,28 +415,42 @@ export function Participants(props) {
 				}
 				// remove peer.client_id
 				props.setParticipant(prevParticipants => {
-					return prevParticipants.filter(item => item !== peer.client_id);
-				}
-				);
+					return prevParticipants.filter(item => item[0] !== peer.client_id);
+				});
 			});
 		}
 	}, []);
 
 	useEffect(() => {
 		const p2pcf = window.p2pcf;
+		const participants = window.participants;
 		if (p2pcf) {
-			p2pcf.on("peerconnect", (peer) => {
-				console.log("peer connected", peer);
-				console.log("p2pcf peers", p2pcf.peers);
-				// emit the peer id to all other peers
+
+			// listen for the peerconnect send that establishes the peer user data.
+			p2pcf.on("msg", (peer, data) => {
+				if((peer.id in window.participants)){
+					return;
+				}
+				const finalData = new TextDecoder("utf-8").decode(data);
+				const participantData = JSON.parse(finalData);
+
+				const thisParticipantName = {};
+				window.participants[peer.id] = "";
+
 				props.setParticipant(prevParticipants => {
-					if (!prevParticipants.includes(peer.client_id)) {
-						return [...prevParticipants, peer.client_id];
+					// Check if any sub-array has `peer.client_id` as its first element
+					const isParticipantExists = prevParticipants.some(participant => participant[0] === peer.client_id);
+				
+					if (!isParticipantExists) {
+						// If not found, add new participant
+						return [...prevParticipants, [peer.client_id, participantData.playerVRM, participantData.inWorldName, participantData.profileImage]];
 					} else {
+						// If found, return the array as is
 						return prevParticipants;
 					}
 				});
 			});
+
 		}
 	}, []);
 
@@ -473,13 +459,16 @@ export function Participants(props) {
 			{props.participants && props.participants.map((item, index) => (
 				<Participant 
 					key={index}
-					name={item}
+					name={item[0]}
 					p2pcf={p2pcf}
 					animationMixerRef={animationMixerRef}
 					animationsRef={animationsRef}
 					mixers={mixers}
-					textRef={(ref) => textRefs.current[item] = ref}
+					textRef={(ref) => textRefs.current[item[0]] = ref}
 					profileUserData={profileUserData}
+					playerVRM = {item[1]}
+					inWorldName = {item[2]}
+					profileImage = {item[3]}
 				/>
 			))}
 		</>
