@@ -16,7 +16,6 @@ import {
 	useAnimations,
 	Html,
 } from "@react-three/drei";
-import zoomBackground from '../../../inc/assets/zoom.jpg';
 
 // import { A11y } from "@react-three/a11y";
 import { GLTFAudioEmitterExtension } from "three-omi";
@@ -26,6 +25,7 @@ import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import TeleportTravel from "./TeleportTravel";
 import Player from "./Player";
 import defaultEnvironment from "../../../inc/assets/default_grid.glb";
+import defaultLoadingZoomGraphic from "../../../inc/assets/room_entry_background.svg";
 import defaultFont from "../../../inc/fonts/roboto.woff";
 import { ItemBaseUI } from "@wordpress/components/build/navigation/styles/navigation-styles";
 import { BoxGeometry } from "three";
@@ -54,78 +54,93 @@ function isVRCompatible() {
 }
   
 
-function Loading(props) {
-	const backgroundImageUrl = props.previewImage !== "" ? props.previewImage : (threeObjectPlugin + zoomBackground);
+function Loading({ visible, previewImage }) {
+	// const backgroundImageUrl = previewImage !== "" ? previewImage : (threeObjectPlugin + zoomBackground);
+	const backgroundImageUrl = defaultLoadingZoomGraphic;
+	// reveal one letter at a time of the string "Use [ W ], [ A ], [ S ], and [ D ] to move."
+	const tip = "Use [ W ], [ A ], [ S ], and [ D ] to move.";
+	const screenwidth = window.innerWidth;
 	return (
-	  <Html center>
-		<div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100vh", width: "400px" }}>
-			<div class="scene">
-				<div class="wrap">
+		<Html
+	  		center
+		>
+		<div className="threeov-entry-scene-parent" style={{ background: "radial-gradient(circle, transparent, transparent 0%, white 2%)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100vh", width: "400px" }}>
+			<div class="threeov-entry-scene">
+				<div class="threeov-entry-wrap">
 					<div 
 						style={{
 							backgroundImage: "url(" + backgroundImageUrl + ")",
 							backgroundSize: "cover",
 						}}
-						class="wall wall-right"
+						class="threeov-entry-wall threeov-entry-wall-right"
 					/>
 					<div 
 						style={{
 							backgroundImage: "url(" + backgroundImageUrl + ")",
 						}}
-						class="wall wall-left"
-					/>
-					<div 
-						style={{
-							backgroundImage: "url(" + backgroundImageUrl + ")",
-							backgroundSize: "cover",
-						}}
-						class="wall wall-top"
+						class="threeov-entry-wall threeov-entry-wall-left"
 					/>
 					<div 
 						style={{
 							backgroundImage: "url(" + backgroundImageUrl + ")",
 							backgroundSize: "cover",
 						}}
-						class="wall wall-bottom"
+						class="threeov-entry-wall threeov-entry-wall-top"
 					/>
-					{/* <div class="wall wall-left"></div>   
-					<div class="wall wall-top"></div>
-					<div class="wall wall-bottom"></div> 
-					<div class="wall wall-back"></div>     */}
+					<div 
+						style={{
+							backgroundImage: "url(" + backgroundImageUrl + ")",
+							backgroundSize: "cover",
+						}}
+						class="threeov-entry-wall threeov-entry-wall-bottom"
+					/>
 				</div>
-				<div class="wrap">
+				<div class="threeov-entry-wrap">
 					<div 
 						style={{
 							backgroundImage: "url(" + backgroundImageUrl + ")",
 							backgroundSize: "cover",
 						}}
-						class="wall wall-right"
+						class="threeov-entry-wall threeov-entry-wall-right"
 					/>
 					<div 
 						style={{
 							backgroundImage: "url(" + backgroundImageUrl + ")",
 							backgroundSize: "cover",
 						}}
-						class="wall wall-left"
+						class="threeov-entry-wall threeov-entry-wall-left"
 					/>
 					<div 
 						style={{
 							backgroundImage: "url(" + backgroundImageUrl + ")",
 							backgroundSize: "cover",
 						}}
-						class="wall wall-top"
+						class="threeov-entry-wall threeov-entry-wall-top"
 					/>
 					<div 
 						style={{
 							backgroundImage: "url(" + backgroundImageUrl + ")",
 							backgroundSize: "cover",
 						}}
-						class="wall wall-bottom"
+						class="threeov-entry-wall threeov-entry-wall-bottom"
 					/>
 				</div>
 			</div>
-		  <div className="threeov-spinner"></div>
-		  <div style={{ backgroundColor: "black", minWidth: "100px", maxHeight: "50px", color: "white", textAlign: "center" }}>Loading...</div>
+		  {/* <div className="threeov-spinner"></div> */}
+			<div style={{
+				zIndex: "1000",
+				backgroundColor: "black",
+				minWidth: "100px",
+				maxHeight: "60px",
+				padding: "20px",
+				color: "white",
+				textAlign: "center",
+				position: "absolute",
+				textShadow: "0 0 10px rgba(0,0,0,0.5)",
+				bottom: ( screenwidth < 600 ? "80px" : "80px" ),
+			}}>
+				Use [ <b>W</b> ], [ <b>A</b> ], [ <b>S</b> ], and [ <b>D</b> ] to move.
+			</div>
 		</div>
 	  </Html>
 	);
@@ -360,6 +375,12 @@ function ChatBox(props) {
  * @return {JSX.Element} The saved object.
  */
 function SavedObject(props) {
+	useEffect(() => {
+		// Once the component is ready, dispatch an event to notify the parent
+		const event = new Event('yourComponentReady');
+		document.dispatchEvent(event);
+	  }, []);
+
 
 	useThree(({ camera, scene }) => {
 		window.scene = scene;
@@ -599,6 +620,23 @@ export default function EnvironmentFront(props) {
 	const [messageObject, setMessageObject] = useState({"tone": "happy", "message": "hello!"});
 	const [objectsInRoom, setObjectsInRoom] = useState([]);
 	const [url, setURL] = useState(props.threeUrl ? props.threeUrl : (threeObjectPlugin + defaultEnvironment));
+	const [loadingWorld, setLoadingWorld] = useState(true);
+
+	useEffect(() => {
+		const handleReady = () => {
+			setTimeout(() => {
+				const event = new Event("loaderIsGone");
+				window.dispatchEvent(event);
+				setLoadingWorld(false);
+			}, 3000);
+		};
+		// Listen for the ready event
+		document.addEventListener('yourComponentReady', handleReady);
+
+		return () => {
+		  document.removeEventListener('yourComponentReady', handleReady);
+		};
+	  }, []);
 
 	if (loaded === true) {
 		// emit javascript event "loaded"
@@ -643,7 +681,8 @@ export default function EnvironmentFront(props) {
 							{/* <fog attach="fog" color="hotpink" near={100} far={20} /> */}
 							<Hands />
 							<Controllers />
-							<Suspense fallback={<Loading previewImage={props.previewImage} />}>
+							{loadingWorld && <Loading previewImage={props.previewImage} />}
+							<Suspense>
 								{props.hdr && 
 									<Environment
 										blur={0.05}
@@ -2016,7 +2055,6 @@ export default function EnvironmentFront(props) {
 							setLoaded(true);
 						}}
 						style={{
-							margin: "0 auto",
 							padding: "10px"
 						}}
 					>

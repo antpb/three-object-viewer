@@ -145,6 +145,7 @@ function loadMixamoAnimation(url, vrm) {
 }
 
 export default function Player(props) {
+	
 	let heightOffset = 0;
 	const p2pcf = props.p2pcf;
 
@@ -154,6 +155,15 @@ export default function Player(props) {
 	const orbitRef = useRef();
 	const rigidRef = useRef();
 	const castRef = useRef();
+	const [loaderIsGone, setLoaderIsGone] = useState(false);
+
+	useEffect(() => {
+		const handleReady = () => {
+			setLoaderIsGone(true);
+			removeEventListener('loaderIsGone', handleReady);
+		};
+		window.addEventListener('loaderIsGone', handleReady);
+	}, []);
 
 	const idleFile = threeObjectPlugin + idle;
 	const walkingFile	= threeObjectPlugin + walk;
@@ -322,12 +332,18 @@ export default function Player(props) {
 
 		// frame loop
 		useFrame((state, delta) => {
+			if(!loaderIsGone){
+				return;
+			}
+
+
 			handleBlinking(delta);
 
 			let isMoving = false;
 
 			const currentTime = state.clock.elapsedTime;
 			const timeSinceLastUpdate = currentTime - lastUpdateTime;
+
 			let rigidBodyPosition = [0, 0, 0]
 			if(rigidRef.current?.translation()){
 				rigidBodyPosition = rigidRef.current.translation();

@@ -1,5 +1,5 @@
 
- .wp-block-three-object-block {
+.wp-block-three-object-block {
 	border: 1px dotted #f00;
 }
 
@@ -7,7 +7,8 @@
 	position: relative;
 	top: 0;
 	bottom: 0;
-	width: 105%;
+	// look into why this was formerly 105%
+	width: 100%;
 	height: 100vh;
 }
 
@@ -68,7 +69,7 @@
 	position: absolute;
 	top: 20px !important;
 	left: 20px;
-    background-color: rgb(92 90 90 / 51%) !important;
+	background-color: rgb(92 90 90 / 51%) !important;
 	// background-color: rgba(34, 34, 34, 0.677) !important;
 	z-index: 1000;
 	width: 200px;
@@ -84,27 +85,6 @@
 	text-align: center;
 	border-radius: 20px;
 }
-.threeov-entry-flow button {
-	background-color: #404040;
-	border-radius: 10px;
-	border: none;
-	// add dropshadow
-	box-shadow: 0px 0px 5px 1px #0000005e;
-	color: white;
-	cursor: pointer;
-	margin-top: 20px !important;
-}
-
-.threeov-entry-flow button:hover {
-	background-color: #5a5a5a;
-	border-radius: 10px;
-	border: none;
-	// add dropshadow
-	box-shadow: 0px 0px 5px 1px #7f7f7f5e;
-	color: white;
-	cursor: pointer;
-	margin-top: 20px !important;
-}
 
 .threeov-entry-flow input {
 	border-radius: 10px;
@@ -114,23 +94,23 @@
 }
 
 .glb-preview-container {
-	 padding: 100px;
-	 text-align: center;
-	 align-items: center;
-	 align-content: center;
-	 background-color:#f2f2f2;
-	 height: 773px;
-	 box-sizing: border-box;
-	 padding-left: 230px !important;
- }
+	padding: 100px;
+	text-align: center;
+	align-items: center;
+	align-content: center;
+	background-color:#f2f2f2;
+	height: 773px;
+	box-sizing: border-box;
+	padding-left: 230px !important;
+}
 
- .glb-preview-container button{
+.glb-preview-container button{
 	padding: 15px;
 	border-radius: 30px;
 	padding: 5px !important;
-    border-radius: 30px !important;
-    padding-left: 20px !important;
-    padding-right: 20px !important;
+	border-radius: 30px !important;
+	padding-left: 20px !important;
+	padding-right: 20px !important;
 }
 
 .three-object-viewer-button {
@@ -164,8 +144,8 @@
 	float: left;
 	padding-left:10px !important;
 	height: auto;
-    padding-right: 10px !important;
-    // background-color: rgb(42, 42, 42);
+	padding-right: 10px !important;
+	// background-color: rgb(42, 42, 42);
 }
 
 .wp-block-three-object-viewer-environment .block-editor-inner-blocks {
@@ -177,15 +157,15 @@
 
 .wp-block-three-object-viewer-environment .block-editor-inner-blocks.iframe {
 	height: 100vh;
-  }
-  
-  .wp-block-three-object-viewer-environment .block-editor-inner-blocks:not(.iframe) {
-	height: 90vh;
-  }
-  
+}
 
-  .three-object-viewer-edit-panel .wide-slider {
-    display: block;
+.wp-block-three-object-viewer-environment .block-editor-inner-blocks:not(.iframe) {
+	height: 90vh;
+}
+
+
+.three-object-viewer-edit-panel .wide-slider {
+	display: block;
 }
 
 .three-object-environment-edit-container .threeov-three-number-settings {
@@ -205,7 +185,7 @@
 	margin: 0 auto;
 }
 .three-object-viewer-inner-edit-container .three-object-viewer-model-name {
-    font-size: 0.7em;
+	font-size: 0.7em;
 }
 
 .three-object-viewer-inner-edit-container {
@@ -230,7 +210,7 @@
 	box-shadow:0px 1px 5px 1px #1e1e1e;
 	display: flex;
 	padding-left: 10px;
-    padding-top: 5px;
+	padding-top: 5px;
 }
 
 div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner) {
@@ -266,8 +246,8 @@ div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner
 	margin: 0px 0px -60px;
 	right: 0;
 	position: absolute;
-    background-color: #8e00f2;
-    color: white;
+	background-color: #8e00f2;
+	color: white;
 }
 
 .wp-block-three-object-viewer-environment:has(> .block-editor-inner-blocks) {
@@ -308,11 +288,11 @@ div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner
 	z-index: 100;
 }
 .threeov-chat-container {
-    background-color: rgba(0,0,0,.8) !important;
-    z-index: 1001 !important;
-    width: 100% !important;
-    padding: 0px !important;
-    margin-left: -8px !important;
+	background-color: rgba(0,0,0,.8) !important;
+	z-index: 1001 !important;
+	width: 100% !important;
+	padding: 0px !important;
+	margin-left: -8px !important;
 }
 
 
@@ -332,45 +312,56 @@ div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner
 	width: 60px;
 	height: 60px;
 	animation: spin 1s linear infinite;
-  }
-  
-  @keyframes spin {
+}
+
+@keyframes spin {
 	0% { transform: rotate(0deg); }
 	100% { transform: rotate(360deg); }
-  }
-  
-  @keyframes move {
+}
+
+@keyframes move {
 	0%{
-	  transform: translateZ(-500px) rotate(0deg);
+	transform: translateZ(-500px) rotate(0deg);
 	}
 	100%{
-	  transform: translateZ(500px) rotate(0deg);
+	transform: translateZ(500px) rotate(0deg);
 	}
-  }
-  
-  @keyframes fade {
+}
+
+@keyframes fade {
 	0%{
-	  opacity: 0;
+	opacity: 1;
 	}
 	25% {
-	  opacity: 1;
+	opacity: 1;
 	}
 	75% {
-	  opacity: 1;
+	opacity: 1;
+	}
+	90% {
+		opacity: 1;
 	}
 	100%{
-	  opacity: 0;
+	opacity: 1;
 	}
-  }
-  .scene{
+}
+
+.threeov-entry-scene{
 	display: inline-block;
 	vertical-align: middle;
 	perspective: 5px;
 	perspective-origin: center;
 	position: relative;
-  }
-  
-  .wrap{
+	background-color: #FFFFFF !important;
+}
+
+.threeov-entry-scene-parent {
+	background: radial-gradient(circle, transparent, transparent 0%, white 2%);
+}
+
+
+
+.threeov-entry-wrap{
 	position: absolute;
 	width: 100vw;
 	height: 100vh;
@@ -379,45 +370,69 @@ div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner
 	transform-style: preserve-3d;
 	animation: move 4s infinite linear;
 	animation-fill-mode: forwards;
-  }
-  
-  .wrap:nth-child(2){
+}
+
+.threeov-entry-wrap:nth-child(2){
 	animation: move 4s infinite linear;
 	animation-delay: 6s;
-  }
-  
-  .wall {
-	width: 100%;
-	height: 100%;
+}
+
+.threeov-entry-wall {
+	width: 105%;
+	height: 105%;
 	position: absolute;
 	opacity: 0;
-	animation: fade 3s infinite linear;
+	animation: fade 2s infinite linear;
 	animation-delay: 0;
-  }
-  
-  .wrap:nth-child(2) .wall {
-	animation-delay: 6s;
-  }
-  
-  .wall-right {
-	transform: rotateY(90deg) translateZ(500px);
-  }
-  
-  .wall-left {
-	transform: rotateY(-90deg) translateZ(500px);
-  }
-  
-  .wall-top {
-	transform: rotateX(90deg) translateZ(500px);
-  }
-  
-  .wall-bottom {
-	transform: rotateX(-90deg) translateZ(500px);
-  }
-  
-  .wall-back {
-	transform: rotateX(180deg) translateZ(500px);
-  }
+}
 
-  
-  
+.threeov-entry-wrap:nth-child(2) .threeov-entry-wall {
+	animation-delay: 6s;
+}
+
+.threeov-entry-wall-right {
+	transform: rotateY(90deg) translateZ(500px);
+}
+
+.threeov-entry-wall-left {
+	transform: rotateY(-90deg) translateZ(500px);
+}
+
+.threeov-entry-wall-top {
+	transform: rotateX(90deg) translateZ(500px);
+}
+
+.threeov-entry-wall-bottom {
+	transform: rotateX(-90deg) translateZ(500px);
+}
+
+.threeov-entry-wall-back {
+	transform: rotateX(180deg) translateZ(500px);
+}
+
+.threeov-load-world-button {
+	background-color: #b7ff00;
+	border-radius: 20px;
+	padding: 5px 10px;
+	border: 1px solid #98d400;
+	color: #fff;
+	cursor: pointer;
+	margin-top: 20px;
+	color: #451a00;
+	font-weight: 600;
+	margin-right: 5px;
+	letter-spacing: .01em;
+	max-width: 120px;
+	text-transform: uppercase;
+}
+
+.threeov-entry-flow button:hover {
+	background-color: #ccff4c;
+	border: 1px solid #98d400;
+	// add dropshadow
+	box-shadow: 0px 0px 5px 1px #7f7f7f5e;
+	color: white;
+	cursor: pointer;
+	color: #451a00;
+	font-weight: 600;
+}

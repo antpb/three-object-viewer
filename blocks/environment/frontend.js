@@ -164,7 +164,7 @@ threeApp.forEach((threeApp) => {
 						previewImage={threePreviewImage}
 						hdr ={hdr ? hdr : ""}
 					/>
-\			</>,
+			</>,
 			threeApp
 		);
 	}
