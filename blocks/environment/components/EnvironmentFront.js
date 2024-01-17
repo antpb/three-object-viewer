@@ -63,6 +63,7 @@ function Loading({ visible, previewImage }) {
 	return (
 		<Html
 	  		center
+			occlude={true}
 		>
 		<div className="threeov-entry-scene-parent" style={{ background: "radial-gradient(circle, transparent, transparent 0%, white 2%)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100vh", width: "400px" }}>
 			<div class="threeov-entry-scene">
@@ -137,7 +138,9 @@ function Loading({ visible, previewImage }) {
 				textAlign: "center",
 				position: "absolute",
 				textShadow: "0 0 10px rgba(0,0,0,0.5)",
-				bottom: ( screenwidth < 600 ? "80px" : "80px" ),
+				bottom: ( screenwidth < 600 ? "130px" : "130px" ),
+				fontSize: "0.9em",
+				width: "350px"
 			}}>
 				Use [ <b>W</b> ], [ <b>A</b> ], [ <b>S</b> ], and [ <b>D</b> ] to move.
 			</div>
@@ -2036,15 +2039,16 @@ export default function EnvironmentFront(props) {
 				<div
 					className={"threeov-entry-flow"}
 					style={{
-						height: "200px",
-						width: "200px",
+						width: "220px",
 						position: "relative",
-						padding: "10px"
+						padding: "20px",
+						boxSizing: "border-box"
 					}}
 				>
 					{ ( props.networkingBlock.length > 0 ) && (
 						<div>
-							<span>Display Name</span>
+							<div className="threeov-entry-pfp" style={ { backgroundImage: `url(${props.userData.profileImage})` } }></div>
+							{/* <span>Display Name</span> */}
 							<input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
 						</div>
 					)}

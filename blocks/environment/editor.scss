@@ -330,36 +330,32 @@ div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner
 
 @keyframes fade {
 	0%{
-	opacity: 1;
+		opacity: 1;
 	}
 	25% {
-	opacity: 1;
+		opacity: 1;
 	}
 	75% {
-	opacity: 1;
-	}
-	90% {
 		opacity: 1;
 	}
 	100%{
-	opacity: 1;
+		opacity: 1;
 	}
 }
 
 .threeov-entry-scene{
 	display: inline-block;
 	vertical-align: middle;
-	perspective: 5px;
+	perspective: 6px;
 	perspective-origin: center;
 	position: relative;
 	background-color: #FFFFFF !important;
 }
 
 .threeov-entry-scene-parent {
-	background: radial-gradient(circle, transparent, transparent 0%, white 2%);
+	background: radial-gradient(circle, transparent, transparent 10%, white 2%);
+	width: 100% !important;
 }
-
-
 
 .threeov-entry-wrap{
 	position: absolute;
@@ -378,8 +374,8 @@ div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner
 }
 
 .threeov-entry-wall {
-	width: 105%;
-	height: 105%;
+	width: 100%;
+	height: 100%;
 	position: absolute;
 	opacity: 0;
 	animation: fade 2s infinite linear;
@@ -435,4 +431,21 @@ div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner
 	cursor: pointer;
 	color: #451a00;
 	font-weight: 600;
+}
+
+.threeov-entry-pfp {
+	width: 100px;
+	height: 100px;
+	border-radius: 50%;
+	background-color: #b7ff00;
+	border: 2px solid #98d400;
+	margin: 0 auto;
+	margin-top: 20px;
+	background-position: center;
+	background-size: cover;
+	padding: 0px;
+	padding-bottom: 5px;
+	align-items: center;
+	justify-content: center;
+	display: flex;
 }
