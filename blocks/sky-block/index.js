@@ -2,6 +2,7 @@ import { registerBlockType } from "@wordpress/blocks";
 import Edit from "./Edit";
 import Save from "./Save";
 import { useBlockProps } from "@wordpress/block-editor";
+import Deprecated from "./Deprecated";
 
 const icon = (
 	<svg
@@ -15,7 +16,7 @@ const icon = (
 		</g>
 	</svg>
 );
-
+const deprecated = Deprecated();
 const blockConfig = require("./block.json");
 registerBlockType(blockConfig.name, {
 	...blockConfig,
@@ -23,25 +24,5 @@ registerBlockType(blockConfig.name, {
 	apiVersion: 2,
 	edit: Edit,
 	save: Save,
-	deprecated: [
-		{
-			attributes: {
-				skyUrl: {
-					type: "string",
-					default: null
-				},
-			},
-			save(props) {
-				return (
-					<div {...useBlockProps.save()}>
-						<>
-							<div className="three-object-three-app-sky-block">
-								<p className="sky-block-url">{props.attributes.skyUrl}</p>
-							</div>
-						</>
-					</div>
-				);
-			}
-		}
-	]
+	deprecated: deprecated
 });

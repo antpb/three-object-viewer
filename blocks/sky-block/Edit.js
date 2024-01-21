@@ -160,7 +160,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 								</g>
 							</svg>
 							<p>
-								<b>{ __( 'Sky block', 'three-object-viewer' ) }</b>
+								<b>{ __( 'Sky Block', 'three-object-viewer' ) }</b>
 							</p>
 							{/* <p>URL: {attributes.skyUrl}</p> */}
 						</div>
@@ -181,7 +181,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 								</g>
 							</svg>
 							<p>
-								<b>{ __( 'Sky block', 'three-object-viewer' ) }</b>
+								<b>{ __( 'Sky Block', 'three-object-viewer' ) }</b>
 							</p>
 							{/* <p>URL: {attributes.skyUrl}</p> */}
 						</div>

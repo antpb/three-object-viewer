@@ -382,7 +382,7 @@ const Networking = (props) => {
 		userData.userId === ""
 			? Math.floor(Math.random() * 100000)
 			: userData.userId;
-	const p2pcf = new P2PCF(
+	let p2pcf = new P2PCF(
 		"user-" + userProfileName,
 		document.location.hash.substring(1),
 		{
@@ -399,7 +399,13 @@ const Networking = (props) => {
 		document.getElementById(clientId)?.remove();
 		document.getElementById(`${clientId}-video`)?.remove();
 	};
-
+	const setupP2PCF = (p2pcfInstance) => {
+		// Start the P2PCF instance with any necessary configurations
+		p2pcfInstance.start({ playerVRM: userData.playerVRM ? userData.playerVRM : defaultAvatar });
+		window.p2pcf = p2pcfInstance;
+	};
+	
+	
 	const addPeerUi = (sessionId) => {
 		// if (document.getElementById(sessionId)) return;
 		var peerIcon = document.createElement("button");
@@ -490,6 +496,30 @@ const Networking = (props) => {
 		document.getElementById("messages").appendChild(messageEl);
 	};
 	let stream;
+	p2pcf.on("roomfullrefresh", (peer) => {
+		console.log("So sorry, Room full refresh", peer);
+    // Wait for the URL hash to update to ensure room ID is new
+    setTimeout(() => {
+		// remove the window.p2pcf object from the window
+		delete window.p2pcf;
+        // Reinitialize P2PCF with the new room ID
+        p2pcf = new P2PCF(
+            "user-" + userProfileName,
+            window.location.hash.substring(1),
+            {
+                workerUrl: multiplayerWorker,
+                slowPollingRateMs: 5000,
+                fastPollingRateMs: 1500
+            }
+        );
+
+        // Re-setup the P2PCF instance with necessary configurations and event listeners
+        setupP2PCF(p2pcf); // Implement this function to configure the new instance
+
+    }, 500); // Adjust delay as needed
+
+});
+
 	p2pcf.on("peerconnect", (peer) => {
 		if (stream) {
 			peer.addStream(stream);

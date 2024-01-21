@@ -81,8 +81,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 							<TextControl
 								className="participant-limit"
 								label="Participant Limit"
-								// help="position x"
-								value={attributes.positionX}
+								value={attributes.participantLimit}
 								onChange={(value) => onChangeParticipantLimit(value)}
 							/>
 						</PanelRow>

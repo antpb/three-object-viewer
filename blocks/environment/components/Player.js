@@ -147,7 +147,6 @@ function loadMixamoAnimation(url, vrm) {
 export default function Player(props) {
 	
 	let heightOffset = 0;
-	const p2pcf = props.p2pcf;
 
 	const canMoveRef = useRef(true);
 	const falling = useRef(true);
@@ -518,7 +517,7 @@ export default function Player(props) {
 						}
 
 						//if moving, send a network event of where we are and our current state....animations probably need to go here too.
-						if (p2pcf) {	
+						if (window.p2pcf) {	
 							var target = new Vector3(); // create once an reuse it
 							var worldPosition = participantObject.getWorldPosition( target );
 							const position = [
@@ -535,7 +534,7 @@ export default function Player(props) {
 							];
 							// console.log("userData", userData);
 							const messageObject = {
-								[p2pcf.clientId]: {
+								[window.p2pcf.clientId]: {
 									position: position,
 									rotation: rotation,
 									profileImage: userData.profileImage,
@@ -546,23 +545,23 @@ export default function Player(props) {
 								}
 							};
 							if(props.movement.current.shift) {
-								messageObject[p2pcf.clientId].isMoving = "running";
+								messageObject[window.p2pcf.clientId].isMoving = "running";
 							}
 							// console.log("userdata", userData);
 							clearTimeout(movementTimeoutRef.current);
 							movementTimeoutRef.current = setTimeout(() => {
 								// Send "isMoving: false" message here
 								const messageStopObject = {
-									[p2pcf.clientId]: {
+									[window.p2pcf.clientId]: {
 										isMoving: false
 									}
 								};
 								const messageStop = JSON.stringify(messageStopObject);
-								p2pcf.broadcast(new TextEncoder().encode(messageStop));
+								window.p2pcf.broadcast(new TextEncoder().encode(messageStop));
 							}, 100);
 
 							const message = JSON.stringify(messageObject);
-							p2pcf.broadcast(new TextEncoder().encode(message)), p2pcf;
+							window.p2pcf.broadcast(new TextEncoder().encode(message)), window.p2pcf;
 						}
 			
 					// }

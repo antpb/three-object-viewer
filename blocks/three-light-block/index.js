@@ -2,6 +2,7 @@ import { registerBlockType } from "@wordpress/blocks";
 import Edit from "./Edit";
 import Save from "./Save";
 import { useBlockProps } from "@wordpress/block-editor";
+import Deprecated from "./Deprecated";
 
 const icon = (
 	<svg
@@ -15,12 +16,13 @@ const icon = (
 		</g>
 	</svg>
 );
-
+const deprecated = Deprecated();
 const blockConfig = require("./block.json");
 registerBlockType(blockConfig.name, {
 	...blockConfig,
 	icon,
 	apiVersion: 2,
 	edit: Edit,
-	save: Save
+	save: Save,
+	deprecated: deprecated
 });

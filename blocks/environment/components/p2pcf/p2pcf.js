@@ -17,6 +17,7 @@ import { hexToBytes } from "convert-hex";
 import arrayBufferToHex from "array-buffer-to-hex";
 import defaultVRM from "../../../../inc/avatars/3ov_default_avatar.vrm";
 
+let validlyInRoom = false;
 // Based on Chrome
 const MAX_MESSAGE_LENGTH_BYTES = 16000;
 
@@ -1174,15 +1175,48 @@ export default class P2PCF extends EventEmitter {
 
 	_wireUpCommonPeerEvents(peer) {
 		peer.on("connect", () => {
-			this.emit("peerconnect", peer);
+			console.log(p2pcf.peers.size, "peers connected", p2pcf.peers);
+			let roomCount = p2pcf.peers.size + 1;
+			if(roomCount < 2) {
+				console.log("clean room entry", p2pcf);
+				this.emit("peerconnect", peer);
+				// after connecting, send the player data to participant
+				const playerData = { playerVRM: this.playerVRM, inWorldName: userData.inWorldName, profileImage: userData.profileImage};
+				peer.send(new TextEncoder().encode(JSON.stringify(playerData)));
+				// set the user as validly in the room
+				validlyInRoom = true;
+				// Remove packages for the peer once connected
+				removeInPlace(this.packages, (pkg) => pkg[0] === peer.id);
+				this._updateConnectedSessions();
 
-			// after connecting, send the player data to participant
-			const playerData = { playerVRM: this.playerVRM, inWorldName: userData.inWorldName, profileImage: userData.profileImage};
-			peer.send(new TextEncoder().encode(JSON.stringify(playerData)));
-		
-			// Remove packages for the peer once connected
-			removeInPlace(this.packages, (pkg) => pkg[0] === peer.id);
-			this._updateConnectedSessions();
+			} else {
+				if(! validlyInRoom) {
+					console.log("participants are", window.participants);
+					console.log("room is full", this.roomId, p2pcf);
+					// if there are more than 2 participants, disconnect the peer increment the room id and retry
+					// Remove packages for the peer once connected
+					// removeInPlace(this.packages, (pkg) => pkg[0] === peer.id);
+
+					// peer.destroy();
+
+					let curentRoomHash = window.location.hash;
+					// remove the # from the hash
+					let currentRoomId = curentRoomHash.substring(1);
+					// example string #3ov-room-1 take the value after the last - and cast it to int
+					let newRoomId = parseInt(currentRoomId.substr(currentRoomId.lastIndexOf("-") + 1));
+					newRoomId = newRoomId + 1;
+					// remove the old room number from the currentRoomId and add the new one
+					currentRoomId = currentRoomId.substring(0, currentRoomId.lastIndexOf("-") + 1);
+					currentRoomId = currentRoomId + newRoomId;
+					// set the #room in the url
+					window.location.hash = currentRoomId;
+
+					roomCount = 0;
+					this.roomId = newRoomId;
+					// fire an event called "room full refresh"
+					this.emit("roomfullrefresh", peer);
+				}
+			}
 		});
 
 		peer.on("data", (data) => {
