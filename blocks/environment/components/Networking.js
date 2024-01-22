@@ -110,6 +110,8 @@ const Networking = (props) => {
 			navigator.mediaDevices.getUserMedia({ audio: { deviceId: audioDevice } }).then(function(stream) {
 				// set the local stream to the new stream
 				localStream = stream;
+				// set a window variable for the local stream
+				window.localStream = stream;
 				// loop through the peers and set their streams to the new stream
 				for (const peer of p2pcf.peers.values()) {
 					peer.addStream(stream);
@@ -275,14 +277,12 @@ const Networking = (props) => {
 					}
 					// set the local stream to the new stream
 					localStream = stream;
-
 				});
 				getUserMedia();  // Initialize media stream
 
 				stream = await navigator.mediaDevices.getUserMedia({
 					audio: true
 				});
-		
 				for (const peer of p2pcf.peers.values()) {
 					peer.addStream(stream);
 				}
@@ -349,7 +349,11 @@ const Networking = (props) => {
 
 			isMuted = !isMuted;
 			// mute the local stream microphone
-			localStream.getAudioTracks()[0].enabled = !isMuted;
+			// localStream.getAudioTracks()[0].enabled = !isMuted;
+			for (let i = 0; i < window.localStream.getAudioTracks().length; i++) {
+				window.localStream.getAudioTracks()[i].enabled = !isMuted;
+			}
+
 			if(muteIcon){
 				if (localStream.getAudioTracks()[0].enabled) {
 					muteIcon.style.backgroundImage = `url(${threeObjectPlugin + audioIcon})`;

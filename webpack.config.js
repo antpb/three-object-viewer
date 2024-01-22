@@ -45,7 +45,7 @@ if (isPro) {
 	}
 }
 
-entry[`./assets/js/blocks.frontend`] = "./blocks/three-object-block/frontend.js";
+// entry[`./assets/js/blocks.frontend`] = "./blocks/three-object-block/frontend.js";
 
 entry[`./assets/js/blocks.frontend-versepress`] = "./blocks/environment/frontend.js";
 
@@ -68,6 +68,11 @@ module.exports = {
 			},
 			{
 				test: /\.js$/,
+				exclude: /node_modules/,
+				use: 'babel-loader'
+			},			  
+			{
+				test: /\.jsx$/,
 				exclude: /node_modules/,
 				use: 'babel-loader'
 			},			  

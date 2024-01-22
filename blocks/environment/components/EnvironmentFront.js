@@ -922,7 +922,7 @@ export default function EnvironmentFront(props) {
 												{Object.values(props.videosToAdd).map((item, index) => {
 													let videoPosX, videoPosY, videoPosZ, videoScaleX, videoScaleY, videoScaleZ;
 													let videoRotationX, videoRotationY, videoRotationZ, videoUrl, aspectHeight, aspectWidth;
-													let autoPlay, customModel, videoModelUrl;
+													let autoPlay, customModel, videoModelUrl, videoControlsEnabled;
 
 													if (item.tagName.toLowerCase() === 'three-video-block') {
 														videoPosX = item.getAttribute('positionX') || '';
@@ -940,6 +940,7 @@ export default function EnvironmentFront(props) {
 														autoPlay = item.hasAttribute('autoplay') ? "1" : false;
 														customModel = item.getAttribute('customModel') ? item.getAttribute('customModel') : false;
 														videoModelUrl = item.getAttribute('modelUrl') || '';
+														videoControlsEnabled = item.getAttribute('videoControlsEnabled') === "1" ? true : false;
 													} else {
 														videoPosX =
 														item.querySelector(
@@ -1074,6 +1075,7 @@ export default function EnvironmentFront(props) {
 															"div.video-block-model-url"
 														).innerText
 														: "";
+														videoControlsEnabled = true;
 													}
 													return (
 														<ThreeVideo
@@ -1105,6 +1107,7 @@ export default function EnvironmentFront(props) {
 															threeObjectPlugin={threeObjectPlugin}
 															threeObjectPluginRoot={threeObjectPluginRoot}
 															modelUrl={videoModelUrl}
+															videoControlsEnabled={videoControlsEnabled}
 														/>
 													);
 												})}

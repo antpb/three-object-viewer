@@ -79,6 +79,9 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 	const onChangeCustomModel = (customModelSetting) => {
 		setAttributes({ customModel: customModelSetting });
 	};
+	const onChangeControlsEnabled = (videoControlsEnabled) => {
+		setAttributes({ videoControlsEnabled: videoControlsEnabled });
+	};
 
 	const { mediaUpload } = wp.editor;
 
@@ -160,6 +163,17 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									onChangeAutoPlay(e);
 								}}
 							/>
+						</PanelRow>
+						<PanelRow>
+							{attributes.videoUrl && (
+							<ToggleControl
+								label={ __( "Controls Enabled", 'three-object-viewer' )}
+								help={ __( "When controls are enabled users can click on the video to pause and play.", 'three-object-viewer' ) }
+								checked={attributes.videoControlsEnabled}
+								onChange={(e) => {
+									onChangeControlsEnabled(e);
+								}}
+							/>)}
 						</PanelRow>
 						<PanelRow>
 							{attributes.videoUrl && (

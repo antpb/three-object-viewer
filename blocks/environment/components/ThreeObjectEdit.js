@@ -1396,11 +1396,12 @@ function PortalObject(model) {
 						>
 							<Text
 								font={(threeObjectPlugin + defaultFont)}
-								scale={[2, 2, 2]}
+								scale={[1, 1, 1]}
 								color={portalBlockAttributes.labelTextColor}
 								maxWidth={1}
 								alignX="center"
 								textAlign="center"
+								fontSize={0.35}
 								position={[
 									0 + portalBlockAttributes.labelOffsetX,
 									0 + portalBlockAttributes.labelOffsetY,
@@ -2085,7 +2086,7 @@ export default function ThreeObjectEdit(props) {
 					style={{
 						margin: "0 Auto",
 						height: "100vh",
-						// width: "100vw",
+						width: "100vw",
 						boxSizing: "border-box"
 					}}
 				>

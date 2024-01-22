@@ -119,9 +119,10 @@ export function Portal(model) {
 				>
 					<Text
 						font={model.threeObjectPlugin + model.defaultFont}
-						scale={[2, 2, 2]}
+						scale={[1, 1, 1]}
 						maxWidth={1}
 						alignX="center"
+						fontSize={0.35}
 						// rotation={[model.rotationX , model.rotationY, model.rotationZ]}
 						// position={[model.positionX, model.positionY, model.positionZ]}
 						color="black"

@@ -1177,7 +1177,7 @@ export default class P2PCF extends EventEmitter {
 		peer.on("connect", () => {
 			console.log(p2pcf.peers.size, "peers connected", p2pcf.peers);
 			let roomCount = p2pcf.peers.size + 1;
-			if(roomCount < 2) {
+			if(roomCount < 5) {
 				console.log("clean room entry", p2pcf);
 				this.emit("peerconnect", peer);
 				// after connecting, send the player data to participant
@@ -1190,7 +1190,7 @@ export default class P2PCF extends EventEmitter {
 				this._updateConnectedSessions();
 
 			} else {
-				if(! validlyInRoom) {
+				if(! validlyInRoom ) {
 					console.log("participants are", window.participants);
 					console.log("room is full", this.roomId, p2pcf);
 					// if there are more than 2 participants, disconnect the peer increment the room id and retry
@@ -1204,6 +1204,10 @@ export default class P2PCF extends EventEmitter {
 					let currentRoomId = curentRoomHash.substring(1);
 					// example string #3ov-room-1 take the value after the last - and cast it to int
 					let newRoomId = parseInt(currentRoomId.substr(currentRoomId.lastIndexOf("-") + 1));
+					// if the room id is NaN, set it to 1
+					if(isNaN(newRoomId)) {
+						newRoomId = 1;
+					}
 					newRoomId = newRoomId + 1;
 					// remove the old room number from the currentRoomId and add the new one
 					currentRoomId = currentRoomId.substring(0, currentRoomId.lastIndexOf("-") + 1);

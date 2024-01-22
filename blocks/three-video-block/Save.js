@@ -3,7 +3,6 @@ import { useBlockProps } from "@wordpress/block-editor";
 
 export default function save({ attributes }) {
 	const blockProps = useBlockProps.save();
-
 	return (
 		<three-video-block
 			{...blockProps}
@@ -21,6 +20,7 @@ export default function save({ attributes }) {
 			customModel={attributes.customModel ? "1" : "0"}
 			aspectHeight={attributes.aspectHeight}
 			aspectWidth={attributes.aspectWidth}
+			videoControlsEnabled={attributes.videoControlsEnabled ? "1" : "0"}
 			modelUrl={attributes.modelUrl}
 		/>
 	);

@@ -1,8 +1,11 @@
 import { Raycaster, Vector3 } from "three";
-import { useXR, Interactive } from "@react-three/xr";
+import { useXR, Interactive, useController } from "@react-three/xr";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useCallback, useRef, useState, useEffect } from "react";
 import { useRapier, useRigidBody, RigidBody } from "@react-three/rapier";
+import {
+	Text,
+} from "@react-three/drei";
 
 export function TeleportIndicator(props) {
 
@@ -25,6 +28,87 @@ export function ClickIndicatorObject(props) {
 		</>
 	);
 }
+function Button({ onClick, position, color, hoverColor }) {
+	const mesh = React.useRef();
+
+	const [hovered, setHovered] = React.useState(false);
+	const currentColor = hovered ? hoverColor : color;
+
+	return (
+	<Interactive
+		onSelect={onClick}
+		onHover={() => setHovered(true)}
+		onBlur={() => setHovered(false)}
+	>
+		<mesh position={position} ref={mesh}>
+		<boxGeometry args={[0.4, 0.2, 0.01]} />
+		<meshStandardMaterial color={currentColor} />
+		</mesh>
+	</Interactive>
+	);
+}
+
+function Menu() {
+	const menuRef = useRef();
+	const { camera } = useThree();
+	const { player, controllers } = useXR();
+	const [ muted, setMuted ] = useState(false);
+	const handleButtonClick = () => {
+		console.log("Button clicked");
+		if(window.localStream){
+			// loop through all audio tracks and mute them
+			for (let i = 0; i < window.localStream.getAudioTracks().length; i++) {
+				window.localStream.getAudioTracks()[i].enabled = !window.localStream.getAudioTracks()[i].enabled;
+			}
+			// if(muted){
+			// 	window.localStream.getAudioTracks()[0].enabled = false;
+			// } else {
+			// 	window.localStream.getAudioTracks()[0].enabled = true;
+			// }
+			console.log("window.localStream", window.localStream.getAudioTracks()[0]);
+		}
+		setMuted(!muted);
+	};
+
+	// when the player is available, add the menu to the player
+	useEffect(() => {
+		if (player && menuRef.current) {
+			menuRef.current.visible = true;
+			player.add(menuRef.current);
+			menuRef.current.position.set(0, 2, -0.8);
+		}
+		console.log(window.localStream);
+	}, [player]);
+
+
+	useFrame(() => {
+		if (menuRef.current) {
+
+		}
+	});
+
+	return (
+		<group ref={menuRef} visible={false}>
+			<Button
+				onClick={handleButtonClick}
+				position={[0, 0.1, -0.108]} // Position relative to the menu
+				color={ muted ? "#ff3e00" : "#b7ff00"  }
+				hoverColor={ muted ? "#fa8660" : "#daffa0" }
+			/>
+			<Text
+				color="black"
+				anchorX="center"
+				anchorY="middle"
+				fontSize={0.1}
+				position={[0, 0.1, -0.1]}
+			>
+				{ muted ? `Mute` : `Unmute`}
+			</Text>
+			{/* Additional menu items */}
+		</group>
+	);
+}
+
 
 export default function TeleportTravel(props) {
 	const { scene } = useThree();
@@ -56,13 +140,13 @@ export default function TeleportTravel(props) {
 		const y = Number(spawnPos[1]) + 0.1;
 		const z = Number(spawnPos[2]);
 
-	if (isPresenting) {
-		player.position.x = x
-		player.position.y = y
-		player.position.z = z
-	}
+		if (isPresenting) {
+			player.position.x = x
+			player.position.y = y
+			player.position.z = z
+		}
 	}, [isPresenting])
-
+	
 
 	// Set a variable finding an object in the three.js scene that is named reticle.
 	useEffect(() => {
@@ -74,7 +158,7 @@ export default function TeleportTravel(props) {
 			// set participantObject to invisible
 			participantObject.visible = false;
 			reticle.visible = false;
-		}
+		}	
 	}, [controllers]);
 	const movementTimeoutRef = useRef(null);
 
@@ -249,6 +333,7 @@ export default function TeleportTravel(props) {
 					<ClickIndicator />
 				</group>
 			)}
+			<Menu/>
 			<Interactive
 				onSelect={click}
 				onHover={(e) => {
