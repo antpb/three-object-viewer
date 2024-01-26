@@ -73,7 +73,7 @@ function Menu() {
 	// when the player is available, add the menu to the player
 	useEffect(() => {
 		if (player && menuRef.current) {
-			menuRef.current.visible = true;
+			//menuRef.current.visible = true;
 			player.add(menuRef.current);
 			menuRef.current.position.set(0, 2, -0.8);
 		}

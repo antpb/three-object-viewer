@@ -318,7 +318,7 @@ export default function ThreeObjectFront( props ) {
 				>
 					<Hands />
 					<DefaultXRControllers />
-					<ambientLight intensity={ 0.4 } />
+					<ambientLight intensity={ 0.9 } />
 					<directionalLight
 						intensity={ 0.4 }
 						position={ [ 0, 2, 2 ] }
@@ -378,7 +378,7 @@ export default function ThreeObjectFront( props ) {
 						width: '90%',
 					} }
 				>
-					<ambientLight intensity={ 0.4 } />
+					<ambientLight intensity={ 0.9 } />
 					<directionalLight
 						intensity={ 0.4 }
 						position={ [ 0, 2, 2 ] }
@@ -427,7 +427,7 @@ export default function ThreeObjectFront( props ) {
 						width: '90%',
 					} }
 				>
-					<ambientLight intensity={ 0.4 } />
+					<ambientLight intensity={ 0.9 } />
 					<directionalLight
 						intensity={ 0.4 }
 						position={ [ 0, 2, 2 ] }

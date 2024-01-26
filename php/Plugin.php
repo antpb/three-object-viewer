@@ -2,21 +2,23 @@
 
 namespace threeObjectViewer\Core;
 
+
 class Plugin
 {
 	public function init() {
-        // Add actions and filters
+		// Add actions and filters
 		add_filter( 'run_wptexturize', '__return_false' );
 		add_filter('upload_mimes', array( $this, 'threeobjectviewer_add_file_types_to_uploads'), 10, 4);
 		add_filter( 'wp_check_filetype_and_ext',  array( $this, 'three_object_viewer_check_for_usdz'), 10, 4 );
 		add_action('wp_enqueue_scripts',  array( $this, 'threeobjectviewer_frontend_assets'));
 		add_action( 'rest_api_init',  array( $this, 'callAlchemy' ));
 		add_action('enqueue_block_assets',  array( $this, 'threeobjectviewer_editor_assets'));
- 		//Register JavaScript and CSS for threeobjectloaderinit
+		//Register JavaScript and CSS for threeobjectloaderinit
 		add_action( 'wp_enqueue_scripts',  array( $this, 'threeobjectviewer_register_threeobjectloaderinit'), 5 );
 		//Enqueue JavaScript and CSS for threeobjectloaderinit
 		add_action( 'wp_enqueue_scripts',  array( $this, 'threeobjectviewer_enqueue_threeobjectloaderinit'), 10 );
 		add_filter( 'the_content', array( $this, 'remove_block_from_archive' ), 10 );
+		add_filter( 'wp_kses_allowed_html', array( $this, 'allow_threeov_web_components' ), 10, 2 );
 		add_action( 'enqueue_block_editor_assets', array( $this, 'load_three_object_viewer_translations_blocks' ) );
 		add_action( 'init', array( $this, 'load_three_object_viewer_textdomain' ) );
 
@@ -26,45 +28,239 @@ class Plugin
 		add_action('personal_options_update', array($this, 'save_custom_user_profile_fields'));
 		add_action('edit_user_profile_update', array($this, 'save_custom_user_profile_fields'));
 		
-    }
+	}
 
-	    // New function to add custom field to user profiles
-		public function add_custom_user_profile_fields($user) {
-			?>
-			<h3><?php _e("Extra Profile Information", "blank"); ?></h3>
-			<table class="form-table">
-				<tr>
-					<th>
-						<label for="user_data_vrm"><?php _e("VRM File URL"); ?></label>
-					</th>
-					<td>
-						<input type="text" name="user_data_vrm" id="user_data_vrm" value="<?php echo esc_attr(get_the_author_meta('user_data_vrm', $user->ID)); ?>" class="regular-text" />
-						<input type="button" class="button" value="Select or Upload VRM File" id="upload_vrm_button" />
-						<p class="description"><?php _e("Please upload or select your VRM file."); ?></p>
-					</td>
-				</tr>
-			</table>
-			<script type="text/javascript">
-			jQuery(document).ready(function($) {
-				$('#upload_vrm_button').click(function(e) {
-					e.preventDefault();
-					var custom_uploader = wp.media({
-						title: 'Select VRM File',
-						button: {
-							text: 'Use this file'
-						},
-						multiple: false  // Set this to true to allow multiple files to be selected
-					}).on('select', function() {
-						var attachment = custom_uploader.state().get('selection').first().toJSON();
-						$('#user_data_vrm').val(attachment.url);
-					})
-					.open();
-				});
-			});
-			</script>
-			<?php
-		}
+	public function allow_threeov_web_components($tags, $context) {
+		if ($context === 'post') {
+			$tags['three-environment-block'] = array(
+				'class' => true,
+				'align' => true,
+				'scale' => true,
+				'positionx' => true,
+				'positiony' => true,
+				'positionz' => true,
+				'rotationy' => true,
+				'threeobjecturl' => true,
+				'threepreviewimage' => true,
+				'hdr' => true,
+				'devicetarget' => true,
+				'animations' => true
+			);
+			$tags['three-spawn-point-block'] = array(
+				'class' => true,
+				'positionx' => true,
+				'positiony' => true,
+				'positionz' => true,
+				'rotationx' => true,
+				'rotationy' => true,
+				'rotationz' => true 
+			);
 	
+			$tags['three-model-block'] = array(
+				'class' => true,
+				'threeobjecturl' => true,
+				'scalex' => true,
+				'scaley' => true,
+				'scalez' => true,
+				'positionx' => true,
+				'positiony' => true,
+				'positionz' => true,
+				'rotationx' => true,
+				'rotationy' => true,
+				'rotationz' => true,
+				'animations' => true,
+				'collidable' => true,
+				'alt' => true
+			);
+	
+			$tags['three-npc-block'] = array(
+				'class' => true,
+				'threeobjecturl' => true,
+				'positionx' => true,
+				'positiony' => true,
+				'positionz' => true,
+				'rotationx' => true,
+				'rotationy' => true,
+				'rotationz' => true,
+				'name' => true,
+				'defaultmessage' => true,
+				'personality' => true,
+				'objectawareness' => true
+			);
+	
+			$tags['three-sky-block'] = array(
+				'class' => true,
+				'skyUrl' => true,
+				'distance' => true,
+				'rayleigh' => true,
+				'sunpositionx' => true,
+				'sunpositiony' => true,
+				'sunpositionz' => true
+			);
+	
+			$tags['three-audio-block'] = array(
+				'class' => true,
+				'audiourl' => true,
+				'scalex' => true,
+				'scaley' => true,
+				'scalez' => true,
+				'positionx' => true,
+				'positiony' => true,
+				'positionz' => true,
+				'rotationx' => true,
+				'rotationy' => true,
+				'rotationz' => true,
+				'autoplay' => true,
+				'loop' => true,
+				'volume' => true,
+				'positional' => true,
+				'coneinnerangle' => true,
+				'coneouterangle' => true,
+				'coneoutergain' => true,
+				'distancemodel' => true,
+				'maxdistance' => true,
+				'refdistance' => true,
+				'rollofffactor' => true
+			);
+	
+			$tags['three-image-block'] = array(
+				'class' => true,
+				'imageurl' => true,
+				'scalex' => true,
+				'scaley' => true,
+				'scalez' => true,
+				'positionx' => true,
+				'positiony' => true,
+				'positionz' => true,
+				'rotationx' => true,
+				'rotationy' => true,
+				'rotationz' => true,
+				'aspectheight' => true,
+				'aspectwidth' => true,
+				'transparent' => true
+			);
+	
+			$tags['three-light-block'] = array(
+				'class' => true,
+				'positionx' => true,
+				'positiony' => true,
+				'positionz' => true,
+				'rotationx' => true,
+				'rotationy' => true,
+				'rotationz' => true,
+				'type' => true,
+				'color' => true,
+				'intensity' => true,
+				'distance' => true,
+				'decay' => true,
+				'targetx' => true,
+				'targety' => true,
+				'targetz' => true,
+				'angle' => true,
+				'penumbra' => true
+			);
+	
+			$tags['three-networking-block'] = array(
+				'class' => true,
+				'participantlimit' => true
+			);
+	
+			$tags['three-portal-block'] = array(
+				'class' => true,
+				'threeobjecturl' => true,
+				'destinationurl' => true,
+				'scalex' => true,
+				'scaley' => true,
+				'scalez' => true,
+				'positionx' => true,
+				'positiony' => true,
+				'positionz' => true,
+				'rotationx' => true,
+				'rotationy' => true,
+				'rotationz' => true,
+				'animations' => true,
+				'label' => true,
+				'labeloffsetx' => true,
+				'labeloffsety' => true,
+				'labeloffsetz' => true,
+				'labeltextcolor' => true
+			);
+	
+			$tags['three-text-block'] = array(
+				'class' => true,
+				'textcontent' => true,
+				'positionx' => true,
+				'positiony' => true,
+				'positionz' => true,
+				'rotationx' => true,
+				'rotationy' => true,
+				'rotationz' => true,
+				'scalex' => true,
+				'scaley' => true,
+				'scalez' => true,
+				'textcolor' => true
+			);
+	
+			$tags['three-video-block'] = array(
+				'class' => true,
+				'videourl' => true,
+				'scalex' => true,
+				'scaley' => true,
+				'scalez' => true,
+				'positionx' => true,
+				'positiony' => true,
+				'positionz' => true,
+				'rotationx' => true,
+				'rotationy' => true,
+				'rotationz' => true,
+				'autoplay' => true,
+				'custommodel' => true,
+				'aspectheight' => true,
+				'aspectwidth' => true,
+				'videocontrolsenabled' => true,
+				'modelurl' => true
+			);
+	
+		}
+		return $tags;
+	}
+	
+	public function add_custom_user_profile_fields($user) {
+		?>
+		<h3><?php _e("Extra Profile Information", "blank"); ?></h3>
+		<table class="form-table">
+			<tr>
+				<th>
+					<label for="user_data_vrm"><?php _e("VRM File URL"); ?></label>
+				</th>
+				<td>
+					<input type="text" name="user_data_vrm" id="user_data_vrm" value="<?php echo esc_attr(get_the_author_meta('user_data_vrm', $user->ID)); ?>" class="regular-text" />
+					<input type="button" class="button" value="Select or Upload VRM File" id="upload_vrm_button" />
+					<p class="description"><?php _e("Please upload or select your VRM file."); ?></p>
+				</td>
+			</tr>
+		</table>
+		<script type="text/javascript">
+		jQuery(document).ready(function($) {
+			$('#upload_vrm_button').click(function(e) {
+				e.preventDefault();
+				var custom_uploader = wp.media({
+					title: 'Select VRM File',
+					button: {
+						text: 'Use this file'
+					},
+					multiple: false  // Set this to true to allow multiple files to be selected
+				}).on('select', function() {
+					var attachment = custom_uploader.state().get('selection').first().toJSON();
+					$('#user_data_vrm').val(attachment.url);
+				})
+				.open();
+			});
+		});
+		</script>
+		<?php
+	}
+
 		// New function to save custom field value
 		public function save_custom_user_profile_fields($user_id) {
 			if (!current_user_can('edit_user', $user_id)) {

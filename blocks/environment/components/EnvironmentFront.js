@@ -56,7 +56,7 @@ function isVRCompatible() {
 
 function Loading({ visible, previewImage }) {
 	// const backgroundImageUrl = previewImage !== "" ? previewImage : (threeObjectPlugin + zoomBackground);
-	const backgroundImageUrl = defaultLoadingZoomGraphic;
+	const backgroundImageUrl = previewImage !== "" ? previewImage : defaultLoadingZoomGraphic;
 	// reveal one letter at a time of the string "Use [ W ], [ A ], [ S ], and [ D ] to move."
 	const tip = "Use [ W ], [ A ], [ S ], and [ D ] to move.";
 	const screenwidth = window.innerWidth;

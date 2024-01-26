@@ -11,10 +11,6 @@ export default function save({ attributes }) {
 			threeObjectUrl={attributes.threeObjectUrl}
 			hdr={attributes.hdr}
 			scale={attributes.scale}
-			bg_color={attributes.bg_color}
-			zoom={attributes.zoom}
-			hasZoom={attributes.hasZoom ? '1' : '0'}
-			hasTip={attributes.hasTip ? '1' : '0'}
 			positionY={attributes.positionY}
 			rotationY={attributes.rotationY}
 			threePreviewImage={attributes.threePreviewImage}
