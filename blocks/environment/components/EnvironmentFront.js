@@ -61,10 +61,6 @@ function Loading({ visible, previewImage }) {
 	const tip = "Use [ W ], [ A ], [ S ], and [ D ] to move.";
 	const screenwidth = window.innerWidth;
 	return (
-		<Html
-	  		center
-			occlude={true}
-		>
 		<div className="threeov-entry-scene-parent" style={{ background: "radial-gradient(circle, transparent, transparent 0%, white 2%)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100vh", width: "400px" }}>
 			<div class="threeov-entry-scene">
 				<div class="threeov-entry-wrap">
@@ -145,7 +141,6 @@ function Loading({ visible, previewImage }) {
 				Use [ <b>W</b> ], [ <b>A</b> ], [ <b>S</b> ], and [ <b>D</b> ] to move.
 			</div>
 		</div>
-	  </Html>
 	);
 }
 
@@ -657,6 +652,7 @@ export default function EnvironmentFront(props) {
 			return (
 				<>
 					{ isVRCompatible() && <VRButton/>}
+					{loadingWorld && <Loading previewImage={props.previewImage} />}
 					<Canvas
 						resize={{ scroll: false, debounce: { scroll: 50, resize: 0 } }}
 						camera={{
@@ -684,7 +680,6 @@ export default function EnvironmentFront(props) {
 							{/* <fog attach="fog" color="hotpink" near={100} far={20} /> */}
 							<Hands />
 							<Controllers />
-							{loadingWorld && <Loading previewImage={props.previewImage} />}
 							<Suspense>
 								{props.hdr && 
 									<Environment

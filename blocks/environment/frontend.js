@@ -6,6 +6,7 @@ import Networking from "./components/Networking";
 import ThreeObjectFront from "./components/ThreeObjectFront";
 
 let threeObjectViewerBlocks;
+
 if(document.querySelectorAll('three-object-viewer-block').length > 0) {
 	threeObjectViewerBlocks = document.querySelectorAll('three-object-viewer-block');
 } else {
@@ -279,45 +280,57 @@ threeApp.forEach((threeApp) => {
 });
 
 threeObjectViewerBlocks.forEach((threeApp) => {
+	let threeUrl, deviceTarget, backgroundColor, zoom, scale, hasZoom, hasTip, positionY, rotationY, animations;
 	if (threeApp) {
-		console.log("we have 3ov viewer block", threeApp);
-		const threeUrl = threeApp.querySelector("p.three-object-block-url")
-			? threeApp.querySelector("p.three-object-block-url").innerText
-			: "";
-		const deviceTarget = threeApp.querySelector(
-			"p.three-object-block-device-target"
-		)
-			? threeApp.querySelector("p.three-object-block-device-target")
-					.innerText
-			: "2D";
-		const backgroundColor = threeApp.querySelector(
-			"p.three-object-background-color"
-		)
-			? threeApp.querySelector("p.three-object-background-color")
-					.innerText
-			: "#ffffff";
-		const zoom = threeApp.querySelector("p.three-object-zoom")
-			? threeApp.querySelector("p.three-object-zoom").innerText
-			: 90;
-		const scale = threeApp.querySelector("p.three-object-scale")
-			? threeApp.querySelector("p.three-object-scale").innerText
-			: 1;
-		const hasZoom = threeApp.querySelector("p.three-object-has-zoom")
-			? threeApp.querySelector("p.three-object-has-zoom").innerText
-			: false;
-		const hasTip = threeApp.querySelector("p.three-object-has-tip")
-			? threeApp.querySelector("p.three-object-has-tip").innerText
-			: true;
-		const positionY = threeApp.querySelector("p.three-object-position-y")
-			? threeApp.querySelector("p.three-object-position-y").innerText
-			: 0;
-		const rotationY = threeApp.querySelector("p.three-object-rotation-y")
-			? threeApp.querySelector("p.three-object-rotation-y").innerText
-			: 0;
-		const animations = threeApp.querySelector("p.three-object-animations")
-			? threeApp.querySelector("p.three-object-animations").innerText
-			: "";
-
+		if(threeApp.tagName.toLowerCase() === 'three-object-viewer-block') {
+			deviceTarget = threeApp.getAttribute('device-target');
+			threeUrl = threeApp.getAttribute('three-object-url');
+			scale = threeApp.getAttribute('scale');
+			backgroundColor = threeApp.getAttribute('bg-color');
+			zoom = threeApp.getAttribute('zoom');
+			hasZoom = threeApp.getAttribute('has-zoom');
+			hasTip = threeApp.getAttribute('has-tip');
+			positionY = threeApp.getAttribute('position-y');
+			rotationY = threeApp.getAttribute('rotation-y');
+			animations = threeApp.getAttribute('animations');	
+		} else {
+			threeUrl = threeApp.querySelector("p.three-object-block-url")
+				? threeApp.querySelector("p.three-object-block-url").innerText
+				: "";
+			deviceTarget = threeApp.querySelector(
+				"p.three-object-block-device-target"
+			)
+				? threeApp.querySelector("p.three-object-block-device-target")
+						.innerText
+				: "2D";
+			backgroundColor = threeApp.querySelector(
+				"p.three-object-background-color"
+			)
+				? threeApp.querySelector("p.three-object-background-color")
+						.innerText
+				: "#ffffff";
+			zoom = threeApp.querySelector("p.three-object-zoom")
+				? threeApp.querySelector("p.three-object-zoom").innerText
+				: 90;
+			scale = threeApp.querySelector("p.three-object-scale")
+				? threeApp.querySelector("p.three-object-scale").innerText
+				: 1;
+			hasZoom = threeApp.querySelector("p.three-object-has-zoom")
+				? threeApp.querySelector("p.three-object-has-zoom").innerText
+				: false;
+			hasTip = threeApp.querySelector("p.three-object-has-tip")
+				? threeApp.querySelector("p.three-object-has-tip").innerText
+				: true;
+			positionY = threeApp.querySelector("p.three-object-position-y")
+				? threeApp.querySelector("p.three-object-position-y").innerText
+				: 0;
+			rotationY = threeApp.querySelector("p.three-object-rotation-y")
+				? threeApp.querySelector("p.three-object-rotation-y").innerText
+				: 0;
+			animations = threeApp.querySelector("p.three-object-animations")
+				? threeApp.querySelector("p.three-object-animations").innerText
+				: "";
+		}
 		render(
 			<ThreeObjectFront
 				threeObjectPlugin={threeObjectPlugin}

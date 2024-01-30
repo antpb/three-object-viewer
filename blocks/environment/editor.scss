@@ -361,6 +361,9 @@ div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner
 .threeov-entry-scene-parent {
 	background: radial-gradient(circle, transparent, transparent 10%, white 2%);
 	width: 100% !important;
+	height: 100vh;
+	position: fixed;
+	z-index: 100;
 }
 
 .threeov-entry-wrap{

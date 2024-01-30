@@ -22,7 +22,7 @@ import {
 	DefaultXRControllers,
 	Hands,
 } from '@react-three/xr';
-import { VRMUtils, VRMSchema, VRMLoaderPlugin, VRMExpressionPresetName } from "@pixiv/three-vrm";
+import { VRMUtils, VRMSchema, VRMLoaderPlugin, VRMExpressionPresetName, VRMHumanBoneName } from "@pixiv/three-vrm";
 import TeleportTravel from './ThreeObjectTeleport';
 import { PlaneGeometry } from 'three';
 
@@ -179,7 +179,7 @@ function SavedObject( props ) {
 		setTimeout( () => set( props.url ), 2000 );
 	}, [] );
 	const [ listener ] = useState( () => new THREE.AudioListener() );
-
+	const { clock, camera } = useThree();
 	useThree( ( { camera } ) => {
 		camera.add( listener );
 	} );
@@ -234,6 +234,8 @@ function SavedObject( props ) {
 	} 
 
     if(gltf?.userData?.gltfExtensions?.VRM){
+		// make the VRM invisible while setting up animations
+		gltf.scene.visible = false;
 		const vrm = gltf.userData.vrm;
 		VRMUtils.rotateVRM0(vrm);
 		// Disable frustum culling
@@ -247,10 +249,29 @@ function SavedObject( props ) {
 		const currentMixer = new AnimationMixer(currentVrm.scene);
 		console.log(currentVrm)
 		// Load animation
+		if (currentVrm) {
+			if (currentVrm.humanoid) {
+				let head = currentVrm.humanoid.getRawBoneNode(VRMHumanBoneName.Head);
+				if (head) {
+					const headPos = new Vector3();
+					head.getWorldPosition(headPos);
+					let offsetPositionY = headPos.y - props.positionY;
+					const newTarget = new Vector3( headPos.x, offsetPositionY , headPos.z);
+					console.log("newTarget", newTarget);
+					const newPos = new Vector3( camera.position.x, offsetPositionY , camera.position.z);
+					props.orbitRef.current.target = newTarget;
+					props.orbitRef.current.maxPolarAngle = Math.PI / 2;
+					props.orbitRef.current.minPolarAngle = Math.PI / 2;
+				}
+			}
+		}
+
 		useFrame((state, delta) => {
+	
+			// keep the camera looking at the head bone
 			if (currentVrm) {
-				currentVrm.expressionManager.setValue( VRMExpressionPresetName.Neutral, 0 );
-				currentVrm.expressionManager.setValue( VRMExpressionPresetName.Relaxed, 0.8 );
+				// currentVrm.expressionManager.setValue( VRMExpressionPresetName.Neutral, 0 );
+				// currentVrm.expressionManager.setValue( VRMExpressionPresetName.Relaxed, 0.8 );
 				currentVrm.update(delta);
 			}
 			if (currentMixer) {
@@ -261,19 +282,56 @@ function SavedObject( props ) {
 		// retarget the animations from mixamo to the current vrm
 		useEffect(() => {
 		if (currentVrm) {
+			// make the VRM invisible while setting up animations
+			currentVrm.scene.visible = false;
 			if ( props.defaultAvatarAnimation ) {
 				loadMixamoAnimation(props.defaultAvatarAnimation, currentVrm, 0, props.positionY, props.positionZ, props.scale, props.scale, props.scale).then((clip) => {
 					currentMixer.clipAction(clip).play();
 					currentMixer.update(clock.getDelta());
+					// make the VRM visible again
+					currentVrm.scene.visible = true;
+					if (currentVrm) {
+						if (currentVrm.humanoid) {
+							let head = currentVrm.humanoid.getRawBoneNode(VRMHumanBoneName.Head);
+							if (head) {
+								const headPos = new Vector3();
+								head.getWorldPosition(headPos);
+								let offsetPositionY = headPos.y - props.positionY;
+								const newTarget = new Vector3( headPos.x, offsetPositionY , headPos.z);
+								const newPos = new Vector3( camera.position.x, offsetPositionY , camera.position.z);
+								props.orbitRef.current.target = newTarget;
+								props.orbitRef.current.maxPolarAngle = Math.PI / 2;
+								props.orbitRef.current.minPolarAngle = Math.PI / 2;
+							}
+						}
+					}
 				});
 			} else {
 				loadMixamoAnimation(idleFile, currentVrm, 0, props.positionY, props.positionZ, props.scale, props.scale, props.scale).then((clip) => {
 					currentMixer.clipAction(clip).play();
 					currentMixer.update(clock.getDelta());
+					// make the VRM visible again
+					currentVrm.scene.visible = true;
+					if (currentVrm) {
+						if (currentVrm.humanoid) {
+							let head = currentVrm.humanoid.getRawBoneNode(VRMHumanBoneName.Head);
+							if (head) {
+								const headPos = new Vector3();
+								head.getWorldPosition(headPos);
+								let offsetPositionY = headPos.y - props.positionY;
+								const newTarget = new Vector3( headPos.x, offsetPositionY , headPos.z);
+								const newPos = new Vector3( camera.position.x, offsetPositionY , camera.position.z);
+								props.orbitRef.current.target = newTarget;
+								props.orbitRef.current.maxPolarAngle = Math.PI / 2;
+								props.orbitRef.current.minPolarAngle = Math.PI / 2;
+							}
+						}
+					}
 				});
 			}
 		}
 		}, []);
+
 		return (
 			<group
 				position={[0, props.positionY, 0]}
@@ -303,6 +361,8 @@ function Floor( props ) {
 }
 
 export default function ThreeObjectFront( props ) {
+	const orbitRef = useRef();
+
 	if ( props.deviceTarget === 'vr' ) {
 		return (
 			<>
@@ -354,7 +414,16 @@ export default function ThreeObjectFront( props ) {
 					</Physics>
 					</Suspense>
 					<OrbitControls
+						ref={orbitRef}
 						enableZoom={ props.hasZoom === '1' ? true : false }
+						minDistance={1.3}
+						maxDistance={2}
+						maxZoom={2.2}
+						minZoom={2.2}
+						enableDamping={true}
+						// maxPolarAngle={Math.PI / 1.2}
+						// minPolarAngle={Math.PI / 1.8}
+						makeDefault	
 					/>
 				</VRCanvas>
 				{ props.hasTip === '1' ? (
@@ -403,7 +472,16 @@ export default function ThreeObjectFront( props ) {
 						) }
 					</Suspense>
 					<OrbitControls
+						ref={orbitRef}
 						enableZoom={ props.hasZoom === '1' ? true : false }
+						minDistance={1.3}
+						maxDistance={2}
+						maxZoom={2.2}
+						minZoom={2.2}
+						enableDamping={true}
+						// maxPolarAngle={Math.PI / 1.2}
+						// minPolarAngle={Math.PI / 1.8}
+						makeDefault	
 					/>
 				</ARCanvas>
 				{ props.hasTip === '1' ? (
@@ -418,7 +496,8 @@ export default function ThreeObjectFront( props ) {
 		return (
 			<>
 				<Canvas
-          camera={ { fov: 40, position: [0, 0, 20], zoom: props.zoom} }
+          			camera={ { fov: 40, position: [0, 0, 20], zoom: props.zoom} }
+					resize={{ scroll: false, debounce: { scroll: 50, resize: 0 } }}
 					shadowMap
 					style={ {
 						backgroundColor: props.backgroundColor,
@@ -448,11 +527,20 @@ export default function ThreeObjectFront( props ) {
 								threeObjectPlugin={ props.threeObjectPlugin }
 								animations={ props.animations }
 								defaultAvatarAnimation={ props.defaultAvatarAnimation }
+								orbitRef={ orbitRef }
 							/>
 						) }
 					</Suspense>
 					<OrbitControls
+						ref={orbitRef}
 						enableZoom={ props.hasZoom === '1' ? true : false }
+						minDistance={1.3}
+						maxDistance={2}
+						maxZoom={2.2}
+						minZoom={2.2}
+						enableDamping={true}
+						
+						makeDefault	
 					/>
 				</Canvas>
 				{ props.hasTip === '1' ? (

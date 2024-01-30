@@ -207,8 +207,9 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 							<RangeControl
 								label="Zoom"
 								value={ attributes.zoom }
-								min={ 1 }
+								min={ 0.00001 }
 								max={ 2000 }
+								step={ 0.01 }
 								onChange={ onChangeZoom }
 							/>
 						</PanelRow>

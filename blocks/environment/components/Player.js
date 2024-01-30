@@ -194,10 +194,12 @@ export default function Player(props) {
 	// Participant VRM.
 	const fallbackURL = threeObjectPlugin + defaultVRM;
 	const defaultAvatarURL = props.defaultPlayerAvatar;
-	let playerURL = userData.playerVRM ? userData.playerVRM : fallbackURL;
+	console.log("defaultAvatarURL", userData);
+	let playerURL;
 	if(defaultAvatarURL){
 		playerURL = defaultAvatarURL;
 	}
+	playerURL = userData.playerVRM ? userData.playerVRM : fallbackURL;
 	const currentPlayerAvatar = useLoader(GLTFLoader, playerURL, (loader) => {
 
 		const { gl } = useThree();
@@ -684,6 +686,8 @@ export default function Player(props) {
 
 
 		let animationFiles = [idleFile, walkingFile, runningFile];
+		// hide the player while we set up the animations
+		playerController.scene.visible = false;
 		let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, playerController));
 	
 		Promise.all(animationsPromises)
@@ -697,6 +701,7 @@ export default function Player(props) {
 	
 			animationsRef.current = { idle: idleAction, walking: walkingAction, running: runningAction };
 			idleAction.play();
+			playerController.scene.visible = true;
 		});
 		
 		return (

@@ -27,7 +27,156 @@ class Plugin
 		add_action('edit_user_profile', array($this, 'add_custom_user_profile_fields'));
 		add_action('personal_options_update', array($this, 'save_custom_user_profile_fields'));
 		add_action('edit_user_profile_update', array($this, 'save_custom_user_profile_fields'));
+		add_action( 'rest_api_init', array( $this, 'register_room_count_api_routes' ) );
+		// add_action( 'init', array( $this, 'register_room_count_post_meta' ) );
+
 		
+	}
+
+	// _updateRoomCountInDatabase(roomCount) {
+	// 	const postId = userData.currentPostId // Implement this method based on how you determine the post ID
+	// 	const apiUrl = `/wp-json/threeov/v1/update-room-count/${postId}`;
+	// 	const data = { count: roomCount };
+
+	// 	fetch(apiUrl, {
+	// 		method: 'POST',
+	// 		headers: {
+	// 			'Content-Type': 'application/json',
+	// 			'X-WP-Nonce': userData.nonce,
+	// 		},
+	// 		body: JSON.stringify(data)
+	// 	})
+	// 	.then(response => response.json())
+	// 	.then(data => console.log('Room count updated:', data))
+	// 	.catch((error) => {
+	// 		console.error('Error updating room count:', error);
+	// 	});
+	// }
+
+	function register_room_count_api_routes() {
+		register_rest_route('threeov/v1', '/add-room-count/(?P<id>\d+)', array(
+			'methods' => 'POST',
+			'callback' => array( $this, 'update_room_count'),
+			'permission_callback' => array( $this, 'check_add_token'),
+			'args' => array(
+				'action' => array(
+					'required' => true,
+					'type' => 'string',
+					'enum' => array('add', 'subtract'),
+				),
+			),
+		));
+		register_rest_route('threeov/v1', '/subtract-room-count/(?P<id>\d+)', array(
+			'methods' => 'POST',
+			'callback' => array( $this, 'update_room_count'),
+			'permission_callback' => array( $this, 'check_subtract_token'),
+			'args' => array(
+				'action' => array(
+					'required' => true,
+					'type' => 'string',
+					'enum' => array('add', 'subtract'),
+				),
+			),
+		));
+		register_rest_route('threeov/v1', '/get-room-count/(?P<id>\d+)', array(
+			'methods' => 'GET',
+			'callback' => array( $this, 'get_room_count'),
+			'permission_callback' => '__return_true', // Adjust the permission callback as needed
+		));
+		register_rest_route('threeov/v1', '/send-heartbeat/(?P<id>\d+)', array(
+			'methods' => 'POST',
+			'callback' => array( $this, 'handle_heartbeat'),
+			'permission_callback' => '__return_true'
+		));
+	
+	}
+
+	function handle_heartbeat($request) {
+		$post_id = $request['id'];
+		$participant_name = $request['displayName'];
+		$site_url = get_site_url();
+		$user_id = get_current_user_id(); // Or however you identify your users
+	
+		// Construct the key for the Cloudflare KV store
+		$kv_key = "heartbeat|{$site_url}|{$post_id}|{$participant_name}";
+	
+		// Current timestamp as heartbeat
+		$heartbeat_timestamp = time();
+	
+		// Replace with the URL of your Cloudflare Worker
+		$cloudflare_worker_url = "https://room-balancer.sxpdigital.workers.dev/heartbeat/";
+	
+		$response = wp_remote_post($cloudflare_worker_url, array(
+			'headers' => array('Content-Type' => 'application/json'),
+			'body' => json_encode(array(
+				'key' => $kv_key,
+				'timestamp' => $heartbeat_timestamp,
+			)),
+			'timeout' => 45,
+		));
+	
+		if (is_wp_error($response)) {
+			return new \WP_REST_Response('Error sending heartbeat', 500);
+		}
+	
+		return new \WP_REST_Response('Heartbeat updated', 200);
+	}
+	
+	function get_room_count($request) {
+		$post_id = $request['id'];
+		// $site_url = $request['siteUrl'];
+		$site_url = get_site_url();
+		// Replace with the URL of your Cloudflare Worker
+		$cloudflare_worker_url = "https://room-balancer.sxpdigital.workers.dev/get-room-count/{$post_id}?siteUrl=" . urlencode($site_url);;
+	
+		$response = wp_remote_get($cloudflare_worker_url, array(
+			'headers' => array('Content-Type' => 'application/json'),
+			// 'body' => json_encode(array(
+			// 	'siteUrl' => get_site_url(),
+			// 	'postId'  => $post_id,
+			// )),
+			'timeout'     => 45,
+		));
+	
+		if (is_wp_error($response)) {
+			return new \WP_REST_Response('Error fetching room count', 500);
+		}
+		// the body may come back of a string of 0, so we need to convert it to an integer
+		$body = intval(wp_remote_retrieve_body($response));
+		return new \WP_REST_Response($body, 200);
+	}
+	
+	// Callback function to make a request to the Cloudflare Worker
+	function update_room_count($request) {
+		$post_id = $request['id'];
+		$action = $request['action'];
+		$clientId = $request['clientId'] ? $request['clientId'] : null;
+		$cached_room_count = get_transient("room_count_{$post_id}");
+		// clear the transient if it exists because we are updating the room count
+		if ($cached_room_count) {
+			delete_transient("room_count_{$post_id}");
+		}
+
+		// Replace with the URL of your Cloudflare Worker
+		$cloudflare_worker_url = "https://room-balancer.sxpdigital.workers.dev";
+	
+		$response = wp_remote_post($cloudflare_worker_url, array(
+			'body' => json_encode(array(
+				'siteUrl' => get_site_url(),
+				'postId' => $post_id,
+				'action' => $action,
+				'userId' => $clientId
+			)),
+			'headers' => array('Content-Type' => 'application/json'),
+			'timeout'     => 45,
+		));
+	
+		if (is_wp_error($response)) {
+			return new \WP_REST_Response('Error communicating with the room load balancer', 500);
+		}
+	
+		$body = wp_remote_retrieve_body($response);
+		return new \WP_REST_Response($body, 200);
 	}
 
 	public function allow_threeov_web_components($tags, $context) {
@@ -398,10 +547,15 @@ class Plugin
 		$multiplayer_worker_url = get_option( '3ov_mp_multiplayerWorker', '' );
 		// $vrm = get_option('3ov_defaultAvatar');
 		$inWorldName = "Guest";
+		// get the current postID
+		global $post;
+		$currentPostId = $post->ID;
+		
 		if ( is_user_logged_in() && get_option('3ov_ai_allow') === "loggedIn" ) {
 			if($current_user->display_name){
 				$inWorldName = $current_user->display_name;
 			}
+	
 			$user_data_passed = array(
 			  'userId' => $current_user->user_login,
 			  'inWorldName' => $inWorldName,
@@ -409,7 +563,10 @@ class Plugin
 			  'vrm' => $vrm,
 			  'playerVRM' => $playerVRM,
 			  'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
-			  'nonce' => wp_create_nonce( 'wp_rest' )
+			  'nonce' => wp_create_nonce( 'wp_rest' ),
+			  'currentPostId' => $currentPostId,
+			  'addNonce' => wp_create_nonce( 'add-room-count' ),
+			  'subtractNonce' => wp_create_nonce( 'subtract-room-count' ),
 			);
 		} else if ( get_option('3ov_ai_allow') === "public") {
 			if($current_user->display_name){
@@ -422,7 +579,10 @@ class Plugin
 				'vrm' => $vrm,
 				'playerVRM' => $playerVRM,
 				'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
-				'nonce' => wp_create_nonce( 'wp_rest' )
+				'nonce' => wp_create_nonce( 'wp_rest' ),
+				'addNonce' => wp_create_nonce( 'add-room-count'),
+				'subtractNonce' => wp_create_nonce( 'subtract-room-count'),
+				'currentPostId' => $currentPostId
 			  );  
 		} else {
 			if($current_user->display_name){
@@ -435,6 +595,10 @@ class Plugin
 			  'vrm' => $vrm,
 			  'playerVRM' => $playerVRM,
 			  'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
+			  'currentPostId' => $currentPostId,
+			  'addNonce' => wp_create_nonce( 'add-room-count'),
+			  'subtractNonce' => wp_create_nonce( 'subtract-room-count'),
+			  'nonce' => wp_create_nonce( 'wp_rest' )
 			);
 		}
 		$three_object_plugin = plugins_url() . '/three-object-viewer/build/';
@@ -483,7 +647,10 @@ class Plugin
 			// 		"threeobjectloader-frontend"
 			// 	);
 			// }
-			if(has_block('three-object-viewer/environment',$id) || has_block('three-object-viewer/three-object-block',$id)){
+			$isPageEnvironmentEnabled = apply_filters( 'three_object_viewer_enabled_everywhere', false );
+
+			// check that the content of the page has the string <three-environment-block> element in it. We cannot use has_block because template parts dont have context of an id
+			if( has_block( 'three-object-viewer/environment', $id ) || has_block( 'three-object-viewer/three-object-block', $id ) || $isPageEnvironmentEnabled ){
 				if ( is_plugin_active( 'three-object-viewer-three-icosa/three-object-viewer-three-icosa.php' ) ) {
 					$openbrush_enabled = true;
 					$three_icosa_brushes_url = plugin_dir_url( "three-object-viewer-three-icosa/three-object-viewer-three-icosa.php" ) . 'brushes/';
@@ -615,6 +782,26 @@ class Plugin
 		return true;
 	}
 
+	function check_add_token( $request ) {
+		$nonce = $request['actionNonce'];
+		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'add-room-count' ) ) {
+		  return new \WP_Error( 'invalid_nonce', 'The nonce provided in the X-WP-Nonce header is invalid', array( 'status' => 401 ) );
+		}
+		// retire the nonce used
+		// wp_nonce_ays( 'add_room_count' );
+		return true;
+	}
+
+	function check_subtract_token( $request ) {
+		$nonce = $request['actionNonce'];
+		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'subtract-room-count' ) ) {
+		  return new \WP_Error( 'invalid_nonce', 'The nonce provided in the X-WP-Nonce header is invalid', array( 'status' => 401 ) );
+		}
+		// retire the nonce used
+		// wp_nonce_ays( 'subtract_room_count' );
+		return true;
+	}
+
 	/**
 	 * Check if pro version is installed
 	 */
@@ -644,6 +831,8 @@ class Plugin
 			  'nonce' => wp_create_nonce( 'wp_rest' )
 			);
 		} else if ( get_option('3ov_ai_allow') === "public") {
+
+			// @todo update ai allow to add a special nonce for ai requests
 			$user_data_passed = array(
 				'userId' => $current_user->user_login,
 				'inWorldName' => $current_user->in_world_name,
@@ -651,7 +840,7 @@ class Plugin
 				'vrm' => $vrm,
 				'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
 				'nonce' => wp_create_nonce( 'wp_rest' )
-			  );  
+			  );
 		} else {
 			$user_data_passed = array(
 			  'userId' => $current_user->user_login,
@@ -659,6 +848,7 @@ class Plugin
 			  'banner' => $current_user->custom_banner,
 			  'vrm' => $vrm,
 			  'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
+			  'nonce' => wp_create_nonce( 'wp_rest' )
 			);
 		}
 

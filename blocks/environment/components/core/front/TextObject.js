@@ -23,10 +23,10 @@ export function TextObject(model) {
 				<Text
 					font={model.threeObjectPlugin + model.defaultFont}
 					className="content"
-					scale={[4, 4, 4]}
+					scale={[1, 1, 1]}
 					// rotation-y={-Math.PI / 2}
-					width={10}
-					height={10}
+					maxWidth={10}
+					height={20}
 					color={model.textColor}
 					transform
 				>

@@ -326,14 +326,18 @@ export function NPCObject(model) {
 
 		// retarget the animations from mixamo to the current vrm 
 		if (model.defaultAvatarAnimation){
+			// hide the model while we load the animation
+			currentVrm.scene.visible = false;
 			loadMixamoAnimation(model.defaultAvatarAnimation, currentVrm).then((clip) => {
 				currentMixer.clipAction(clip).play();
 				currentMixer.update(clock.getDelta());
+				currentVrm.scene.visible = true;
 			});
 		} else {
 			loadMixamoAnimation(idleFile, currentVrm).then((clip) => {
 				currentMixer.clipAction(clip).play();
 				currentMixer.update(clock.getDelta());
+				currentVrm.scene.visible = true;
 			});	
 		}
 
