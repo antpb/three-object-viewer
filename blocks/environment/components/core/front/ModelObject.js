@@ -264,7 +264,6 @@ export function ModelObject(model) {
 		const circle = new Mesh(geometryCircle, materialCircle);
 		return circle;
 	});
-
 	if (model.collidable === "1") {
 		return (
 				<RigidBody
@@ -284,8 +283,8 @@ export function ModelObject(model) {
 					]}
 					scale={[Number(model.scaleX) + 0.01, Number(model.scaleY) + 0.01, Number(model.scaleZ) + 0.01]}
 					onCollisionEnter={(manifold, target, other) => {
-						setClickEvent(!clicked);
 						if (audioObject) {
+							setClickEvent(!clicked);
 							if (clicked) {
 								audioObject.play();
 								triangle.material.visible = false;

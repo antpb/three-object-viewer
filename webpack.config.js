@@ -61,9 +61,15 @@ module.exports = {
 		
 		rules: [
 			...defaultConfig.module.rules,
+            {
+                test: /\.mjs$/,
+                include: /node_modules/,
+                type: 'javascript/auto',
+                use: 'babel-loader'
+            },
 			{
 				test: /\.js$/,
-				exclude: /node_modules\/(?!chess\.js|@lumaai\/luma-web)/,
+                exclude: /node_modules\/(?!chess\.js|@lumaai\/luma-web|three-mesh-bvh|@mediapipe\/tasks-vision)/,
 				use: 'babel-loader'
 			},
 			{

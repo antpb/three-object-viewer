@@ -88,6 +88,42 @@ class Plugin
 			'callback' => array( $this, 'handle_heartbeat'),
 			'permission_callback' => '__return_true'
 		));
+		register_rest_route('threeov/v1', '/handle-heart-check/(?P<id>\d+)', array(
+			'methods' => 'POST',
+			'callback' => array( $this, 'handle_heart_check'),
+			'permission_callback' => '__return_true'
+		));	
+	}
+	function handle_heart_check($request) {
+		$post_id = $request['id'];
+		$participant_name = $request['displayName'];
+		$site_url = get_site_url();
+		$user_id = get_current_user_id(); // Or however you identify your users
+	
+		// Construct the key for the Cloudflare KV store
+		$kv_key = "heartbeat|{$site_url}|{$post_id}|{$participant_name}";
+	
+		// Current timestamp as heartbeat
+		$heartbeat_timestamp = time();
+	
+		// Replace with the URL of your Cloudflare Worker
+		$cloudflare_worker_url = "https://room-balancer.sxpdigital.workers.dev/handle-heart-check/";
+	
+		$response = wp_remote_post($cloudflare_worker_url, array(
+			'headers' => array('Content-Type' => 'application/json'),
+			'body' => json_encode(array(
+				'key' => $kv_key,
+				'timestamp' => $heartbeat_timestamp,
+			)),
+			'timeout' => 45,
+		));
+	
+		if (is_wp_error($response)) {
+			return new \WP_REST_Response('Error sending heartbeat', 500);
+		}
+	
+		// return the data of the response
+		return new \WP_REST_Response($response, 200);
 	
 	}
 

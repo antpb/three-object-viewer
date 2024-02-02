@@ -826,8 +826,22 @@ export default class P2PCF extends EventEmitter {
 			return; // Exit the function if room is full
 		} else {
 			console.log("Room is not full, can start.", canStart);
-			this._updateRoomCount("add");
+			//check if the user is already in the room
+			// const isInRoom = await this._checkIfUserIsInRoom(userData.currentPostId, userData.userId);
+			// check for a cookie to see if the user is already in the room
+			const isInRoom = await this._pingIfInRoom();;
+			console.log("isInRoom is", isInRoom);
+
+			if (isInRoom.body === 'true') {
+				console.log("User is already in the room, cannot start. Send another beat.");
+				this._sendHeartbeat();
+			} else {
+				console.log("User is not in the room, starting initial heartbeat.");
+				this._updateRoomCount("add");
+				this._sendHeartbeat();
+			}
 			this.startHeartbeat();
+
 		}
 
 		await this._init();
@@ -1192,6 +1206,36 @@ export default class P2PCF extends EventEmitter {
 		}
 
 		peer.signal(payload);
+	}
+	_pingIfInRoom(roomId) {
+		// check if the user is already in the room
+		const postId = userData.currentPostId;
+		const apiUrl = `/wp-json/threeov/v1/handle-heart-check/${postId}`;
+	
+		// fetch(apiUrl, {
+		// 	method: 'POST',
+		// 	headers: {
+		// 		'Content-Type': 'application/json',
+		// 		'X-WP-Nonce': userData.nonce,
+		// 	},
+		// 	body: JSON.stringify({ displayName: p2pcf.clientId  }) // send any necessary data
+		// })
+		// .then(response => response.json())
+		// .then(data => console.log('Heartbeat sent:', data))
+		// .catch(error => console.error('Error sending heartbeat:', error));
+
+		let isInRoom = false;
+		// post api endpoint to see if in room
+		return fetch(apiUrl, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-WP-Nonce': userData.nonce,
+			},
+			body: JSON.stringify({ displayName: p2pcf.clientId  }) // send any necessary data
+		})
+		.then(response => response.json())
+		.catch(error => console.error('Error sending heartbeat:', error));
 	}
 
 	_sendHeartbeat() {

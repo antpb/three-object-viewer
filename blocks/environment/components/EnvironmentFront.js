@@ -602,6 +602,7 @@ export default function EnvironmentFront(props) {
 	const [participants, setParticipant] = useState([]);
 	const [showUI, setShowUI] = useState(true);
 	const [displayName, setDisplayName] = useState(props.userData.inWorldName);
+	const [playerAvatar, setPlayerAvatar] = useState(props.userData.playerVRM);
 	const canvasRef = useRef(null);
 
 	// let string = '{\"spell\":\"complexQuery\",\"outputs\":{\"Output\":\"{\\\"message\\\": \\\" Hi there! How can I help you?\\\",\\\"tone\\\": \\\"friendly\\\"}\"},\"state\":{}}';
@@ -647,6 +648,7 @@ export default function EnvironmentFront(props) {
 		}
 		props.userData.inWorldName = displayName;
 		window.userData = props.userData;
+		props.userData.playerVRM = playerAvatar;
 
 		if (props.deviceTarget === "vr") {
 			return (
@@ -661,6 +663,7 @@ export default function EnvironmentFront(props) {
 							far: 2000,
 							position: [0, 0, 20]
 						}}
+						// dpr={1.5}
 						// shadowMap
 						// linear={true}
 						// shadows={{ type: "PCFSoftShadowMap" }}
@@ -698,6 +701,7 @@ export default function EnvironmentFront(props) {
 									allowDeactivation={true}
 									allowCcd={true}
 									broadphase={true}
+									// debug={true}
 
 								>
 									{/* <Perf className="stats" /> */}
@@ -1532,7 +1536,7 @@ export default function EnvironmentFront(props) {
 														if (!objectsInRoom.includes(alt)) {
 															setObjectsInRoom([...objectsInRoom, alt]);
 														}
-														collidable = model.hasAttribute('collidable') ? "1" : false;
+														collidable = model.getAttribute('collidable');
 													} else {
 														modelPosX =
 															model.querySelector(
@@ -2290,12 +2294,16 @@ export default function EnvironmentFront(props) {
 					}}
 				>
 					{ ( props.networkingBlock.length > 0 ) && (
+					<div>
+						<div className="threeov-entry-pfp" style={ { backgroundImage: `url(${props.userData.profileImage})` } }></div>
+						{/* <span>Display Name</span> */}
+						<input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
 						<div>
-							<div className="threeov-entry-pfp" style={ { backgroundImage: `url(${props.userData.profileImage})` } }></div>
-							{/* <span>Display Name</span> */}
-							<input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+							<span>Avatar URL</span>
+							<input type="text" value={playerAvatar} onChange={(e) => setPlayerAvatar(e.target.value)} />
 						</div>
-					)}
+					</div>
+			)}
 					<button
 						class="threeov-load-world-button"
 						onClick={() => {

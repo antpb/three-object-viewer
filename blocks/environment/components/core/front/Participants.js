@@ -1,13 +1,14 @@
 // add the missing imports
 import React, { useEffect, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Text } from "@react-three/drei";
+import { Text, SpriteAnimator } from "@react-three/drei";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import * as THREE from "three";
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 import defaultVRM from "../../../../../inc/avatars/3ov_default_avatar.vrm";
+import blankVRM from "../../../../../inc/avatars/blank_avatar.vrm";
 import defaultFont from "../../../../../inc/fonts/roboto.woff";
 import idle from "../../../../../inc/avatars/friendly.fbx";
 import walk from "../../../../../inc/avatars/walking.fbx";
@@ -131,12 +132,13 @@ function loadMixamoAnimation(url, vrm) {
  */
 function Participant(participant) {
 	const fallbackURL = threeObjectPlugin + defaultVRM;
-	const playerURL = participant.playerVRM;
+	let playerURL = participant.playerVRM;
 	const clonedModelRef = useRef(null); // Ref for the cloned model
 	const animationMixerRef = participant.animationMixerRef; // Ref for the animation mixer of this participant
 	const animationsRef = participant.animationsRef; // Ref to store animations
 	const mixers = participant.mixers;
 	const [someVRM, setSomeVRM] = useState(null);
+	const [frameName, setFrameName] = useState('BackwardIdle');
 	const theScene = useThree();
 	const displayNameTextRef = useRef(null);
 	const setTextRef = (el) => {
@@ -148,6 +150,11 @@ function Participant(participant) {
 	useEffect(() => {
 		const loader = new GLTFLoader();
 		loader.register(parser => new VRMLoaderPlugin(parser));
+		if( playerURL.endsWith( '.png' ) ){
+			console.log("visitor url is", playerURL);
+			playerURL = threeObjectPlugin + blankVRM;
+		}
+
 		loader.load(playerURL, gltf => {
 			setSomeVRM(gltf);
 		});
@@ -290,6 +297,9 @@ function Participant(participant) {
 		xPos = -0.005;
 	}
 
+	// ends with participant.playerVRM is png?
+	let isPng = participant.playerVRM.endsWith('.png');
+
 	return (
 		<group>
 			<group>
@@ -333,6 +343,19 @@ function Participant(participant) {
 					</Text>
 			</group>
 			<primitive name={participant.name} object={playerController.scene} />
+			{ isPng && <SpriteAnimator
+				position={[0, 1, 0]}
+				frameName={frameName}
+				scale={[2, 2, 2]}
+				fps={10}
+				animationNames={['WalkForward', 'WalkBackward', 'ForwardIdle', 'BackwardIdle', 'WalkLeft', 'WalkRight']}
+				autoPlay={true}
+				asSprite={false}
+				alphaTest={0.1}
+				loop={true}
+				textureImageURL={participant.playerVRM}
+				textureDataURL={threeObjectPluginRoot + "/inc/utils/sprite.json"}
+			/>}
 		</group>
 	);
 }

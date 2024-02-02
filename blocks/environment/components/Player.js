@@ -1,20 +1,22 @@
-import { Mesh, Raycaster, DoubleSide, MeshBasicMaterial, RingGeometry, BoxGeometry, AudioListener, Group, Quaternion, Matrix4, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, Vector2, BufferGeometry, CircleGeometry, sRGBEncoding, MathUtils } from "three";
+import { Mesh, Raycaster, ArrowHelper, Euler, NearestFilter, LoopOnce, DoubleSide, MeshBasicMaterial, RingGeometry, BoxGeometry, AudioListener, Group, Quaternion, Matrix4, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, Vector2, BufferGeometry, CircleGeometry, sRGBEncoding, MathUtils } from "three";
 import { TextureLoader } from "three/src/loaders/TextureLoader";
 import { useFrame, useLoader, useThree, Interactive } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader';
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, SpriteAnimator } from '@react-three/drei';
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 import { useKeyboardControls } from "./Controls"
 import { useRef, useState, useEffect } from "react";
 import { RigidBody, CapsuleCollider, useRapier, vec3, interactionGroups, CuboidCollider } from "@react-three/rapier";
 import defaultVRM from "../../../inc/avatars/3ov_default_avatar.vrm";
+import blankVRM from "../../../inc/avatars/blank_avatar.vrm";
 import { VRMUtils, VRMSchema, VRMLoaderPlugin, VRMExpressionPresetName, VRMHumanBoneName } from "@pixiv/three-vrm";
 import { useXR } from "@react-three/xr";
 import idle from "../../../inc/avatars/friendly.fbx";
 import walk from "../../../inc/avatars/walking.fbx";
 import run from "../../../inc/avatars/running.fbx";
+import jump from "../../../inc/avatars/Jump.fbx";
 import { getMixamoRig } from "../utils/rigMap";
 
 function Reticle() {
@@ -144,17 +146,21 @@ function loadMixamoAnimation(url, vrm) {
 	});
 }
 
+
 export default function Player(props) {
+	const [frameName, setFrameName] = useState('ForwardIdle');
 	
 	let heightOffset = 0;
 
 	const canMoveRef = useRef(true);
+	const spriteRef = useRef();
 	const falling = useRef(true);
 	const animationsRef = useRef();
 	const orbitRef = useRef();
 	const rigidRef = useRef();
 	const castRef = useRef();
 	const [loaderIsGone, setLoaderIsGone] = useState(false);
+	const [avatarIsSprite, setAvatarIsSprite] = useState(false);
 
 	useEffect(() => {
 		const handleReady = () => {
@@ -167,6 +173,7 @@ export default function Player(props) {
 	const idleFile = threeObjectPlugin + idle;
 	const walkingFile	= threeObjectPlugin + walk;
 	const runningFile	= threeObjectPlugin + run;
+	const jumpFile	= threeObjectPlugin + jump;
 	// const [walkFile, setWalkFile] = useState(model.threeObjectPlugin + walk);
 	const spawnPoint = props.spawnPoint? props.spawnPoint.map(Number) : [0,0,0];  // convert spawnPoint to numbers
 	const { controllers } = useXR();
@@ -194,20 +201,31 @@ export default function Player(props) {
 	// Participant VRM.
 	const fallbackURL = threeObjectPlugin + defaultVRM;
 	const defaultAvatarURL = props.defaultPlayerAvatar;
-	console.log("defaultAvatarURL", userData);
 	let playerURL;
 	if(defaultAvatarURL){
 		playerURL = defaultAvatarURL;
 	}
 	playerURL = userData.playerVRM ? userData.playerVRM : fallbackURL;
+	if( playerURL.endsWith( '.png' ) ){
+		playerURL = threeObjectPlugin + blankVRM;
+	}
+
+	// if the playerURL ends in .png
+	useEffect(() => {
+		if( userData.playerVRM.endsWith( '.png' ) ){
+			console.log("player url is", userData.playerVRM);
+			setAvatarIsSprite(true);
+		}
+	}, []);
+		// ignore the loader and just use create a blank vrm
 	const currentPlayerAvatar = useLoader(GLTFLoader, playerURL, (loader) => {
 
 		const { gl } = useThree();
 
 		// Create and configure KTX2Loader
 		const ktx2Loader = new KTX2Loader();
-		ktx2Loader.setTranscoderPath(threeObjectPluginRoot + "/inc/utils/basis/"); // Set the path to the basis transcoder
-		ktx2Loader.detectSupport(gl); // Detect support using the renderer
+		ktx2Loader.setTranscoderPath(threeObjectPluginRoot + "/inc/utils/basis/");
+		ktx2Loader.detectSupport(gl);
 		loader.setKTX2Loader(ktx2Loader);
 
 		loader.register((parser) => {
@@ -330,13 +348,16 @@ export default function Player(props) {
 		
 		let cameraTargetPosition = new Vector3();
 		const movementTimeoutRef = useRef(null);
-
+		let isOnGround = true;
+		const fallingRaycaster = new Raycaster();
+		let allowJump = true;
 		// frame loop
 		useFrame((state, delta) => {
+			const jumpVelocity = 5; // Adjust this value for higher or lower jumps
+		
 			if(!loaderIsGone){
 				return;
 			}
-
 
 			handleBlinking(delta);
 
@@ -412,6 +433,38 @@ export default function Player(props) {
 				velocity.current = newVelocity;				
 			}
 
+			// if ( props.movement.current.space && isOnGround && allowJump ) {
+			// 	isOnGround = false;
+			// 	allowJump = false;
+			// 	console.log("hop!");
+			// 	newVelocity[1] = 2;
+			// 	// play the jump animation
+			// 	if (animationsRef.current) {
+			// 		const { idle, walking, running, jump } = animationsRef.current;
+			// 		// crossfade current animation to jump
+			// 		jump.reset();					
+			// 		// when finished play idle animation
+			// 		jump.loop = LoopOnce;
+			// 		jump.play();
+			// 		//mixer.addEventListener( 'finished', function( e	) { …} ); // properties of e: type, action and direction
+			// 		// set a listener for the jump animation finishing to then start the idle animation
+			// 		let jumpMixer = jump.getMixer();
+			// 		jumpMixer.addEventListener('finished', function(e) {
+			// 			// jump.stop();
+			// 			// jump.reset();
+			// 			jump.crossFadeTo(idle, 0.5);
+			// 			allowJump = true;
+			// 			isOnGround = true;
+			// 		});
+
+			// 	}
+			// 	// // set timeout to turn off the physics after 0.1 seconds
+			// 	// setTimeout(() => {
+			// 	// 	rigidRef.current.setBodyType(rapier.RigidBodyType.Fixed, 1);
+			// 	// }, 100);
+			// }
+
+
 			const rotationSpeed = 0.5;
 			if (props.movement.current.backward) {
 				orbitRef.current.minPolarAngle = Math.PI / 1.8;
@@ -462,7 +515,82 @@ export default function Player(props) {
 			) {
 				// Apply slerp to the player's current quaternion, gradually aligning it with the desired quaternion
 				playerController.scene.quaternion.slerp(desiredQuaternion, rotationSpeed);
+				// update the spriteRef to follow the player's rotation
+				if(avatarIsSprite && spriteRef.current){
+					spriteRef.current.quaternion.slerp(desiredQuaternion, rotationSpeed);
+				}
+				playerController.scene.updateMatrixWorld(true); // Ensure the world matrix is updated after changing the quaternion
 			}
+			if (playerController && participantObject) {
+				// Calculate character's current forward vector in world space
+				const characterWorldQuaternion = new Quaternion();
+				participantObject.getWorldQuaternion(characterWorldQuaternion);
+				const characterForward = new Vector3(0, 0, 1).applyQuaternion(characterWorldQuaternion);
+				const neutralRotation = new Euler(0, 0, 0); // Adjust as needed for your model's neutral pose
+
+				// Calculate vector from character to camera
+				const characterToCamera = new Vector3().subVectors(camera.position, participantObject.getWorldPosition(new Vector3())).normalize();
+			
+				// Determine azimuthal angle
+				const dotProduct = characterForward.dot(characterToCamera);
+				const azimuthalAngle = Math.acos(Math.min(Math.max(dotProduct, -1), 1));
+			
+				// Perform head rotation if within the desired azimuthal range
+				const angleThreshold = Math.PI / 2; // 60 degrees
+				const headBone = playerController.firstPerson.humanoid.getNormalizedBoneNode('head');
+
+				if (azimuthalAngle < angleThreshold) {
+						if(avatarIsSprite && isMoving && frameName !== 'WalkForward'){
+							setFrameName('WalkForward');
+						}
+
+						if( avatarIsSprite && !isMoving && frameName !== 'ForwardIdle' ){
+							setFrameName('ForwardIdle');
+						}
+
+						// Calculate the head bone's world position and the camera's world position
+						const headWorldPosition = new Vector3();
+						headBone.getWorldPosition(headWorldPosition);
+						const cameraWorldPosition = camera.position.clone();
+					
+						// Calculate the direction from the head bone to the camera in world space
+						const worldDirection = cameraWorldPosition.sub(headWorldPosition).normalize();
+					
+						// Convert the world direction to the local space of the head bone's parent
+						const parentWorldQuaternion = new Quaternion();
+						if (headBone.parent) {
+							headBone.parent.getWorldQuaternion(parentWorldQuaternion);
+						}
+						const localDirection = worldDirection.applyQuaternion(parentWorldQuaternion.invert());
+					
+						// Create a local lookAt quaternion that makes the head look at the camera
+						const localLookAtQuaternion = new Quaternion().setFromUnitVectors(new Vector3(0, 0, 1), localDirection);
+					
+						// Convert this quaternion to Euler angles, clamp them, and then apply to the head bone
+						const euler = new Euler().setFromQuaternion(localLookAtQuaternion, 'YXZ');
+
+						// constraints
+						euler.y = Math.max(-Math.PI / 4, Math.min(Math.PI / 4, euler.y)); // Limit yaw (left and right)
+						
+						const maxLookDown = Math.PI / 3; // limit the downward looking
+						const maxLookUp = Math.PI / 8;   // Maximum angle for looking up
+						euler.x = Math.max(-maxLookUp, Math.min(maxLookDown, euler.x));
+						
+						// Set the local rotation of the head bone
+						headBone.rotation.set(euler.x, euler.y, euler.z);
+				} else {
+					if( avatarIsSprite && isMoving && frameName !== 'WalkBackward'){
+						setFrameName('WalkBackward');
+					}
+					if( avatarIsSprite && !isMoving && frameName !== 'BackwardIdle' ){
+						setFrameName('BackwardIdle');
+					}
+
+					const neutralQuaternion = new Quaternion().setFromEuler(neutralRotation);
+					headBone.quaternion.slerp(neutralQuaternion, 0.1);
+				}
+			}
+			
 			if(castRef.current){
 				castRef.current.setRotation(desiredQuaternion);
 			}
@@ -618,6 +746,26 @@ export default function Player(props) {
 					cameraTargetPosition.y,
 					participantObject.parent.position.z
 				);
+						// // Get the camera's rotation in Euler angles
+						// const cameraEuler = new Euler().setFromQuaternion(camera.quaternion, 'XYZ');
+
+						// // Define max and min rotation angles (in radians)
+						// const maxYaw = Math.PI / 3;   // 45 degrees left-right
+						// const maxPitch = Math.PI / 3; // 30 degrees up-down
+						// const maxRoll = Math.PI / 3;  // 30 degrees tilt
+
+						// // Clamp the rotation angles
+						// cameraEuler.x = Math.max(-maxPitch, Math.min(maxPitch, cameraEuler.x)); // Pitch
+						// cameraEuler.y = Math.max(-maxYaw, Math.min(maxYaw, cameraEuler.y));     // Yaw
+						// cameraEuler.z = Math.max(-maxRoll, Math.min(maxRoll, cameraEuler.z));   // Roll
+
+						// // Convert back to quaternion
+						// const constrainedRotation = new Quaternion().setFromEuler(cameraEuler);
+
+						// // Set the head rotation
+						// headBone.setRotationFromQuaternion(constrainedRotation);
+					// }
+		
 				if (orbitRef.current) {
 					let newTarget = new Vector3(
 						participantObject.parent.position.x,
@@ -628,19 +776,41 @@ export default function Player(props) {
 				}
 			}
 			if (rigidRef.current && participantObject?.parent?.position?.x) {
+
 				// // match the rigidBody's position to the participantObject's position.
 				// set the rigidbody type to one that can be moved by setTranslation
-				if(props.movement.current.backward || props.movement.current.forward || props.movement.current.left || props.movement.current.right || falling.current === true) {
-					rigidRef.current.setBodyType(rapier.RigidBodyType.Dynamic, 1);
+				// if the current body type isnt dynamic, set it
+				if(props.movement.current.backward || props.movement.current.forward || props.movement.current.left || props.movement.current.right ) {
+					if(! rigidRef.current.isDynamic()) {
+						rigidRef.current.setBodyType(rapier.RigidBodyType.Dynamic, 1);
+						console.log("should only be once");
+						falling.current = false;
+					}
 					// rigidRef.current.setFriction(1); // Set the friction to 1 so the player doesn't slide
 				} else {
-					rigidRef.current.setBodyType(rapier.RigidBodyType.Fixed, 1);
+					if( falling.current === true ) {
+						if(! rigidRef.current.isDynamic()) {
+							rigidRef.current.setBodyType(rapier.RigidBodyType.Dynamic, 1);
+							console.log("second  check if falling to make dynamic");
+						}
+					} else {
+						if(falling.current === false && ! rigidRef.current.isFixed()) {
+							rigidRef.current.setBodyType(rapier.RigidBodyType.Fixed, 1);
+							isOnGround = true;
+							console.log("now fixed");
+							falling.current = false;
+						}	
+					}
+	
 				}
+
 				rigidRef.current.setTranslation({ x: participantObject.parent.position.x, y: rigidBodyPosition.y, z: participantObject.parent.position.z});
+				// raycast downard from the player to determine if still falling 
+
 			}
 			// Respawn logic
 			if(props.movement.current.respawn === true){
-
+				falling.current = true;
 				const x = Number(props.spawnPoint[0]);
 				const y = Number(props.spawnPoint[1]);
 				const z = Number(props.spawnPoint[2]);
@@ -685,7 +855,7 @@ export default function Player(props) {
 		});
 
 
-		let animationFiles = [idleFile, walkingFile, runningFile];
+		let animationFiles = [idleFile, walkingFile, runningFile, jumpFile];
 		// hide the player while we set up the animations
 		playerController.scene.visible = false;
 		let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, playerController));
@@ -695,11 +865,12 @@ export default function Player(props) {
 			const idleAction = currentMixer.clipAction(animations[0]);
 			const walkingAction = currentMixer.clipAction(animations[1]);
 			const runningAction = currentMixer.clipAction(animations[2]);
+			const jumpingAction = currentMixer.clipAction(animations[3]);
 			idleAction.timeScale = 0.8;
 			walkingAction.timeScale = 1;
 			runningAction.timeScale = 1;
-	
-			animationsRef.current = { idle: idleAction, walking: walkingAction, running: runningAction };
+			jumpingAction.timeScale = 1;
+			animationsRef.current = { idle: idleAction, walking: walkingAction, running: runningAction, jump: jumpingAction };
 			idleAction.play();
 			playerController.scene.visible = true;
 		});
@@ -738,6 +909,20 @@ export default function Player(props) {
 				>
 					<CapsuleCollider position={[0, 1, 0]} args={[0.45, 0.3]} />
 					<primitive visible={true} name="playerOne" object={playerController.scene} position={[0, .3, 0]}/>
+					{avatarIsSprite && <SpriteAnimator
+						ref={spriteRef}
+						position={[0, 1.3, 0]}
+						frameName={frameName}
+						scale={[2, 2, 2]}
+						fps={10}
+						animationNames={['WalkForward', 'WalkBackward', 'ForwardIdle', 'BackwardIdle', 'WalkLeft', 'WalkRight']}
+						autoPlay={true}
+						asSprite={false}
+						loop={true}
+						alphaTest={0.1}
+						textureImageURL={ userData.playerVRM }
+						textureDataURL={( threeObjectPluginRoot + '/inc/utils/sprite.json' )}
+					/>}
 				</RigidBody>
 				<RigidBody
 					position={spawnPoint}  // use spawnPoint as initial position
