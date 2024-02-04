@@ -540,6 +540,18 @@ export default function Player(props) {
 				const headBone = playerController.firstPerson.humanoid.getNormalizedBoneNode('head');
 
 				if (azimuthalAngle < angleThreshold) {
+
+						// if (props.movement.current.mouseDown) {
+						// 	const messageObject = {
+						// 		[window.p2pcf.clientId]: {
+						// 			headRotation: headBone.rotation,
+						// 		}
+						// 	};
+						// 	const message = JSON.stringify(messageObject);
+						// 	window.p2pcf.broadcast(new TextEncoder().encode(message)), window.p2pcf;
+						// }
+						
+					
 						if(avatarIsSprite && isMoving && frameName !== 'WalkForward'){
 							setFrameName('WalkForward');
 						}
@@ -574,7 +586,7 @@ export default function Player(props) {
 						
 						const maxLookDown = Math.PI / 3; // limit the downward looking
 						const maxLookUp = Math.PI / 8;   // Maximum angle for looking up
-						euler.x = Math.max(-maxLookUp, Math.min(maxLookDown, euler.x));
+						euler.x = 0;
 						
 						// Set the local rotation of the head bone
 						headBone.rotation.set(euler.x, euler.y, euler.z);
@@ -587,7 +599,7 @@ export default function Player(props) {
 					}
 
 					const neutralQuaternion = new Quaternion().setFromEuler(neutralRotation);
-					headBone.quaternion.slerp(neutralQuaternion, 0.1);
+					headBone.quaternion.slerp(neutralQuaternion, 0.05);
 				}
 			}
 			
@@ -662,6 +674,8 @@ export default function Player(props) {
 								participantObject.rotation.y,
 								participantObject.rotation.z
 							];
+							const headBone = playerController.firstPerson.humanoid.getNormalizedBoneNode('head');
+
 							// console.log("userData", userData);
 							const messageObject = {
 								[window.p2pcf.clientId]: {

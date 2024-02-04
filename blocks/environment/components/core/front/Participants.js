@@ -136,6 +136,7 @@ function Participant(participant) {
 	const clonedModelRef = useRef(null); // Ref for the cloned model
 	const animationMixerRef = participant.animationMixerRef; // Ref for the animation mixer of this participant
 	const animationsRef = participant.animationsRef; // Ref to store animations
+	const vrmsRef = participant.vrmsRef; // Ref to store animations
 	const mixers = participant.mixers;
 	const [someVRM, setSomeVRM] = useState(null);
 	const [frameName, setFrameName] = useState('BackwardIdle');
@@ -163,6 +164,8 @@ function Participant(participant) {
 	useEffect(() => {
 		if (someVRM?.userData?.gltfExtensions?.VRM) {
 			const playerController = someVRM.userData.vrm;
+			// add the playerController to the vrmsRef
+			vrmsRef.current[participant.name] = playerController;
 			const fetchProfile = async (pfp, modelToModify) => {
 				console.log("modelToModify", modelToModify);
 
@@ -246,7 +249,6 @@ function Participant(participant) {
 				// mixer._actions.forEach(action => {
 				// 	console.log(`Action: ${action._clip.name}, Is Running: ${action.isRunning()}, Effective Weight: ${action.getEffectiveWeight()}, Current Time: ${action.time}`);
 				// });
-	
 				// Find and play the idle animation explicitly
 				const idleAction = mixers.current[participant.name]._actions.find(action => action._clip.name === 'idle');
 				if (idleAction && !idleAction.isRunning()) {
@@ -372,6 +374,7 @@ export function Participants(props) {
 	const displayNameTextRef = useRef(null);
     const textRefs = useRef({});
 	const participantRefs = useRef({});
+	const vrmsRef = useRef({});
 
 	useEffect(() => {
 		if(window.p2pcf){
@@ -383,12 +386,25 @@ export function Participants(props) {
 				const finalData = new TextDecoder("utf-8").decode(data);
 				const participantData = JSON.parse(finalData);
 				const participantObject = theScene.scene.getObjectByName(peer.client_id);
-			
+				// @todo explore networking head movement
+				if(participantData[peer.client_id].headRotation && vrmsRef.current[peer.client_id] ) {
+					const headBone = vrmsRef.current[peer.client_id].humanoid.getRawBoneNode("head");
+					const quaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(
+						participantData[peer.client_id].headRotation._x,
+						participantData[peer.client_id].headRotation._y,
+						participantData[peer.client_id].headRotation._z,
+						'XYZ' // Assuming the rotation order is XYZ, adjust as necessary
+					  ));
+					  headBone.quaternion.copy(quaternion);
+
+				}
+		
 				if (animationsRef.current[peer.client_id]) {
 					const walkAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][1]); // Walking animation
 					const idleAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][0]); // Idle animation
 					const runAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][2]); // Running animation
-		
+					// get their headbone and apply the rotation using the participantData[peer.client_id].headRotation
+
 					if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "walking") {
 						walkAction.play();
 						runAction.stop();
@@ -485,6 +501,7 @@ export function Participants(props) {
 					name={item[0]}
 					p2pcf={p2pcf}
 					animationMixerRef={animationMixerRef}
+					vrmsRef={vrmsRef}
 					animationsRef={animationsRef}
 					mixers={mixers}
 					textRef={(ref) => textRefs.current[item[0]] = ref}

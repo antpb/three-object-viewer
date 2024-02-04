@@ -1251,9 +1251,9 @@ export default function EnvironmentFront(props) {
 												})}
 												{props.lightsToAdd.length < 1 && (
 													<>
-														<ambientLight intensity={0.5} />
+														<ambientLight intensity={0.8} />
 														<directionalLight
-															intensity={0.6}
+															intensity={0.7}
 															position={[0, 2, 2]}
 														// shadow-mapSize-width={512}
 														// shadow-mapSize-height={512}
