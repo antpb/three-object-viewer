@@ -4,6 +4,8 @@ import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
 import EnvironmentFront from "./components/EnvironmentFront";
 import Networking from "./components/Networking";
 import ThreeObjectFront from "./components/ThreeObjectFront";
+import { XRButton } from '@react-three/xr';
+import hmdIcon from '../../inc/assets/hmdicon.png';
 
 let threeObjectViewerBlocks;
 
@@ -230,6 +232,16 @@ threeApp.forEach((threeApp) => {
 							{/* <p>Messages</p> */}
 							<div id="messages" style={{display: "none"}}></div>
 							<div id="network-ui-container" style={{display: "flex"}}>
+								<XRButton
+									// background-image: url(&quot;https://threetheme.local/wp-content/plugins/three-object-viewer/build/images/world_icon.7810cfaf.png&quot;); background-size: 30px; width: 40px; height: 40px; padding: 10px; margin-top: 3px; margin-right: 5px; margin-left: 5px; box-sizing: border-box; border-radius: 50%; background-position: center center; background-repeat: no-repeat; background-color: rgb(255, 255, 255); border: 1px solid rgb(149, 149, 149); cursor: pointer;
+									// define styles as the above 
+									style={{ backgroundSize: "30px", width: "40px", height: "40px", padding: "10px", marginTop: "3px", marginRight: "5px", marginLeft: "5px", boxSizing: "border-box", borderRadius: "50%", backgroundPosition: "center center", backgroundRepeat: "no-repeat", backgroundColor: "rgb(255, 255, 255)", border: "1px solid rgb(149, 149, 149)", cursor: "pointer" }}
+									mode={ 'VR' }
+									sessionInit={{ optionalFeatures: ['local-floor', 'bounded-floor', 'hand-tracking', 'layers'] }}
+								>
+									<img style={{maxWidth: "40px", marginLeft: "-10.5px", marginTop: "-11px"}} src={threeObjectPluginRoot + "build/" + hmdIcon} alt="Enter VR" />
+								</XRButton>
+
 								<button class="button" id="audio-button">
 									<span style={{fontSize: "0.6em", display:"block" }}>JOIN</span>
 									<span>VOICE</span>

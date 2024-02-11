@@ -201,8 +201,8 @@ function Participant(participant) {
 				}
 			};
 
-			VRMUtils.rotateVRM0(playerController);
-			playerController.scene.rotation.y = 0;
+			// VRMUtils.rotateVRM0(playerController);
+			// playerController.scene.rotation.y = 0;
 			playerController.scene.scale.set(1, 1, 1);
 
 
@@ -304,7 +304,7 @@ function Participant(participant) {
 
 	return (
 		<group>
-			<group>
+			<group rotation={[0, Math.PI, 0 ]}>
 				<mesh
 					visible={true}
 					position={[0.22, height, 0.005]}
@@ -344,7 +344,7 @@ function Participant(participant) {
 						{displayName}
 					</Text>
 			</group>
-			<primitive name={participant.name} object={playerController.scene} />
+			<primitive name={participant.name} object={playerController.scene} rotation={[0, Math.PI, 0 ]}/>
 			{ isPng && <SpriteAnimator
 				position={[0, 1, 0]}
 				frameName={frameName}
@@ -423,6 +423,7 @@ export function Participants(props) {
 	
 				if (participantObject) {
 					if(participantData[peer.client_id]?.position){
+						console.log("participants rot", participantData[peer.client_id].rotation);
 						participantObject.parent.position.fromArray(participantData[peer.client_id].position);
 						participantObject.parent.rotation.fromArray(participantData[peer.client_id].rotation);
 					}

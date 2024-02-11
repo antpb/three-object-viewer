@@ -271,6 +271,7 @@ export function ModelObject(model) {
 					colliders={audioObject ? "cuboid" : "trimesh"}
 					lockRotations={true}
 					lockTranslations={true}
+					friction={0.8}
 					rotation={[
 						model.rotationX,
 						model.rotationY,

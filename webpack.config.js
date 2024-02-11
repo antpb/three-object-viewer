@@ -69,7 +69,7 @@ module.exports = {
             },
 			{
 				test: /\.js$/,
-                exclude: /node_modules\/(?!chess\.js|@lumaai\/luma-web|three-mesh-bvh|@mediapipe\/tasks-vision)/,
+                exclude: /node_modules\/(?!chess\.js|@lumaai\/luma-web|three-mesh-bvh|ecctrl|@mediapipe\/tasks-vision|@react-spring)/,
 				use: 'babel-loader'
 			},
 			{

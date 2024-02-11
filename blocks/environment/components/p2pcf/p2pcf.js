@@ -820,7 +820,6 @@ export default class P2PCF extends EventEmitter {
 		// ping the worker to check the current rooms count if less than the limit, continue and run the updateRoomCount function
 		// First, check the room count
 		const canStart = await this._getCurrentRoomCount(userData.currentPostId);
-		console.log("canStart is", (!Number(canStart) < 5));
 		if ( Number(canStart) >= 5 ) {
 			console.log("Room is full, cannot start.", canStart);
 			return; // Exit the function if room is full
@@ -830,7 +829,6 @@ export default class P2PCF extends EventEmitter {
 			// const isInRoom = await this._checkIfUserIsInRoom(userData.currentPostId, userData.userId);
 			// check for a cookie to see if the user is already in the room
 			const isInRoom = await this._pingIfInRoom();;
-			console.log("isInRoom is", isInRoom);
 
 			if (isInRoom.body === 'true') {
 				console.log("User is already in the room, cannot start. Send another beat.");
@@ -1295,7 +1293,6 @@ export default class P2PCF extends EventEmitter {
 		}
 		const data = { action: action, actionNonce: actionNonce, clientId: p2pcf.clientId};
 
-		console.log("nonce is", actionNonce, apiUrl, data, postId);
 		fetch(apiUrl, {
 			method: 'POST',
 			headers: {

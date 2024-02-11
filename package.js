@@ -36,4 +36,11 @@ if (isPro) {
     fs.copySync(sourcePro, targetPro);
 }
 
+// zip the respective directory
+const zip = require('adm-zip');
+const zipFileName = isPro ? 'three-object-viewer-pro.zip' : 'three-object-viewer.zip';
+const zipFile = new zip();
+zipFile.addLocalFolder(targetDirectory);
+zipFile.writeZip(path.join(__dirname, 'plugin-build/free', zipFileName));
+
 console.log(`Packaged the ${isPro ? 'pro' : 'free'} version to ${targetDirectory}`);

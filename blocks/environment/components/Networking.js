@@ -7,10 +7,16 @@ import worldIcon from '../../../inc/assets/world_icon.png';
 import cornerAccent from '../../../inc/assets/corner_accent.png';
 import settingsIcon from '../../../inc/assets/settings_icon.png';
 import { color } from "@wordpress/icons";
+import { XRButton } from "@react-three/xr";
 
 const Networking = (props) => {
 	let isMuted = false;  // Initial state of the microphone
 	let localStream = null;  // To hold the local media stream
+
+	const returnXRButton = (props) => {
+		return <XRButton {...props} />;
+	};
+
 	const RoomDropdownContent = () => {
 		let dropdown = document.getElementById("room-dropdown");
 		// empty the contents of the dropdown
@@ -491,6 +497,7 @@ const Networking = (props) => {
 		
 
 		document.getElementById("network-ui-container").prepend(roomIcon);
+		// prepend the returnXRButton to the network-ui-container
 	};
 
 	const addMessage = (message) => {

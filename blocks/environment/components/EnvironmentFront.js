@@ -16,10 +16,11 @@ import {
 	useAnimations,
 	Html,
 } from "@react-three/drei";
+import { EcctrlJoystick } from 'ecctrl'
 
 // import { A11y } from "@react-three/a11y";
 import { GLTFAudioEmitterExtension } from "three-omi";
-import { VRButton, ARButton, XR, Controllers, Hands } from '@react-three/xr'
+import { VRButton, ARButton, XR, Controllers, Hands, XRButton } from '@react-three/xr'
 import { Perf } from "r3f-perf";
 import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import TeleportTravel from "./TeleportTravel";
@@ -641,11 +642,11 @@ export default function EnvironmentFront(props) {
 		// emit javascript event "loaded"
 		const event = new Event("loaded");
 		window.dispatchEvent(event);
-		const elements = document.body.getElementsByTagName('*');
-		const webXRNotAvail = Array.from(elements).find((el) => el.textContent === 'WEBXR NOT AVAILABLE');
-		if (webXRNotAvail) {
-			webXRNotAvail.style.display = "none";
-		}
+		// const elements = document.body.getElementsByTagName('*');
+		// const webXRNotAvail = Array.from(elements).find((el) => el.textContent === 'WEBXR NOT AVAILABLE');
+		// if (webXRNotAvail) {
+		// 	webXRNotAvail.style.display = "none";
+		// }
 		props.userData.inWorldName = displayName;
 		window.userData = props.userData;
 		props.userData.playerVRM = playerAvatar;
@@ -653,7 +654,6 @@ export default function EnvironmentFront(props) {
 		if (props.deviceTarget === "vr") {
 			return (
 				<>
-					{ isVRCompatible() && <VRButton/>}
 					{loadingWorld && <Loading previewImage={props.previewImage} />}
 					<Canvas
 						resize={{ scroll: false, debounce: { scroll: 50, resize: 0 } }}
@@ -663,6 +663,9 @@ export default function EnvironmentFront(props) {
 							far: 2000,
 							position: [0, 0, 20]
 						}}
+						onPointerDown={(e) => {
+							e.target.requestPointerLock();
+						}}					
 						// dpr={1.5}
 						// shadowMap
 						// linear={true}
@@ -677,7 +680,8 @@ export default function EnvironmentFront(props) {
 							zIndex: 1
 						}}
 					>
-						<XR>
+						<XR						
+						>
 							<FrontPluginProvider>
 							{/* <Perf className="stats" /> */}
 							{/* <fog attach="fog" color="hotpink" near={100} far={20} /> */}
@@ -699,11 +703,19 @@ export default function EnvironmentFront(props) {
 									gravity={[0, -9.8, 0]}
 									allowSleep={true}
 									allowDeactivation={true}
-									allowCcd={true}
+									// allowCcd={true}
 									broadphase={true}
 									// debug={true}
-
+									timeStep="vary"
 								>
+								<Player
+									spawnPointsToAdd={spawnPoints}
+									spawnPoint={props.spawnPoint}
+									p2pcf={window.p2pcf}
+									defaultAvatar={defaultAvatar}
+									defaultPlayerAvatar = {defaultPlayerAvatar}
+									movement={movement}
+								/>
 									{/* <Perf className="stats" /> */}
 									{/* Debug physics */}
 									{url && (
@@ -713,15 +725,6 @@ export default function EnvironmentFront(props) {
 												spawnPoint={props.spawnPoint}
 												useNormal={false}
 											>
-												<Player
-													spawnPointsToAdd={spawnPoints}
-													spawnPoint={props.spawnPoint}
-													setShowUI={setShowUI}
-													p2pcf={window.p2pcf}
-													defaultAvatar={defaultAvatar}
-													defaultPlayerAvatar = {defaultPlayerAvatar}
-													movement={movement}
-												/>
 												<Participants 
 													setParticipant={setParticipant}
 													participants={participants}
@@ -2207,60 +2210,61 @@ export default function EnvironmentFront(props) {
 					})}
 						<>
 						{ isMobile() && (
-						<ReactNipple
-							// supports all nipplejs options
-							// see https://github.com/yoannmoinet/nipplejs#options
-							options={{ mode: 'static', position: { top: '50%', left: '50%' } }}
-							// any unknown props will be passed to the container element, e.g. 'title', 'style' etc
-							style={{
-								outline: '1px dashed red',
-								width: 150,
-								height: 150,
-								position: "absolute",
-								bottom: 30,
-								left: 30,
-								userSelect: "none",
-								transition: "opacity 0.5s"
-							}}
-							// all events supported by nipplejs are available as callbacks
-							// see https://github.com/yoannmoinet/nipplejs#start
-							onMove={( evt, data ) => {
-								if(data.force > 1.5){
-									movement.current.shift = true;
-								} else {
-									movement.current.shift = false;
-								}
-								if(data.direction && data.direction.angle){
-									if(data.direction.angle === "up" && ! movement.current.forward){
-										movement.current.forward = true;
-										movement.current.backward = false;
-										movement.current.left = false;
-										movement.current.right = false;
-									} else if(data.direction.angle === "down"  && ! movement.current.backward){
-										movement.current.forward = false;
-										movement.current.backward = true;
-										movement.current.left = false;
-										movement.current.right = false;
-									} else if(data.direction.angle === "left"  && ! movement.current.left){
-										movement.current.forward = false;
-										movement.current.backward = false;
-										movement.current.left = true;
-										movement.current.right = false;
-									} else if(data.direction.angle === "right"  && ! movement.current.right){
-										movement.current.forward = false;
-										movement.current.backward = false;
-										movement.current.left = false;
-										movement.current.right = true;
-									}	
-								}
-							}}
-							onEnd={( evt, data ) => {
-								movement.current.forward = false;
-								movement.current.backward = false;
-								movement.current.left = false;
-								movement.current.right = false;
-							}}
-						/>
+							<EcctrlJoystick buttonNumber={5} />
+						// <ReactNipple
+						// 	// supports all nipplejs options
+						// 	// see https://github.com/yoannmoinet/nipplejs#options
+						// 	options={{ mode: 'static', position: { top: '50%', left: '50%' } }}
+						// 	// any unknown props will be passed to the container element, e.g. 'title', 'style' etc
+						// 	style={{
+						// 		outline: '1px dashed red',
+						// 		width: 150,
+						// 		height: 150,
+						// 		position: "absolute",
+						// 		bottom: 30,
+						// 		left: 30,
+						// 		userSelect: "none",
+						// 		transition: "opacity 0.5s"
+						// 	}}
+						// 	// all events supported by nipplejs are available as callbacks
+						// 	// see https://github.com/yoannmoinet/nipplejs#start
+						// 	onMove={( evt, data ) => {
+						// 		if(data.force > 1.5){
+						// 			movement.current.shift = true;
+						// 		} else {
+						// 			movement.current.shift = false;
+						// 		}
+						// 		if(data.direction && data.direction.angle){
+						// 			if(data.direction.angle === "up" && ! movement.current.forward){
+						// 				movement.current.forward = true;
+						// 				movement.current.backward = false;
+						// 				movement.current.left = false;
+						// 				movement.current.right = false;
+						// 			} else if(data.direction.angle === "down"  && ! movement.current.backward){
+						// 				movement.current.forward = false;
+						// 				movement.current.backward = true;
+						// 				movement.current.left = false;
+						// 				movement.current.right = false;
+						// 			} else if(data.direction.angle === "left"  && ! movement.current.left){
+						// 				movement.current.forward = false;
+						// 				movement.current.backward = false;
+						// 				movement.current.left = true;
+						// 				movement.current.right = false;
+						// 			} else if(data.direction.angle === "right"  && ! movement.current.right){
+						// 				movement.current.forward = false;
+						// 				movement.current.backward = false;
+						// 				movement.current.left = false;
+						// 				movement.current.right = true;
+						// 			}	
+						// 		}
+						// 	}}
+						// 	onEnd={( evt, data ) => {
+						// 		movement.current.forward = false;
+						// 		movement.current.backward = false;
+						// 		movement.current.left = false;
+						// 		movement.current.right = false;
+						// 	}}
+						// />
 					) }
 					</>
 				</>
