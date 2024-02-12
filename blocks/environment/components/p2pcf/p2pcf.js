@@ -21,7 +21,7 @@ let validlyInRoom = false;
 // Based on Chrome
 const MAX_MESSAGE_LENGTH_BYTES = 16000;
 
-const CHUNK_HEADER_LENGTH_BYTES = 12; // 2 magic, 2 msg id, 2 chunk id, 2 for done bit, 4 for length
+const CHUNK_HEADER_LENGTH_BYTES = 12;
 const CHUNK_MAGIC_WORD = 8121;
 const CHUNK_MAX_LENGTH_BYTES =
 	MAX_MESSAGE_LENGTH_BYTES - CHUNK_HEADER_LENGTH_BYTES;
@@ -185,7 +185,7 @@ const parseCandidate = (line) => {
 	}
 
 	while (candidate.length < 8) candidate.push(null);
-	candidate[7] = parseInt(parts[3], 10); // Priority last
+	candidate[7] = parseInt(parts[3], 10);
 
 	return candidate;
 };
@@ -822,7 +822,7 @@ export default class P2PCF extends EventEmitter {
 		const canStart = await this._getCurrentRoomCount(userData.currentPostId);
 		if ( Number(canStart) >= 5 ) {
 			console.log("Room is full, cannot start.", canStart);
-			return; // Exit the function if room is full
+			return;
 		} else {
 			console.log("Room is not full, can start.", canStart);
 			//check if the user is already in the room
@@ -1173,7 +1173,7 @@ export default class P2PCF extends EventEmitter {
 			err.errorDetail === "sctp-failure" &&
 			err.message.indexOf("User-Initiated Abort") >= 0
 		) {
-			return; // Benign shutdown
+			return;
 		}
 
 		console.error(err);
@@ -1230,7 +1230,7 @@ export default class P2PCF extends EventEmitter {
 				'Content-Type': 'application/json',
 				'X-WP-Nonce': userData.nonce,
 			},
-			body: JSON.stringify({ displayName: p2pcf.clientId  }) // send any necessary data
+			body: JSON.stringify({ displayName: p2pcf.clientId  })
 		})
 		.then(response => response.json())
 		.catch(error => console.error('Error sending heartbeat:', error));
@@ -1246,7 +1246,7 @@ export default class P2PCF extends EventEmitter {
 				'Content-Type': 'application/json',
 				'X-WP-Nonce': userData.nonce,
 			},
-			body: JSON.stringify({ displayName: p2pcf.clientId  }) // send any necessary data
+			body: JSON.stringify({ displayName: p2pcf.clientId  })
 		})
 		.then(response => response.json())
 		.then(data => console.log('Heartbeat sent:', data))
@@ -1276,12 +1276,12 @@ export default class P2PCF extends EventEmitter {
 		.then(response => response.json())
 		.catch(error => {
 			console.error('Error fetching room count:', error);
-			throw error; // Rethrow the error to handle it in the calling function
+			throw error;
 		});
 	}
 
 	_updateRoomCount(action) {
-		const postId = userData.currentPostId; // This retrieves the post ID
+		const postId = userData.currentPostId;
 		let actionNonce = '';
 		let apiUrl = '';
 		if(action === "add") {

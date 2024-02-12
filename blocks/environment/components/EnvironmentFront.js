@@ -217,7 +217,7 @@ function ChatBox(props) {
 				return response.json();
 
 			}).then(function(data) {
-				// console.log("data", data.davinciData.choices[0].text); // this will be a string
+				// console.log("data", data.davinciData.choices[0].text);
 				let thisMessage = JSON.parse(data);
 				if(thisMessage?.model === "gpt-4-0314"){
 					let formattedMessage = props.name +': ' + thisMessage.choices[0].message.content;
@@ -543,8 +543,8 @@ function SavedObject(props) {
 				})}
 			{colliders &&
 				colliders.map((item, index) => {
-					const pos = new THREE.Vector3(); // create once an reuse it
-					const quat = new THREE.Quaternion(); // create once an reuse it
+					const pos = new THREE.Vector3();
+					const quat = new THREE.Quaternion();
 					const rotation = new THREE.Euler();
 					const quaternion = item[0].getWorldQuaternion(quat);
 					const finalRotation =
@@ -600,7 +600,6 @@ function SavedObject(props) {
 }
 
 export default function EnvironmentFront(props) {
-	const [participants, setParticipant] = useState([]);
 	const [showUI, setShowUI] = useState(true);
 	const [displayName, setDisplayName] = useState(props.userData.inWorldName);
 	const [playerAvatar, setPlayerAvatar] = useState(props.userData.playerVRM);
@@ -708,14 +707,16 @@ export default function EnvironmentFront(props) {
 									// debug={true}
 									timeStep="vary"
 								>
-								<Player
-									spawnPointsToAdd={spawnPoints}
-									spawnPoint={props.spawnPoint}
-									p2pcf={window.p2pcf}
-									defaultAvatar={defaultAvatar}
-									defaultPlayerAvatar = {defaultPlayerAvatar}
-									movement={movement}
-								/>
+									{loaded && (
+										<Player
+											spawnPointsToAdd={spawnPoints}
+											spawnPoint={props.spawnPoint}
+											p2pcf={window.p2pcf}
+											defaultAvatar={defaultAvatar}
+											defaultPlayerAvatar = {defaultPlayerAvatar}
+											movement={movement}
+										/>
+									)}
 									{/* <Perf className="stats" /> */}
 									{/* Debug physics */}
 									{url && (
@@ -726,7 +727,6 @@ export default function EnvironmentFront(props) {
 												useNormal={false}
 											>
 												<Participants 
-													setParticipant={setParticipant}
 													participants={participants}
 												/>
 												<SavedObject

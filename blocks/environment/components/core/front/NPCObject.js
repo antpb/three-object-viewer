@@ -32,19 +32,19 @@ const mixamoVRMRigMap = getMixamoRig();
 function loadMixamoAnimation(url, vrm) {
 	let loader;
 	if (url.endsWith('.fbx')) {
-	loader = new FBXLoader(); // A loader which loads FBX
+	loader = new FBXLoader();
 	} else {
-	loader = new GLTFLoader(); // A loader which loads GLTF
+	loader = new GLTFLoader();
 	}
 	return loader.loadAsync(url).then((asset) => {
-		const clip = asset.animations[0]; // extract the AnimationClip
+		const clip = asset.animations[0];
 
 		// if asset is glb extract the scene
 		if (url.endsWith('.glb')) {
 			asset = asset.scene;
 		}
 
-		const tracks = []; // KeyframeTracks compatible with VRM will be added here
+		const tracks = [];
 
 		const restRotationInverse = new Quaternion();
 		const parentRestWorldRotation = new Quaternion();
@@ -179,7 +179,7 @@ export function NPCObject(model) {
 	const gltf = useLoader(GLTFLoader, url, (loader) => {
 		const dracoLoader = new DRACOLoader();
 		dracoLoader.setDecoderPath( model.threeObjectPluginRoot + "/inc/utils/draco/");
-		dracoLoader.setDecoderConfig({type: 'js'}); // (Optional) Override detection of WASM support.
+		dracoLoader.setDecoderConfig({type: 'js'});
 		loader.setDRACOLoader(dracoLoader);
 
 		loader.register(

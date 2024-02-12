@@ -852,7 +852,7 @@ function ModelObject(props) {
 	const gltf = useLoader(GLTFLoader, props.url, (loader) => {
 		const dracoLoader = new DRACOLoader();
 		dracoLoader.setDecoderPath( threeObjectPluginRoot + "/inc/utils/draco/");
-		dracoLoader.setDecoderConfig({type: 'js'}); // (Optional) Override detection of WASM support.
+		dracoLoader.setDecoderConfig({type: 'js'});
 		loader.setDRACOLoader(dracoLoader);
 
 		if(listener){
@@ -1605,7 +1605,7 @@ function ThreeObject(props) {
 	const gltf = useLoader(GLTFLoader, url, (loader) => {
 		const dracoLoader = new DRACOLoader();
 		dracoLoader.setDecoderPath( threeObjectPluginRoot + "/inc/utils/draco/");
-		dracoLoader.setDecoderConfig({type: 'js'}); // (Optional) Override detection of WASM support.
+		dracoLoader.setDecoderConfig({type: 'js'});
 		loader.setDRACOLoader(dracoLoader);
 
 		loader.register(

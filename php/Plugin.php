@@ -98,7 +98,7 @@ class Plugin
 		$post_id = $request['id'];
 		$participant_name = $request['displayName'];
 		$site_url = get_site_url();
-		$user_id = get_current_user_id(); // Or however you identify your users
+		$user_id = get_current_user_id();
 	
 		// Construct the key for the Cloudflare KV store
 		$kv_key = "heartbeat|{$site_url}|{$post_id}|{$participant_name}";
@@ -131,7 +131,7 @@ class Plugin
 		$post_id = $request['id'];
 		$participant_name = $request['displayName'];
 		$site_url = get_site_url();
-		$user_id = get_current_user_id(); // Or however you identify your users
+		$user_id = get_current_user_id();
 	
 		// Construct the key for the Cloudflare KV store
 		$kv_key = "heartbeat|{$site_url}|{$post_id}|{$participant_name}";
@@ -691,8 +691,8 @@ class Plugin
 					$openbrush_enabled = true;
 					$three_icosa_brushes_url = plugin_dir_url( "three-object-viewer-three-icosa/three-object-viewer-three-icosa.php" ) . 'brushes/';
 				}
-				$script_path = plugin_dir_path( __FILE__ ) . $frontend_js; // Path to the JS file on the server.
-				$script_version = filemtime($script_path); // Gets the file modification time.
+				$script_path = plugin_dir_path( __FILE__ ) . $frontend_js;
+				$script_version = filemtime($script_path);
 			
 			
 				wp_register_script( 'versepress-frontend', plugin_dir_url( __FILE__ ) . $frontend_js, ['wp-element', 'wp-data', 'wp-hooks'], $script_version, true );

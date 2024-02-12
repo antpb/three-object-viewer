@@ -30,10 +30,10 @@ const mixamoVRMRigMap = getMixamoRig();
  * @returns {Promise<AnimationClip>} The converted AnimationClip
  */
 function loadMixamoAnimation(url, vrm, positionY, positionX, positionZ, scaleX, scaleY, scaleZ, rotationX, rotationY, rotationZ, rotationW) {
-	const loader = new FBXLoader(); // A loader which loads FBX
+	const loader = new FBXLoader();
 	return loader.loadAsync(url).then((asset) => {
-		const clip = AnimationClip.findByName(asset.animations, 'mixamo.com'); // extract the AnimationClip
-		const tracks = []; // KeyframeTracks compatible with VRM will be added here
+		const clip = AnimationClip.findByName(asset.animations, 'mixamo.com');
+		const tracks = [];
 
 		const restRotationInverse = new Quaternion();
 		const parentRestWorldRotation = new Quaternion();
@@ -133,7 +133,7 @@ export function ModelObject(model) {
 	const gltf = useLoader(GLTFLoader, url, (loader) => {
 		const dracoLoader = new DRACOLoader();
 		dracoLoader.setDecoderPath( model.threeObjectPluginRoot + "/inc/utils/draco/");
-		dracoLoader.setDecoderConfig({type: 'js'}); // (Optional) Override detection of WASM support.
+		dracoLoader.setDecoderConfig({type: 'js'});
 		loader.setDRACOLoader(dracoLoader);
 
 		loader.register(

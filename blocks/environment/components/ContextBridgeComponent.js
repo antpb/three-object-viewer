@@ -5,7 +5,7 @@ import { useContextBridge } from "@react-three/drei";
 //import contextBridgef
 // add function for context
 export function ContextBridgeComponent(props) {
-	const { plugins } = useFrontPlugins(); // From your own context
+	const { plugins } = useFrontPlugins();
 	const [registeredThreeovBlocks, setRegisteredThreeovBlocks] = useState([]);
 	const ContextBridge = useContextBridge(FrontPluginContext);
 

@@ -27,7 +27,7 @@ export default function App({ getSettings, updateSettings }) {
     //Function to update settings via API
 	const onSave = async (event) => {
 		event.preventDefault();
-		setSaveIndicator(true); // Show save indicator
+		setSaveIndicator(true);
 		let response = await updateSettings(settings);
 		setSettings(response);
 

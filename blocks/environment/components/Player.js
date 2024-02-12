@@ -82,19 +82,19 @@ const mixamoVRMRigMap = getMixamoRig();
 function loadMixamoAnimation(url, vrm) {
 	let loader;
 	if (url.endsWith('.fbx')) {
-		loader = new FBXLoader(); // Use an FBX loader
+		loader = new FBXLoader();
 	} else {
-		loader = new GLTFLoader(); // Use a GLTF loader
+		loader = new GLTFLoader();
 	}
 	return loader.loadAsync(url).then((resource) => {
-		const clip = resource.animations[0]; // Extract the AnimationClip
+		const clip = resource.animations[0];
 
 		// if resource is GLB, get the scene
 		if (url.endsWith('.glb')) {
 			resource = resource.scene;
 		}
 
-		let tracks = []; // KeyframeTracks compatible with VRM to be stored here
+		let tracks = [];
 
 		let restRotationInverse = new Quaternion();
 		let parentRestWorldRotation = new Quaternion();
@@ -218,7 +218,7 @@ export default function Player(props) {
 
 	const characterRef = useRef(null);
   
-	const [frameName, setFrameName] = useState('ForwardIdle');
+	const [ frameName, setFrameName ] = useState();
 	
 	let heightOffset = 0;
 
@@ -404,7 +404,7 @@ export default function Player(props) {
 		  loader.load(playerURL, (gltf) => {
 			currentPlayerAvatarRef.current = gltf;
 			playerControllerRef.current = gltf.userData.vrm;
-			setIsModelLoaded(true); // Set model loaded to true
+			setIsModelLoaded(true);
 		  }, undefined, error => {
 			console.error('An error happened during the loading of the model:', error);
 		  });
@@ -484,182 +484,230 @@ export default function Player(props) {
 		}
 
 		const movementTimeoutRef = useRef(null);
+		// fps for network updates
+		const updateRate = 1000 / 30;
+		let lastNetworkUpdateTime = 0;
+		
+		useFrame((state, delta) => {
+			const now = state.clock.elapsedTime * 1000;
 
-			useFrame((state, delta) => {
-				// const { camera, gl } = useThree; // Assuming `state` comes from the useFrame callback and includes Three.js renderer (gl) and the default camera
+			if (isPresenting && !presentingState) {
+				const newCamera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-				if (isPresenting && !presentingState) {
-					const newCamera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+				// Entering XR
+				const xrCamera = gl.xr.getCamera(newCamera);
+				gl.xr.enabled = true;
+				console.log("xrCamera", state);
+				// set it as the default camera for the scene
+				state.camera = xrCamera;
+				// Adjust the xrCamera as needed here
+				// For example, you might need to set its position or properties based on your character controller or scene requirements
+				setPresentingState(true);
+			} else if (!isPresenting && presentingState) {
+				setPresentingState(false);
+			}
 
-					// Entering XR
-					const xrCamera = gl.xr.getCamera(newCamera);
-					gl.xr.enabled = true;
-					console.log("xrCamera", state);
-					// set it as the default camera for the scene
-					state.camera = xrCamera;
-					// Adjust the xrCamera as needed here
-					// For example, you might need to set its position or properties based on your character controller or scene requirements
+			handleBlinking(delta);
+
+			let isMoving = false;
+
+			if (props.movement.current.backward) {
+				isMoving = true;
+			} else if (props.movement.current.forward) {
+				isMoving = true;
+			} else if (props.movement.current.left) {
+				isMoving = true;
+			} else if (props.movement.current.right) {
+				isMoving = true;
+			}
+			// if(avatarIsSprite && isMoving && frameName !== 'WalkForward'){
+			// 	console.log("forwardwalk", frameName);
+			// 	setFrameName('WalkForward');
+			// }
+
+			// if( avatarIsSprite && !isMoving && frameName !== 'ForwardIdle' ){
+			// 	console.log("forwardidle", frameName);
+			// 	setFrameName('ForwardIdle');
+			// }
+			if(animationsRef.current){
+				if (playerControllerRef.current && participantObject) {
+					// Calculate character's current forward vector in world space
+					const cameraWorldQuaternion = new Quaternion();
+					camera.getWorldQuaternion(cameraWorldQuaternion);
+					const cameraForward = new Vector3(0, 0, -1).applyQuaternion(cameraWorldQuaternion);
+
+					const characterWorldQuaternion = new Quaternion();
+					participantObject.parent.getWorldQuaternion(characterWorldQuaternion);
+					const characterForward = new Vector3(0, 0, 1).applyQuaternion(characterWorldQuaternion);
+					const neutralRotation = new Euler(0, 0, 0);
+	
+					// Calculate vector from character to camera
+					const characterToCamera = new Vector3().subVectors(camera.position, participantObject.getWorldPosition(new Vector3())).normalize();
 				
-					setPresentingState(true);
-				  } else if (!isPresenting && presentingState) {
-					// Exiting XR
-					// Here you would restore your default camera settings if needed
-					// This could include adjusting its position or properties to match your scene's requirements outside of XR
-				
-					setPresentingState(false);
-				  }
-				
-				handleBlinking(delta);
-
-				let isMoving = false;
-				if(animationsRef.current){
-					if (props.movement.current.backward) {
-						isMoving = true;
-					} else if (props.movement.current.forward) {
-						isMoving = true;
-					} else if (props.movement.current.left) {
-						isMoving = true;
-					} else if (props.movement.current.right) {
-						isMoving = true;
-					}
-					const { idle, walking, running } = animationsRef.current;
-					// if the player hits the R key respawn using the characterRef to move it to the origin spawn point
-					if(props.movement.current.respawn){
-						characterRef.current.setBodyType(rapier.RigidBodyType.Fixed, 1);
-						characterRef.current.setTranslation(new Vector3(Number(spawnPoint[0]), Number(spawnPoint[1]), Number(spawnPoint[2])), true);
-					} else if(!props.movement.current.respawn && characterRef.current.bodyType() === 1){
-						characterRef.current.setBodyType(rapier.RigidBodyType.Dynamic, 0);
-					}
-
-					if (isMoving) {		
-						// If moving, but idle animation is playing, stop it and play walking animation
-						// if (idle.isRunning()) {
-							// blend from idle to walking
-							if(props.movement.current.shift) {
-								if (walking.isRunning()) {
-									walking.crossFadeTo(running, 1.1);
-								} else {
-									idle.crossFadeTo(running, 1.1);
-								}
-								running.enabled = true;
-								running.setEffectiveTimeScale(1.1);
-								running.setEffectiveWeight(1);
-								idle.enabled = true;
-								idle.setEffectiveTimeScale(1);
-								idle.setEffectiveWeight(0);
-								walking.enabled = true;
-								walking.setEffectiveTimeScale(1.1);
-								walking.setEffectiveWeight(0);
-								running.play();
-							} else {
-								if (running.isRunning()) {
-									running.crossFadeTo(walking, 1);
-								} else {
-									idle.crossFadeTo(walking, 1);
-								}
-								walking.enabled = true;
-								walking.setEffectiveTimeScale(1.1);
-								walking.setEffectiveWeight(1);
-								running.enabled = true;
-								running.setEffectiveTimeScale(1.1);
-								running.setEffectiveWeight(0);
-								idle.enabled = true;
-								idle.setEffectiveTimeScale(1);
-								idle.setEffectiveWeight(0);
-								walking.play();
+					// Determine azimuthal angle
+					const dotProduct = characterForward.dot(cameraForward);
+					const azimuthalAngle = Math.acos(Math.min(Math.max(dotProduct, -1), 1));
+									
+					// Perform head rotation if within the desired azimuthal range
+					const angleThreshold = Math.PI / 2; // 60 degrees
+					if (azimuthalAngle < angleThreshold) {
+							if(avatarIsSprite && isMoving && frameName !== 'WalkForward'){
+								setFrameName('WalkForward');
 							}
+	
+							if( avatarIsSprite && !isMoving && frameName !== 'ForwardIdle' ){
+								setFrameName('ForwardIdle');
+							}
+						} else {
+						if( avatarIsSprite && isMoving && frameName !== 'WalkBackward'){
+							setFrameName('WalkBackward');
+						}
+						if( avatarIsSprite && !isMoving && frameName !== 'BackwardIdle' ){
+							setFrameName('BackwardIdle');
+						}	
+					}
+				}
+	
+				const { idle, walking, running } = animationsRef.current;
+				// if the player hits the R key respawn using the characterRef to move it to the origin spawn point
+				if(props.movement.current.respawn){
+					characterRef.current.setBodyType(rapier.RigidBodyType.Fixed, 1);
+					characterRef.current.setTranslation(new Vector3(Number(spawnPoint[0]), Number(spawnPoint[1]), Number(spawnPoint[2])), true);
+				} else if(!props.movement.current.respawn && characterRef.current.bodyType() === 1){
+					characterRef.current.setBodyType(rapier.RigidBodyType.Dynamic, 0);
+				}
 
-							//if moving, send a network event of where we are and our current state....animations probably need to go here too.
-							if (window.p2pcf) {
-								const participantObject = scene.getObjectByName("playerOne");
+				if (isMoving) {	
+					// If moving, but idle animation is playing, stop it and play walking animation
+					// if (idle.isRunning()) {
+						// blend from idle to walking
+						if(props.movement.current.shift) {
+							if (walking.isRunning()) {
+								walking.crossFadeTo(running, 1.1);
+							} else {
+								idle.crossFadeTo(running, 1.1);
+							}
+							running.enabled = true;
+							running.setEffectiveTimeScale(1.1);
+							running.setEffectiveWeight(1);
+							idle.enabled = true;
+							idle.setEffectiveTimeScale(1);
+							idle.setEffectiveWeight(0);
+							walking.enabled = true;
+							walking.setEffectiveTimeScale(1.1);
+							walking.setEffectiveWeight(0);
+							running.play();
+						} else {
+							if (running.isRunning()) {
+								running.crossFadeTo(walking, 1);
+							} else {
+								idle.crossFadeTo(walking, 1);
+							}
+							walking.enabled = true;
+							walking.setEffectiveTimeScale(1.1);
+							walking.setEffectiveWeight(1);
+							running.enabled = true;
+							running.setEffectiveTimeScale(1.1);
+							running.setEffectiveWeight(0);
+							idle.enabled = true;
+							idle.setEffectiveTimeScale(1);
+							idle.setEffectiveWeight(0);
+							walking.play();
+						}
 
-								var target = new Vector3(); // create once an reuse it
-								var worldPosition = participantObject.getWorldPosition( target );
-								const position = [
-									worldPosition.x,
-									worldPosition.y,
-									worldPosition.z
-								];
-								// console.log("sending position", participantObject, position);
+						//if moving, send a network event of where we are and our current state....animations probably need to go here too.
+						if (window.p2pcf) {
+							const participantObject = scene.getObjectByName("playerOne");
 
-								const rotation = [
-									participantObject.parent.parent.rotation.x,
-									participantObject.parent.parent.rotation.y,
-									participantObject.parent.parent.rotation.z
-								];
-								// console.log("userData", userData);
-								const messageObject = {
+							var target = new Vector3();
+							var worldPosition = participantObject.getWorldPosition( target );
+							const position = [
+								worldPosition.x,
+								worldPosition.y,
+								worldPosition.z
+							];
+							// console.log("sending position", participantObject, position);
+
+							const rotation = [
+								participantObject.parent.parent.rotation.x,
+								participantObject.parent.parent.rotation.y,
+								participantObject.parent.parent.rotation.z
+							];
+							// console.log("userData", userData);
+							const messageObject = {
+								[window.p2pcf.clientId]: {
+									position: position,
+									rotation: rotation,
+									profileImage: userData.profileImage,
+									playerVRM: userData.playerVRM,
+									vrm: userData.vrm,
+									inWorldName: window.userData.inWorldName ? window.userData.inWorldName : userData.inWorldName,
+									isMoving: "walking"
+								}
+							};
+							if(props.movement.current.shift) {
+								messageObject[window.p2pcf.clientId].isMoving = "running";
+							}
+							// console.log("userdata", userData);
+							clearTimeout(movementTimeoutRef.current);
+							movementTimeoutRef.current = setTimeout(() => {
+								// Send "isMoving: false" message here
+								const messageStopObject = {
 									[window.p2pcf.clientId]: {
-										position: position,
-										rotation: rotation,
-										profileImage: userData.profileImage,
-										playerVRM: userData.playerVRM,
-										vrm: userData.vrm,
-										inWorldName: window.userData.inWorldName ? window.userData.inWorldName : userData.inWorldName,
-										isMoving: "walking"
+										isMoving: false
 									}
 								};
-								if(props.movement.current.shift) {
-									messageObject[window.p2pcf.clientId].isMoving = "running";
-								}
-								// console.log("userdata", userData);
-								clearTimeout(movementTimeoutRef.current);
-								movementTimeoutRef.current = setTimeout(() => {
-									// Send "isMoving: false" message here
-									const messageStopObject = {
-										[window.p2pcf.clientId]: {
-											isMoving: false
-										}
-									};
-									const messageStop = JSON.stringify(messageStopObject);
-									window.p2pcf.broadcast(new TextEncoder().encode(messageStop));
-								}, 100);
+								const messageStop = JSON.stringify(messageStopObject);
+								window.p2pcf.broadcast(new TextEncoder().encode(messageStop));
+							}, 100);
 
-								const message = JSON.stringify(messageObject);
+							const message = JSON.stringify(messageObject);
+							if (now - lastNetworkUpdateTime > updateRate) {
 								window.p2pcf.broadcast(new TextEncoder().encode(message)), window.p2pcf;
+								lastNetworkUpdateTime = now;
 							}
-				
-						// }
-					} else {
-						// If not moving, but walking animation is playing, stop it and play idle animation
-						if (walking.isRunning()) {
-							// blend from walking to idle
-							walking.crossFadeTo(idle, 1);
-							// set the walking animation to lower weight so it blends into the idle animation
-							walking.enabled = true;
-							walking.setEffectiveTimeScale(1);
-							walking.setEffectiveWeight(0);
-							running.setEffectiveTimeScale(1);
-							running.setEffectiveWeight(0);
-							idle.enabled = true;
-							idle.setEffectiveTimeScale(1);
-							idle.setEffectiveWeight(1);
-							idle.play();
-						} else if (running.isRunning()) {
-							// blend from running to idle
-							running.crossFadeTo(idle, 1);
-							// set the running animation to lower weight so it blends into the idle animation
-							running.enabled = true;
-							running.setEffectiveTimeScale(1);
-							running.setEffectiveWeight(0);
-							walking.setEffectiveTimeScale(1);
-							walking.setEffectiveWeight(0);
-							idle.enabled = true;
-							idle.setEffectiveTimeScale(1);
-							idle.setEffectiveWeight(1);
-							idle.play();
 						}
+					// }
+				} else {
+					// If not moving, but walking animation is playing, stop it and play idle animation
+					if (walking.isRunning()) {
+						// blend from walking to idle
+						walking.crossFadeTo(idle, 1);
+						// set the walking animation to lower weight so it blends into the idle animation
+						walking.enabled = true;
+						walking.setEffectiveTimeScale(1);
+						walking.setEffectiveWeight(0);
+						running.setEffectiveTimeScale(1);
+						running.setEffectiveWeight(0);
+						idle.enabled = true;
+						idle.setEffectiveTimeScale(1);
+						idle.setEffectiveWeight(1);
+						idle.play();
+					} else if (running.isRunning()) {
+						// blend from running to idle
+						running.crossFadeTo(idle, 1);
+						// set the running animation to lower weight so it blends into the idle animation
+						running.enabled = true;
+						running.setEffectiveTimeScale(1);
+						running.setEffectiveWeight(0);
+						walking.setEffectiveTimeScale(1);
+						walking.setEffectiveWeight(0);
+						idle.enabled = true;
+						idle.setEffectiveTimeScale(1);
+						idle.setEffectiveWeight(1);
+						idle.play();
 					}
 				}
+			}
 
 
-				if (playerControllerRef.current) {
-					playerControllerRef.current.update(delta);
-				}
-				if (playerMixerRef.current) {
-					playerMixerRef.current.update(delta);
-				}
-			});
+			if (playerControllerRef.current) {
+				playerControllerRef.current.update(delta);
+			}
+			if (playerMixerRef.current) {
+				playerMixerRef.current.update(delta);
+			}
+		});
 
 			const keyboardMap = [
 				{ name: "forward", keys: ["ArrowUp", "KeyW"] },
@@ -704,8 +752,9 @@ export default function Player(props) {
 								<primitive visible={true} name="playerOne" object={playerControllerRef.current.scene} position={[0, -0.9, 0]} rotation={[0, Math.PI, 0 ]}/>
 								{avatarIsSprite && <SpriteAnimator
 									ref={spriteRef}
-									position={[0, 1.3, 0]}
+									position={[0, 0, 0]}
 									frameName={frameName}
+									startFrame={0}
 									scale={[2, 2, 2]}
 									fps={10}
 									animationNames={['WalkForward', 'WalkBackward', 'ForwardIdle', 'BackwardIdle', 'WalkLeft', 'WalkRight']}

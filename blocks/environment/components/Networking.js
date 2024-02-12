@@ -523,11 +523,9 @@ const Networking = (props) => {
                 fastPollingRateMs: 1500
             }
         );
+        setupP2PCF(p2pcf);
 
-        // Re-setup the P2PCF instance with necessary configurations and event listeners
-        setupP2PCF(p2pcf); // Implement this function to configure the new instance
-
-    }, 500); // Adjust delay as needed
+    }, 500);
 
 });
 

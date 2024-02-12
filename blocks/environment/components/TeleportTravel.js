@@ -164,17 +164,10 @@ function Menu() {
 
 
 export default function TeleportTravel(props) {
-	const lastPinchTimeRef = useRef(null); // Ref to track the last pinch time
-	const pinchCountRef = useRef(0); // Ref to count the pinches
-	const isPinchingRef = useRef(false); // Ref to track if currently pinching
-	const pinchReleaseTimerRef = useRef(null); // Ref for the timer after pinch release
-	const releaseDelay = 300; // Delay to wait after pinch release before considering it a click
 	const doubleClickThreshold = 1000;
 	const clickTimeoutRef = useRef(null);
 	const pinchThreshold = 0.01;
 	const controllerStateRef = useRef(new Map());
-
-	
 	const { scene, camera } = useThree();
 	const {
 		centerOnTeleport,
@@ -209,7 +202,7 @@ export default function TeleportTravel(props) {
 			}
 	
 		});
-	}, [controllers, world, rapier]); // Depend on controllers and world to re-run effect
+	}, [controllers, world, rapier]);
 	
 	useFrame(() => {
 		controllers.forEach((controller, index) => {
@@ -235,9 +228,9 @@ export default function TeleportTravel(props) {
 							const now = Date.now();
 							if (state.lastPinchTime && (now - state.lastPinchTime) < doubleClickThreshold) {
 							// Double pinch detected
-							click(); // Trigger action here
+							click();
 							}
-							state.lastPinchTime = now; // Update the time of the last pinch
+							state.lastPinchTime = now;
 							controllerStateRef.current.set(controller, state);
 				
 							// Reset pinch count after a delay to avoid false double pinch detection
@@ -375,7 +368,7 @@ export default function TeleportTravel(props) {
 				//if moving, send a network event of where we are and our current state....animations probably need to go here too.
 				if(participantObject){
 					if (p2pcf) {	
-						var target = new Vector3(); // create once an reuse it
+						var target = new Vector3();
 						var worldPosition = participantObject.getWorldPosition( target );
 						const position = [
 							worldPosition.x,

@@ -40,7 +40,7 @@ class MainOptions
 		}
 		// Check and update '3ov_defaultAvatar' option
 		if( ! get_option( '3ov_defaultAvatar' ) ) {
-			update_option( '3ov_defaultAvatar', '' ); // replace 'default_value' with the value you want to set
+			update_option( '3ov_defaultAvatar', '' );
 		}
 		update_option('3ov_plugin_version', THREEOV_PLUGIN_VERSION);
 	}

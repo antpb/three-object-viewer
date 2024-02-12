@@ -31,19 +31,19 @@ const mixamoVRMRigMap = getMixamoRig();
 function loadMixamoAnimation(url, vrm) {
 	let loader;
 	if (url.endsWith('.fbx')) {
-		loader = new FBXLoader(); // Use an FBX loader
+		loader = new FBXLoader();
 	} else {
-		loader = new GLTFLoader(); // Use a GLTF loader
+		loader = new GLTFLoader();
 	}
 	return loader.loadAsync(url).then((resource) => {
-		const clip = resource.animations[0]; // Extract the AnimationClip
+		const clip = resource.animations[0];
 
 		// if resource is GLB, get the scene
 		if (url.endsWith('.glb')) {
 			resource = resource.scene;
 		}
 
-		let tracks = []; // KeyframeTracks compatible with VRM to be stored here
+		let tracks = [];
 
 		let restRotationInverse = new THREE.Quaternion();
 		let parentRestWorldRotation = new THREE.Quaternion();
@@ -131,12 +131,13 @@ function loadMixamoAnimation(url, vrm) {
  * @return {JSX.Element} The participant.
  */
 function Participant(participant) {
+
 	const fallbackURL = threeObjectPlugin + defaultVRM;
 	let playerURL = participant.playerVRM;
-	const clonedModelRef = useRef(null); // Ref for the cloned model
-	const animationMixerRef = participant.animationMixerRef; // Ref for the animation mixer of this participant
-	const animationsRef = participant.animationsRef; // Ref to store animations
-	const vrmsRef = participant.vrmsRef; // Ref to store animations
+	const clonedModelRef = useRef(null);
+	const animationMixerRef = participant.animationMixerRef;
+	const animationsRef = participant.animationsRef;
+	const vrmsRef = participant.vrmsRef;
 	const mixers = participant.mixers;
 	const [someVRM, setSomeVRM] = useState(null);
 	const [frameName, setFrameName] = useState('BackwardIdle');
@@ -174,7 +175,7 @@ function Participant(participant) {
 					console.log("pfp", pfp, response);
 					if (response.status === 200) {
 						const textureLoader = new THREE.TextureLoader();
-						textureLoader.crossOrigin = ''; // Ensure cross-origin requests are allowed
+						textureLoader.crossOrigin = '';
 						textureLoader.load(pfp, (loadedProfile) => {
 							// Now we are sure the texture is loaded
 							if(modelToModify.isObject3D){
@@ -225,7 +226,7 @@ function Participant(participant) {
 			mixers.current[participant.name] = animationMixerRef.current[participant.name];
 			participant.profileUserData.current[participant.name] = {inWorldName : participant.name, pfp: participant.pfp };
 			Promise.all(animationsPromises).then(animations => {
-				animationsRef.current[participant.name] = animations; // Store animations in ref
+				animationsRef.current[participant.name] = animations;
 
 				const idleAction = animationMixerRef.current[participant.name].clipAction(animations[0]);
 				const walkingAction = animationMixerRef.current[participant.name].clipAction(animations[1]);
@@ -234,7 +235,7 @@ function Participant(participant) {
 				idleAction.timeScale = 1;
 				idleAction.play();
 			});
-			let isProfileFetched = false; // flag to check if profile has been fetched
+			let isProfileFetched = false;
 			// return () => {
 			// 	// Cleanup function to stop and dispose mixers
 			// 	mixers.current[participant.name].forEach(mixer => mixer.stopAllAction());
@@ -282,7 +283,7 @@ function Participant(participant) {
 
 	// use textureLoader to load the profile image.
 	const textureLoader = new THREE.TextureLoader();
-	textureLoader.crossOrigin = ''; // Ensure cross-origin requests are allowed
+	textureLoader.crossOrigin = '';
 	const profileImage = textureLoader.load(participant.profileImage);
 	const displayName = participant.inWorldName ? participant.inWorldName : participant.name;
 
@@ -368,41 +369,35 @@ export function Participants(props) {
 	// create a ref for the profile user data information for each participant to be held in an array
 	const profileUserData = useRef([]);
 	// make ref for animation mixer for each participant
-	const animationMixerRef = useRef([]); // Ref for the animation mixer of this participant
-	const animationsRef = useRef([]); // Ref to store animations
+	const animationMixerRef = useRef([]);
+	const animationsRef = useRef([]);
 	const mixers = useRef([]);
 	const displayNameTextRef = useRef(null);
     const textRefs = useRef({});
 	const participantRefs = useRef({});
 	const vrmsRef = useRef({});
+	const [participants, setParticipant] = useState([]);
 
 	useEffect(() => {
 		if(window.p2pcf){
 			window.p2pcf.on("msg", (peer, data) => {
-				// if window.participants does not have peer.id key, return
 				if(!(peer.id in window.participants)){
 					return;
 				}
 				const finalData = new TextDecoder("utf-8").decode(data);
 				const participantData = JSON.parse(finalData);
 				const participantObject = theScene.scene.getObjectByName(peer.client_id);
-				// @todo explore networking head movement
-				if(participantData[peer.client_id].headRotation && vrmsRef.current[peer.client_id] ) {
-					const headBone = vrmsRef.current[peer.client_id].humanoid.getRawBoneNode("head");
-					const quaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(
-						participantData[peer.client_id].headRotation._x,
-						participantData[peer.client_id].headRotation._y,
-						participantData[peer.client_id].headRotation._z,
-						'XYZ' // Assuming the rotation order is XYZ, adjust as necessary
-					  ));
-					  headBone.quaternion.copy(quaternion);
-
+	
+				// Assuming participantObject has userData for storing target position & rotation
+				if(participantObject) {
+					participantObject.userData.targetPosition = participantData[peer.client_id]?.position;
+					participantObject.userData.targetRotation = participantData[peer.client_id]?.rotation;
 				}
-		
+
 				if (animationsRef.current[peer.client_id]) {
-					const walkAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][1]); // Walking animation
-					const idleAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][0]); // Idle animation
-					const runAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][2]); // Running animation
+					const walkAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][1]);
+					const idleAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][0]);
+					const runAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][2]);
 					// get their headbone and apply the rotation using the participantData[peer.client_id].headRotation
 
 					if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "walking") {
@@ -423,7 +418,7 @@ export function Participants(props) {
 	
 				if (participantObject) {
 					if(participantData[peer.client_id]?.position){
-						console.log("participants rot", participantData[peer.client_id].rotation);
+						// console.log("participants rot", participantData[peer.client_id].rotation);
 						participantObject.parent.position.fromArray(participantData[peer.client_id].position);
 						participantObject.parent.rotation.fromArray(participantData[peer.client_id].rotation);
 					}
@@ -436,7 +431,7 @@ export function Participants(props) {
 				}
 			});
 		}
-	}, []);
+	}, []);	
 
 	useEffect(() => {
 		const p2pcf = window.p2pcf;
@@ -454,7 +449,7 @@ export function Participants(props) {
 					delete mixers.current[peer.client_id];
 				}
 				// remove peer.client_id
-				props.setParticipant(prevParticipants => {
+				setParticipant(prevParticipants => {
 					return prevParticipants.filter(item => item[0] !== peer.client_id);
 				});
 			});
@@ -477,7 +472,7 @@ export function Participants(props) {
 				const thisParticipantName = {};
 				window.participants[peer.id] = "";
 
-				props.setParticipant(prevParticipants => {
+				setParticipant(prevParticipants => {
 					// Check if any sub-array has `peer.client_id` as its first element
 					const isParticipantExists = prevParticipants.some(participant => participant[0] === peer.client_id);
 				
@@ -496,7 +491,7 @@ export function Participants(props) {
 
 	return (
 		<>
-			{props.participants && props.participants.map((item, index) => (
+			{participants && participants.map((item, index) => (
 				<Participant 
 					key={index}
 					name={item[0]}

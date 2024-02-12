@@ -172,7 +172,7 @@ export function Portal(model) {
 	const gltf = useLoader(GLTFLoader, url, (loader) => {
 		const dracoLoader = new DRACOLoader();
 		dracoLoader.setDecoderPath( model.threeObjectPluginRoot + "/inc/utils/draco/");
-		dracoLoader.setDecoderConfig({type: 'js'}); // (Optional) Override detection of WASM support.
+		dracoLoader.setDecoderConfig({type: 'js'});
 		loader.setDRACOLoader(dracoLoader);
 
 		loader.register(
