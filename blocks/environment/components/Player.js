@@ -17,6 +17,7 @@ import idle from "../../../inc/avatars/friendly.fbx";
 import walk from "../../../inc/avatars/walking.fbx";
 import run from "../../../inc/avatars/running.fbx";
 import jump from "../../../inc/avatars/Jump.fbx";
+import fall from "../../../inc/avatars/falling.fbx";
 import { getMixamoRig } from "../utils/rigMap";
 import Ecctrl, { EcctrlAnimation, useGame, useFollowCam } from "ecctrl";
 // import {useGame} from './useGame'
@@ -224,7 +225,6 @@ export default function Player(props) {
 
 	const canMoveRef = useRef(true);
 	const spriteRef = useRef();
-	const falling = useRef(true);
 	const animationsRef = useRef();
 	const playerModelRef = useRef();
 
@@ -241,10 +241,10 @@ export default function Player(props) {
 	const idleAnimation = useGame((state) => state.idle);
 	const walkAnimation = useGame((state) => state.walk);
 	const runAnimation = useGame((state) => state.run);
-	const jumpAnimation = useGame((state) => state.jump);
-	const jumpIdleAnimation = useGame((state) => state.jumpIdle);
-	const jumpLandAnimation = useGame((state) => state.jumpLand);
-	const fallAnimation = useGame((state) => state.fall);
+	// const jumpAnimation = useGame((state) => state.jump);
+	// const jumpIdleAnimation = useGame((state) => state.jumpIdle);
+	// const jumpLandAnimation = useGame((state) => state.jumpLand);
+	// const fallAnimation = useGame((state) => state.fall);
 	const action1Animation = useGame((state) => state.action1);
 	const action2Animation = useGame((state) => state.action2);
 	const action3Animation = useGame((state) => state.action3);
@@ -254,30 +254,30 @@ export default function Player(props) {
 	// useXR to get the controllers
 	// const [ playerPosition, deathCount, levelIndex, death ] = useGame(state => [ state.playerPosition, state.deathCount, state.levelIndex, state.death ])	
 	
-	useEffect(() => {
-		// Play the current animation, with special handling for certain animations
-		if(animationsRef.current){
-			const action = animationsRef.current[curAnimation ? curAnimation : animationSet.idle];
-			if ([animationSet.jump ].includes(curAnimation)) {
-			action.reset().fadeIn(0.2).setLoop(LoopOnce, void 0).play();
-			action.clampWhenFinished = true;
-			} else {
-			action.reset().fadeIn(0.2).play();
-			}
+	// useEffect(() => {
+	// 	// Play the current animation, with special handling for certain animations
+	// 	if(animationsRef.current){
+	// 		const action = animationsRef.current[curAnimation ? curAnimation : animationSet.idle];
+	// 		if ([animationSet.jump ].includes(curAnimation)) {
+	// 			action.reset().fadeIn(0.2).setLoop(LoopOnce, void 0).play();
+	// 			action.clampWhenFinished = true;
+	// 		} else {
+	// 			action.reset().fadeIn(0.2).play();
+	// 		}
 		
-			// Reset animation when the current action finishes
-			const onFinish = () => resetAnimation();
-			action._mixer.addEventListener('finished', onFinish);
+	// 		// Reset animation when the current action finishes
+	// 		const onFinish = () => resetAnimation();
+	// 		action._mixer.addEventListener('finished', onFinish);
 		
-			// Cleanup
-			return () => {
-			action.fadeOut(0.2);
-			action._mixer.removeEventListener('finished', onFinish);
-			// Ensure listeners are cleared to prevent memory leaks
-			action._mixer._listeners = [];
-			};
-		}
-	  }, [curAnimation, animationsRef.current, animationSet, resetAnimation]);
+	// 		// Cleanup
+	// 		return () => {
+	// 		action.fadeOut(0.2);
+	// 		action._mixer.removeEventListener('finished', onFinish);
+	// 		// Ensure listeners are cleared to prevent memory leaks
+	// 		action._mixer._listeners = [];
+	// 		};
+	// 	}
+	//   }, [curAnimation, animationsRef.current, animationSet, resetAnimation]);
 	
 	// useEffect(() => {
 	// 	if(animationsRef.current){
@@ -339,6 +339,7 @@ export default function Player(props) {
 	const walkingFile	= threeObjectPlugin + walk;
 	const runningFile	= threeObjectPlugin + run;
 	const jumpFile	= threeObjectPlugin + jump;
+	const fallingFile	= threeObjectPlugin + fall;
 	// const [walkFile, setWalkFile] = useState(model.threeObjectPlugin + walk);
 	const spawnPoint = props.spawnPoint? props.spawnPoint.map(Number) : [0,0,0];  // convert spawnPoint to numbers
 	const { controllers } = useXR();
@@ -370,7 +371,6 @@ export default function Player(props) {
 	// if the playerURL ends in .png
 	useEffect(() => {
 		if( userData.playerVRM.endsWith( '.png' ) ){
-			console.log("player url is", userData.playerVRM);
 			setAvatarIsSprite(true);
 		}
 	}, []);
@@ -425,10 +425,11 @@ export default function Player(props) {
 			  const walkingAction = animationsMixer.clipAction(animations[1]);
 			  const runningAction = animationsMixer.clipAction(animations[2]);
 			  const jumpingAction = animationsMixer.clipAction(animations[3]);
-			  idleAction.timeScale = 0.8;
-			  walkingAction.timeScale = 1;
-			  runningAction.timeScale = 1;
-			  jumpingAction.timeScale = 1;
+			//   const fallingAction = animationsMixer.clipAction(animations[4]);
+			  idleAction.timeScale = 1;
+			  walkingAction.timeScale = 0;
+			  runningAction.timeScale = 0;
+			  jumpingAction.timeScale = 0;
 			  animationsRef.current = { idle: idleAction, walking: walkingAction, running: runningAction, jump: jumpingAction };
 			  idleAction.play();
 			  playerController.scene.visible = true;
@@ -487,10 +488,10 @@ export default function Player(props) {
 		// fps for network updates
 		const updateRate = 1000 / 30;
 		let lastNetworkUpdateTime = 0;
+		let countHangtime = 0;
 		
 		useFrame((state, delta) => {
 			const now = state.clock.elapsedTime * 1000;
-
 			if (isPresenting && !presentingState) {
 				const newCamera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
@@ -510,14 +511,15 @@ export default function Player(props) {
 			handleBlinking(delta);
 
 			let isMoving = false;
+			let isJumping = false;
 
-			if (props.movement.current.backward) {
+			if (props.movement.current.backward && characterRef.current.userData.canJump) {
 				isMoving = true;
-			} else if (props.movement.current.forward) {
+			} else if (props.movement.current.forward && characterRef.current.userData.canJump) {
 				isMoving = true;
-			} else if (props.movement.current.left) {
+			} else if (props.movement.current.left && characterRef.current.userData.canJump) {
 				isMoving = true;
-			} else if (props.movement.current.right) {
+			} else if (props.movement.current.right && characterRef.current.userData.canJump) {
 				isMoving = true;
 			}
 			// if(avatarIsSprite && isMoving && frameName !== 'WalkForward'){
@@ -568,7 +570,7 @@ export default function Player(props) {
 					}
 				}
 	
-				const { idle, walking, running } = animationsRef.current;
+				const { idle, walking, running, jump, falling } = animationsRef.current;
 				// if the player hits the R key respawn using the characterRef to move it to the origin spawn point
 				if(props.movement.current.respawn){
 					characterRef.current.setBodyType(rapier.RigidBodyType.Fixed, 1);
@@ -576,44 +578,104 @@ export default function Player(props) {
 				} else if(!props.movement.current.respawn && characterRef.current.bodyType() === 1){
 					characterRef.current.setBodyType(rapier.RigidBodyType.Dynamic, 0);
 				}
-
-				if (isMoving) {	
-					// If moving, but idle animation is playing, stop it and play walking animation
-					// if (idle.isRunning()) {
-						// blend from idle to walking
-						if(props.movement.current.shift) {
-							if (walking.isRunning()) {
-								walking.crossFadeTo(running, 1.1);
-							} else {
-								idle.crossFadeTo(running, 1.1);
-							}
-							running.enabled = true;
-							running.setEffectiveTimeScale(1.1);
-							running.setEffectiveWeight(1);
-							idle.enabled = true;
-							idle.setEffectiveTimeScale(1);
-							idle.setEffectiveWeight(0);
-							walking.enabled = true;
-							walking.setEffectiveTimeScale(1.1);
-							walking.setEffectiveWeight(0);
-							running.play();
-						} else {
-							if (running.isRunning()) {
-								running.crossFadeTo(walking, 1);
-							} else {
-								idle.crossFadeTo(walking, 1);
-							}
-							walking.enabled = true;
-							walking.setEffectiveTimeScale(1.1);
-							walking.setEffectiveWeight(1);
-							running.enabled = true;
-							running.setEffectiveTimeScale(1.1);
+				if ( isMoving && characterRef.current.userData.canJump ) {
+					jump.clampWhenFinished = false;
+					jump.reset();
+					jump.setEffectiveTimeScale(0);
+					jump.setEffectiveWeight(0);
+				} else if( !isMoving && characterRef.current.userData.canJump ) {
+					jump.clampWhenFinished = false;
+					jump.reset();
+					jump.setEffectiveTimeScale(0);
+					jump.setEffectiveWeight(0);
+					// and now play idle
+					idle.setEffectiveTimeScale(1);
+					idle.setEffectiveWeight(1);
+				}
+				if ( ! characterRef.current.userData.canJump ) {
+					// start tracking hangtime
+					countHangtime++;
+					// if the current timescale of the jump animation is 0, set it to 1
+					if(jump.getEffectiveTimeScale() === 0){
+						if(countHangtime > 3){
+							jump.setEffectiveTimeScale(1);
+							jump.setEffectiveWeight(1);
+							jump.clampWhenFinished = true;
+							// initialize on the last frame of the jump animation
+							jump.time = jump._clip.duration;
+							jump.play();
+							running.setEffectiveTimeScale(0);
 							running.setEffectiveWeight(0);
-							idle.enabled = true;
-							idle.setEffectiveTimeScale(1);
-							idle.setEffectiveWeight(0);
-							walking.play();
+							walking.setEffectiveTimeScale(0);
+							walking.setEffectiveWeight(0);	
+							console.log("falling all", "idle:" + idle.getEffectiveTimeScale() + idle.getEffectiveWeight(), "walking:" + walking.getEffectiveTimeScale() + walking.getEffectiveWeight(), "running:" + running.getEffectiveTimeScale() + running.getEffectiveWeight(), "jumping" + jump.getEffectiveTimeScale() + jump.getEffectiveWeight());
 						}
+					}
+				}
+
+				if(props.movement.current.space) {
+					if( characterRef.current.userData.canJump ) {
+						isJumping = true;
+						// reset hangtime
+						countHangtime = 0;
+						jump.setEffectiveTimeScale(1);
+						jump.setEffectiveWeight(1);
+
+						// set all animations to timescale of 0
+						idle.setEffectiveTimeScale(0);
+						walking.setEffectiveTimeScale(0);
+						running.setEffectiveTimeScale(0);
+						// falling.setEffectiveTimeScale(0);
+						idle.setEffectiveWeight(0);
+						walking.setEffectiveWeight(0);
+						running.setEffectiveWeight(0);
+						// falling.setEffectiveWeight(0);
+
+						console.log("jump all", "idle:" + idle.getEffectiveTimeScale() + idle.getEffectiveWeight(), "walking:" + walking.getEffectiveTimeScale() + walking.getEffectiveWeight(), "running:" + running.getEffectiveTimeScale() + running.getEffectiveWeight(), "jumping" + jump.getEffectiveTimeScale() + jump.getEffectiveWeight());
+						jump.setLoop(LoopOnce, 1);
+						jump.reset();
+						jump.clampWhenFinished = true;
+						jump.play();			
+					}
+				}
+
+
+				if ( isMoving && characterRef.current.userData.canJump ) {
+					countHangtime = 0;
+
+							if(props.movement.current.shift) {
+								if (walking.isRunning()) {
+									walking.crossFadeTo(running, 1.1);
+								} else {
+									idle.crossFadeTo(running, 1.1);
+								}
+								running.enabled = true;
+								running.setEffectiveTimeScale(1);
+								running.setEffectiveWeight(1);
+								idle.enabled = true;
+								idle.setEffectiveTimeScale(1);
+								idle.setEffectiveWeight(0);
+								walking.enabled = true;
+								walking.setEffectiveTimeScale(1);
+								walking.setEffectiveWeight(0);
+								running.play();
+							} else {
+								if (running.isRunning()) {
+									running.crossFadeTo(walking, 1);
+								} else {
+									idle.crossFadeTo(walking, 1);
+								}
+								walking.enabled = true;
+								walking.setEffectiveTimeScale(1);
+								walking.setEffectiveWeight(1);
+								running.enabled = true;
+								running.setEffectiveTimeScale(1);
+								running.setEffectiveWeight(0);
+								idle.enabled = true;
+								idle.setEffectiveTimeScale(1);
+								idle.setEffectiveWeight(0);
+								walking.play();
+							}
 
 						//if moving, send a network event of where we are and our current state....animations probably need to go here too.
 						if (window.p2pcf) {
@@ -629,9 +691,9 @@ export default function Player(props) {
 							// console.log("sending position", participantObject, position);
 
 							const rotation = [
-								participantObject.parent.parent.rotation.x,
-								participantObject.parent.parent.rotation.y,
-								participantObject.parent.parent.rotation.z
+								participantObject.parent.rotation.x,
+								participantObject.parent.rotation.y,
+								participantObject.parent.rotation.z
 							];
 							// console.log("userData", userData);
 							const messageObject = {
@@ -669,33 +731,32 @@ export default function Player(props) {
 						}
 					// }
 				} else {
-					// If not moving, but walking animation is playing, stop it and play idle animation
-					if (walking.isRunning()) {
-						// blend from walking to idle
-						walking.crossFadeTo(idle, 1);
-						// set the walking animation to lower weight so it blends into the idle animation
-						walking.enabled = true;
-						walking.setEffectiveTimeScale(1);
-						walking.setEffectiveWeight(0);
-						running.setEffectiveTimeScale(1);
-						running.setEffectiveWeight(0);
-						idle.enabled = true;
-						idle.setEffectiveTimeScale(1);
-						idle.setEffectiveWeight(1);
-						idle.play();
-					} else if (running.isRunning()) {
-						// blend from running to idle
-						running.crossFadeTo(idle, 1);
-						// set the running animation to lower weight so it blends into the idle animation
-						running.enabled = true;
-						running.setEffectiveTimeScale(1);
-						running.setEffectiveWeight(0);
-						walking.setEffectiveTimeScale(1);
-						walking.setEffectiveWeight(0);
-						idle.enabled = true;
-						idle.setEffectiveTimeScale(1);
-						idle.setEffectiveWeight(1);
-						idle.play();
+					if(characterRef.current.userData.canJump){
+						isJumping = false;
+						if (walking.isRunning()) {	
+							walking.crossFadeTo(idle, 1);
+							walking.enabled = true;
+							walking.setEffectiveTimeScale(1);
+							walking.setEffectiveWeight(0);
+							running.setEffectiveTimeScale(1);
+							running.setEffectiveWeight(0);
+							idle.enabled = true;
+							idle.setEffectiveTimeScale(1);
+							idle.setEffectiveWeight(1);
+							idle.play();
+						} else if (running.isRunning()) {
+							// blend from running to idle
+							running.crossFadeTo(idle, 1);
+							running.enabled = true;
+							running.setEffectiveTimeScale(1);
+							running.setEffectiveWeight(0);
+							walking.setEffectiveTimeScale(1);
+							walking.setEffectiveWeight(0);
+							idle.enabled = true;
+							idle.setEffectiveTimeScale(1);
+							idle.setEffectiveWeight(1);
+							idle.play();
+						}
 					}
 				}
 			}
@@ -738,19 +799,19 @@ export default function Player(props) {
 						animated
 						camMoveSpeed={1.5} // Increased camera movement speed for more dynamic camera follow
 						camZoomSpeed={1.5} // Faster zoom to adjust view quicker
-						sprintMult={1.9} // Slightly increased for a faster sprint option
+						autoBalance={false} // Disabled to prevent auto-balance
+						//sprintMult={1.9} // Slightly increased for a faster sprint option
 						airDragMultiplier={0.05} // Slightly reduced to decrease hangtime
 						fallingGravityScale={3.5} // Increased to accelerate descent
-						wakeUpDelay={2000} 
-						dampingC={0.1}
+						wakeUpDelay={4000}			
 						disableFollowCam={ isPresenting ? true : false }
 						physics={isPresenting ? true : false}
-
 					>
 						{isModelLoaded && playerControllerRef.current && (
 							<>
 								<primitive visible={true} name="playerOne" object={playerControllerRef.current.scene} position={[0, -0.9, 0]} rotation={[0, Math.PI, 0 ]}/>
 								{avatarIsSprite && <SpriteAnimator
+									name="playerOneSprite"
 									ref={spriteRef}
 									position={[0, 0, 0]}
 									frameName={frameName}

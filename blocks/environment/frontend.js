@@ -223,7 +223,6 @@ threeApp.forEach((threeApp) => {
 
 		render(
 			<>
-				{ ( networkingBlock.length > 0 ) && (
 					<>
 						<div id="networking" class="threeov-networking-controls">
 							{/* <div id="session-id">Room: </div> */}
@@ -241,11 +240,12 @@ threeApp.forEach((threeApp) => {
 								>
 									<img style={{maxWidth: "40px", marginLeft: "-10.5px", marginTop: "-11px"}} src={threeObjectPluginRoot + "build/" + hmdIcon} alt="Enter VR" />
 								</XRButton>
-
-								<button class="button" id="audio-button">
-									<span style={{fontSize: "0.6em", display:"block" }}>JOIN</span>
-									<span>VOICE</span>
-								</button>
+								{ ( networkingBlock.length > 0 ) && (
+									<button class="button" id="audio-button">
+										<span style={{fontSize: "0.6em", display:"block" }}>JOIN</span>
+										<span>VOICE</span>
+									</button>
+								)}
 							</div>
 							<div id="room-dropdown"></div>
 							<div id="videos"></div>
@@ -253,10 +253,9 @@ threeApp.forEach((threeApp) => {
 						<Networking
 								postSlug={postSlug}
 								userData={userData}
+								networkingBlock={networkingBlock}
 						/>
 					</>
-				)
-				}
 					<EnvironmentFront
 						threeUrl={threeUrl}
 						deviceTarget={deviceTarget}

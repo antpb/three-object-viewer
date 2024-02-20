@@ -79,12 +79,17 @@
 	color: white;
 }
 
+
 .threeov-entry-flow {
 	background-color: #212121f4;
 	color: white;
 	text-align: center;
 	border-radius: 20px;
 	box-shadow: 0px 0px 17px 5px rgb(15 0 0 / 57%);
+}
+
+.threeov-entry-flow span {
+	font-size: 0.8em;
 }
 
 .threeov-entry-flow input {
@@ -459,6 +464,15 @@ div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner
 
 .threeov-entry-flow input {
 	box-shadow: 0px 0px 8px 5px rgb(15 0 0 / 57%);
+	background-color: #af7bd40f;
+	padding: 5px;
+    color: white;
+	border: 1px solid #a82dff0f;
+	margin-bottom: 10px;
+	width: 180px;
+}
+.threeov-entry-flow div div {
+	margin-top: 10px;
 }
 
 .threeov-entry-flow input:focus {

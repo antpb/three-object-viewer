@@ -600,6 +600,23 @@ function SavedObject(props) {
 }
 
 export default function EnvironmentFront(props) {
+
+	useEffect(() => {
+		const checkGamepads = () => {
+		  const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+		  for (let i = 0; i < gamepads.length; i++) {
+			if (gamepads[i]) {
+			  console.log("Gamepad connected at index " + gamepads[i].index + ": " + gamepads[i].id);
+			  // Handle gamepad connection (update state, start reading inputs, etc.)
+			}
+		  }
+		};
+	  
+		const interval = setInterval(checkGamepads, 1000); // Check every second
+	  
+		return () => clearInterval(interval); // Cleanup on component unmount
+	  }, []);
+	  
 	const [showUI, setShowUI] = useState(true);
 	const [displayName, setDisplayName] = useState(props.userData.inWorldName);
 	const [playerAvatar, setPlayerAvatar] = useState(props.userData.playerVRM);
@@ -679,8 +696,7 @@ export default function EnvironmentFront(props) {
 							zIndex: 1
 						}}
 					>
-						<XR						
-						>
+						<XR>
 							<FrontPluginProvider>
 							{/* <Perf className="stats" /> */}
 							{/* <fog attach="fog" color="hotpink" near={100} far={20} /> */}
@@ -698,14 +714,17 @@ export default function EnvironmentFront(props) {
 								<Physics
 									erp = {1}
 									iterations = {10}
-									// timestep = {1/60}
-									gravity={[0, -9.8, 0]}
+									// timestep = {1/30}
+									// gravity={[0, -9.8, 0]}
+									interpolate={false}
 									allowSleep={true}
 									allowDeactivation={true}
 									// allowCcd={true}
-									broadphase={true}
-									// debug={true}
-									timeStep="vary"
+									// updateLoop="independent"
+									debug={false}
+									timeStep={"vary"}
+									updateLoop={"follow"}
+									updatePriority={-100}
 								>
 									{loaded && (
 										<Player
@@ -726,9 +745,11 @@ export default function EnvironmentFront(props) {
 												spawnPoint={props.spawnPoint}
 												useNormal={false}
 											>
-												<Participants 
-													participants={participants}
-												/>
+												{ ( props.networkingBlock.length > 0 ) && (
+													<Participants 
+														participants={participants}
+													/>
+												)}
 												<SavedObject
 													positionY={props.positionY}
 													rotationY={props.rotationY}
@@ -2208,64 +2229,10 @@ export default function EnvironmentFront(props) {
 							/>
 					)
 					})}
-						<>
+					<>
 						{ isMobile() && (
 							<EcctrlJoystick buttonNumber={5} />
-						// <ReactNipple
-						// 	// supports all nipplejs options
-						// 	// see https://github.com/yoannmoinet/nipplejs#options
-						// 	options={{ mode: 'static', position: { top: '50%', left: '50%' } }}
-						// 	// any unknown props will be passed to the container element, e.g. 'title', 'style' etc
-						// 	style={{
-						// 		outline: '1px dashed red',
-						// 		width: 150,
-						// 		height: 150,
-						// 		position: "absolute",
-						// 		bottom: 30,
-						// 		left: 30,
-						// 		userSelect: "none",
-						// 		transition: "opacity 0.5s"
-						// 	}}
-						// 	// all events supported by nipplejs are available as callbacks
-						// 	// see https://github.com/yoannmoinet/nipplejs#start
-						// 	onMove={( evt, data ) => {
-						// 		if(data.force > 1.5){
-						// 			movement.current.shift = true;
-						// 		} else {
-						// 			movement.current.shift = false;
-						// 		}
-						// 		if(data.direction && data.direction.angle){
-						// 			if(data.direction.angle === "up" && ! movement.current.forward){
-						// 				movement.current.forward = true;
-						// 				movement.current.backward = false;
-						// 				movement.current.left = false;
-						// 				movement.current.right = false;
-						// 			} else if(data.direction.angle === "down"  && ! movement.current.backward){
-						// 				movement.current.forward = false;
-						// 				movement.current.backward = true;
-						// 				movement.current.left = false;
-						// 				movement.current.right = false;
-						// 			} else if(data.direction.angle === "left"  && ! movement.current.left){
-						// 				movement.current.forward = false;
-						// 				movement.current.backward = false;
-						// 				movement.current.left = true;
-						// 				movement.current.right = false;
-						// 			} else if(data.direction.angle === "right"  && ! movement.current.right){
-						// 				movement.current.forward = false;
-						// 				movement.current.backward = false;
-						// 				movement.current.left = false;
-						// 				movement.current.right = true;
-						// 			}	
-						// 		}
-						// 	}}
-						// 	onEnd={( evt, data ) => {
-						// 		movement.current.forward = false;
-						// 		movement.current.backward = false;
-						// 		movement.current.left = false;
-						// 		movement.current.right = false;
-						// 	}}
-						// />
-					) }
+						) }
 					</>
 				</>
 			);
@@ -2303,7 +2270,7 @@ export default function EnvironmentFront(props) {
 						{/* <span>Display Name</span> */}
 						<input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
 						<div>
-							<span>Avatar URL</span>
+							<span>VRM or Sprite URL</span>
 							<input type="text" value={playerAvatar} onChange={(e) => setPlayerAvatar(e.target.value)} />
 						</div>
 					</div>

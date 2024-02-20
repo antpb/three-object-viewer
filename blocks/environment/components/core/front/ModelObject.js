@@ -264,6 +264,7 @@ export function ModelObject(model) {
 		const circle = new Mesh(geometryCircle, materialCircle);
 		return circle;
 	});
+
 	if (model.collidable === "1") {
 		return (
 				<RigidBody
@@ -297,26 +298,9 @@ export function ModelObject(model) {
 							}
 						}
 					}}
-				// onCollisionEnter={ ( props ) =>(
-				// 	// window.location.href = model.destinationUrl
-				// 	)
-				// }
 				>
 					<primitive
 						object={gltf.scene}
-						// castShadow
-						// receiveShadow
-						// rotation={[
-						// 	model.rotationX,
-						// 	model.rotationY,
-						// 	model.rotationZ
-						// ]}
-						// position={[
-						// 	model.positionX,
-						// 	model.positionY,
-						// 	model.positionZ
-						// ]}
-						// scale={[model.scaleX, model.scaleY, model.scaleZ]}
 					/>
 				</RigidBody>
 		);

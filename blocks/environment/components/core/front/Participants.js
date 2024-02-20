@@ -166,7 +166,7 @@ function Participant(participant) {
 		if (someVRM?.userData?.gltfExtensions?.VRM) {
 			const playerController = someVRM.userData.vrm;
 			// add the playerController to the vrmsRef
-			vrmsRef.current[participant.name] = playerController;
+			vrmsRef.current[participant.playerName] = playerController;
 			const fetchProfile = async (pfp, modelToModify) => {
 				console.log("modelToModify", modelToModify);
 
@@ -221,16 +221,16 @@ function Participant(participant) {
 
 			// Create animation mixer for the cloned model
 			const newMixer = new THREE.AnimationMixer(playerController.scene);
-			animationMixerRef.current[participant.name] = newMixer;
+			animationMixerRef.current[participant.playerName] = newMixer;
 			// console.log("heres the current mixers", animationMixerRef.current[participant.name]);
-			mixers.current[participant.name] = animationMixerRef.current[participant.name];
-			participant.profileUserData.current[participant.name] = {inWorldName : participant.name, pfp: participant.pfp };
+			mixers.current[participant.playerName] = animationMixerRef.current[participant.playerName];
+			participant.profileUserData.current[participant.playerName] = {inWorldName : participant.playerName, pfp: participant.pfp };
 			Promise.all(animationsPromises).then(animations => {
-				animationsRef.current[participant.name] = animations;
+				animationsRef.current[participant.playerName] = animations;
 
-				const idleAction = animationMixerRef.current[participant.name].clipAction(animations[0]);
-				const walkingAction = animationMixerRef.current[participant.name].clipAction(animations[1]);
-				const runningAction = animationMixerRef.current[participant.name].clipAction(animations[2]);
+				const idleAction = animationMixerRef.current[participant.playerName].clipAction(animations[0]);
+				const walkingAction = animationMixerRef.current[participant.playerName].clipAction(animations[1]);
+				const runningAction = animationMixerRef.current[participant.playerName].clipAction(animations[2]);
 				// console.log("animationmixer", animationMixerRef.current[participant.name] , idleAction, walkingAction, runningAction);
 				idleAction.timeScale = 1;
 				idleAction.play();
@@ -245,20 +245,20 @@ function Participant(participant) {
 	}, [someVRM, theScene, participant.p2pcf]);
 
 	useFrame((state, delta) => {
-		if(mixers.current[participant.name]){
+		if(mixers.current[participant.playerName]){
 				// Log each action in the mixer
 				// mixer._actions.forEach(action => {
 				// 	console.log(`Action: ${action._clip.name}, Is Running: ${action.isRunning()}, Effective Weight: ${action.getEffectiveWeight()}, Current Time: ${action.time}`);
 				// });
 				// Find and play the idle animation explicitly
-				const idleAction = mixers.current[participant.name]._actions.find(action => action._clip.name === 'idle');
+				const idleAction = mixers.current[participant.playerName]._actions.find(action => action._clip.name === 'idle');
 				if (idleAction && !idleAction.isRunning()) {
 					console.log("idle action", idleAction);
 					idleAction.reset().play();
 				}
 	
 				// Update the mixer
-				mixers.current[participant.name].update(delta);
+				mixers.current[participant.playerName].update(delta);
 		}
 	
 		if (someVRM?.userData?.vrm) {
@@ -279,13 +279,17 @@ function Participant(participant) {
 
 	//calculate the height of the avatar to be used in the Text component position below
 	const box = new THREE.Box3().setFromObject(modelClone);
-	const height = (box.max.y - box.min.y) + 0.1;
+	let height = (box.max.y - box.min.y) + 0.1;
+	// if the height is negative infinity, set the height to 1.5
+	if (height === -Infinity) {
+		height = 1.8;
+	}
 
 	// use textureLoader to load the profile image.
 	const textureLoader = new THREE.TextureLoader();
 	textureLoader.crossOrigin = '';
 	const profileImage = textureLoader.load(participant.profileImage);
-	const displayName = participant.inWorldName ? participant.inWorldName : participant.name;
+	const displayName = participant.inWorldName ? participant.inWorldName : participant.playerName;
 
 	let planeWidth = 0.25;
 	let fontSize = 0.04;
@@ -302,7 +306,6 @@ function Participant(participant) {
 
 	// ends with participant.playerVRM is png?
 	let isPng = participant.playerVRM.endsWith('.png');
-
 	return (
 		<group>
 			<group rotation={[0, Math.PI, 0 ]}>
@@ -345,7 +348,7 @@ function Participant(participant) {
 						{displayName}
 					</Text>
 			</group>
-			<primitive name={participant.name} object={playerController.scene} rotation={[0, Math.PI, 0 ]}/>
+			<primitive name={participant.playerName} object={playerController.scene} rotation={[0, Math.PI, 0 ]}/>
 			{ isPng && <SpriteAnimator
 				position={[0, 1, 0]}
 				frameName={frameName}
@@ -386,14 +389,9 @@ export function Participants(props) {
 				}
 				const finalData = new TextDecoder("utf-8").decode(data);
 				const participantData = JSON.parse(finalData);
+				console.log("participantData received", participantData);
 				const participantObject = theScene.scene.getObjectByName(peer.client_id);
 	
-				// Assuming participantObject has userData for storing target position & rotation
-				if(participantObject) {
-					participantObject.userData.targetPosition = participantData[peer.client_id]?.position;
-					participantObject.userData.targetRotation = participantData[peer.client_id]?.rotation;
-				}
-
 				if (animationsRef.current[peer.client_id]) {
 					const walkAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][1]);
 					const idleAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][0]);
@@ -417,8 +415,8 @@ export function Participants(props) {
 				}
 	
 				if (participantObject) {
-					if(participantData[peer.client_id]?.position){
-						// console.log("participants rot", participantData[peer.client_id].rotation);
+					if(participantData[peer.client_id]?.position && participantData[peer.client_id]?.rotation){
+						console.log("participants rot", participantData[peer.client_id], participantObject.parent);
 						participantObject.parent.position.fromArray(participantData[peer.client_id].position);
 						participantObject.parent.rotation.fromArray(participantData[peer.client_id].rotation);
 					}
@@ -494,7 +492,7 @@ export function Participants(props) {
 			{participants && participants.map((item, index) => (
 				<Participant 
 					key={index}
-					name={item[0]}
+					playerName={item[0]}
 					p2pcf={p2pcf}
 					animationMixerRef={animationMixerRef}
 					vrmsRef={vrmsRef}

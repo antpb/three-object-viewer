@@ -1,12 +1,11 @@
 import { Raycaster, Vector3, Mesh, MeshBasicMaterial, BoxGeometry } from "three";
-import { useXR, Interactive, useController } from "@react-three/xr";
+import { useXR, Interactive, useController, useTeleportation } from "@react-three/xr";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useCallback, useRef, useState, useEffect } from "react";
 import { useRapier, useRigidBody, RigidBody } from "@react-three/rapier";
 import {
 	Text,
 } from "@react-three/drei";
-import { useTeleportation } from '@react-three/xr'
 import { BLUE } from "@wordpress/components/build/utils/colors-values";
 
 export function indexAndThumbColliders() {
@@ -94,8 +93,8 @@ function Button({ onClick, position, color, hoverColor }) {
 		onBlur={() => setHovered(false)}
 	>
 		<mesh position={position} ref={mesh}>
-		<boxGeometry args={[0.4, 0.2, 0.01]} />
-		<meshStandardMaterial color={currentColor} />
+			<boxGeometry args={[0.4, 0.2, 0.01]} />
+			<meshStandardMaterial color={currentColor} />
 		</mesh>
 	</Interactive>
 	);
@@ -118,19 +117,20 @@ function Menu() {
 			// } else {
 			// 	window.localStream.getAudioTracks()[0].enabled = true;
 			// }
-			console.log("window.localStream", window.localStream.getAudioTracks()[0]);
+			// console.log("window.localStream", window.localStream.getAudioTracks()[0]);
 		}
 		setMuted(!muted);
 	};
 
 	// when the player is available, add the menu to the player
 	useEffect(() => {
-		if (player && menuRef.current) {
-			//menuRef.current.visible = true;
-			player.add(menuRef.current);
-			menuRef.current.position.set(0, 2, -0.8);
-		}
-		console.log(window.localStream);
+		console.log("hit the player ref", player)
+		// if (player && menuRef.current) {
+		// 	//menuRef.current.visible = true;
+		// 	player.add(menuRef.current);
+		// 	menuRef.current.position.set(0, 2, -0.8);
+		// }
+		// console.log(window.localStream);
 	}, [player]);
 
 
@@ -164,6 +164,7 @@ function Menu() {
 
 
 export default function TeleportTravel(props) {
+
 	const doubleClickThreshold = 1000;
 	const clickTimeoutRef = useRef(null);
 	const pinchThreshold = 0.01;
@@ -178,8 +179,8 @@ export default function TeleportTravel(props) {
 	const [isHovered, setIsHovered] = useState(false);
 	const [canTeleport, setCanTeleport] = useState(true);
 	const [canInteract, setCanInteract] = useState(false);
+	const [currentPosition, setCurrentPosition] = useState(new Vector3());
 	const [spawnPos, setSpawnPos] = useState(props.spawnPoint);
-	const [intersectionPoint, setIntersectionPoint] = useState();
 	const { controllers, player, isPresenting } = useXR();
 
 	const target = useRef();
@@ -192,13 +193,15 @@ export default function TeleportTravel(props) {
 			// if this is the left hand ignore
 			if (controller.inputSource.handedness === "right") {
 				const { hand } = controller;
-				const thumbTip = hand.joints['thumb-tip'];
-				const indexTip = hand.joints['index-finger-tip'];
-			
-				// Visual indicators for thumb and index tips
-				indexTip.add(new Mesh(new BoxGeometry(0.0081, 0.0081, 0.0081), new MeshBasicMaterial({ color: 0x0000ff })));
-				thumbTip.add(new Mesh(new BoxGeometry(0.0081, 0.0081, 0.008), new MeshBasicMaterial({ color: 0x0000ff })));
-
+				if(hand){
+					const thumbTip = hand.joints['thumb-tip'];
+					const indexTip = hand.joints['index-finger-tip'];
+					if( thumbTip && indexTip ){
+						// Visual indicators for thumb and index tips
+						indexTip.add(new Mesh(new BoxGeometry(0.0081, 0.0081, 0.0081), new MeshBasicMaterial({ color: 0x0000ff })));
+						thumbTip.add(new Mesh(new BoxGeometry(0.0081, 0.0081, 0.008), new MeshBasicMaterial({ color: 0x0000ff })));
+					}
+				}
 			}
 	
 		});
@@ -269,6 +272,7 @@ export default function TeleportTravel(props) {
 
 
 	useEffect(() => {
+		console.log("hit the is presenting effect", isPresenting);
 		const x = Number(spawnPos[0]);
 		const y = Number(spawnPos[1]) + 0.1;
 		const z = Number(spawnPos[2]);
@@ -341,17 +345,18 @@ export default function TeleportTravel(props) {
 				}
 				if (useNormal) {
 					const p = intersection.point;
-					setIntersectionPoint(p);
 					targetLoc.current.position.copy(p);
 					
 				} else {
 					targetLoc.current.position.copy(intersection.point);
 				}
+				setCurrentPosition(intersection.point);
 			}
 		}
 	});
 
 	const click = useCallback(() => {
+		console.log("clicking", player);
 		if (isHovered && !canInteract) {
 			targetLoc.current.position.set(
 				targetLoc.current.position.x,
@@ -361,26 +366,25 @@ export default function TeleportTravel(props) {
 			if (canTeleport) {
 				console.log("teleporting to", targetLoc.current.position);
 				player.position.copy(targetLoc.current.position);
-
 				const p2pcf = window.p2pcf;
 				const participantObject = scene.getObjectByName("playerOne");
-				// participantObject.position.set([targetLoc.current?.position.x, targetLoc.current?.position.y, targetLoc.current?.position.z]);
 				//if moving, send a network event of where we are and our current state....animations probably need to go here too.
 				if(participantObject){
+					console.log("participantObject", participantObject);
 					if (p2pcf) {	
 						var target = new Vector3();
 						var worldPosition = participantObject.getWorldPosition( target );
 						const position = [
-							worldPosition.x,
-							worldPosition.y,
-							worldPosition.z
+							targetLoc.current.position.x,
+							targetLoc.current.position.y,
+							targetLoc.current.position.z
 						];
 						// console.log("sending position", participantObject, position);
 						// get the z rotation of the headset
 						const rotation = [
-							participantObject.rotation.x,
-							participantObject.rotation.y,
-							participantObject.rotation.z
+							player.rotation.x,
+							player.rotation.y,
+							player.rotation.z
 						];
 						const messageObject = {
 							[p2pcf.clientId]: {
@@ -392,7 +396,7 @@ export default function TeleportTravel(props) {
 								isMoving: "walking"
 							}
 						};
-						console.log("sending message", messageObject, p2pcf, p2pcf.clientId);
+						console.log("sending message", messageObject);
 						// console.log("userdata", userData);
 						clearTimeout(movementTimeoutRef.current);
 						movementTimeoutRef.current = setTimeout(() => {

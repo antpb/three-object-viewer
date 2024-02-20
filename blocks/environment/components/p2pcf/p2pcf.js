@@ -817,29 +817,26 @@ export default class P2PCF extends EventEmitter {
 	 */
 	async start(props) {
 		this.startedAtTimestamp = Date.now();
-		// ping the worker to check the current rooms count if less than the limit, continue and run the updateRoomCount function
-		// First, check the room count
 		const canStart = await this._getCurrentRoomCount(userData.currentPostId);
-		if ( Number(canStart) >= 5 ) {
-			console.log("Room is full, cannot start.", canStart);
-			return;
-		} else {
-			console.log("Room is not full, can start.", canStart);
-			//check if the user is already in the room
-			// const isInRoom = await this._checkIfUserIsInRoom(userData.currentPostId, userData.userId);
-			// check for a cookie to see if the user is already in the room
-			const isInRoom = await this._pingIfInRoom();;
+		if ( canStart ) {
+			if( userData.heartbeatEnabled ) {
+				console.log("heartbeatEnabled", userData.heartbeatEnabled);
 
-			if (isInRoom.body === 'true') {
-				console.log("User is already in the room, cannot start. Send another beat.");
-				this._sendHeartbeat();
-			} else {
-				console.log("User is not in the room, starting initial heartbeat.");
-				this._updateRoomCount("add");
-				this._sendHeartbeat();
+				const isInRoom = await this._pingIfInRoom();;
+
+				if (isInRoom.body === 'true') {
+					console.log("User is already in the room, cannot start. Send another beat.");
+					this._sendHeartbeat();
+				} else {
+					console.log("User is not in the room, starting initial heartbeat.");
+					this._updateRoomCount("add");
+					this._sendHeartbeat();
+				}
+				this.startHeartbeat();
 			}
-			this.startHeartbeat();
-
+		} else {
+			console.warn("Room is full, cannot start.", canStart);
+			return;
 		}
 
 		await this._init();
@@ -1273,7 +1270,13 @@ export default class P2PCF extends EventEmitter {
 				'X-WP-Nonce': userData.nonce,
 			}
 		})
-		.then(response => response.json())
+		.then(response => {
+			if (!response.ok) {
+				throw new Error('Network response was not ok');
+			}
+			// if the response from the get-room-count endpoint isnt true then the room is full
+			return response.json();
+		})
 		.catch(error => {
 			console.error('Error fetching room count:', error);
 			throw error;

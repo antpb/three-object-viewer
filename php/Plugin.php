@@ -159,27 +159,7 @@ class Plugin
 	}
 	
 	function get_room_count($request) {
-		$post_id = $request['id'];
-		// $site_url = $request['siteUrl'];
-		$site_url = get_site_url();
-		// Replace with the URL of your Cloudflare Worker
-		$cloudflare_worker_url = "https://room-balancer.sxpdigital.workers.dev/get-room-count/{$post_id}?siteUrl=" . urlencode($site_url);;
-	
-		$response = wp_remote_get($cloudflare_worker_url, array(
-			'headers' => array('Content-Type' => 'application/json'),
-			// 'body' => json_encode(array(
-			// 	'siteUrl' => get_site_url(),
-			// 	'postId'  => $post_id,
-			// )),
-			'timeout'     => 45,
-		));
-	
-		if (is_wp_error($response)) {
-			return new \WP_REST_Response('Error fetching room count', 500);
-		}
-		// the body may come back of a string of 0, so we need to convert it to an integer
-		$body = intval(wp_remote_retrieve_body($response));
-		return new \WP_REST_Response($body, 200);
+		return true;
 	}
 	
 	// Callback function to make a request to the Cloudflare Worker
@@ -601,6 +581,7 @@ class Plugin
 			  'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
 			  'nonce' => wp_create_nonce( 'wp_rest' ),
 			  'currentPostId' => $currentPostId,
+			  'heartbeatEnabled' => false,
 			  'addNonce' => wp_create_nonce( 'add-room-count' ),
 			  'subtractNonce' => wp_create_nonce( 'subtract-room-count' ),
 			);
@@ -617,6 +598,7 @@ class Plugin
 				'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
 				'nonce' => wp_create_nonce( 'wp_rest' ),
 				'addNonce' => wp_create_nonce( 'add-room-count'),
+				'heartbeatEnabled' => false,
 				'subtractNonce' => wp_create_nonce( 'subtract-room-count'),
 				'currentPostId' => $currentPostId
 			  );  
@@ -633,6 +615,7 @@ class Plugin
 			  'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
 			  'currentPostId' => $currentPostId,
 			  'addNonce' => wp_create_nonce( 'add-room-count'),
+			  'heartbeatEnabled' => false,
 			  'subtractNonce' => wp_create_nonce( 'subtract-room-count'),
 			  'nonce' => wp_create_nonce( 'wp_rest' )
 			);

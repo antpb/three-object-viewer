@@ -10,6 +10,7 @@ import { color } from "@wordpress/icons";
 import { XRButton } from "@react-three/xr";
 
 const Networking = (props) => {
+	let isNetworkActivated = props.networkingBlock.length > 0;
 	let isMuted = false;  // Initial state of the microphone
 	let localStream = null;  // To hold the local media stream
 
@@ -385,30 +386,38 @@ const Networking = (props) => {
 		toggleMute(stream);
 	};
 
-	if (!document.location.hash) {
-		document.location = document.location.toString() + `#3ov-${props.postSlug}`;
-	}
-	const userProfileName =
-		userData.userId === ""
-			? Math.floor(Math.random() * 100000)
-			: userData.userId;
-	let p2pcf = new P2PCF(
-		"user-" + userProfileName,
-		document.location.hash.substring(1),
-		{
-			workerUrl: multiplayerWorker,
-			slowPollingRateMs: 5000,
-			fastPollingRateMs: 1500
-		}
-	);
+	useEffect(() => {
+		const mainContainer = document.getElementById("networking");
+		// set container background to accent image
+		mainContainer.style.backgroundImage = `url(${threeObjectPlugin + cornerAccent})`;
+		mainContainer.style.backgroundSize = "cover";
+		mainContainer.style.display = "block";
+	}, []);
 
-	window.p2pcf = p2pcf;
-	window.participants = [];
+	if(isNetworkActivated){
+		if (!document.location.hash) {
+			document.location = document.location.toString() + `#3ov-${props.postSlug}`;
+		}
+		const userProfileName = Math.floor(Math.random() * 100000);
+		let p2pcf = new P2PCF(
+			"user-" + userProfileName,
+			document.location.hash.substring(1),
+			{
+				workerUrl: multiplayerWorker,
+				slowPollingRateMs: 5000,
+				fastPollingRateMs: 1500
+			}
+		);
+
+		window.p2pcf = p2pcf;
+		window.participants = [];
+	}
 
 	const removePeerUi = (clientId) => {
 		document.getElementById(clientId)?.remove();
 		document.getElementById(`${clientId}-video`)?.remove();
 	};
+
 	const setupP2PCF = (p2pcfInstance) => {
 		// Start the P2PCF instance with any necessary configurations
 		p2pcfInstance.start({ playerVRM: userData.playerVRM ? userData.playerVRM : defaultAvatar });
@@ -507,94 +516,98 @@ const Networking = (props) => {
 		document.getElementById("messages").appendChild(messageEl);
 	};
 	let stream;
-	p2pcf.on("roomfullrefresh", (peer) => {
-		console.log("So sorry, Room full refresh", peer);
-    // Wait for the URL hash to update to ensure room ID is new
-    setTimeout(() => {
-		// remove the window.p2pcf object from the window
-		delete window.p2pcf;
-        // Reinitialize P2PCF with the new room ID
-        p2pcf = new P2PCF(
-            "user-" + userProfileName,
-            window.location.hash.substring(1),
-            {
-                workerUrl: multiplayerWorker,
-                slowPollingRateMs: 5000,
-                fastPollingRateMs: 1500
-            }
-        );
-        setupP2PCF(p2pcf);
 
-    }, 500);
+	if(isNetworkActivated){
+		p2pcf.on("roomfullrefresh", (peer) => {
+			console.log("So sorry, Room full refresh", peer);
+			// Wait for the URL hash to update to ensure room ID is new
+			setTimeout(() => {
+				// remove the window.p2pcf object from the window
+				delete window.p2pcf;
+				// Reinitialize P2PCF with the new room ID
+				p2pcf = new P2PCF(
+					"user-" + userProfileName,
+					window.location.hash.substring(1),
+					{
+						workerUrl: multiplayerWorker,
+						slowPollingRateMs: 5000,
+						fastPollingRateMs: 1500
+					}
+				);
+				setupP2PCF(p2pcf);
 
-});
-
-	p2pcf.on("peerconnect", (peer) => {
-		if (stream) {
-			peer.addStream(stream);
-		}
-		peer.on("track", (track, stream) => {
-			const video = document.createElement("audio");
-			video.id = `${peer.id}-audio`;
-			video.srcObject = stream;
-			video.setAttribute("playsinline", true);
-			document.getElementById("videos").appendChild(video);
-			video.play();
+			}, 500);
 		});
-	});
+	}
 
-	p2pcf.on("peerclose", (peer) => {
-		console.log("Peer close", peer.id, peer);
-		removePeerUi(peer.id);
-	});
-
-	p2pcf.on("msg", (peer, data) => {
-		addMessage(
-			peer.id.substring(0, 5) +
-				": " +
-				new TextDecoder("utf-8").decode(data)
-		);
-	});	
-	
-	useEffect(() => {
-		const go = () => {
-			// document.getElementById("session-id").innerText = "Room: " + p2pcf.roomId;
-
-			// document.getElementById('send-button').addEventListener('click', () => {
-			//     const box = document.getElementById('send-box');
-			//     addMessage(p2pcf.sessionId.substring(0, 5) + ': ' + box.value);
-			//     p2pcf.broadcast(new TextEncoder().encode(box.value));
-			//     box.value = '';
-			// })
-			const mainContainer = document.getElementById("networking");
-			// set container background to accent image
-			mainContainer.style.backgroundImage = `url(${threeObjectPlugin + cornerAccent})`;
-			mainContainer.style.backgroundSize = "cover";
-			mainContainer.style.display = "block";
-
-			const audioButton = document.getElementById("audio-button");
-			if(audioButton){
-				audioButton.addEventListener("click", async (button) => {
-					// request permissions for microphone devices then do audioDropdownContent
-					navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
-						AudioDropdownContent(button);
-					});
-				});
+	if( isNetworkActivated ){
+		p2pcf.on("peerconnect", (peer) => {
+			if (stream) {
+				peer.addStream(stream);
 			}
+			peer.on("track", (track, stream) => {
+				const video = document.createElement("audio");
+				video.id = `${peer.id}-audio`;
+				video.srcObject = stream;
+				video.setAttribute("playsinline", true);
+				document.getElementById("videos").appendChild(video);
+				video.play();
+			});
+		});
 
-			p2pcf.start({ playerVRM: userData.playerVRM ? userData.playerVRM : defaultAvatar });
-			addPeerUi();
-			addRoomUi();
-		};
-		const handleLoaded = (event) => {
-			go();
-			// Remove the event listener after handling the first 'loaded' event
-			window.removeEventListener("loaded", handleLoaded);
-		};
+		p2pcf.on("peerclose", (peer) => {
+			console.log("Peer close", peer.id, peer);
+			removePeerUi(peer.id);
+		});
+
+		p2pcf.on("msg", (peer, data) => {
+			addMessage(
+				peer.id.substring(0, 5) +
+					": " +
+					new TextDecoder("utf-8").decode(data)
+			);
+		});
 		
-		window.addEventListener("loaded", handleLoaded);
+		useEffect(() => {
+			const go = () => {
+				// document.getElementById("session-id").innerText = "Room: " + p2pcf.roomId;
 
-	}, []);
+				// document.getElementById('send-button').addEventListener('click', () => {
+				//     const box = document.getElementById('send-box');
+				//     addMessage(p2pcf.sessionId.substring(0, 5) + ': ' + box.value);
+				//     p2pcf.broadcast(new TextEncoder().encode(box.value));
+				//     box.value = '';
+				// })
+				const mainContainer = document.getElementById("networking");
+				// set container background to accent image
+				mainContainer.style.backgroundImage = `url(${threeObjectPlugin + cornerAccent})`;
+				mainContainer.style.backgroundSize = "cover";
+				mainContainer.style.display = "block";
+
+				const audioButton = document.getElementById("audio-button");
+				if(audioButton){
+					audioButton.addEventListener("click", async (button) => {
+						// request permissions for microphone devices then do audioDropdownContent
+						navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+							AudioDropdownContent(button);
+						});
+					});
+				}
+
+				p2pcf.start({ playerVRM: userData.playerVRM ? userData.playerVRM : defaultAvatar });
+				addPeerUi();
+				addRoomUi();
+			};
+			const handleLoaded = (event) => {
+				go();
+				// Remove the event listener after handling the first 'loaded' event
+				window.removeEventListener("loaded", handleLoaded);
+			};
+			
+			window.addEventListener("loaded", handleLoaded);
+
+		}, []);
+	}
 
 	return <></>;
 };
