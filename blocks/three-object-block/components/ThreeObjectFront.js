@@ -173,7 +173,7 @@ function loadMixamoAnimation(url, vrm, positionY, positionX, positionZ, scaleX, 
 }
 
 function SavedObject( props ) {
-	const [idleFile, setIdleFile] = useState(props.threeObjectPlugin + idle);
+	const [idleFile, setIdleFile] = useState(idle);
 	const [ url, set ] = useState( props.url );
 	useEffect( () => {
 		setTimeout( () => set( props.url ), 2000 );

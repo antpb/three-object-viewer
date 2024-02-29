@@ -118,7 +118,7 @@ export function Portal(model) {
 					lockZ={false} // Lock the rotation on the z axis (default=false)
 				>
 					<Text
-						font={model.threeObjectPlugin + model.defaultFont}
+						font={model.defaultFont}
 						scale={[1, 1, 1]}
 						maxWidth={10}
 						alignX="center"
@@ -229,7 +229,7 @@ export function Portal(model) {
 					scale={[model.scaleX, model.scaleY, model.scaleZ]}
 				>
 					<Text
-						font={threeObjectPlugin + model.defaultFont}
+						font={model.defaultFont}
 						scale={[1, 1, 1]}
 						maxWidth={1}
 						alignX="center"

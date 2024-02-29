@@ -15,13 +15,16 @@ import { FrontPluginProvider, FrontPluginContext } from './FrontPluginProvider';
 import {
 	useAnimations,
 	Html,
+	AdaptiveDpr,
+	AdaptiveEvents,
+	PerformanceMonitor,
 } from "@react-three/drei";
 import { EcctrlJoystick } from 'ecctrl'
 
 // import { A11y } from "@react-three/a11y";
 import { GLTFAudioEmitterExtension } from "three-omi";
 import { VRButton, ARButton, XR, Controllers, Hands, XRButton } from '@react-three/xr'
-import { Perf } from "r3f-perf";
+// import { Perf } from "r3f-perf";
 import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import TeleportTravel from "./TeleportTravel";
 import Player from "./Player";
@@ -600,22 +603,6 @@ function SavedObject(props) {
 }
 
 export default function EnvironmentFront(props) {
-
-	useEffect(() => {
-		const checkGamepads = () => {
-		  const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-		  for (let i = 0; i < gamepads.length; i++) {
-			if (gamepads[i]) {
-			  console.log("Gamepad connected at index " + gamepads[i].index + ": " + gamepads[i].id);
-			  // Handle gamepad connection (update state, start reading inputs, etc.)
-			}
-		  }
-		};
-	  
-		const interval = setInterval(checkGamepads, 1000); // Check every second
-	  
-		return () => clearInterval(interval); // Cleanup on component unmount
-	  }, []);
 	  
 	const [showUI, setShowUI] = useState(true);
 	const [displayName, setDisplayName] = useState(props.userData.inWorldName);
@@ -653,6 +640,7 @@ export default function EnvironmentFront(props) {
 		  document.removeEventListener('yourComponentReady', handleReady);
 		};
 	  }, []);
+	const [dpr, setDpr] = useState(2)
 
 	if (loaded === true) {
 		// emit javascript event "loaded"
@@ -681,7 +669,9 @@ export default function EnvironmentFront(props) {
 						}}
 						onPointerDown={(e) => {
 							e.target.requestPointerLock();
-						}}					
+						}}
+						dpr={dpr}
+						mode="concurrent"		
 						// dpr={1.5}
 						// shadowMap
 						// linear={true}
@@ -696,6 +686,9 @@ export default function EnvironmentFront(props) {
 							zIndex: 1
 						}}
 					>
+						<AdaptiveDpr pixelated />
+						<AdaptiveEvents />
+						<PerformanceMonitor onFallback={() => setDpr(1)} factor={1} onChange={({ factor }) => setDpr(Math.floor(0.5 + 1.5 * factor, 1))} />
 						<XR>
 							<FrontPluginProvider>
 							{/* <Perf className="stats" /> */}
@@ -716,7 +709,7 @@ export default function EnvironmentFront(props) {
 									iterations = {10}
 									// timestep = {1/30}
 									// gravity={[0, -9.8, 0]}
-									interpolate={false}
+									// interpolate={false}
 									allowSleep={true}
 									allowDeactivation={true}
 									// allowCcd={true}
@@ -2231,7 +2224,9 @@ export default function EnvironmentFront(props) {
 					})}
 					<>
 						{ isMobile() && (
-							<EcctrlJoystick buttonNumber={5} />
+							<EcctrlJoystick
+						  		buttonNumber={1}
+							/>
 						) }
 					</>
 				</>

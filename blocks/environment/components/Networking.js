@@ -137,7 +137,7 @@ const Networking = (props) => {
 			audioJoin.style.display = "none";
 			dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
 			var muteIcon = document.createElement("button");
-			muteIcon.style.backgroundImage = `url(${threeObjectPlugin + audioIcon})`;
+			muteIcon.style.backgroundImage = `url(${audioIcon})`;
 			muteIcon.style.backgroundSize = "cover";
 			muteIcon.id = "mute-icon";
 			muteIcon.style.width = "40px";
@@ -159,7 +159,7 @@ const Networking = (props) => {
 				onMuteButtonPressed(stream);
 			});
 			var settingsIconElement = document.createElement("button");
-			settingsIconElement.style.backgroundImage = `url(${threeObjectPlugin + settingsIcon})`;
+			settingsIconElement.style.backgroundImage = `url(${settingsIcon})`;
 			settingsIconElement.style.backgroundSize = "cover";
 			settingsIconElement.id = "mute-icon";
 			settingsIconElement.style.width = "40px";
@@ -363,9 +363,9 @@ const Networking = (props) => {
 
 			if(muteIcon){
 				if (localStream.getAudioTracks()[0].enabled) {
-					muteIcon.style.backgroundImage = `url(${threeObjectPlugin + audioIcon})`;
+					muteIcon.style.backgroundImage = `url(${audioIcon})`;
 				} else {
-					muteIcon.style.backgroundImage = `url(${threeObjectPlugin + audioIconMute})`;
+					muteIcon.style.backgroundImage = `url(${audioIconMute})`;
 				}	
 			}
 
@@ -389,7 +389,7 @@ const Networking = (props) => {
 	useEffect(() => {
 		const mainContainer = document.getElementById("networking");
 		// set container background to accent image
-		mainContainer.style.backgroundImage = `url(${threeObjectPlugin + cornerAccent})`;
+		mainContainer.style.backgroundImage = `url(${cornerAccent})`;
 		mainContainer.style.backgroundSize = "cover";
 		mainContainer.style.display = "block";
 	}, []);
@@ -405,7 +405,8 @@ const Networking = (props) => {
 			{
 				workerUrl: multiplayerWorker,
 				slowPollingRateMs: 5000,
-				fastPollingRateMs: 1500
+				fastPollingRateMs: 1500,
+				participantLimit: props.networkingBlock[0].attributes.participantLimit.value,
 			}
 		);
 
@@ -428,7 +429,7 @@ const Networking = (props) => {
 	const addPeerUi = (sessionId) => {
 		// if (document.getElementById(sessionId)) return;
 		var peerIcon = document.createElement("button");
-		peerIcon.style.backgroundImage = `url(${threeObjectPlugin + participants})`;
+		peerIcon.style.backgroundImage = `url(${participants})`;
 		peerIcon.style.backgroundSize = "cover";
 		peerIcon.style.width = "40px";
 		peerIcon.style.height = "40px";
@@ -465,7 +466,7 @@ const Networking = (props) => {
 	const addRoomUi = (sessionId) => {
 		// if (document.getElementById(sessionId)) return;
 		var roomIcon = document.createElement("button");
-		roomIcon.style.backgroundImage = `url(${threeObjectPlugin + worldIcon})`;
+		roomIcon.style.backgroundImage = `url(${worldIcon})`;
 		roomIcon.style.backgroundSize = "cover";
 		roomIcon.style.width = "40px";
 		roomIcon.style.height = "40px";
@@ -499,7 +500,7 @@ const Networking = (props) => {
 		dropdown.style.height = "150px";
 		dropdown.style.borderRadius = "15px";
 		// add corner accent
-		dropdown.style.backgroundImage = `url(${threeObjectPlugin + cornerAccent})`;
+		dropdown.style.backgroundImage = `url(${cornerAccent})`;
 		dropdown.style.backgroundSize = "auto";
 		dropdown.style.backgroundPosition = "top left"
 		dropdown.style.backgroundRepeat = "no-repeat";
@@ -531,7 +532,8 @@ const Networking = (props) => {
 					{
 						workerUrl: multiplayerWorker,
 						slowPollingRateMs: 5000,
-						fastPollingRateMs: 1500
+						fastPollingRateMs: 1500,
+						participantLimit: props.networkingBlock[0].attributes.participantLimit.value,
 					}
 				);
 				setupP2PCF(p2pcf);
@@ -580,7 +582,7 @@ const Networking = (props) => {
 				// })
 				const mainContainer = document.getElementById("networking");
 				// set container background to accent image
-				mainContainer.style.backgroundImage = `url(${threeObjectPlugin + cornerAccent})`;
+				mainContainer.style.backgroundImage = `url(${cornerAccent})`;
 				mainContainer.style.backgroundSize = "cover";
 				mainContainer.style.display = "block";
 

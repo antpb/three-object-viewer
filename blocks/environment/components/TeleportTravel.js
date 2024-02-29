@@ -123,15 +123,15 @@ function Menu() {
 	};
 
 	// when the player is available, add the menu to the player
-	useEffect(() => {
-		console.log("hit the player ref", player)
+	// useEffect(() => {
+		// console.log("hit the player ref", player)
 		// if (player && menuRef.current) {
 		// 	//menuRef.current.visible = true;
 		// 	player.add(menuRef.current);
 		// 	menuRef.current.position.set(0, 2, -0.8);
 		// }
 		// console.log(window.localStream);
-	}, [player]);
+	// }, [player]);
 
 
 	useFrame(() => {

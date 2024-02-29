@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
+import { useJoystickControls } from "ecctrl";
+import { useFrame } from '@react-three/fiber';
 
 export function useKeyboardControls() {
+
 const movement = useRef({ 
 	forward: false, 
 	backward: false, 

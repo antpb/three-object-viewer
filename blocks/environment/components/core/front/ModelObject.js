@@ -117,7 +117,7 @@ function loadMixamoAnimation(url, vrm, positionY, positionX, positionZ, scaleX, 
  * @return {JSX.Element} The model object.
  */
 export function ModelObject(model) {
-	const [idleFile, setIdleFile] = useState(model.threeObjectPlugin + idle);
+	const [idleFile, setIdleFile] = useState(idle);
 	const [clicked, setClickEvent] = useState();
 	const [url, set] = useState(model.url);
 	useEffect(() => {

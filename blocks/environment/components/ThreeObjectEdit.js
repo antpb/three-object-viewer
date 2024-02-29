@@ -32,7 +32,7 @@ import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import { GLTFAudioEmitterExtension } from "three-omi";
 import { Icon, moveTo, rotateLeft, resizeCornerNE } from "@wordpress/icons";
 // import { A11y } from "@react-three/a11y";
-import { Perf } from "r3f-perf";
+// import { Perf } from "r3f-perf";
 // import EditControls from "./EditControls";
 import { Resizable } from "re-resizable";
 import defaultFont from "../../../inc/fonts/roboto.woff";
@@ -120,7 +120,7 @@ function TextObject(text) {
 							scale={[text.scaleX, text.scaleY, text.scaleZ]}
 						>
 							<Text
-								font={(threeObjectPlugin + defaultFont)}
+								font={(defaultFont)}
 								scale={[4, 4, 4]}
 								color={text.textColor}
 							>
@@ -363,7 +363,7 @@ function ImageObject(threeImage) {
 }
 
 function AudioObject(threeAudio) {
-	const texture2 = useLoader(TextureLoader, (threeObjectPlugin + audioIcon));
+	const texture2 = useLoader(TextureLoader, (audioIcon));
 
 	const [threeAudioBlockAttributes, setThreeAudioBlockAttributes] = useState(
 		wp.data
@@ -544,7 +544,7 @@ function LightObject(threeLight) {
             LightComponent = null;
     }
 
-	const texture2 = useLoader(TextureLoader, (threeObjectPlugin + lightIcon));
+	const texture2 = useLoader(TextureLoader, (lightIcon));
 
 	const [threeLightBlockAttributes, setThreeLightBlockAttributes] = useState(
 		wp.data
@@ -714,7 +714,7 @@ function VideoObject(threeVideo) {
 			  setScreenParent(foundScreen.parent);
 			  // Update screen's material with video texture
 			  const videoTexture = new VideoTexture(video);
-			  videoTexture.encoding= sRGBEncoding;
+			  videoTexture.colorSpace= sRGBEncoding;
 			  const material = new MeshBasicMaterial({ map: videoTexture, toneMapped: false });
 			  foundScreen.material = material;
 			}
@@ -1395,7 +1395,7 @@ function PortalObject(model) {
 							]}
 						>
 							<Text
-								font={(threeObjectPlugin + defaultFont)}
+								font={(defaultFont)}
 								scale={[1, 1, 1]}
 								color={portalBlockAttributes.labelTextColor}
 								maxWidth={1}

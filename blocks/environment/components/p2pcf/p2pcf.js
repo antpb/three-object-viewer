@@ -243,6 +243,7 @@ export default class P2PCF extends EventEmitter {
 		this.fastPollingDurationMs = options.fastPollingDurationMs || 10000;
 		this.fastPollingRateMs = options.fastPollingRateMs || 750;
 		this.slowPollingRateMs = options.slowPollingRateMs || 1500;
+		this.participantLimit = options.participantLimit || 8;
 
 		this.wrtc = getBrowserRTC();
 		this.dtlsCert = null;
@@ -295,6 +296,7 @@ export default class P2PCF extends EventEmitter {
 			fastPollingDurationMs,
 			fastPollingRateMs,
 			slowPollingRateMs,
+			participantLimit,
 		} = this;
 
 		const now = Date.now();
@@ -428,7 +430,8 @@ export default class P2PCF extends EventEmitter {
 				localDtlsFingerprintBase64,
 				packages,
 				remotePeerDatas,
-				remotePackages
+				remotePackages,
+				participantLimit
 			);
 
 			const activeSessionIds = remotePeerDatas.map((p) => p[0]);
@@ -466,7 +469,8 @@ export default class P2PCF extends EventEmitter {
 		localDtlsFingerprintBase64,
 		localPackages,
 		remotePeerDatas,
-		remotePackages
+		remotePackages,
+		participantLimit
 	) {
 		const localStartedAtTimestamp = this.startedAtTimestamp;
 
@@ -588,7 +592,7 @@ export default class P2PCF extends EventEmitter {
 				peer.client_id = remoteClientId;
 
 
-				this._wireUpCommonPeerEvents(peer);
+				this._wireUpCommonPeerEvents(peer, participantLimit);
 
 				peers.set(peer.id, peer);
 
@@ -668,7 +672,7 @@ export default class P2PCF extends EventEmitter {
 					peer.id = remoteSessionId;
 					peer.client_id = remoteClientId;
 
-					this._wireUpCommonPeerEvents(peer);
+					this._wireUpCommonPeerEvents(peer, participantLimit);
 
 					peers.set(peer.id, peer);
 
@@ -851,7 +855,7 @@ export default class P2PCF extends EventEmitter {
 		this.reflexiveIps = reflexiveIps;
 		this.dtlsFingerprint = dtlsFingerprint;
 
-		let guestDefaultAvatar = defaultAvatar === '' ? threeObjectPlugin + defaultVRM : defaultAvatar;
+		let guestDefaultAvatar = defaultAvatar === '' ? defaultVRM : defaultAvatar;
 		this.playerVRM = userData.playerVRM ? userData.playerVRM : guestDefaultAvatar;
 
 		this.networkSettingsInterval = setInterval(async () => {
@@ -1332,12 +1336,13 @@ export default class P2PCF extends EventEmitter {
 	// 	});
 	// }
 
-	_wireUpCommonPeerEvents(peer) {
+	_wireUpCommonPeerEvents(peer, participantLimit) {
 		peer.on("connect", () => {
-			console.log(p2pcf.peers.size, "peers connected", p2pcf.peers);
-			let roomCount = p2pcf.peers.size + 1;
-			if(roomCount < 5) {
-				console.log("clean room entry", p2pcf);
+			// console.log(p2pcf.peers.size, "peers connected", p2pcf.peers);
+			let roomCount = p2pcf.peers.size;
+			var limit = parseInt(participantLimit);
+			if( roomCount < limit ) {
+				// console.log("clean room entry", p2pcf);
 				this.emit("peerconnect", peer);
 				// after connecting, send the player data to participant
 				const playerData = { playerVRM: this.playerVRM, inWorldName: userData.inWorldName, profileImage: userData.profileImage};
@@ -1348,6 +1353,7 @@ export default class P2PCF extends EventEmitter {
 				removeInPlace(this.packages, (pkg) => pkg[0] === peer.id);
 				this._updateConnectedSessions();
 			} else {
+				console.log("participants", "FULLLLLL");
 				if(! validlyInRoom ) {
 					console.log("participants are", window.participants);
 					console.log("room is full", this.roomId, p2pcf);

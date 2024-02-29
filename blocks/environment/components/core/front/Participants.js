@@ -13,8 +13,10 @@ import defaultFont from "../../../../../inc/fonts/roboto.woff";
 import idle from "../../../../../inc/avatars/friendly.fbx";
 import walk from "../../../../../inc/avatars/walking.fbx";
 import run from "../../../../../inc/avatars/running.fbx";
+import jump from "../../../../../inc/avatars/Jump.fbx";
 // import the mixamo rig utility
 import { getMixamoRig } from "../../../utils/rigMap";
+import useParticipantsStore from './utils/participantsStore';
 
 /**
  * A map from Mixamo rig name to VRM Humanoid bone name
@@ -132,7 +134,7 @@ function loadMixamoAnimation(url, vrm) {
  */
 function Participant(participant) {
 
-	const fallbackURL = threeObjectPlugin + defaultVRM;
+	const fallbackURL = defaultVRM;
 	let playerURL = participant.playerVRM;
 	const clonedModelRef = useRef(null);
 	const animationMixerRef = participant.animationMixerRef;
@@ -153,8 +155,8 @@ function Participant(participant) {
 		const loader = new GLTFLoader();
 		loader.register(parser => new VRMLoaderPlugin(parser));
 		if( playerURL.endsWith( '.png' ) ){
-			console.log("visitor url is", playerURL);
-			playerURL = threeObjectPlugin + blankVRM;
+			// console.log("visitor url is", playerURL);
+			playerURL = blankVRM;
 		}
 
 		loader.load(playerURL, gltf => {
@@ -206,13 +208,13 @@ function Participant(participant) {
 			// playerController.scene.rotation.y = 0;
 			playerController.scene.scale.set(1, 1, 1);
 
-
 			// Animation files
-			const idleFile = threeObjectPlugin + idle;
-			const walkingFile = threeObjectPlugin + walk;
-			const runningFile = threeObjectPlugin + run;
+			const idleFile = idle;
+			const walkingFile = walk;
+			const runningFile = run;
+			const jumpFile	= jump;
 			// Load animations
-			let animationFiles = [idleFile, walkingFile, runningFile];
+			let animationFiles = [idleFile, walkingFile, runningFile, jumpFile];
 			let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, playerController));
 
 			// Clone the model
@@ -328,7 +330,7 @@ function Participant(participant) {
 					<meshPhongMaterial side={THREE.DoubleSide} shininess={0} color={0x000000} />
 				</mesh>
 					<Text
-						font={threeObjectPlugin + defaultFont}
+						font={defaultFont}
 						anchorX="left"
 						overflowWrap="break-word"
 						// whiteSpace="nowrap"
@@ -379,7 +381,12 @@ export function Participants(props) {
     const textRefs = useRef({});
 	const participantRefs = useRef({});
 	const vrmsRef = useRef({});
-	const [participants, setParticipant] = useState([]);
+	// const [participants, setParticipant] = useState([]);
+	// zustand state and setters
+	const participants = useParticipantsStore(state => state.participants);
+	const setParticipants = useParticipantsStore(state => state.setParticipants);
+	const addParticipant = useParticipantsStore(state => state.addParticipant);
+	const removeParticipant = useParticipantsStore(state => state.removeParticipant);
 
 	useEffect(() => {
 		if(window.p2pcf){
@@ -389,36 +396,57 @@ export function Participants(props) {
 				}
 				const finalData = new TextDecoder("utf-8").decode(data);
 				const participantData = JSON.parse(finalData);
-				console.log("participantData received", participantData);
 				const participantObject = theScene.scene.getObjectByName(peer.client_id);
 	
 				if (animationsRef.current[peer.client_id]) {
 					const walkAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][1]);
 					const idleAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][0]);
 					const runAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][2]);
+					const jumpAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][3]);
 					// get their headbone and apply the rotation using the participantData[peer.client_id].headRotation
 
 					if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "walking") {
+						jumpAction.stop();
 						walkAction.play();
 						runAction.stop();
 						idleAction.stop();
+					} else if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "jumping") {
+						// if jumpaction is not playing stop all others and play it
+						if(!jumpAction.isRunning()){
+							walkAction.stop();
+							runAction.stop();
+							idleAction.stop();
+							jumpAction.setEffectiveTimeScale(1);
+							jumpAction.setEffectiveWeight(1);
+							jumpAction.setLoop(THREE.LoopOnce, 1);
+							jumpAction.clampWhenFinished = true;
+							// initialize on the last frame of the jump animation
+							jumpAction.time = jumpAction._clip.duration;
+							jumpAction.play();
+						}
 					} else if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "running") {
 						walkAction.stop();
 						runAction.play();
 						idleAction.stop();
+						jumpAction.stop();
 					} else {
 						idleAction.play();
 						walkAction.stop();
 						runAction.stop();
+						jumpAction.stop();
 					}
 
 				}
 	
 				if (participantObject) {
 					if(participantData[peer.client_id]?.position && participantData[peer.client_id]?.rotation){
-						console.log("participants rot", participantData[peer.client_id], participantObject.parent);
 						participantObject.parent.position.fromArray(participantData[peer.client_id].position);
 						participantObject.parent.rotation.fromArray(participantData[peer.client_id].rotation);
+						// const targetPosition = new THREE.Vector3().fromArray(participantData[peer.client_id].position);
+						// participantObject.parent.position.lerp(targetPosition, 0.9); // Adjust the 0.1 factor as needed for smoothness
+						// const targetQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler().fromArray(participantData[peer.client_id].rotation));
+						// participantObject.parent.quaternion.slerp(targetQuaternion, 0.9); // Adjust the 0.1 factor for smoothness
+
 					}
 				}
 				if(textRefs.current[peer.client_id] && participantData[peer.client_id]?.inWorldName) {
@@ -435,58 +463,42 @@ export function Participants(props) {
 		const p2pcf = window.p2pcf;
 		if (p2pcf) {
 			p2pcf.on("peerclose", (peer) => {
-				// remove window.participants[peer.id]
+				// Directly delete from global participants
 				delete window.participants[peer.id];
 				const participantObject = theScene.scene.getObjectByName(peer.client_id);
-				// remove the participantObject
 				if (participantObject) {
 					theScene.scene.remove(participantObject);
-					// remove array item animationMixerRef.current[peer.client_id], animationsRef.current[peer.client_id], mixers.current[peer.client_id];
+					// Clean up related references
 					delete animationMixerRef.current[peer.client_id];
 					delete animationsRef.current[peer.client_id];
 					delete mixers.current[peer.client_id];
 				}
-				// remove peer.client_id
-				setParticipant(prevParticipants => {
-					return prevParticipants.filter(item => item[0] !== peer.client_id);
-				});
+				// Use Zustand's removeParticipant action
+				removeParticipant(peer.client_id);
 			});
 		}
-	}, []);
-
+	}, [removeParticipant, theScene.scene]); // Add removeParticipant and theScene.scene as dependencies
+	
 	useEffect(() => {
 		const p2pcf = window.p2pcf;
-		const participants = window.participants;
 		if (p2pcf) {
-
-			// listen for the peerconnect send that establishes the peer user data.
 			p2pcf.on("msg", (peer, data) => {
-				if((peer.id in window.participants)){
-					return;
+				if (!(peer.id in window.participants)) {
+					const finalData = new TextDecoder("utf-8").decode(data);
+					const participantData = JSON.parse(finalData);
+					// Initialize participant entry if not present
+					window.participants[peer.id] = "";
+	
+					// Construct participant array
+					const newParticipant = [peer.client_id, participantData.playerVRM, participantData.inWorldName, participantData.profileImage];
+	
+					// Use Zustand's addParticipant action
+					addParticipant(newParticipant);
 				}
-				const finalData = new TextDecoder("utf-8").decode(data);
-				const participantData = JSON.parse(finalData);
-
-				const thisParticipantName = {};
-				window.participants[peer.id] = "";
-
-				setParticipant(prevParticipants => {
-					// Check if any sub-array has `peer.client_id` as its first element
-					const isParticipantExists = prevParticipants.some(participant => participant[0] === peer.client_id);
-				
-					if (!isParticipantExists) {
-						// If not found, add new participant
-						return [...prevParticipants, [peer.client_id, participantData.playerVRM, participantData.inWorldName, participantData.profileImage]];
-					} else {
-						// If found, return the array as is
-						return prevParticipants;
-					}
 				});
-			});
-
 		}
-	}, []);
-
+	}, [addParticipant]); // Add addParticipant as a dependency
+	
 	return (
 		<>
 			{participants && participants.map((item, index) => (

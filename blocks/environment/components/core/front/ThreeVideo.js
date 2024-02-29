@@ -99,7 +99,7 @@ useEffect(() => {
 		setScreen(foundScreen);
 		setScreenParent(foundScreen.parent);
 		const videoTexture = new VideoTexture(video);
-		videoTexture.encoding = sRGBEncoding;
+		videoTexture.colorSpace = sRGBEncoding;
 
 		// new mesh standard material with the map texture
 		const material = new MeshStandardMaterial({

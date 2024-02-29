@@ -135,7 +135,7 @@ function loadMixamoAnimation(url, vrm) {
  * @return {JSX.Element} The model object.
  */
 export function NPCObject(model) {
-	const [idleFile, setIdleFile] = useState(model.threeObjectPlugin + idle);
+	const [idleFile, setIdleFile] = useState(idle);
 	const [clicked, setClickEvent] = useState();
 	const [activeMessage, setActiveMessage] = useState([]);
 	const headPositionY = useRef([]);
@@ -364,7 +364,7 @@ export function NPCObject(model) {
 				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
 			>
 				<Text
-					font={model.threeObjectPlugin + model.defaultFont}
+					font={model.defaultFont}
 					position={[0.6, (Number(headPositionY.current) - 0.5), 0]}
 					className="content"
 					fontSize={0.1}
@@ -457,7 +457,7 @@ export function NPCObject(model) {
 				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
 			>
 				<Text
-					font={model.threeObjectPlugin + model.defaultFont}
+					font={model.defaultFont}
 					position={[0.6, 0.9, 0]}
 					className="content"
 					scale={[0.5, 0.5, 0.5]}

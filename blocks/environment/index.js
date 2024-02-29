@@ -4,7 +4,6 @@ import Save from "./Save";
 import { useBlockProps } from "@wordpress/block-editor";
 import React from "react";
 import Deprecated from "./Deprecated";
-import { useState } from '@wordpress/element';
 
 function Loading() {
 	return (

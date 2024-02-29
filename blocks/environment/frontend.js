@@ -1,5 +1,5 @@
 const { Component, render } = wp.element;
-import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
+import React from "react";
 
 import EnvironmentFront from "./components/EnvironmentFront";
 import Networking from "./components/Networking";
@@ -238,7 +238,7 @@ threeApp.forEach((threeApp) => {
 									mode={ 'VR' }
 									sessionInit={{ optionalFeatures: ['local-floor', 'bounded-floor', 'hand-tracking', 'layers'] }}
 								>
-									<img style={{maxWidth: "40px", marginLeft: "-10.5px", marginTop: "-11px"}} src={threeObjectPluginRoot + "build/" + hmdIcon} alt="Enter VR" />
+									<img style={{maxWidth: "40px", marginLeft: "-10.5px", marginTop: "-11px"}} src={ hmdIcon } alt="Enter VR" />
 								</XRButton>
 								{ ( networkingBlock.length > 0 ) && (
 									<button class="button" id="audio-button">
