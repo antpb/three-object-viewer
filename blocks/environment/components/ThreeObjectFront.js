@@ -281,55 +281,65 @@ function SavedObject( props ) {
 
 		// retarget the animations from mixamo to the current vrm
 		useEffect(() => {
-		if (currentVrm) {
-			// make the VRM invisible while setting up animations
-			currentVrm.scene.visible = false;
-			if ( props.defaultAvatarAnimation ) {
-				loadMixamoAnimation(props.defaultAvatarAnimation, currentVrm, 0, props.positionY, props.positionZ, props.scale, props.scale, props.scale).then((clip) => {
-					currentMixer.clipAction(clip).play();
-					currentMixer.update(clock.getDelta());
-					// make the VRM visible again
-					currentVrm.scene.visible = true;
-					if (currentVrm) {
-						if (currentVrm.humanoid) {
-							let head = currentVrm.humanoid.getRawBoneNode(VRMHumanBoneName.Head);
-							if (head) {
-								const headPos = new Vector3();
-								head.getWorldPosition(headPos);
-								let offsetPositionY = headPos.y - props.positionY;
-								const newTarget = new Vector3( headPos.x, offsetPositionY , headPos.z);
-								const newPos = new Vector3( camera.position.x, offsetPositionY , camera.position.z);
-								props.orbitRef.current.target = newTarget;
-								props.orbitRef.current.maxPolarAngle = Math.PI / 2;
-								props.orbitRef.current.minPolarAngle = Math.PI / 2;
+		let isActive = true;
+
+		const updateVRMVisibility = async () => {
+			if (currentVrm) {
+				// make the VRM invisible while setting up animations
+				currentVrm.scene.visible = false;
+				if ( props.defaultAvatarAnimation ) {
+					loadMixamoAnimation(props.defaultAvatarAnimation, currentVrm, 0, props.positionY, props.positionZ, props.scale, props.scale, props.scale).then((clip) => {
+						currentMixer.clipAction(clip).play();
+						currentMixer.update(clock.getDelta());
+						// make the VRM visible again
+						currentVrm.scene.visible = true;
+						if (currentVrm) {
+							if (currentVrm.humanoid) {
+								let head = currentVrm.humanoid.getRawBoneNode(VRMHumanBoneName.Head);
+								if (head) {
+									const headPos = new Vector3();
+									head.getWorldPosition(headPos);
+									let offsetPositionY = headPos.y - props.positionY;
+									const newTarget = new Vector3( headPos.x, offsetPositionY , headPos.z);
+									const newPos = new Vector3( camera.position.x, offsetPositionY , camera.position.z);
+									props.orbitRef.current.target = newTarget;
+									props.orbitRef.current.maxPolarAngle = Math.PI / 2;
+									props.orbitRef.current.minPolarAngle = Math.PI / 2;
+								}
 							}
 						}
-					}
-				});
-			} else {
-				loadMixamoAnimation(idleFile, currentVrm, 0, props.positionY, props.positionZ, props.scale, props.scale, props.scale).then((clip) => {
-					currentMixer.clipAction(clip).play();
-					currentMixer.update(clock.getDelta());
-					// make the VRM visible again
-					currentVrm.scene.visible = true;
-					if (currentVrm) {
-						if (currentVrm.humanoid) {
-							let head = currentVrm.humanoid.getRawBoneNode(VRMHumanBoneName.Head);
-							if (head) {
-								const headPos = new Vector3();
-								head.getWorldPosition(headPos);
-								let offsetPositionY = headPos.y - props.positionY;
-								const newTarget = new Vector3( headPos.x, offsetPositionY , headPos.z);
-								const newPos = new Vector3( camera.position.x, offsetPositionY , camera.position.z);
-								props.orbitRef.current.target = newTarget;
-								props.orbitRef.current.maxPolarAngle = Math.PI / 2;
-								props.orbitRef.current.minPolarAngle = Math.PI / 2;
+					});
+				} else {
+					loadMixamoAnimation(idleFile, currentVrm, 0, props.positionY, props.positionZ, props.scale, props.scale, props.scale).then((clip) => {
+						currentMixer.clipAction(clip).play();
+						currentMixer.update(clock.getDelta());
+						// make the VRM visible again
+						currentVrm.scene.visible = true;
+						if (currentVrm) {
+							if (currentVrm.humanoid) {
+								let head = currentVrm.humanoid.getRawBoneNode(VRMHumanBoneName.Head);
+								if (head) {
+									const headPos = new Vector3();
+									head.getWorldPosition(headPos);
+									let offsetPositionY = headPos.y - props.positionY;
+									const newTarget = new Vector3( headPos.x, offsetPositionY , headPos.z);
+									const newPos = new Vector3( camera.position.x, offsetPositionY , camera.position.z);
+									props.orbitRef.current.target = newTarget;
+									props.orbitRef.current.maxPolarAngle = Math.PI / 2;
+									props.orbitRef.current.minPolarAngle = Math.PI / 2;
+								}
 							}
 						}
-					}
-				});
+					});
+				}
 			}
-		}
+		};
+
+		updateVRMVisibility();
+		return () => {
+			isActive = false;
+		};
+	
 		}, []);
 
 		return (

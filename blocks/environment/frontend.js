@@ -1,5 +1,7 @@
-const { Component, render } = wp.element;
-import React from "react";
+const { Component, render, createRoot } = wp.element;
+
+// import React from "react";
+// import { createRoot } from "react-dom/client"; // Corrected import
 
 import EnvironmentFront from "./components/EnvironmentFront";
 import Networking from "./components/Networking";
@@ -124,6 +126,8 @@ if(threeApp[0]){
 }
 
 threeApp.forEach((threeApp) => {
+	const root = createRoot( threeApp );
+
 	if (threeApp) {
 		const hdr = document.querySelector(
 			"p.three-object-block-hdr"
@@ -221,7 +225,7 @@ threeApp.forEach((threeApp) => {
 				: "";
 		}
 
-		render(
+		root.render(
 			<>
 					<>
 						<div id="networking" class="threeov-networking-controls">
@@ -284,13 +288,14 @@ threeApp.forEach((threeApp) => {
 						previewImage={threePreviewImage}
 						hdr ={hdr ? hdr : ""}
 					/>
-			</>,
-			threeApp
+			</>
 		);
 	}
 });
 
 threeObjectViewerBlocks.forEach((threeApp) => {
+	const root = createRoot( threeApp );
+
 	let threeUrl, deviceTarget, backgroundColor, zoom, scale, hasZoom, hasTip, positionY, rotationY, animations;
 	if (threeApp) {
 		if(threeApp.tagName.toLowerCase() === 'three-object-viewer-block') {
@@ -342,7 +347,7 @@ threeObjectViewerBlocks.forEach((threeApp) => {
 				? threeApp.querySelector("p.three-object-animations").innerText
 				: "";
 		}
-		render(
+		root.render(
 			<ThreeObjectFront
 				threeObjectPlugin={threeObjectPlugin}
 				defaultAvatarAnimation={defaultAvatarAnimation}
@@ -356,8 +361,7 @@ threeObjectViewerBlocks.forEach((threeApp) => {
 				rotationY={rotationY}
 				animations={animations}
 				backgroundColor={backgroundColor}
-			/>,
-			threeApp
+			/>
 		);
 	}
 });

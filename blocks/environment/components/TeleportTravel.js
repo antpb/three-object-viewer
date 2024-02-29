@@ -272,7 +272,6 @@ export default function TeleportTravel(props) {
 
 
 	useEffect(() => {
-		console.log("hit the is presenting effect", isPresenting);
 		const x = Number(spawnPos[0]);
 		const y = Number(spawnPos[1]) + 0.1;
 		const z = Number(spawnPos[2]);

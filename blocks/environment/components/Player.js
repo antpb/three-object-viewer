@@ -20,8 +20,6 @@ import jump from "../../../inc/avatars/Jump.fbx";
 import fall from "../../../inc/avatars/falling.fbx";
 import { getMixamoRig } from "../utils/rigMap";
 import Ecctrl, { EcctrlAnimation, useGame, useFollowCam, useJoystickControls } from "ecctrl";
-// import {useGame} from './useGame'
-import { Container, Root, Text } from '@react-three/uikit'
 
 function useGameWithLogging() {
 	const gameStore = useGame();
@@ -34,19 +32,15 @@ function useGameWithLogging() {
 	  };
 	};
   
-	// Wrap each action you want to log
 	const idle = wrapWithLogging(gameStore.idle);
 	const walk = wrapWithLogging(gameStore.walk);
 	const run = wrapWithLogging(gameStore.run);
-	// Continue for other actions you're interested in
-  
-	// Return the modified store with wrapped actions for logging
+
 	return {
 	  ...gameStore,
 	  idle,
 	  walk,
 	  run,
-	  // Include other wrapped actions here
 	};
 }
 
@@ -864,31 +858,6 @@ export default function Player(props) {
 			
 			return (
 				<>
-				<Root backgroundColor={0xffffff} sizeX={8.34} sizeY={5.58} pixelSize={0.01}>
-						<Container width="100%" height="100%" overflow="scroll">
-						<Container flexDirection="column">
-							<Container borderBottom={1}>
-								<Container height={64} alignItems="center" flexDirection="row" paddingX={16}>
-								<Container marginLeft="auto" flexDirection="row" alignItems="center" gap={16}>
-									<Text fontSize={30} lineHeight={1}>
-										Hello World
-									</Text>
-								</Container>
-								</Container>
-							</Container>
-							<Container flexGrow={1} gap={16} padding={32} paddingTop={24}>
-								<Container flexDirection="row" justifyContent="space-between" gap={8}>
-									<Text fontSize={30} lineHeight={1}>
-										Dashboard
-									</Text>
-									<Container flexDirection="row" gap={8} alignItems="center">
-										<Text>Download</Text>
-									</Container>
-								</Container>
-							</Container>
-						</Container>
-						</Container>
-				</Root>
 				<KeyboardControls map={keyboardMap}>
 					<Ecctrl
 						ref={characterRef}
@@ -909,6 +878,9 @@ export default function Player(props) {
 						wakeUpDelay={4000}
 						camCollision={false}
 						disableFollowCam={ isPresenting ? true : false }
+						canSleep={true}
+						ccd={true}
+						additionalSolverIterations={1}
 					>
 						{isModelLoaded && playerControllerRef.current && (
 							<>

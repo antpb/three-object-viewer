@@ -3,7 +3,7 @@ const path = require("path");
 const isProduction = process.env.NODE_ENV === "production";
 const { entryPoints } = require("./pluginMachine.json");
 const isPro = process.env.ISPRO === 'true';
-
+console.log("Mode is:", isProduction? "Production" : "Development");
 const entry = {};
 Object.keys(entryPoints).forEach((type) => {
     if (type === 'blocks' || type === 'proBlocks' && isPro) {
@@ -79,11 +79,6 @@ module.exports = {
         filename: "[name].js",
         path: path.resolve(__dirname, "./build"),
         clean: true
-    },
-    externals: {
-        react: "React",
-        "react-dom": "ReactDOM",
-        'react-dom/client': 'ReactDOM'
     },
     resolve: {
         ...defaultConfig.resolve,

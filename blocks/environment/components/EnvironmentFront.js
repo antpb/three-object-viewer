@@ -1,16 +1,14 @@
 import * as THREE from "three";
 import { Fog } from 'three/src/scenes/Fog'
 import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
-import { useLoader, useThree, useFrame, Canvas, extend } from "@react-three/fiber";
+import { useLoader, useThree, Canvas, extend } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 // import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
 import { Physics, RigidBody, Debug, Attractor, CuboidCollider } from "@react-three/rapier";
 import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
-import ReactNipple from 'react-nipple';
 import ScrollableFeed from 'react-scrollable-feed'
-import { Resizable } from "re-resizable";
-import { Environment, useContextBridge, Text, Billboard } from "@react-three/drei";
+import { Environment } from "@react-three/drei";
 import { FrontPluginProvider, FrontPluginContext } from './FrontPluginProvider';  // Import the PluginProvider
 import {
 	useAnimations,
