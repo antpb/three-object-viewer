@@ -620,7 +620,7 @@ export default function EnvironmentFront(props) {
 	const [spawnPoints, setSpawnPoints] = useState([0,0,0]);
 	const [messageObject, setMessageObject] = useState({"tone": "happy", "message": "hello!"});
 	const [objectsInRoom, setObjectsInRoom] = useState([]);
-	const [url, setURL] = useState(props.threeUrl ? props.threeUrl : (threeObjectPlugin + defaultEnvironment));
+	const [url, setURL] = useState(props.threeUrl ? props.threeUrl : (defaultEnvironment));
 	const [loadingWorld, setLoadingWorld] = useState(true);
 
 	useEffect(() => {

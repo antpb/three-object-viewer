@@ -309,7 +309,7 @@ function Participant(participant) {
 	// ends with participant.playerVRM is png?
 	let isPng = participant.playerVRM.endsWith('.png');
 	return (
-		<group>
+		<group userData={{ camExcludeCollision: true }}>
 			<group rotation={[0, Math.PI, 0 ]}>
 				<mesh
 					visible={true}

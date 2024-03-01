@@ -23,24 +23,24 @@ import Ecctrl, { EcctrlAnimation, useGame, useFollowCam, useJoystickControls } f
 
 function useGameWithLogging() {
 	const gameStore = useGame();
-  
+
 	// A helper function to wrap the original actions with logging
 	const wrapWithLogging = (action) => {
-	  return (...args) => {
+	return (...args) => {
 		// console.log(`${action.name} action triggered`, ...args);
 		return action(...args);
-	  };
 	};
-  
+	};
+
 	const idle = wrapWithLogging(gameStore.idle);
 	const walk = wrapWithLogging(gameStore.walk);
 	const run = wrapWithLogging(gameStore.run);
 
 	return {
-	  ...gameStore,
-	  idle,
-	  walk,
-	  run,
+	...gameStore,
+	idle,
+	walk,
+	run,
 	};
 }
 
@@ -213,7 +213,7 @@ export default function Player(props) {
 	const [ presentingState, setPresentingState ] = useState(false);
 
 	const characterRef = useRef(null);
-  
+
 	const [ frameName, setFrameName ] = useState();
 	
 	let heightOffset = 0;
@@ -302,17 +302,17 @@ export default function Player(props) {
 	// 	}
 	// }, [curAnimation]);
 
-	  const animationSet = {
+	const animationSet = {
 		idle: "idle",
 		walk: "walking",
 		run: "running",
 		jump: "jump",
-	  };
-	  
-	  useEffect(() => {
+	};
+	
+	useEffect(() => {
 		// Initialize animation set
 		initializeAnimationSet(animationSet);
-	  }, []);
+	}, []);
 
 	// useEffect(() => {
 	// 	// if the curAnimation is changing log it
@@ -390,48 +390,48 @@ export default function Player(props) {
 
 	useEffect(() => {
 		if (!currentPlayerAvatarRef.current) {
-		  const loader = new GLTFLoader();
-		  const ktx2Loader = new KTX2Loader();
-		  ktx2Loader.setTranscoderPath('/path/to/basis/transcoder/');
-		  ktx2Loader.detectSupport(gl);
-		  loader.setKTX2Loader(ktx2Loader);
-		  loader.register(parser => new VRMLoaderPlugin(parser));
+		const loader = new GLTFLoader();
+		const ktx2Loader = new KTX2Loader();
+		ktx2Loader.setTranscoderPath(threeObjectPluginRoot + "/inc/utils/basis/");
+		ktx2Loader.detectSupport(gl);
+		loader.setKTX2Loader(ktx2Loader);
+		loader.register(parser => new VRMLoaderPlugin(parser));
 	
-		  loader.load(playerURL, (gltf) => {
+		loader.load(playerURL, (gltf) => {
 			currentPlayerAvatarRef.current = gltf;
 			playerControllerRef.current = gltf.userData.vrm;
 			setIsModelLoaded(true);
-		  }, undefined, error => {
+		}, undefined, error => {
 			console.error('An error happened during the loading of the model:', error);
-		  });
+		});
 		}
 	}, [playerURL, gl]);
 		
 	useEffect(() => {
 		if (isModelLoaded && playerControllerRef.current) {
-		  const playerController = playerControllerRef.current;
-		  const animationsMixer = new AnimationMixer(playerController.scene);
-		  playerMixerRef.current = animationsMixer;
-		  let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, playerController));
-		  playerController.scene.visible = false;
+		const playerController = playerControllerRef.current;
+		const animationsMixer = new AnimationMixer(playerController.scene);
+		playerMixerRef.current = animationsMixer;
+		let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, playerController));
+		playerController.scene.visible = false;
 
-		  Promise.all(animationsPromises)
-			  .then(animations => {
-			  const idleAction = animationsMixer.clipAction(animations[0]);
-			  const walkingAction = animationsMixer.clipAction(animations[1]);
-			  const runningAction = animationsMixer.clipAction(animations[2]);
-			  const jumpingAction = animationsMixer.clipAction(animations[3]);
+		Promise.all(animationsPromises)
+			.then(animations => {
+			const idleAction = animationsMixer.clipAction(animations[0]);
+			const walkingAction = animationsMixer.clipAction(animations[1]);
+			const runningAction = animationsMixer.clipAction(animations[2]);
+			const jumpingAction = animationsMixer.clipAction(animations[3]);
 			//   const fallingAction = animationsMixer.clipAction(animations[4]);
-			  idleAction.timeScale = 1;
-			  walkingAction.timeScale = 0;
-			  runningAction.timeScale = 0;
-			  jumpingAction.timeScale = 0;
-			  animationsRef.current = { idle: idleAction, walking: walkingAction, running: runningAction, jump: jumpingAction };
-			  idleAction.play();
-			  playerController.scene.visible = true;
-		  });  
+			idleAction.timeScale = 1;
+			walkingAction.timeScale = 0;
+			runningAction.timeScale = 0;
+			jumpingAction.timeScale = 0;
+			animationsRef.current = { idle: idleAction, walking: walkingAction, running: runningAction, jump: jumpingAction };
+			idleAction.play();
+			playerController.scene.visible = true;
+		});  
 		}
-	  }, [isModelLoaded]);
+	}, [isModelLoaded]);
 	
 		const setupCharacter = (gltf) => {
 			// Assuming you have a function to add the character to the scene
@@ -875,8 +875,8 @@ export default function Player(props) {
 						//sprintMult={1.9} // Slightly increased for a faster sprint option
 						airDragMultiplier={0.05} // Slightly reduced to decrease hangtime
 						fallingGravityScale={3.5} // Increased to accelerate descent
-						wakeUpDelay={4000}
-						camCollision={false}
+						wakeUpDelay={5000}
+						// camCollision={false}
 						disableFollowCam={ isPresenting ? true : false }
 						canSleep={true}
 						ccd={true}
