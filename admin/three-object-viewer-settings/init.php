@@ -8,13 +8,14 @@ add_action('admin_enqueue_scripts', function () {
         $assets = include dirname(__FILE__, 3). "/build/admin-page-$handle.asset.php";
         $dependencies = $assets['dependencies'];
 
-        wp_register_script(
-            $handle,
-            plugins_url("/build/admin-page-$handle.js", dirname(__FILE__, 2)),
-            $dependencies,
-            $assets['version']
-        );
-
+		wp_register_script(
+			$handle,
+			plugins_url("/build/admin-page-$handle.js", dirname(__FILE__, 2)),
+			$dependencies,
+			$assets['version'],
+			true
+		);
+		
         $three_object_plugin = plugins_url() . '/three-object-viewer/build/';
         $three_object_plugin_root = plugins_url() . '/three-object-viewer/';
         wp_localize_script( $handle, 'threeObjectPlugin', $three_object_plugin );

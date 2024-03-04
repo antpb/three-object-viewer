@@ -4,9 +4,13 @@
         "participantLimit": {
             "type": "int",
             "default": 5
-        }
+        },
+		"customAvatars": {
+			"type": "bool",
+			"default": false
+		}
     },
-    "category": "design",
+    "category": "spatial",
     "parent":  [ "three-object-viewer/environment" ],
     "apiVersion": 2,
     "supports": {

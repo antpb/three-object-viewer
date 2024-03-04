@@ -1093,7 +1093,7 @@ function NPCObject(props) {
 		const vrm = gltf.userData.vrm;
 		VRMUtils.rotateVRM0(vrm);
 		const rotationVRM = vrm.scene.rotation.y + parseFloat(0);
-		let defaultColor = "0x000000";
+		let defaultColor = "#000000";
 		var colorValue = parseInt ( defaultColor.replace("#","0x"), 16 );
 	
 		const color = new Color( colorValue );
@@ -1979,9 +1979,10 @@ export default function ThreeObjectEdit(props) {
 			  <div style={{ display: "flex", justifyContent: "space-between" }}>
 				<button
 					title="translate"
+					className="threeov-transform-button"
 					style={{
 						backgroundColor:
-							props.transformMode === "translate" ? "lightgray" : "white",
+							props.transformMode === "translate" ? "#b8adbf" : "white",
 							borderRadius: "10px",
 							paddingTop: "5px",
 							marginRight: "5px",
@@ -1992,9 +1993,10 @@ export default function ThreeObjectEdit(props) {
 				</button>
 				<button
 					title="rotate"
+					className="threeov-transform-button"
 					style={{
 						backgroundColor:
-							props.transformMode === "rotate" ? "lightgray" : "white",
+							props.transformMode === "rotate" ? "#b8adbf" : "white",
 							borderRadius: "10px",
 							paddingTop: "5px",
 							marginRight: "5px",
@@ -2005,9 +2007,10 @@ export default function ThreeObjectEdit(props) {
 				</button>
 				<button
 					title="scale"
+					className="threeov-transform-button"
 					style={{
 						backgroundColor:
-							props.transformMode === "scale" ? "lightgray" : "white",
+							props.transformMode === "scale" ? "#b8adbf" : "white",
 							borderRadius: "10px",
 							paddingTop: "5px",
 							marginRight: "5px",
@@ -2072,12 +2075,13 @@ export default function ThreeObjectEdit(props) {
 			<ObjectControls transformMode={transformMode} setTransformMode={setTransformMode}/>
 				<Canvas
 					name={"maincanvas"}
+					dpr={1}
 					camera={{
 						fov: 50,
 						near: 0.1,
 						far: 1000,
 						zoom: props.zoom,
-						position: [0, 0, 20]
+						position: [0, 0, 30]
 					}}
 					ref={canvasRef}
 					// shadowMap
@@ -2086,7 +2090,7 @@ export default function ThreeObjectEdit(props) {
 					style={{
 						margin: "0 Auto",
 						height: "100vh",
-						width: "100vw",
+						width: "100%",
 						boxSizing: "border-box"
 					}}
 				>

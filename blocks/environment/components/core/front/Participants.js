@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Text, SpriteAnimator } from "@react-three/drei";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader';
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import * as THREE from "three";
@@ -144,6 +145,7 @@ function Participant(participant) {
 	const [someVRM, setSomeVRM] = useState(null);
 	const [frameName, setFrameName] = useState('BackwardIdle');
 	const theScene = useThree();
+	const { gl } = theScene;
 	const displayNameTextRef = useRef(null);
 	const setTextRef = (el) => {
         textRef(el);
@@ -153,6 +155,10 @@ function Participant(participant) {
 	// Load the VRM model
 	useEffect(() => {
 		const loader = new GLTFLoader();
+		const ktx2Loader = new KTX2Loader();
+		ktx2Loader.setTranscoderPath(threeObjectPluginRoot + "/inc/utils/basis/");
+		ktx2Loader.detectSupport(gl);
+		loader.setKTX2Loader(ktx2Loader);
 		loader.register(parser => new VRMLoaderPlugin(parser));
 		if( playerURL.endsWith( '.png' ) ){
 			// console.log("visitor url is", playerURL);
@@ -308,6 +314,9 @@ function Participant(participant) {
 
 	// ends with participant.playerVRM is png?
 	let isPng = participant.playerVRM.endsWith('.png');
+	const color = "#000000";
+	var colorValue = new Color( parseInt ( color.replace("#","0x"), 16 ) );
+
 	return (
 		<group userData={{ camExcludeCollision: true }}>
 			<group rotation={[0, Math.PI, 0 ]}>
@@ -326,8 +335,9 @@ function Participant(participant) {
 					rotation-y={-Math.PI}
 					geometry={new THREE.PlaneGeometry(planeWidth, 0.07)}
 					name="displayNameBackground"
-				>
-					<meshPhongMaterial side={THREE.DoubleSide} shininess={0} color={0x000000} />
+				>	
+			
+					<meshPhongMaterial side={THREE.DoubleSide} shininess={0} color={colorValue} />
 				</mesh>
 					<Text
 						font={defaultFont}

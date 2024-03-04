@@ -1,4 +1,5 @@
 import React, { useRef } from "react";
+import { Color } from "three";
 import {
 	Text,
 } from "@react-three/drei";
@@ -12,6 +13,7 @@ import {
  */
 export function TextObject(model) {
 	const htmlObj = useRef();
+	var colorValue = new Color( parseInt ( model.textColor.replace("#","0x"), 16 ) );
 	return (
 		<>
 			<group
@@ -27,7 +29,7 @@ export function TextObject(model) {
 					// rotation-y={-Math.PI / 2}
 					maxWidth={10}
 					height={20}
-					color={model.textColor}
+					color={colorValue}
 					transform
 				>
 					{model.textContent}

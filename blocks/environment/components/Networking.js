@@ -391,7 +391,6 @@ const Networking = (props) => {
 		// set container background to accent image
 		mainContainer.style.backgroundImage = `url(${cornerAccent})`;
 		mainContainer.style.backgroundSize = "cover";
-		mainContainer.style.display = "block";
 	}, []);
 
 	if(isNetworkActivated){
@@ -581,6 +580,7 @@ const Networking = (props) => {
 				//     box.value = '';
 				// })
 				const mainContainer = document.getElementById("networking");
+
 				// set container background to accent image
 				mainContainer.style.backgroundImage = `url(${cornerAccent})`;
 				mainContainer.style.backgroundSize = "cover";

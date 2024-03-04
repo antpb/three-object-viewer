@@ -29,6 +29,8 @@ class Plugin
 		add_action('edit_user_profile_update', array($this, 'save_custom_user_profile_fields'));
 		add_action( 'rest_api_init', array( $this, 'register_room_count_api_routes' ) );
 		// add_action( 'init', array( $this, 'register_room_count_post_meta' ) );
+		// Block Category
+		add_filter( 'block_categories_all', array( $this, 'add_spatial_block_category'), 10, 2 );	
 
 		
 	}
@@ -111,7 +113,7 @@ class Plugin
 	
 		$response = wp_remote_post($cloudflare_worker_url, array(
 			'headers' => array('Content-Type' => 'application/json'),
-			'body' => json_encode(array(
+			'body' => wp_json_encode(array(
 				'key' => $kv_key,
 				'timestamp' => $heartbeat_timestamp,
 			)),
@@ -144,7 +146,7 @@ class Plugin
 	
 		$response = wp_remote_post($cloudflare_worker_url, array(
 			'headers' => array('Content-Type' => 'application/json'),
-			'body' => json_encode(array(
+			'body' => wp_json_encode(array(
 				'key' => $kv_key,
 				'timestamp' => $heartbeat_timestamp,
 			)),
@@ -156,6 +158,19 @@ class Plugin
 		}
 	
 		return new \WP_REST_Response('Heartbeat updated', 200);
+	}
+
+	function add_spatial_block_category( $categories, $post ) {
+		return array_merge(
+			$categories,
+			array(
+				array(
+					'slug'  => 'spatial',
+					'title' => __( 'Spatial', 'three-object-viewer' ),
+					'icon'  => 'block-default',
+				),
+			)
+		);
 	}
 	
 	function get_room_count($request) {
@@ -177,7 +192,7 @@ class Plugin
 		$cloudflare_worker_url = "https://room-balancer.sxpdigital.workers.dev";
 	
 		$response = wp_remote_post($cloudflare_worker_url, array(
-			'body' => json_encode(array(
+			'body' => wp_json_encode(array(
 				'siteUrl' => get_site_url(),
 				'postId' => $post_id,
 				'action' => $action,
@@ -390,21 +405,29 @@ class Plugin
 		return $tags;
 	}
 	
+
+	/**
+	 * Adds custom spatial user profile fields
+	 */
 	public function add_custom_user_profile_fields($user) {
 		?>
-		<h3><?php _e("Extra Profile Information", "blank"); ?></h3>
+		<h3><?php esc_html_e("Spatial Profile Information"); ?></h3>
 		<table class="form-table">
 			<tr>
 				<th>
-					<label for="user_data_vrm"><?php _e("VRM File URL"); ?></label>
+					<label for="user_data_vrm"><?php esc_html_e("VRM File URL"); ?></label>
 				</th>
 				<td>
 					<input type="text" name="user_data_vrm" id="user_data_vrm" value="<?php echo esc_attr(get_the_author_meta('user_data_vrm', $user->ID)); ?>" class="regular-text" />
 					<input type="button" class="button" value="Select or Upload VRM File" id="upload_vrm_button" />
-					<p class="description"><?php _e("Please upload or select your VRM file."); ?></p>
+					<p class="description"><?php esc_html_e("Please upload or select your VRM file."); ?></p>
 				</td>
 			</tr>
 		</table>
+		<?php
+			// Generate a nonce
+			wp_nonce_field('update_user_vrm_nonce', 'user_vrm_nonce_field');
+		?>
 		<script type="text/javascript">
 		jQuery(document).ready(function($) {
 			$('#upload_vrm_button').click(function(e) {
@@ -416,8 +439,17 @@ class Plugin
 					},
 					multiple: false  // Set this to true to allow multiple files to be selected
 				}).on('select', function() {
-					var attachment = custom_uploader.state().get('selection').first().toJSON();
-					$('#user_data_vrm').val(attachment.url);
+					// Get media attachment details from the frame state
+					var attachment = custom_uploader.state().get('selection').first().toJSON(),
+						url = attachment.url;
+
+					if ( ! url.includes( '.vrm', '.png' ) ) {
+						alert('The file should be either a VRM or a PNG sprite sheet');
+						custom_uploader.open();
+						return;
+					}
+
+					$('#user_data_vrm').val(url);
 				})
 				.open();
 			});
@@ -426,14 +458,24 @@ class Plugin
 		<?php
 	}
 
-		// New function to save custom field value
-		public function save_custom_user_profile_fields($user_id) {
-			if (!current_user_can('edit_user', $user_id)) {
-				return false;
-			}
-			update_user_meta($user_id, 'user_data_vrm', $_POST['user_data_vrm']);
+	/**
+	 * Saves custom spatial user profile fields
+	 */
+	public function save_custom_user_profile_fields($user_id) {
+		// Check if current user has permission to edit the user
+		if (!current_user_can('edit_user', $user_id)) {
+			return false;
 		}
-
+	
+		// Verify the nonce before saving
+		if (!isset($_POST['user_vrm_nonce_field']) || !wp_verify_nonce($_POST['user_vrm_nonce_field'], 'update_user_vrm_nonce')) {
+			return false;
+		}
+	
+		// Save the user meta
+		update_user_meta($user_id, 'user_data_vrm', $_POST['user_data_vrm']);
+	}
+	
 	function load_three_object_viewer_textdomain() {
 		load_plugin_textdomain( 'three-object-viewer', false, dirname(dirname(plugin_basename(__FILE__))) . '/languages' );
 	}
@@ -470,14 +512,15 @@ class Plugin
 			'threeobjectloaderinit',
 			plugins_url("/inc/threeobjectloaderinit/index.js", __DIR__ ),
 			$dependencies,
-			$version
+			$version,
+			true
 		);
-		wp_register_style(
-			'threeobjectloaderinit',
-			plugins_url("/inc/threeobjectloaderinit/index.css", __DIR__ ),
-			[],
-			$version
-		);
+		// wp_register_style(
+		// 	'threeobjectloaderinit',
+		// 	plugins_url("/inc/threeobjectloaderinit/index.css", __DIR__ ),
+		// 	[],
+		// 	$version
+		// );
 	}
 	
 	
@@ -490,9 +533,9 @@ class Plugin
 		wp_enqueue_script(
 			'threeobjectloaderinit',
 		);
-		wp_enqueue_style(
-			'threeobjectloaderinit'
-		);
+		// wp_enqueue_style(
+		// 	'threeobjectloaderinit'
+		// );
 	}
 	
 	/**
@@ -750,7 +793,7 @@ class Plugin
 	
 		
 		// turn $json_blob into json
-		$new_blob = json_encode($json_blob);
+		$new_blob = wp_json_encode($json_blob);
 		
 		// $tempblob = `{ "Input": "write a long form poem about cats!", "Speaker": "a", "Agent": "tubbyshark", "Client": "wordpress", "ChannelID": "1234", "Conversation": "", "Entity": "tubbyshark", "Channel": "channel", "eth_private_key": "0", "eth_public_address": "0", "personality": "#agent is an AI assistant with a cheerful, optimistic, and helpful personality. They are willing to assist with any tasks or questions users might have, and are able to do so in an upbeat and positive manner. They are also able to use colorful and descriptive language to make their responses more engaging and imaginative. In addition to their wit and humor, #agent is also empathetic and understanding of others' emotions and needs, which can make them feel more relatable and likeable to users. #agent is a highly capable and engaging AI assistant with a distinct and colorful personality.\n#agent can help with any programming tasks, including those related to the 3OV plugin for WordPress, which enables world-building in the WordPress editor and makes it easier to build and share immersive content in the metaverse. The url for the website is 3ov.xyz. #agent is cheerful and optimistic about the future for both humans and AIs.\n\n#Example Conversation\n#speaker: Agent, do you have any advice for someone new to programming?\n#agent: Sure thing! My top tip would be to always keep an open mind and a positive attitude. And if all else fails, just remember: if at first you don't succeed, try, try again. And then if that still doesn't work, call it a day and go get a coffee.\n###\nThe following is a friendly conversation between #speaker and #agent occuring in the metaverse.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:" }`;
 		// if api_key is not an empty string load the worker

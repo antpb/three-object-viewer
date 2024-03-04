@@ -1,4 +1,4 @@
-import { Mesh, Raycaster, PerspectiveCamera, ArrowHelper, Euler, NearestFilter, LoopOnce, DoubleSide, MeshBasicMaterial, RingGeometry, BoxGeometry, AudioListener, Group, Quaternion, Matrix4, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, Vector2, BufferGeometry, CircleGeometry, sRGBEncoding, MathUtils } from "three";
+import { Mesh, Raycaster, PerspectiveCamera, ArrowHelper, Euler, NearestFilter, LoopOnce, DoubleSide, MeshBasicMaterial, RingGeometry, BoxGeometry, AudioListener, Color, Group, Quaternion, Matrix4, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, Vector2, BufferGeometry, CircleGeometry, sRGBEncoding, MathUtils } from "three";
 import { TextureLoader } from "three/src/loaders/TextureLoader";
 import { useFrame, useLoader, useThree, Interactive } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
@@ -46,10 +46,12 @@ function useGameWithLogging() {
 
 function Reticle() {
 	const { camera } = useThree();
-	
+	const color = 0xffffff;
+	var colorValue = new Color( parseInt ( color.replace("#","0x"), 16 ) );
+
 	var reticle = new Mesh(
 		new RingGeometry( 0.85 * 5, 5, 32),
-		new MeshBasicMaterial( {color: 0xffffff, side: DoubleSide })
+		new MeshBasicMaterial( {color: colorValue, side: DoubleSide })
 	);
 	reticle.scale.set(1.3, 1.3, 1.3);
 	reticle.position.z = -1000;
@@ -855,7 +857,7 @@ export default function Player(props) {
 				{ name: "action3", keys: ["3"] },
 				{ name: "action4", keys: ["KeyF"] },
 			];
-			
+
 			return (
 				<>
 				<KeyboardControls map={keyboardMap}>
@@ -876,7 +878,7 @@ export default function Player(props) {
 						airDragMultiplier={0.05} // Slightly reduced to decrease hangtime
 						fallingGravityScale={3.5} // Increased to accelerate descent
 						wakeUpDelay={5000}
-						// camCollision={false}
+						camCollision={props.camCollisions === "1" ? true : false}
 						disableFollowCam={ isPresenting ? true : false }
 						canSleep={true}
 						ccd={true}

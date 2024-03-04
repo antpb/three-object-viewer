@@ -3,7 +3,7 @@ import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
-import { AudioListener, Group, Quaternion, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, BufferGeometry, MeshBasicMaterial, DoubleSide, Mesh, CircleGeometry, sRGBEncoding } from "three";
+import { Color, AudioListener, Group, Quaternion, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, BufferGeometry, MeshBasicMaterial, DoubleSide, Mesh, CircleGeometry, sRGBEncoding } from "three";
 import { RigidBody } from "@react-three/rapier";
 import {
 	useAnimations,
@@ -355,11 +355,12 @@ export function NPCObject(model) {
 		}
 		let defaultColor = "0xffffff";
 		let black = "0x000000";
-		var colorValue = parseInt ( defaultColor.replace("#","0x"), 16 );
-		var blackValue = parseInt ( black.replace("#","0x"), 16 );
+		var colorValue = new Color( parseInt ( defaultColor.replace("#","0x"), 16 ) );
+		var blackValue = new Color( parseInt ( black.replace("#","0x"), 16 ) );
 	
 		return (
 			<group
+				userData={{ camExcludeCollision: true }}
 				position={[model.positionX, model.positionY, model.positionZ]}
 				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
 			>
@@ -447,12 +448,13 @@ export function NPCObject(model) {
 	var colorValue = parseInt ( defaultColor.replace("#","0x"), 16 );
 	var blackValue = parseInt ( blackHex.replace("#","0x"), 16 );
 
-	const color = new THREE.Color( colorValue );
-	const black = new THREE.Color( blackValue );
+	const color = new Color( colorValue );
+	const black = new Color( blackValue );
 
 	return (
 		<>
 			<group
+				userData={{ camExcludeCollision: true }}
 				position={[model.positionX, model.positionY, model.positionZ]}
 				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
 			>

@@ -7,8 +7,6 @@
 	position: relative;
 	top: 0;
 	bottom: 0;
-	// look into why this was formerly 105%
-	width: 100%;
 	height: 100vh;
 }
 
@@ -162,6 +160,40 @@
 .wp-block-three-object-viewer-environment .block-editor-inner-blocks {
 }
 
+.wp-block-three-object-viewer-environment .block-editor-block-list__layout .block-editor-block-list__block:not([contenteditable]):focus {
+    border-radius: 30px;
+}
+
+.wp-block-three-object-viewer-environment .block-editor-block-list__block .is-selected:after {
+	border-radius: 30px;
+}
+
+.wp-block-three-object-viewer-environment .block-editor-block-list__layout div {
+	cursor: pointer;
+}
+// .wp-block-three-object-viewer-environment .block-editor-block-list__layout div:first-child {
+// 	margin-top: 5px;
+// 	margin-bottom: 5px;
+// }
+
+// .wp-block-three-object-viewer-environment .editor-styles-wrapper .block-editor-block-list__layout.is-root-container > .alignfull {
+// 	width: 100%;
+// }
+
+.wp-block-three-object-viewer-environment .block-editor-block-list__layout .block-editor-block-list__block:not([contenteditable]):focus:after {
+	border-radius: 30px;
+    box-shadow: 0 0 0 2px #7022e8;
+    margin-left: 10px;
+    max-width: 178px;
+    z-index: 2;
+}
+
+.is-root-container.alignfull:has(.wp-block-three-object-viewer-environment) {
+	// calculate 100% width minus the width of the sidebar .components-panel__header
+	// width: calc(100vw - 280px);
+	margin: 0 !important;
+}
+
 // .wp-block-three-object-viewer-environment {
 // 	width: 100vw;
 // }
@@ -173,7 +205,6 @@
 .wp-block-three-object-viewer-environment .block-editor-inner-blocks:not(.iframe) {
 	height: 90vh;
 }
-
 
 .three-object-viewer-edit-panel .wide-slider {
 	display: block;
@@ -206,26 +237,36 @@
 .three-object-viewer-inner {
 	z-index:1;
 	flex: 1;
-	background-color: #3f3f3f;
+	background-color: #3a323fdb;
 	color: white;
 	box-sizing: border-box;
-	margin-bottom: 1px;
-	margin-top: 1px;
+	// margin-bottom: 3px;
+	// margin-top: 3px;
 	max-width: 180px;
 	width: 180px;
 	max-height: 40px;
 	height: 40px;
 	font-size: 0.8em;
 	text-align: center;
-	border-radius: 8px;
+	border-radius: 30px;
 	box-shadow:0px 1px 5px 1px #1e1e1e;
 	display: flex;
 	padding-left: 10px;
 	padding-top: 5px;
+	border: 2px solid #ffffff17;
 }
 
 div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner) {
 	margin: 0px !important;
+}
+
+div:has(>.three-object-viewer-component-container,>.three-object-viewer-inner):first-child {
+	margin-top: 15px !important;
+}
+
+div:has(>.three-object-viewer-component-container,>.three-object-viewer-inner) {
+	margin-top: 3px !important;
+	margin-bottom: 3px !important;
 }
 
 
@@ -234,7 +275,7 @@ div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner
 	filter: invert(88%) ;
 	display: flex;
 	padding-right: 5px;
-	padding-top: 5px;
+	padding-top: 3px;
 }
 
 .three-object-viewer-inner p {
@@ -245,8 +286,8 @@ div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner
 }
 
 .wp-block-three-object-viewer-environment .block-editor-inner-blocks .block-editor-button-block-appender {
-	width: 60px;
-	height: 60px;
+	width: 50px;
+	height: 50px;
 }
 
 .wp-block-three-object-viewer-environment .block-editor-inner-blocks .block-editor-button-block-appender svg{
@@ -257,9 +298,18 @@ div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner
 	margin: 0px 0px -60px;
 	right: 0;
 	position: absolute;
-	background-color: #8e00f2;
-	color: white;
+	background-color: #b7ff00;
+	color: #000;
+	border-radius: 30px;
+	margin-top: 12px;
+    margin-right: 7px;
+	box-shadow: 0px 0px 7px 1px rgb(15 0 0 / 57%);
 }
+
+.wp-block-three-object-viewer-environment .block-editor-inner-blocks .block-editor-button-block-appender:hover {
+	background-color: #ccff4c;
+}
+
 
 .wp-block-three-object-viewer-environment:has(> .block-editor-inner-blocks) {
 	// display: flex !important;
@@ -306,6 +356,13 @@ div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner
 	margin-left: -8px !important;
 }
 
+.threeov-transform-button {
+	border-radius: 30px !important;
+	box-shadow: 0px 0px 5px 1px #0000005e;
+	border: none !important;
+	background-color: #ffffff5e;
+	margin-right: 8px !important;
+}
 
 .three-object-block-url-input {
 	padding-bottom: 20px;

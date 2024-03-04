@@ -3,7 +3,7 @@ const path = require("path");
 const isProduction = process.env.NODE_ENV === "production";
 const { entryPoints } = require("./pluginMachine.json");
 const isPro = process.env.ISPRO === 'true';
-console.log("Mode is:", isProduction? "Production" : "Development");
+console.log("Building an open metaverse. Hang tight... Building:", isProduction? "Production" : "Development");
 const entry = {};
 Object.keys(entryPoints).forEach((type) => {
     if (type === 'blocks' || type === 'proBlocks' && isPro) {

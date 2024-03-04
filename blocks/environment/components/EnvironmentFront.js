@@ -725,6 +725,7 @@ export default function EnvironmentFront(props) {
 											defaultAvatar={defaultAvatar}
 											defaultPlayerAvatar = {defaultPlayerAvatar}
 											movement={movement}
+											camCollisions={props.camCollisions}
 										/>
 									)}
 									{/* <Perf className="stats" /> */}
@@ -2262,12 +2263,14 @@ export default function EnvironmentFront(props) {
 						<div className="threeov-entry-pfp" style={ { backgroundImage: `url(${props.userData.profileImage})` } }></div>
 						{/* <span>Display Name</span> */}
 						<input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
-						<div>
-							<span>VRM or Sprite URL</span>
-							<input type="text" value={playerAvatar} onChange={(e) => setPlayerAvatar(e.target.value)} />
-						</div>
+						{ ( props.networkingBlock[0].attributes.customAvatars.value === "1" ) && (
+							<div>
+								<span>VRM or Sprite URL</span>
+								<input type="text" value={playerAvatar} onChange={(e) => setPlayerAvatar(e.target.value)} />
+							</div>
+						) }
 					</div>
-			)}
+					)}
 					<button
 						class="threeov-load-world-button"
 						onClick={() => {

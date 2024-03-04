@@ -51,7 +51,7 @@
 		},
 		"textColor": {
 			"type": "string",
-			"default": "0x000000"
+			"default": "#ffffff"
 		},
 		"animations": {
 			"type": "string",
@@ -62,7 +62,7 @@
 			"default": false
 		}
 	},
-	"category": "design",
+	"category": "spatial",
 	"parent":  [ "three-object-viewer/environment" ],
 	"apiVersion": 2,
 	"supports": {

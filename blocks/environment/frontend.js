@@ -142,6 +142,7 @@ threeApp.forEach((threeApp) => {
 		let spawnPointRotationY;
 		let spawnPointRotationZ;
 		let savedPoint = spawnToAdd[0];
+		let camCollisions = true;
 		if(savedPoint?.tagName.toLowerCase() === 'three-spawn-point-block') {
 			spawnPointX = savedPoint.getAttribute('positionX');
 			spawnPointY = savedPoint.getAttribute('positionY');
@@ -181,6 +182,7 @@ threeApp.forEach((threeApp) => {
 			positionY = threeApp.getAttribute('positionY');
 			rotationY = threeApp.getAttribute('rotationY');
 			animations = threeApp.getAttribute('animations');	
+			camCollisions = threeApp.getAttribute('camCollisions') ? threeApp.getAttribute('camCollisions') : true;
 		} else {
 			threeUrl = threeApp.querySelector("p.three-object-block-url")
 				? threeApp.querySelector("p.three-object-block-url").innerText
@@ -228,7 +230,7 @@ threeApp.forEach((threeApp) => {
 		root.render(
 			<>
 					<>
-						<div id="networking" class="threeov-networking-controls">
+						<div id="networking" style={{display: "none"}} class="threeov-networking-controls">
 							{/* <div id="session-id">Room: </div> */}
 							{/* <p>Peers</p> */}
 							{/* <div id="peers"></div> */}
@@ -270,6 +272,7 @@ threeApp.forEach((threeApp) => {
 						positionY={positionY}
 						rotationY={rotationY}
 						animations={animations}
+						camCollisions={camCollisions}
 						backgroundColor={backgroundColor}
 						userData={userData}
 						postSlug={postSlug}

@@ -40,9 +40,13 @@
 		"animations": {
 			"type": "string",
 			"default": ""
+		},
+		"camCollisions": {
+			"type": "boolean",
+			"default": true
 		}
 	},
-	"category": "design",
+	"category": "spatial",
 	"apiVersion": 2,
 	"supports": {
 		"html": false,

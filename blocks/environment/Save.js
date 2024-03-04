@@ -15,6 +15,7 @@ export default function save({ attributes }) {
 			rotationY={attributes.rotationY}
 			threePreviewImage={attributes.threePreviewImage}
 			animations={attributes.animations}
+			camCollisions={attributes.camCollisions ? '1' : '0'}
 		>
 			<InnerBlocks.Content />
 		</three-environment-block>

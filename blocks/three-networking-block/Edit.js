@@ -40,6 +40,9 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 	const onChangeParticipantLimit = (participantLimit) => {
 		setAttributes({ participantLimit });
 	};
+	const setCustomAvatars = (customAvatars) => {
+		setAttributes({ customAvatars: customAvatars });
+	};
 
 	const { mediaUpload } = wp.editor;
 
@@ -83,6 +86,23 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 								label="Participant Limit"
 								value={attributes.participantLimit}
 								onChange={(value) => onChangeParticipantLimit(value)}
+							/>
+						</PanelRow>
+						<PanelRow>
+						<span>{ __( "Custom Avatars:", "three-object-viewer" ) }</span>
+						</PanelRow>
+						<PanelRow>
+							<ToggleControl
+									label={ __( "This setting controls if a visitor can have a custom avatar. Note that large avatars networked can impact the performance for everyone. Enable with caution.", 'three-object-viewer' ) }
+									help={
+										attributes.customAvatars
+											? __( "Custom avatars allowed.", 'three-object-viewer' )
+											: __( "Custom avatars disabled.", 'three-object-viewer' )
+									}
+									checked={attributes.customAvatars ? true : false}
+									onChange={(e) => {
+										setCustomAvatars(e);
+									}}
 							/>
 						</PanelRow>
 					</PanelBody>

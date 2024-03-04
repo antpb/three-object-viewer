@@ -8,6 +8,7 @@ export default function save({ attributes }) {
 		<three-networking-block
 			{...blockProps}
 			participantLimit={attributes.participantLimit}
+			customAvatars={attributes.customAvatars ? '1' : '0'}
 		/>
 	);
 }
