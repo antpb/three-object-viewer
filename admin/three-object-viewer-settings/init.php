@@ -8,13 +8,14 @@ add_action('admin_enqueue_scripts', function () {
         $assets = include dirname(__FILE__, 3). "/build/admin-page-$handle.asset.php";
         $dependencies = $assets['dependencies'];
 
-        wp_register_script(
-            $handle,
-            plugins_url("/build/admin-page-$handle.js", dirname(__FILE__, 2)),
-            $dependencies,
-            $assets['version']
-        );
-
+		wp_register_script(
+			$handle,
+			plugins_url("/build/admin-page-$handle.js", dirname(__FILE__, 2)),
+			$dependencies,
+			$assets['version'],
+			true
+		);
+		
         $three_object_plugin = plugins_url() . '/three-object-viewer/build/';
         $three_object_plugin_root = plugins_url() . '/three-object-viewer/';
         wp_localize_script( $handle, 'threeObjectPlugin', $three_object_plugin );
@@ -38,6 +39,10 @@ add_action('rest_api_init', function (){
 				return rest_ensure_response( [
 					'enabled' => get_option( '3ov_ai_enabled', false ),
 					'networkWorker' => get_option( '3ov_mp_networkWorker', '' ),
+					'multiplayerWorker' => get_option( '3ov_mp_multiplayerWorker', '' ),
+					'turnCredentialRelay' => get_option( '3ov_mp_turnCredentialRelay', '' ),
+					'turnServerKey' => get_option( '3ov_mp_turnServerKey', '' ),
+					'multiplayerAccess' => get_option( '3ov_mp_multiplayerAccess', '' ),
 					'openApiKey' => three_decrypt ( get_option( '3ov_ai_openApiKey', '' ) ),
 					'allowPublicAI' => get_option( '3ov_ai_allow', '' ),
 					'defaultVRM' => get_option( '3ov_defaultVRM', '' ),
@@ -55,6 +60,11 @@ add_action('rest_api_init', function (){
 				$data = $request->get_json_params();
 				update_option( '3ov_ai_enabled', $data['enabled'] );
 				update_option( '3ov_mp_networkWorker', $data['networkWorker'] );
+				update_option( '3ov_mp_multiplayerWorker', $data['multiplayerWorker'] );
+				update_option( '3ov_mp_turnCredentialRelay', $data['turnCredentialRelay'] );
+				update_option( '3ov_mp_turnServerUser', $data['turnServerUser'] );
+				update_option( '3ov_mp_turnServerKey', $data['turnServerKey'] );
+				update_option( '3ov_mp_multiplayerAccess', $data['multiplayerAccess'] );
 				update_option( '3ov_defaultVRM', $data['defaultVRM'] );
 				update_option( '3ov_defaultAvatar', $data['defaultAvatar'] );
 				update_option( '3ov_ai_allow', $data['allowPublicAI'] );

@@ -118,10 +118,11 @@ export function Portal(model) {
 					lockZ={false} // Lock the rotation on the z axis (default=false)
 				>
 					<Text
-						font={model.threeObjectPlugin + model.defaultFont}
-						scale={[2, 2, 2]}
-						maxWidth={1}
+						font={model.defaultFont}
+						scale={[1, 1, 1]}
+						maxWidth={10}
 						alignX="center"
+						fontSize={0.45}
 						// rotation={[model.rotationX , model.rotationY, model.rotationZ]}
 						// position={[model.positionX, model.positionY, model.positionZ]}
 						color="black"
@@ -171,7 +172,7 @@ export function Portal(model) {
 	const gltf = useLoader(GLTFLoader, url, (loader) => {
 		const dracoLoader = new DRACOLoader();
 		dracoLoader.setDecoderPath( model.threeObjectPluginRoot + "/inc/utils/draco/");
-		dracoLoader.setDecoderConfig({type: 'js'}); // (Optional) Override detection of WASM support.
+		dracoLoader.setDecoderConfig({type: 'js'});
 		loader.setDRACOLoader(dracoLoader);
 
 		loader.register(
@@ -214,6 +215,7 @@ export function Portal(model) {
 				scale={[model.scaleX, model.scaleY, model.scaleZ]}
 			>
 				<group
+					userData={{ camExcludeCollision: true }}
 					name="portal"
 					rotation={[
 						model.rotationX,
@@ -228,11 +230,12 @@ export function Portal(model) {
 					scale={[model.scaleX, model.scaleY, model.scaleZ]}
 				>
 					<Text
-						font={threeObjectPlugin + model.defaultFont}
-						scale={[2, 2, 2]}
+						font={model.defaultFont}
+						scale={[1, 1, 1]}
 						maxWidth={1}
 						alignX="center"
 						textAlign="center"
+						fontSize={0.3}
 						color={model.labelTextColor}
 						position={[
 							0 + model.labelOffsetX,

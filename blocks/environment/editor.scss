@@ -1,5 +1,5 @@
 
- .wp-block-three-object-block {
+.wp-block-three-object-block {
 	border: 1px dotted #f00;
 }
 
@@ -7,7 +7,6 @@
 	position: relative;
 	top: 0;
 	bottom: 0;
-	width: 105%;
 	height: 100vh;
 }
 
@@ -23,28 +22,104 @@
 
 #VRButton{
 	position: fixed !important;
-	top: 20px !important;
 	bottom:auto !important;
-	background-color: rgba(76, 0, 99, 0.677) !important;
+	background-color: #230d006a;
+	margin-top: -50px !important;
 }
- .glb-preview-container {
-	 padding: 100px;
-	 text-align: center;
-	 align-items: center;
-	 align-content: center;
-	 background-color:#f2f2f2;
-	 height: 773px;
-	 box-sizing: border-box;
-	 padding-left: 230px !important;
- }
 
- .glb-preview-container button{
+.threeov-networking-controls {
+	//initializes hidden
+	display: none;
+
+	#session-id {
+		font-size: .75em;
+	}
+
+	.button {
+		background-color: #b7ff00;
+		border-radius: 20px;
+		padding: 5px 10px;
+		border: 1px solid #98d400;
+		// add dropshadow
+		// box-shadow: 0px 0px 5px 1px #0000005e;
+		color: white;
+		cursor: pointer;
+		margin-top: 3px !important;
+		color: #451a00;
+		font-weight: 600;
+		float:left;
+		margin-right: 5px;
+		letter-spacing: 0.01em;
+		max-width:75px;
+	}
+	
+	.button:hover {
+		background-color: #ccff4c;
+		border: 1px solid #98d400;
+		// add dropshadow
+		box-shadow: 0px 0px 5px 1px #7f7f7f5e;
+		color: white;
+		cursor: pointer;
+		color: #451a00;
+		font-weight: 600;
+	}
+
+	position: absolute;
+	top: 20px !important;
+	left: 20px;
+	background-color: rgb(92 90 90 / 51%) !important;
+	// background-color: rgba(34, 34, 34, 0.677) !important;
+	z-index: 1000;
+	width: 250px;
+	box-sizing: border-box;
+	padding: 10px;
+	border-radius: 8px;
+	color: white;
+}
+
+
+.threeov-entry-flow {
+	background-color: #212121f4;
+	color: white;
+	text-align: center;
+	border-radius: 20px;
+	box-shadow: 0px 0px 17px 5px rgb(15 0 0 / 57%);
+}
+
+.threeov-entry-flow span {
+	font-size: 0.8em;
+}
+
+.threeov-entry-flow input {
+	border-radius: 10px;
+	margin-top: 10px !important;
+	min-height: 30px;
+	padding-left: 10px;
+}
+
+.threeov-entry-flow input:focus {
+	// border: 1px solid #b7ff00;
+	outline: #b7ff00 solid !important;
+}
+
+.glb-preview-container {
+	padding: 100px;
+	text-align: center;
+	align-items: center;
+	align-content: center;
+	background-color:#f2f2f2;
+	height: 773px;
+	box-sizing: border-box;
+	padding-left: 230px !important;
+}
+
+.glb-preview-container button{
 	padding: 15px;
 	border-radius: 30px;
 	padding: 5px !important;
-    border-radius: 30px !important;
-    padding-left: 20px !important;
-    padding-right: 20px !important;
+	border-radius: 30px !important;
+	padding-left: 20px !important;
+	padding-right: 20px !important;
 }
 
 .three-object-viewer-button {
@@ -71,17 +146,52 @@
 .wp-block-three-object-viewer-three-light-block,
 .wp-block-three-object-viewer-three-portal-block,
 .wp-block-three-object-viewer-three-video-block,
+.wp-block-three-object-viewer-three-networking-block,
 .wp-block-three-object-viewer-spawn-point-block,
 .wp-block-three-object-viewer-three-text-block  {
 	display: flex;
 	float: left;
 	padding-left:10px !important;
 	height: auto;
-    padding-right: 10px !important;
-    // background-color: rgb(42, 42, 42);
+	padding-right: 10px !important;
+	// background-color: rgb(42, 42, 42);
 }
 
 .wp-block-three-object-viewer-environment .block-editor-inner-blocks {
+}
+
+.wp-block-three-object-viewer-environment .block-editor-block-list__layout .block-editor-block-list__block:not([contenteditable]):focus {
+    border-radius: 30px;
+}
+
+.wp-block-three-object-viewer-environment .block-editor-block-list__block .is-selected:after {
+	border-radius: 30px;
+}
+
+.wp-block-three-object-viewer-environment .block-editor-block-list__layout div {
+	cursor: pointer;
+}
+// .wp-block-three-object-viewer-environment .block-editor-block-list__layout div:first-child {
+// 	margin-top: 5px;
+// 	margin-bottom: 5px;
+// }
+
+// .wp-block-three-object-viewer-environment .editor-styles-wrapper .block-editor-block-list__layout.is-root-container > .alignfull {
+// 	width: 100%;
+// }
+
+.wp-block-three-object-viewer-environment .block-editor-block-list__layout .block-editor-block-list__block:not([contenteditable]):focus:after {
+	border-radius: 30px;
+    box-shadow: 0 0 0 2px #7022e8;
+    margin-left: 10px;
+    max-width: 178px;
+    z-index: 2;
+}
+
+.is-root-container.alignfull:has(.wp-block-three-object-viewer-environment) {
+	// calculate 100% width minus the width of the sidebar .components-panel__header
+	// width: calc(100vw - 280px);
+	margin: 0 !important;
 }
 
 // .wp-block-three-object-viewer-environment {
@@ -90,15 +200,14 @@
 
 .wp-block-three-object-viewer-environment .block-editor-inner-blocks.iframe {
 	height: 100vh;
-  }
-  
-  .wp-block-three-object-viewer-environment .block-editor-inner-blocks:not(.iframe) {
-	height: 90vh;
-  }
-  
+}
 
-  .three-object-viewer-edit-panel .wide-slider {
-    display: block;
+.wp-block-three-object-viewer-environment .block-editor-inner-blocks:not(.iframe) {
+	height: 90vh;
+}
+
+.three-object-viewer-edit-panel .wide-slider {
+	display: block;
 }
 
 .three-object-environment-edit-container .threeov-three-number-settings {
@@ -118,7 +227,7 @@
 	margin: 0 auto;
 }
 .three-object-viewer-inner-edit-container .three-object-viewer-model-name {
-    font-size: 0.7em;
+	font-size: 0.7em;
 }
 
 .three-object-viewer-inner-edit-container {
@@ -128,26 +237,36 @@
 .three-object-viewer-inner {
 	z-index:1;
 	flex: 1;
-	background-color: #3f3f3f;
+	background-color: #3a323fdb;
 	color: white;
 	box-sizing: border-box;
-	margin-bottom: 1px;
-	margin-top: 1px;
+	// margin-bottom: 3px;
+	// margin-top: 3px;
 	max-width: 180px;
 	width: 180px;
 	max-height: 40px;
 	height: 40px;
 	font-size: 0.8em;
 	text-align: center;
-	border-radius: 8px;
+	border-radius: 30px;
 	box-shadow:0px 1px 5px 1px #1e1e1e;
 	display: flex;
 	padding-left: 10px;
-    padding-top: 5px;
+	padding-top: 5px;
+	border: 2px solid #ffffff17;
 }
 
 div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner) {
 	margin: 0px !important;
+}
+
+div:has(>.three-object-viewer-component-container,>.three-object-viewer-inner):first-child {
+	margin-top: 15px !important;
+}
+
+div:has(>.three-object-viewer-component-container,>.three-object-viewer-inner) {
+	margin-top: 3px !important;
+	margin-bottom: 3px !important;
 }
 
 
@@ -156,7 +275,7 @@ div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner
 	filter: invert(88%) ;
 	display: flex;
 	padding-right: 5px;
-	padding-top: 5px;
+	padding-top: 3px;
 }
 
 .three-object-viewer-inner p {
@@ -167,8 +286,8 @@ div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner
 }
 
 .wp-block-three-object-viewer-environment .block-editor-inner-blocks .block-editor-button-block-appender {
-	width: 60px;
-	height: 60px;
+	width: 50px;
+	height: 50px;
 }
 
 .wp-block-three-object-viewer-environment .block-editor-inner-blocks .block-editor-button-block-appender svg{
@@ -179,8 +298,19 @@ div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner
 	margin: 0px 0px -60px;
 	right: 0;
 	position: absolute;
-    background-color: #8e00f2;
-    color: white;
+	background-color: #b7ff00;
+	color: #000;
+	border-radius: 30px;
+	margin-top: 12px;
+    margin-right: 7px;
+	box-shadow: 0px 0px 7px 1px rgb(15 0 0 / 57%);
+}
+
+.wp-block-three-object-viewer-environment .block-editor-inner-blocks .block-editor-button-block-appender:hover {
+	background-color: #ccff4c;
+}
+.wp-block-three-object-viewer-environment .threeov-main-canvas {
+	outline: none !important;
 }
 
 .wp-block-three-object-viewer-environment:has(> .block-editor-inner-blocks) {
@@ -189,7 +319,8 @@ div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner
 
 .wp-block-three-object-viewer-environment {
 	// display: flex !important;
-	background-color: rgb(42, 42, 42);
+	// background-color: rgb(42, 42, 42);
+	background-color: #FFFFFF;
 }
 
 .stats {
@@ -220,33 +351,240 @@ div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner
 	z-index: 100;
 }
 .threeov-chat-container {
-    background-color: rgba(0,0,0,.8) !important;
-    z-index: 1001 !important;
-    width: 100% !important;
-    padding: 0px !important;
-    margin-left: -8px !important;
+	background-color: rgba(0,0,0,.8) !important;
+	z-index: 1001 !important;
+	width: 100% !important;
+	padding: 0px !important;
+	margin-left: -8px !important;
 }
 
+.threeov-transform-button {
+	border-radius: 30px !important;
+	box-shadow: 0px 0px 5px 1px #0000005e;
+	border: none !important;
+	background-color: #ffffff5e;
+	margin-right: 8px !important;
+}
 
 .three-object-block-url-input {
 	padding-bottom: 20px;
 }
 
-.three-object-block-url-input input{
+.three-object-block-url-input input {
 	height: 40px;
 }
 
 .threeov-spinner {
+	margin-top:-40px;
 	border: 8px solid #f3f3f3;
 	border-top: 8px solid #007bff;
 	border-radius: 50%;
 	width: 60px;
 	height: 60px;
 	animation: spin 1s linear infinite;
-  }
-  
-  @keyframes spin {
+}
+
+@keyframes spin {
 	0% { transform: rotate(0deg); }
 	100% { transform: rotate(360deg); }
-  }
-  
+}
+
+@keyframes move {
+	0%{
+	transform: translateZ(-500px) rotate(0deg);
+	}
+	100%{
+	transform: translateZ(500px) rotate(0deg);
+	}
+}
+
+@keyframes fade {
+	0%{
+		opacity: 1;
+	}
+	25% {
+		opacity: 1;
+	}
+	75% {
+		opacity: 1;
+	}
+	100%{
+		opacity: 1;
+	}
+}
+
+.threeov-entry-scene{
+	display: inline-block;
+	vertical-align: middle;
+	perspective: 6px;
+	perspective-origin: center;
+	position: relative;
+	background-color: #FFFFFF !important;
+}
+
+.threeov-entry-scene-parent {
+	background: radial-gradient(circle, transparent, transparent 10%, white 2%);
+	width: 100% !important;
+	height: 100vh;
+	position: fixed;
+	z-index: 100;
+}
+
+.threeov-entry-wrap{
+	position: absolute;
+	width: 100vw;
+	height: 100vh;
+	left: -500px;
+	top: -500px;
+	transform-style: preserve-3d;
+	animation: move 4s infinite linear;
+	animation-fill-mode: forwards;
+}
+
+.threeov-entry-wrap:nth-child(2){
+	animation: move 4s infinite linear;
+	animation-delay: 6s;
+}
+
+.threeov-entry-wall {
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	opacity: 0;
+	animation: fade 2s infinite linear;
+	animation-delay: 0;
+}
+
+.threeov-entry-wrap:nth-child(2) .threeov-entry-wall {
+	animation-delay: 6s;
+}
+
+.threeov-entry-wall-right {
+	transform: rotateY(90deg) translateZ(500px);
+}
+
+.threeov-entry-wall-left {
+	transform: rotateY(-90deg) translateZ(500px);
+}
+
+.threeov-entry-wall-top {
+	transform: rotateX(90deg) translateZ(500px);
+}
+
+.threeov-entry-wall-bottom {
+	transform: rotateX(-90deg) translateZ(500px);
+}
+
+.threeov-entry-wall-back {
+	transform: rotateX(180deg) translateZ(500px);
+}
+
+.threeov-load-world-button {
+	background-color: #b7ff00;
+	border-radius: 20px;
+	padding: 5px 20px !important;
+	border: 1px solid #98d400;
+	color: #1a1a1a;
+	cursor: pointer;
+	margin-top: 20px;
+	color: #451a00;
+	font-weight: 600;
+	margin-right: 5px;
+	letter-spacing: .01em;
+	max-width: 140px;
+	box-shadow: 0px 0px 17px 9px rgb(15 0 0 / 57%);
+}
+
+.threeov-load-world-button-secondary {
+    background-color: #673AB7;
+    border: none;
+	border-radius: 20px;
+	padding: 5px 12px !important;
+	color: rgb(227, 198, 255) !important;
+	cursor: pointer;
+	margin-top: 20px;
+	color: #451a00;
+	font-weight: 600;
+	margin-right: 5px;
+	letter-spacing: .01em;
+	max-width: 140px;
+	font-size: 0.8em;
+	box-shadow: 0px 0px 17px 9px rgb(15 0 0 / 57%);
+}
+
+.threeov-load-world-button-secondary:hover {
+	background-color: #7e57c2 !important;
+	color: rgb(227, 198, 255) !important;
+	border: none !important;
+}
+
+
+
+.threeov-entry-flow button:hover {
+	background-color: #d1ff5b;
+	border: 1px solid #98d400;
+	// add dropshadow
+	// box-shadow: 0px 0px 5px 1px #7f7f7f5e;
+	box-shadow: 0px 0px 17px 9px rgb(15 0 0 / 57%);
+
+	color: rgb(160, 88, 255);
+	cursor: pointer;
+	color: #451a00;
+	font-weight: 600;
+}
+
+@keyframes glow {
+	0% {
+		box-shadow: 0px 0px 8px 5px rgb(15 0 0 / 57%);
+	}
+	50% {
+		box-shadow: 0px 0px 8px 5px rgba(95, 95, 95, 0.851);
+	}
+	100% {
+		box-shadow: 0px 0px 8px 5px rgb(15 0 0 / 57%);
+	}
+}
+
+.threeov-entry-flow input {
+	box-shadow: 0px 0px 8px 5px rgb(15 0 0 / 57%);
+	background-color: #af7bd40f;
+	padding: 5px;
+    color: white;
+	border: 1px solid #a82dff0f;
+	margin-bottom: 10px;
+	width: 180px;
+}
+.threeov-entry-flow div div {
+	margin-top: 10px;
+}
+
+.threeov-entry-flow input:focus {
+	animation: glow 2s infinite linear;
+}
+
+.threeov-entry-pfp {
+	width: 100px;
+	height: 100px;
+	border-radius: 50%;
+	background-color: #6d6d6d;
+	border: 3.5px solid #98d400;
+	box-shadow: 0px 0px 17px 9px rgb(15 0 0 / 57%);
+	margin: 0 auto;
+	margin-top: 20px;
+	background-position: center;
+	background-size: cover;
+	padding: 0px;
+	padding-bottom: 5px;
+	align-items: center;
+	justify-content: center;
+	display: flex;
+	margin-bottom: 10px;
+}
+
+.threeov-entry-flow-instruction {
+	font-size: 0.7em;
+    // background-color: #161616;
+    // border-radius: 8px;
+    // padding: 9px;
+	margin-top: 20px;
+}

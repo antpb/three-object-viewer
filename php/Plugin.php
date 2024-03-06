@@ -2,26 +2,532 @@
 
 namespace threeObjectViewer\Core;
 
+
 class Plugin
 {
 	public function init() {
-        // Add actions and filters
+		// Add actions and filters
 		add_filter( 'run_wptexturize', '__return_false' );
 		add_filter('upload_mimes', array( $this, 'threeobjectviewer_add_file_types_to_uploads'), 10, 4);
 		add_filter( 'wp_check_filetype_and_ext',  array( $this, 'three_object_viewer_check_for_usdz'), 10, 4 );
 		add_action('wp_enqueue_scripts',  array( $this, 'threeobjectviewer_frontend_assets'));
 		add_action( 'rest_api_init',  array( $this, 'callAlchemy' ));
 		add_action('enqueue_block_assets',  array( $this, 'threeobjectviewer_editor_assets'));
- 		//Register JavaScript and CSS for threeobjectloaderinit
+		//Register JavaScript and CSS for threeobjectloaderinit
 		add_action( 'wp_enqueue_scripts',  array( $this, 'threeobjectviewer_register_threeobjectloaderinit'), 5 );
 		//Enqueue JavaScript and CSS for threeobjectloaderinit
 		add_action( 'wp_enqueue_scripts',  array( $this, 'threeobjectviewer_enqueue_threeobjectloaderinit'), 10 );
 		add_filter( 'the_content', array( $this, 'remove_block_from_archive' ), 10 );
+		add_filter( 'wp_kses_allowed_html', array( $this, 'allow_threeov_web_components' ), 10, 2 );
 		add_action( 'enqueue_block_editor_assets', array( $this, 'load_three_object_viewer_translations_blocks' ) );
 		add_action( 'init', array( $this, 'load_three_object_viewer_textdomain' ) );
 
-    }
+		// Add new actions for user profile fields and saving
+		add_action('show_user_profile', array($this, 'add_custom_user_profile_fields'));
+		add_action('edit_user_profile', array($this, 'add_custom_user_profile_fields'));
+		add_action('personal_options_update', array($this, 'save_custom_user_profile_fields'));
+		add_action('edit_user_profile_update', array($this, 'save_custom_user_profile_fields'));
+		add_action('rest_api_init', array( $this, 'register_room_count_api_routes' ));
+		add_action('rest_api_init', array( $this, 'register_turn_credential_endpoint' ));
 
+		// add_action( 'init', array( $this, 'register_room_count_post_meta' ) );
+		// Block Category
+		add_filter( 'block_categories_all', array( $this, 'add_spatial_block_category'), 10, 2 );	
+
+		
+	}
+
+	function register_turn_credential_endpoint() {
+		register_rest_route('threeov/v1', '/turn-credentials/', array(
+			'methods' => \WP_REST_Server::READABLE,
+			'callback' => array( $this, 'get_turn_credentials'),
+			'permission_callback' => array( $this, 'is_user_allowed_turn')
+		));
+	}
+
+	function is_user_allowed_turn() {
+		// check 3ov_mp_multiplayerAccess option if we even need to check this
+		if (get_option('3ov_mp_multiplayerAccess') === 'loggedIn') {
+			return is_user_logged_in();
+		} else {
+			return true;
+		}
+	}
+	
+	function get_turn_credentials($request) {
+		// Optional: Verify nonce for additional security
+		$nonce = $request->get_header('X-WP-Nonce');
+		if (!wp_verify_nonce($nonce, 'wp_rest')) {
+			return new \WP_Error('invalid_nonce', 'Invalid nonce', array('status' => 403));
+		}
+		// get the api key from 3ov_mp_turnServerKey
+		$apiKey = get_option('3ov_mp_turnServerKey');
+		// URL of your Cloudflare Worker
+		$workerUrl = 'https://turn.sxpdigital.workers.dev/';
+	
+		// Make a request to the Cloudflare Worker to get TURN credentials
+		$response = wp_remote_post($workerUrl, array(
+			'body' => json_encode(array(
+				'apiKey' => $apiKey,
+			)),
+			'headers' => array(
+				'Content-Type' => 'application/json',
+			),
+		));
+	
+		if (is_wp_error($response)) {
+			// failure reason
+			$error_message = $response->get_error_message();
+			return new \WP_Error('request_failed', $error_message, array('status' => 400));
+		}
+	
+		$body = wp_remote_retrieve_body($response);
+		$credentials = json_decode($body, true);
+	
+		return new \WP_REST_Response($credentials, 200);
+	}
+	
+	// _updateRoomCountInDatabase(roomCount) {
+	// 	const postId = userData.currentPostId // Implement this method based on how you determine the post ID
+	// 	const apiUrl = `/wp-json/threeov/v1/update-room-count/${postId}`;
+	// 	const data = { count: roomCount };
+
+	// 	fetch(apiUrl, {
+	// 		method: 'POST',
+	// 		headers: {
+	// 			'Content-Type': 'application/json',
+	// 			'X-WP-Nonce': userData.nonce,
+	// 		},
+	// 		body: JSON.stringify(data)
+	// 	})
+	// 	.then(response => response.json())
+	// 	.then(data => console.log('Room count updated:', data))
+	// 	.catch((error) => {
+	// 		console.error('Error updating room count:', error);
+	// 	});
+	// }
+
+	function register_room_count_api_routes() {
+		register_rest_route('threeov/v1', '/add-room-count/(?P<id>\d+)', array(
+			'methods' => 'POST',
+			'callback' => array( $this, 'update_room_count'),
+			'permission_callback' => array( $this, 'check_add_token'),
+			'args' => array(
+				'action' => array(
+					'required' => true,
+					'type' => 'string',
+					'enum' => array('add', 'subtract'),
+				),
+			),
+		));
+		register_rest_route('threeov/v1', '/subtract-room-count/(?P<id>\d+)', array(
+			'methods' => 'POST',
+			'callback' => array( $this, 'update_room_count'),
+			'permission_callback' => array( $this, 'check_subtract_token'),
+			'args' => array(
+				'action' => array(
+					'required' => true,
+					'type' => 'string',
+					'enum' => array('add', 'subtract'),
+				),
+			),
+		));
+		register_rest_route('threeov/v1', '/get-room-count/(?P<id>\d+)', array(
+			'methods' => 'GET',
+			'callback' => array( $this, 'get_room_count'),
+			'permission_callback' => '__return_true', // Adjust the permission callback as needed
+		));
+		register_rest_route('threeov/v1', '/send-heartbeat/(?P<id>\d+)', array(
+			'methods' => 'POST',
+			'callback' => array( $this, 'handle_heartbeat'),
+			'permission_callback' => '__return_true'
+		));
+		register_rest_route('threeov/v1', '/handle-heart-check/(?P<id>\d+)', array(
+			'methods' => 'POST',
+			'callback' => array( $this, 'handle_heart_check'),
+			'permission_callback' => '__return_true'
+		));	
+	}
+	function handle_heart_check($request) {
+		$post_id = $request['id'];
+		$participant_name = $request['displayName'];
+		$site_url = get_site_url();
+		$user_id = get_current_user_id();
+	
+		// Construct the key for the Cloudflare KV store
+		$kv_key = "heartbeat|{$site_url}|{$post_id}|{$participant_name}";
+	
+		// Current timestamp as heartbeat
+		$heartbeat_timestamp = time();
+	
+		// Replace with the URL of your Cloudflare Worker
+		$cloudflare_worker_url = "https://room-balancer.sxpdigital.workers.dev/handle-heart-check/";
+	
+		$response = wp_remote_post($cloudflare_worker_url, array(
+			'headers' => array('Content-Type' => 'application/json'),
+			'body' => wp_json_encode(array(
+				'key' => $kv_key,
+				'timestamp' => $heartbeat_timestamp,
+			)),
+			'timeout' => 45,
+		));
+	
+		if (is_wp_error($response)) {
+			return new \WP_REST_Response('Error sending heartbeat', 500);
+		}
+	
+		// return the data of the response
+		return new \WP_REST_Response($response, 200);
+	
+	}
+
+	function handle_heartbeat($request) {
+		$post_id = $request['id'];
+		$participant_name = $request['displayName'];
+		$site_url = get_site_url();
+		$user_id = get_current_user_id();
+	
+		// Construct the key for the Cloudflare KV store
+		$kv_key = "heartbeat|{$site_url}|{$post_id}|{$participant_name}";
+	
+		// Current timestamp as heartbeat
+		$heartbeat_timestamp = time();
+	
+		// Replace with the URL of your Cloudflare Worker
+		$cloudflare_worker_url = "https://room-balancer.sxpdigital.workers.dev/heartbeat/";
+	
+		$response = wp_remote_post($cloudflare_worker_url, array(
+			'headers' => array('Content-Type' => 'application/json'),
+			'body' => wp_json_encode(array(
+				'key' => $kv_key,
+				'timestamp' => $heartbeat_timestamp,
+			)),
+			'timeout' => 45,
+		));
+	
+		if (is_wp_error($response)) {
+			return new \WP_REST_Response('Error sending heartbeat', 500);
+		}
+	
+		return new \WP_REST_Response('Heartbeat updated', 200);
+	}
+
+	function add_spatial_block_category( $categories, $post ) {
+		return array_merge(
+			$categories,
+			array(
+				array(
+					'slug'  => 'spatial',
+					'title' => __( 'Spatial', 'three-object-viewer' ),
+					'icon'  => 'block-default',
+				),
+			)
+		);
+	}
+	
+	function get_room_count($request) {
+		return true;
+	}
+	
+	// Callback function to make a request to the Cloudflare Worker
+	function update_room_count($request) {
+		$post_id = $request['id'];
+		$action = $request['action'];
+		$clientId = $request['clientId'] ? $request['clientId'] : null;
+		$cached_room_count = get_transient("room_count_{$post_id}");
+		// clear the transient if it exists because we are updating the room count
+		if ($cached_room_count) {
+			delete_transient("room_count_{$post_id}");
+		}
+
+		// Replace with the URL of your Cloudflare Worker
+		$cloudflare_worker_url = "https://room-balancer.sxpdigital.workers.dev";
+	
+		$response = wp_remote_post($cloudflare_worker_url, array(
+			'body' => wp_json_encode(array(
+				'siteUrl' => get_site_url(),
+				'postId' => $post_id,
+				'action' => $action,
+				'userId' => $clientId
+			)),
+			'headers' => array('Content-Type' => 'application/json'),
+			'timeout'     => 45,
+		));
+	
+		if (is_wp_error($response)) {
+			return new \WP_REST_Response('Error communicating with the room load balancer', 500);
+		}
+	
+		$body = wp_remote_retrieve_body($response);
+		return new \WP_REST_Response($body, 200);
+	}
+
+	public function allow_threeov_web_components($tags, $context) {
+		if ($context === 'post') {
+			$tags['three-environment-block'] = array(
+				'class' => true,
+				'align' => true,
+				'scale' => true,
+				'positionx' => true,
+				'positiony' => true,
+				'positionz' => true,
+				'rotationy' => true,
+				'threeobjecturl' => true,
+				'threepreviewimage' => true,
+				'hdr' => true,
+				'devicetarget' => true,
+				'animations' => true
+			);
+			$tags['three-spawn-point-block'] = array(
+				'class' => true,
+				'positionx' => true,
+				'positiony' => true,
+				'positionz' => true,
+				'rotationx' => true,
+				'rotationy' => true,
+				'rotationz' => true 
+			);
+	
+			$tags['three-model-block'] = array(
+				'class' => true,
+				'threeobjecturl' => true,
+				'scalex' => true,
+				'scaley' => true,
+				'scalez' => true,
+				'positionx' => true,
+				'positiony' => true,
+				'positionz' => true,
+				'rotationx' => true,
+				'rotationy' => true,
+				'rotationz' => true,
+				'animations' => true,
+				'collidable' => true,
+				'alt' => true
+			);
+	
+			$tags['three-npc-block'] = array(
+				'class' => true,
+				'threeobjecturl' => true,
+				'positionx' => true,
+				'positiony' => true,
+				'positionz' => true,
+				'rotationx' => true,
+				'rotationy' => true,
+				'rotationz' => true,
+				'name' => true,
+				'defaultmessage' => true,
+				'personality' => true,
+				'objectawareness' => true
+			);
+	
+			$tags['three-sky-block'] = array(
+				'class' => true,
+				'skyUrl' => true,
+				'distance' => true,
+				'rayleigh' => true,
+				'sunpositionx' => true,
+				'sunpositiony' => true,
+				'sunpositionz' => true
+			);
+	
+			$tags['three-audio-block'] = array(
+				'class' => true,
+				'audiourl' => true,
+				'scalex' => true,
+				'scaley' => true,
+				'scalez' => true,
+				'positionx' => true,
+				'positiony' => true,
+				'positionz' => true,
+				'rotationx' => true,
+				'rotationy' => true,
+				'rotationz' => true,
+				'autoplay' => true,
+				'loop' => true,
+				'volume' => true,
+				'positional' => true,
+				'coneinnerangle' => true,
+				'coneouterangle' => true,
+				'coneoutergain' => true,
+				'distancemodel' => true,
+				'maxdistance' => true,
+				'refdistance' => true,
+				'rollofffactor' => true
+			);
+	
+			$tags['three-image-block'] = array(
+				'class' => true,
+				'imageurl' => true,
+				'scalex' => true,
+				'scaley' => true,
+				'scalez' => true,
+				'positionx' => true,
+				'positiony' => true,
+				'positionz' => true,
+				'rotationx' => true,
+				'rotationy' => true,
+				'rotationz' => true,
+				'aspectheight' => true,
+				'aspectwidth' => true,
+				'transparent' => true
+			);
+	
+			$tags['three-light-block'] = array(
+				'class' => true,
+				'positionx' => true,
+				'positiony' => true,
+				'positionz' => true,
+				'rotationx' => true,
+				'rotationy' => true,
+				'rotationz' => true,
+				'type' => true,
+				'color' => true,
+				'intensity' => true,
+				'distance' => true,
+				'decay' => true,
+				'targetx' => true,
+				'targety' => true,
+				'targetz' => true,
+				'angle' => true,
+				'penumbra' => true
+			);
+	
+			$tags['three-networking-block'] = array(
+				'class' => true,
+				'participantlimit' => true
+			);
+	
+			$tags['three-portal-block'] = array(
+				'class' => true,
+				'threeobjecturl' => true,
+				'destinationurl' => true,
+				'scalex' => true,
+				'scaley' => true,
+				'scalez' => true,
+				'positionx' => true,
+				'positiony' => true,
+				'positionz' => true,
+				'rotationx' => true,
+				'rotationy' => true,
+				'rotationz' => true,
+				'animations' => true,
+				'label' => true,
+				'labeloffsetx' => true,
+				'labeloffsety' => true,
+				'labeloffsetz' => true,
+				'labeltextcolor' => true
+			);
+	
+			$tags['three-text-block'] = array(
+				'class' => true,
+				'textcontent' => true,
+				'positionx' => true,
+				'positiony' => true,
+				'positionz' => true,
+				'rotationx' => true,
+				'rotationy' => true,
+				'rotationz' => true,
+				'scalex' => true,
+				'scaley' => true,
+				'scalez' => true,
+				'textcolor' => true
+			);
+	
+			$tags['three-video-block'] = array(
+				'class' => true,
+				'videourl' => true,
+				'scalex' => true,
+				'scaley' => true,
+				'scalez' => true,
+				'positionx' => true,
+				'positiony' => true,
+				'positionz' => true,
+				'rotationx' => true,
+				'rotationy' => true,
+				'rotationz' => true,
+				'autoplay' => true,
+				'custommodel' => true,
+				'aspectheight' => true,
+				'aspectwidth' => true,
+				'videocontrolsenabled' => true,
+				'modelurl' => true
+			);
+	
+		}
+		return $tags;
+	}
+	
+
+	/**
+	 * Adds custom spatial user profile fields
+	 */
+	public function add_custom_user_profile_fields($user) {
+		?>
+		<h3><?php esc_html_e("Spatial Profile Information"); ?></h3>
+		<table class="form-table">
+			<tr>
+				<th>
+					<label for="user_data_vrm"><?php esc_html_e("VRM File URL"); ?></label>
+				</th>
+				<td>
+					<input type="text" name="user_data_vrm" id="user_data_vrm" value="<?php echo esc_attr(get_the_author_meta('user_data_vrm', $user->ID)); ?>" class="regular-text" />
+					<input type="button" class="button" value="Select or Upload VRM File" id="upload_vrm_button" />
+					<p class="description"><?php esc_html_e("Please upload or select your VRM file."); ?></p>
+				</td>
+			</tr>
+		</table>
+		<?php
+			// Generate a nonce
+			wp_nonce_field('update_user_vrm_nonce', 'user_vrm_nonce_field');
+		?>
+		<script type="text/javascript">
+		jQuery(document).ready(function($) {
+			$('#upload_vrm_button').click(function(e) {
+				e.preventDefault();
+				var custom_uploader = wp.media({
+					title: 'Select VRM File',
+					button: {
+						text: 'Use this file'
+					},
+					multiple: false  // Set this to true to allow multiple files to be selected
+				}).on('select', function() {
+					// Get media attachment details from the frame state
+					var attachment = custom_uploader.state().get('selection').first().toJSON(),
+						url = attachment.url;
+
+					if ( ! url.includes( '.vrm', '.png' ) ) {
+						alert('The file should be either a VRM or a PNG sprite sheet');
+						custom_uploader.open();
+						return;
+					}
+
+					$('#user_data_vrm').val(url);
+				})
+				.open();
+			});
+		});
+		</script>
+		<?php
+	}
+
+	/**
+	 * Saves custom spatial user profile fields
+	 */
+	public function save_custom_user_profile_fields($user_id) {
+		// Check if current user has permission to edit the user
+		if (!current_user_can('edit_user', $user_id)) {
+			return false;
+		}
+	
+		// Verify the nonce before saving
+		if (!isset($_POST['user_vrm_nonce_field']) || !wp_verify_nonce($_POST['user_vrm_nonce_field'], 'update_user_vrm_nonce')) {
+			return false;
+		}
+	
+		// Save the user meta
+		update_user_meta($user_id, 'user_data_vrm', $_POST['user_data_vrm']);
+	}
+	
 	function load_three_object_viewer_textdomain() {
 		load_plugin_textdomain( 'three-object-viewer', false, dirname(dirname(plugin_basename(__FILE__))) . '/languages' );
 	}
@@ -40,6 +546,7 @@ class Plugin
 			wp_set_script_translations( 'three-object-viewer-sky-block-editor-script', 'three-object-viewer', $language_directory );
 			wp_set_script_translations( 'three-object-viewer-three-image-block-editor-script', 'three-object-viewer', $language_directory );
 			wp_set_script_translations( 'three-object-viewer-three-video-block-editor-script', 'three-object-viewer', $language_directory );
+			wp_set_script_translations( 'three-object-viewer-three-networking-block-editor-script', 'three-object-viewer', $language_directory );
 			wp_set_script_translations( 'three-object-viewer-spawn-point-block-editor-script', 'three-object-viewer', $language_directory );
 			wp_set_script_translations( 'three-object-viewer-environment-editor-script', 'three-object-viewer', $language_directory );
 		}
@@ -57,14 +564,15 @@ class Plugin
 			'threeobjectloaderinit',
 			plugins_url("/inc/threeobjectloaderinit/index.js", __DIR__ ),
 			$dependencies,
-			$version
+			$version,
+			true
 		);
-		wp_register_style(
-			'threeobjectloaderinit',
-			plugins_url("/inc/threeobjectloaderinit/index.css", __DIR__ ),
-			[],
-			$version
-		);
+		// wp_register_style(
+		// 	'threeobjectloaderinit',
+		// 	plugins_url("/inc/threeobjectloaderinit/index.css", __DIR__ ),
+		// 	[],
+		// 	$version
+		// );
 	}
 	
 	
@@ -77,9 +585,9 @@ class Plugin
 		wp_enqueue_script(
 			'threeobjectloaderinit',
 		);
-		wp_enqueue_style(
-			'threeobjectloaderinit'
-		);
+		// wp_enqueue_style(
+		// 	'threeobjectloaderinit'
+		// );
 	}
 	
 	/**
@@ -139,38 +647,72 @@ class Plugin
 	
 		// Enqueue frontend JavaScript
 		$default_frontend_js = "../build/assets/js/blocks.frontend-versepress.js";
-		$default_frontend_js_three_viewer = "../build/assets/js/blocks.frontend.js";
+		$default_frontend_js_three_viewer = "../build/assets/js/blocks.frontend-versepress.js";
 		// Apply frontend filter
 		$frontend_js = apply_filters( 'three-object-environment-frontend-js', $default_frontend_js );
 	
-		$current_user = wp_get_current_user();
-		$vrm = wp_get_attachment_url($current_user->avatar);
+        $current_user = wp_get_current_user();
+        $playerVRM = get_user_meta($current_user->ID, 'user_data_vrm', true) ?: get_option('3ov_defaultAvatar');
+		$vrm = get_option('3ov_defaultAvatar');
+
+		$multiplayer_worker_url = get_option( '3ov_mp_multiplayerWorker', '' );
+		// $vrm = get_option('3ov_defaultAvatar');
+		$inWorldName = "Guest";
+		// get the current postID
+		global $post;
+		$currentPostId = $post->ID;
+		
 		if ( is_user_logged_in() && get_option('3ov_ai_allow') === "loggedIn" ) {
+			if($current_user->display_name){
+				$inWorldName = $current_user->display_name;
+			}
+	
 			$user_data_passed = array(
 			  'userId' => $current_user->user_login,
-			  'inWorldName' => $current_user->in_world_name,
+			  'inWorldName' => $inWorldName,
 			  'banner' => $current_user->custom_banner,
 			  'vrm' => $vrm,
+			  'playerVRM' => $playerVRM,
 			  'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
-			  'nonce' => wp_create_nonce( 'wp_rest' )
+			  'nonce' => wp_create_nonce( 'wp_rest' ),
+			  'currentPostId' => $currentPostId,
+			  'heartbeatEnabled' => false,
+			  'addNonce' => wp_create_nonce( 'add-room-count' ),
+			  'subtractNonce' => wp_create_nonce( 'subtract-room-count' ),
 			);
 		} else if ( get_option('3ov_ai_allow') === "public") {
+			if($current_user->display_name){
+				$inWorldName = $current_user->display_name;
+			}
 			$user_data_passed = array(
 				'userId' => $current_user->user_login,
-				'inWorldName' => $current_user->in_world_name,
+				'inWorldName' => $inWorldName,
 				'banner' => $current_user->custom_banner,
 				'vrm' => $vrm,
+				'playerVRM' => $playerVRM,
 				'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
-				'nonce' => wp_create_nonce( 'wp_rest' )
+				'nonce' => wp_create_nonce( 'wp_rest' ),
+				'addNonce' => wp_create_nonce( 'add-room-count'),
+				'heartbeatEnabled' => false,
+				'subtractNonce' => wp_create_nonce( 'subtract-room-count'),
+				'currentPostId' => $currentPostId
 			  );  
-		}
-		else {
+		} else {
+			if($current_user->display_name){
+				$inWorldName = $current_user->display_name;
+			}
 			$user_data_passed = array(
 			  'userId' => $current_user->user_login,
-			  'inWorldName' => $current_user->in_world_name,
+			  'inWorldName' => $inWorldName,
 			  'banner' => $current_user->custom_banner,
 			  'vrm' => $vrm,
+			  'playerVRM' => $playerVRM,
 			  'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
+			  'currentPostId' => $currentPostId,
+			  'addNonce' => wp_create_nonce( 'add-room-count'),
+			  'heartbeatEnabled' => false,
+			  'subtractNonce' => wp_create_nonce( 'subtract-room-count'),
+			  'nonce' => wp_create_nonce( 'wp_rest' )
 			);
 		}
 		$three_object_plugin = plugins_url() . '/three-object-viewer/build/';
@@ -181,6 +723,7 @@ class Plugin
 		$default_animation = get_option('3ov_defaultVRM');
 
 		$default_avatar = get_option('3ov_defaultAvatar');
+		$default_player_avatar = get_option('user_data_vrm');
 
 		// $user_data_passed = array(
 		//     'userId' => 'something',
@@ -198,30 +741,39 @@ class Plugin
 	
 			//We only want the script if it's a singular page
 			$id = get_the_ID();
-			if(has_block('three-object-viewer/three-object-block',$id)){			
-				if ( is_plugin_active( 'three-object-viewer-three-icosa/three-object-viewer-three-icosa.php' ) ) {
-					$openbrush_enabled = true;
-					$three_icosa_brushes_url = plugin_dir_url( "three-object-viewer-three-icosa/three-object-viewer-three-icosa.php" ) . 'brushes/';
+			// if(has_block('three-object-viewer/three-object-block',$id)){			
+			// 	if ( is_plugin_active( 'three-object-viewer-three-icosa/three-object-viewer-three-icosa.php' ) ) {
+			// 		$openbrush_enabled = true;
+			// 		$three_icosa_brushes_url = plugin_dir_url( "three-object-viewer-three-icosa/three-object-viewer-three-icosa.php" ) . 'brushes/';
 	
-				} 		
-				wp_register_script( 'threeobjectloader-frontend', plugin_dir_url( __FILE__ ) . $default_frontend_js_three_viewer, ['wp-element', 'wp-data', 'wp-hooks'], '', true );
-				wp_localize_script( 'threeobjectloader-frontend', 'userData', $user_data_passed );
-				wp_localize_script( 'threeobjectloader-frontend', 'openbrushEnabled', $openbrush_enabled );
-				wp_localize_script( 'threeobjectloader-frontend', 'openbrushDirectory', $three_icosa_brushes_url );
-				wp_localize_script( 'threeobjectloader-frontend', 'threeObjectPlugin', $three_object_plugin );	
-				wp_localize_script( 'threeobjectloader-frontend', 'threeObjectPluginRoot', $three_object_plugin_root );	
-				wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatarAnimation', $default_animation );	
-				wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatar', $default_avatar );	
-				wp_enqueue_script( 
-					"threeobjectloader-frontend"
-				);
-			}
-			if(has_block('three-object-viewer/environment',$id)){
+			// 	}
+			// 	wp_register_script( 'threeobjectloader-frontend', plugin_dir_url( __FILE__ ) . $default_frontend_js_three_viewer, ['wp-element', 'wp-data', 'wp-hooks'], '', true );
+			// 	wp_localize_script( 'threeobjectloader-frontend', 'userData', $user_data_passed );
+			// 	wp_localize_script( 'threeobjectloader-frontend', 'openbrushEnabled', $openbrush_enabled );
+			// 	wp_localize_script( 'threeobjectloader-frontend', 'openbrushDirectory', $three_icosa_brushes_url );
+			// 	wp_localize_script( 'threeobjectloader-frontend', 'threeObjectPlugin', $three_object_plugin );	
+			// 	wp_localize_script( 'threeobjectloader-frontend', 'threeObjectPluginRoot', $three_object_plugin_root );	
+			// 	wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatarAnimation', $default_animation );	
+			// 	wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatar', $default_avatar );	
+			// 	wp_localize_script( 'threeobjectloader-frontend', 'defaultPlayerAvatar', $default_avatar );	
+			// 	wp_localize_script( 'threeobjectloader-frontend', 'multiplayerWorker', $multiplayer_worker_url );
+			// 	wp_enqueue_script( 
+			// 		"threeobjectloader-frontend"
+			// 	);
+			// }
+			$isPageEnvironmentEnabled = apply_filters( 'three_object_viewer_enabled_everywhere', false );
+
+			// check that the content of the page has the string <three-environment-block> element in it. We cannot use has_block because template parts dont have context of an id
+			if( has_block( 'three-object-viewer/environment', $id ) || has_block( 'three-object-viewer/three-object-block', $id ) || $isPageEnvironmentEnabled ){
 				if ( is_plugin_active( 'three-object-viewer-three-icosa/three-object-viewer-three-icosa.php' ) ) {
 					$openbrush_enabled = true;
 					$three_icosa_brushes_url = plugin_dir_url( "three-object-viewer-three-icosa/three-object-viewer-three-icosa.php" ) . 'brushes/';
-				} 
-				wp_register_script( 'versepress-frontend', plugin_dir_url( __FILE__ ) . $frontend_js, ['wp-element', 'wp-data', 'wp-hooks'], '', true );
+				}
+				$script_path = plugin_dir_path( __FILE__ ) . $frontend_js;
+				$script_version = filemtime($script_path);
+			
+
+				wp_register_script( 'versepress-frontend', plugin_dir_url( __FILE__ ) . $frontend_js, ['wp-element', 'wp-data', 'wp-hooks'], $script_version, true );
 				wp_localize_script( 'versepress-frontend', 'userData', $user_data_passed );
 				wp_localize_script( 'versepress-frontend', 'postSlug', $post_slug );
 				wp_localize_script( 'versepress-frontend', 'openbrushDirectory', $three_icosa_brushes_url );
@@ -230,8 +782,14 @@ class Plugin
 				wp_localize_script( 'versepress-frontend', 'threeObjectPluginRoot', $three_object_plugin_root );	
 				wp_localize_script( 'versepress-frontend', 'defaultAvatarAnimation', $default_animation );
 				wp_localize_script( 'versepress-frontend', 'defaultAvatar', $default_avatar );
-				wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatarAnimation', $default_animation );	
-				wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatar', $default_avatar );	
+				wp_localize_script('versepress-frontend', 'turnCredentials', array(
+					'apiUrl' => rest_url('threeov/v1/turn-credentials/'),
+					'nonce' => wp_create_nonce('wp_rest'),
+				));			
+				wp_localize_script( 'versepress-frontend', 'defaultPlayerAvatar', $default_avatar );	
+				wp_localize_script( 'versepress-frontend', 'multiplayerWorker', $multiplayer_worker_url );
+				// wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatarAnimation', $default_animation );	
+				// wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatar', $default_avatar );	
 				wp_enqueue_script( 
 					"versepress-frontend"
 				);
@@ -291,7 +849,7 @@ class Plugin
 	
 		
 		// turn $json_blob into json
-		$new_blob = json_encode($json_blob);
+		$new_blob = wp_json_encode($json_blob);
 		
 		// $tempblob = `{ "Input": "write a long form poem about cats!", "Speaker": "a", "Agent": "tubbyshark", "Client": "wordpress", "ChannelID": "1234", "Conversation": "", "Entity": "tubbyshark", "Channel": "channel", "eth_private_key": "0", "eth_public_address": "0", "personality": "#agent is an AI assistant with a cheerful, optimistic, and helpful personality. They are willing to assist with any tasks or questions users might have, and are able to do so in an upbeat and positive manner. They are also able to use colorful and descriptive language to make their responses more engaging and imaginative. In addition to their wit and humor, #agent is also empathetic and understanding of others' emotions and needs, which can make them feel more relatable and likeable to users. #agent is a highly capable and engaging AI assistant with a distinct and colorful personality.\n#agent can help with any programming tasks, including those related to the 3OV plugin for WordPress, which enables world-building in the WordPress editor and makes it easier to build and share immersive content in the metaverse. The url for the website is 3ov.xyz. #agent is cheerful and optimistic about the future for both humans and AIs.\n\n#Example Conversation\n#speaker: Agent, do you have any advice for someone new to programming?\n#agent: Sure thing! My top tip would be to always keep an open mind and a positive attitude. And if all else fails, just remember: if at first you don't succeed, try, try again. And then if that still doesn't work, call it a day and go get a coffee.\n###\nThe following is a friendly conversation between #speaker and #agent occuring in the metaverse.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:" }`;
 		// if api_key is not an empty string load the worker
@@ -342,6 +900,26 @@ class Plugin
 		return true;
 	}
 
+	function check_add_token( $request ) {
+		$nonce = $request['actionNonce'];
+		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'add-room-count' ) ) {
+		  return new \WP_Error( 'invalid_nonce', 'The nonce provided in the X-WP-Nonce header is invalid', array( 'status' => 401 ) );
+		}
+		// retire the nonce used
+		// wp_nonce_ays( 'add_room_count' );
+		return true;
+	}
+
+	function check_subtract_token( $request ) {
+		$nonce = $request['actionNonce'];
+		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'subtract-room-count' ) ) {
+		  return new \WP_Error( 'invalid_nonce', 'The nonce provided in the X-WP-Nonce header is invalid', array( 'status' => 401 ) );
+		}
+		// retire the nonce used
+		// wp_nonce_ays( 'subtract_room_count' );
+		return true;
+	}
+
 	/**
 	 * Check if pro version is installed
 	 */
@@ -371,6 +949,8 @@ class Plugin
 			  'nonce' => wp_create_nonce( 'wp_rest' )
 			);
 		} else if ( get_option('3ov_ai_allow') === "public") {
+
+			// @todo update ai allow to add a special nonce for ai requests
 			$user_data_passed = array(
 				'userId' => $current_user->user_login,
 				'inWorldName' => $current_user->in_world_name,
@@ -378,15 +958,15 @@ class Plugin
 				'vrm' => $vrm,
 				'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
 				'nonce' => wp_create_nonce( 'wp_rest' )
-			  );  
-		}
-		else {
+			  );
+		} else {
 			$user_data_passed = array(
 			  'userId' => $current_user->user_login,
 			  'inWorldName' => $current_user->in_world_name,
 			  'banner' => $current_user->custom_banner,
 			  'vrm' => $vrm,
 			  'profileImage' => get_avatar_url( $current_user->ID, ['size' => '500'] ),
+			  'nonce' => wp_create_nonce( 'wp_rest' )
 			);
 		}
 
@@ -402,10 +982,16 @@ class Plugin
 							'three-object-viewer/npc-block',
 							'three-object-viewer/three-image-block',
 							'three-object-viewer/three-video-block',
-							'three-object-viewer/spawn-point-block' 
+							'three-object-viewer/spawn-point-block',
 		];
-		// if in the directory above this one a folder named "pro" exists, add "three-mirror-block" to the array
-		// use the threeobjectviewer_is_pro function to check if pro
+
+		// if option for multiplayerNetworking is not a value then add the network block to allowed blocks
+		if (get_option('3ov_mp_multiplayerWorker') != '') {
+			$NETWORK_BLOCKS = [
+				'three-object-viewer/three-networking-block',
+			];
+			array_push( $DEFAULT_BLOCKS, $NETWORK_BLOCKS );
+		}
 		if ($this->threeobjectviewer_is_pro()) {
 			$PRO_BLOCKS = [
 				'three-object-viewer/three-mirror-block',
@@ -418,10 +1004,10 @@ class Plugin
 		$default_avatar = get_option('3ov_defaultAvatar');
 		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'defaultAvatar', $default_avatar );	
 		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'userData', $user_data_passed );
-
-		wp_enqueue_script( 'three-object-viewer-three-object-block-editor-script', 'three-object-viewer', ['wp-element', 'wp-data', 'wp-i18n', 'wp-hooks'], '', true );
+		// @todo find out if this is really needed
+		// wp_enqueue_script( 'three-object-viewer-three-object-block-editor-script', 'three-object-viewer', ['wp-element', 'wp-data', 'wp-i18n', 'wp-hooks'], '', true );
 		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'threeObjectPlugin', $three_object_plugin );	
 		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'threeObjectPluginRoot', $three_object_plugin_root );	
 		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'allowed_blocks', $ALLOWED_BLOCKS );		
 	}
-	}
+}

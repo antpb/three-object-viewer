@@ -3,7 +3,7 @@ import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
-import { AudioListener, Group, Quaternion, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, BufferGeometry, MeshBasicMaterial, DoubleSide, Mesh, CircleGeometry, sRGBEncoding } from "three";
+import { Color, AudioListener, Group, Quaternion, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, BufferGeometry, MeshBasicMaterial, DoubleSide, Mesh, CircleGeometry, sRGBEncoding } from "three";
 import { RigidBody } from "@react-three/rapier";
 import {
 	useAnimations,
@@ -13,64 +13,12 @@ import { GLTFAudioEmitterExtension } from "three-omi";
 import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
 import { VRMUtils, VRMSchema, VRMLoaderPlugin, VRMExpressionPresetName, VRMHumanBoneName } from "@pixiv/three-vrm";
 import idle from "../../../../../inc/avatars/friendly.fbx";
+import { getMixamoRig } from "../../../utils/rigMap";
 
 /**
  * A map from Mixamo rig name to VRM Humanoid bone name
  */
-const mixamoVRMRigMap = {
-	mixamorigHips: 'hips',
-	mixamorigSpine: 'spine',
-	mixamorigSpine1: 'chest',
-	mixamorigSpine2: 'upperChest',
-	mixamorigNeck: 'neck',
-	mixamorigHead: 'head',
-	mixamorigLeftShoulder: 'leftShoulder',
-	mixamorigLeftArm: 'leftUpperArm',
-	mixamorigLeftForeArm: 'leftLowerArm',
-	mixamorigLeftHand: 'leftHand',
-	mixamorigLeftHandThumb1: 'leftThumbMetacarpal',
-	mixamorigLeftHandThumb2: 'leftThumbProximal',
-	mixamorigLeftHandThumb3: 'leftThumbDistal',
-	mixamorigLeftHandIndex1: 'leftIndexProximal',
-	mixamorigLeftHandIndex2: 'leftIndexIntermediate',
-	mixamorigLeftHandIndex3: 'leftIndexDistal',
-	mixamorigLeftHandMiddle1: 'leftMiddleProximal',
-	mixamorigLeftHandMiddle2: 'leftMiddleIntermediate',
-	mixamorigLeftHandMiddle3: 'leftMiddleDistal',
-	mixamorigLeftHandRing1: 'leftRingProximal',
-	mixamorigLeftHandRing2: 'leftRingIntermediate',
-	mixamorigLeftHandRing3: 'leftRingDistal',
-	mixamorigLeftHandPinky1: 'leftLittleProximal',
-	mixamorigLeftHandPinky2: 'leftLittleIntermediate',
-	mixamorigLeftHandPinky3: 'leftLittleDistal',
-	mixamorigRightShoulder: 'rightShoulder',
-	mixamorigRightArm: 'rightUpperArm',
-	mixamorigRightForeArm: 'rightLowerArm',
-	mixamorigRightHand: 'rightHand',
-	mixamorigRightHandPinky1: 'rightLittleProximal',
-	mixamorigRightHandPinky2: 'rightLittleIntermediate',
-	mixamorigRightHandPinky3: 'rightLittleDistal',
-	mixamorigRightHandRing1: 'rightRingProximal',
-	mixamorigRightHandRing2: 'rightRingIntermediate',
-	mixamorigRightHandRing3: 'rightRingDistal',
-	mixamorigRightHandMiddle1: 'rightMiddleProximal',
-	mixamorigRightHandMiddle2: 'rightMiddleIntermediate',
-	mixamorigRightHandMiddle3: 'rightMiddleDistal',
-	mixamorigRightHandIndex1: 'rightIndexProximal',
-	mixamorigRightHandIndex2: 'rightIndexIntermediate',
-	mixamorigRightHandIndex3: 'rightIndexDistal',
-	mixamorigRightHandThumb1: 'rightThumbMetacarpal',
-	mixamorigRightHandThumb2: 'rightThumbProximal',
-	mixamorigRightHandThumb3: 'rightThumbDistal',
-	mixamorigLeftUpLeg: 'leftUpperLeg',
-	mixamorigLeftLeg: 'leftLowerLeg',
-	mixamorigLeftFoot: 'leftFoot',
-	mixamorigLeftToeBase: 'leftToes',
-	mixamorigRightUpLeg: 'rightUpperLeg',
-	mixamorigRightLeg: 'rightLowerLeg',
-	mixamorigRightFoot: 'rightFoot',
-	mixamorigRightToeBase: 'rightToes',
-};
+const mixamoVRMRigMap = getMixamoRig();
 
 /* global THREE, mixamoVRMRigMap */
 
@@ -84,19 +32,19 @@ const mixamoVRMRigMap = {
 function loadMixamoAnimation(url, vrm) {
 	let loader;
 	if (url.endsWith('.fbx')) {
-	loader = new FBXLoader(); // A loader which loads FBX
+	loader = new FBXLoader();
 	} else {
-	loader = new GLTFLoader(); // A loader which loads GLTF
+	loader = new GLTFLoader();
 	}
 	return loader.loadAsync(url).then((asset) => {
-		const clip = asset.animations[0]; // extract the AnimationClip
+		const clip = asset.animations[0];
 
 		// if asset is glb extract the scene
 		if (url.endsWith('.glb')) {
 			asset = asset.scene;
 		}
 
-		const tracks = []; // KeyframeTracks compatible with VRM will be added here
+		const tracks = [];
 
 		const restRotationInverse = new Quaternion();
 		const parentRestWorldRotation = new Quaternion();
@@ -187,7 +135,7 @@ function loadMixamoAnimation(url, vrm) {
  * @return {JSX.Element} The model object.
  */
 export function NPCObject(model) {
-	const [idleFile, setIdleFile] = useState(model.threeObjectPlugin + idle);
+	const [idleFile, setIdleFile] = useState(idle);
 	const [clicked, setClickEvent] = useState();
 	const [activeMessage, setActiveMessage] = useState([]);
 	const headPositionY = useRef([]);
@@ -231,7 +179,7 @@ export function NPCObject(model) {
 	const gltf = useLoader(GLTFLoader, url, (loader) => {
 		const dracoLoader = new DRACOLoader();
 		dracoLoader.setDecoderPath( model.threeObjectPluginRoot + "/inc/utils/draco/");
-		dracoLoader.setDecoderConfig({type: 'js'}); // (Optional) Override detection of WASM support.
+		dracoLoader.setDecoderConfig({type: 'js'});
 		loader.setDRACOLoader(dracoLoader);
 
 		loader.register(
@@ -378,14 +326,18 @@ export function NPCObject(model) {
 
 		// retarget the animations from mixamo to the current vrm 
 		if (model.defaultAvatarAnimation){
+			// hide the model while we load the animation
+			currentVrm.scene.visible = false;
 			loadMixamoAnimation(model.defaultAvatarAnimation, currentVrm).then((clip) => {
 				currentMixer.clipAction(clip).play();
 				currentMixer.update(clock.getDelta());
+				currentVrm.scene.visible = true;
 			});
 		} else {
 			loadMixamoAnimation(idleFile, currentVrm).then((clip) => {
 				currentMixer.clipAction(clip).play();
 				currentMixer.update(clock.getDelta());
+				currentVrm.scene.visible = true;
 			});	
 		}
 
@@ -403,18 +355,20 @@ export function NPCObject(model) {
 		}
 		let defaultColor = "0xffffff";
 		let black = "0x000000";
-		var colorValue = parseInt ( defaultColor.replace("#","0x"), 16 );
-		var blackValue = parseInt ( black.replace("#","0x"), 16 );
+		var colorValue = new Color( parseInt ( defaultColor.replace("#","0x"), 16 ) );
+		var blackValue = new Color( parseInt ( black.replace("#","0x"), 16 ) );
 	
 		return (
 			<group
+				userData={{ camExcludeCollision: true }}
 				position={[model.positionX, model.positionY, model.positionZ]}
 				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
 			>
 				<Text
-					font={model.threeObjectPlugin + model.defaultFont}
+					font={model.defaultFont}
 					position={[0.6, (Number(headPositionY.current) - 0.5), 0]}
 					className="content"
+					fontSize={0.1}
 					scale={[0.5, 0.5, 0.5]}
 					// rotation-y={-Math.PI / 2}
 					width={0.1}
@@ -494,17 +448,18 @@ export function NPCObject(model) {
 	var colorValue = parseInt ( defaultColor.replace("#","0x"), 16 );
 	var blackValue = parseInt ( blackHex.replace("#","0x"), 16 );
 
-	const color = new THREE.Color( colorValue );
-	const black = new THREE.Color( blackValue );
+	const color = new Color( colorValue );
+	const black = new Color( blackValue );
 
 	return (
 		<>
 			<group
+				userData={{ camExcludeCollision: true }}
 				position={[model.positionX, model.positionY, model.positionZ]}
 				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
 			>
 				<Text
-					font={model.threeObjectPlugin + model.defaultFont}
+					font={model.defaultFont}
 					position={[0.6, 0.9, 0]}
 					className="content"
 					scale={[0.5, 0.5, 0.5]}

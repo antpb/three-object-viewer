@@ -93,10 +93,10 @@ const mixamoVRMRigMap = {
  * @returns {Promise<AnimationClip>} The converted AnimationClip
  */
 function loadMixamoAnimation(url, vrm, positionY, positionX, positionZ, scaleX, scaleY, scaleZ, rotationX, rotationY, rotationZ, rotationW) {
-	const loader = new FBXLoader(); // A loader which loads FBX
+	const loader = new FBXLoader();
 	return loader.loadAsync(url).then((asset) => {
-		const clip = AnimationClip.findByName(asset.animations, 'mixamo.com'); // extract the AnimationClip
-		const tracks = []; // KeyframeTracks compatible with VRM will be added here
+		const clip = AnimationClip.findByName(asset.animations, 'mixamo.com');
+		const tracks = [];
 
 		const restRotationInverse = new Quaternion();
 		const parentRestWorldRotation = new Quaternion();
@@ -173,7 +173,7 @@ function loadMixamoAnimation(url, vrm, positionY, positionX, positionZ, scaleX, 
 }
 
 function SavedObject( props ) {
-	const [idleFile, setIdleFile] = useState(props.threeObjectPlugin + idle);
+	const [idleFile, setIdleFile] = useState(idle);
 	const [ url, set ] = useState( props.url );
 	useEffect( () => {
 		setTimeout( () => set( props.url ), 2000 );

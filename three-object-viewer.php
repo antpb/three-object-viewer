@@ -3,7 +3,7 @@
 * Plugin Name:       Three Object Viewer
 * Plugin URI:        https://3ov.xyz/
 * Description:       A plugin for viewing 3D files with support for WebXR and Open Metaverse Interoperability GLTF Extensions.
-* Version:           1.7.1
+* Version:           1.8.0
 * Requires at least: 5.7
 * Requires PHP:      7.1.0
 * Author:            antpb
@@ -40,7 +40,7 @@ class MainOptions
 		}
 		// Check and update '3ov_defaultAvatar' option
 		if( ! get_option( '3ov_defaultAvatar' ) ) {
-			update_option( '3ov_defaultAvatar', '' ); // replace 'default_value' with the value you want to set
+			update_option( '3ov_defaultAvatar', '' );
 		}
 		update_option('3ov_plugin_version', THREEOV_PLUGIN_VERSION);
 	}
@@ -118,8 +118,11 @@ include_once dirname( __FILE__ ) . '/blocks/sky-block/init.php';
 // Include image
 include_once dirname( __FILE__ ) . '/blocks/three-image-block/init.php';
 
-// Include image
+// Include video
 include_once dirname( __FILE__ ) . '/blocks/three-video-block/init.php';
+
+// Include Networking
+include_once dirname( __FILE__ ) . '/blocks/three-networking-block/init.php';
 
 // Include audio
 include_once dirname( __FILE__ ) . '/blocks/three-audio-block/init.php';

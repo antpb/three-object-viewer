@@ -1,4 +1,5 @@
 import React, { useRef } from "react";
+import { Color } from "three";
 import {
 	Text,
 } from "@react-three/drei";
@@ -12,22 +13,24 @@ import {
  */
 export function TextObject(model) {
 	const htmlObj = useRef();
+	var colorValue = new Color( parseInt ( model.textColor.replace("#","0x"), 16 ) );
 	return (
 		<>
 			<group
+				userData={{ camExcludeCollision: true }}
 				position={[model.positionX, model.positionY, model.positionZ]}
 				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
 				scale={[model.scaleX, model.scaleY, model.scaleZ]}
 				ref={htmlObj}
 			>
 				<Text
-					font={model.threeObjectPlugin + model.defaultFont}
+					font={model.defaultFont}
 					className="content"
-					scale={[4, 4, 4]}
+					scale={[1, 1, 1]}
 					// rotation-y={-Math.PI / 2}
-					width={10}
-					height={10}
-					color={model.textColor}
+					maxWidth={10}
+					height={20}
+					color={colorValue}
 					transform
 				>
 					{model.textContent}

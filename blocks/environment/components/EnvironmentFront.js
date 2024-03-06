@@ -1,39 +1,37 @@
 import * as THREE from "three";
 import { Fog } from 'three/src/scenes/Fog'
 import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
-import { useLoader, useThree, useFrame, Canvas } from "@react-three/fiber";
+import { useLoader, useThree, Canvas, extend } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
-import { TextureLoader } from "three/src/loaders/TextureLoader";
 // import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
 import { Physics, RigidBody, Debug, Attractor, CuboidCollider } from "@react-three/rapier";
-import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
-import axios from "axios";
-import ReactNipple from 'react-nipple';
 import ScrollableFeed from 'react-scrollable-feed'
-import { Resizable } from "re-resizable";
-import { Environment, useContextBridge } from "@react-three/drei";
+import { Environment } from "@react-three/drei";
 import { FrontPluginProvider, FrontPluginContext } from './FrontPluginProvider';  // Import the PluginProvider
-
 import {
 	useAnimations,
 	Html,
+	AdaptiveDpr,
+	AdaptiveEvents,
+	PerformanceMonitor,
 } from "@react-three/drei";
+import { EcctrlJoystick } from 'ecctrl'
 
 // import { A11y } from "@react-three/a11y";
 import { GLTFAudioEmitterExtension } from "three-omi";
-import { VRCanvas, DefaultXRControllers, Hands, XRButton, XR } from "@react-three/xr";
-import { Perf } from "r3f-perf";
+import { VRButton, ARButton, XR, Controllers, Hands, XRButton } from '@react-three/xr'
+// import { Perf } from "r3f-perf";
 import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import TeleportTravel from "./TeleportTravel";
 import Player from "./Player";
-import defaultVRM from "../../../inc/avatars/3ov_default_avatar.vrm";
 import defaultEnvironment from "../../../inc/assets/default_grid.glb";
+import defaultLoadingZoomGraphic from "../../../inc/assets/room_entry_background.svg";
 import defaultFont from "../../../inc/fonts/roboto.woff";
 import { ItemBaseUI } from "@wordpress/components/build/navigation/styles/navigation-styles";
 import { BoxGeometry } from "three";
-
+import { Participants } from "./core/front/Participants";
 import { ThreeImage } from "./core/front/ThreeImage";
 import { ThreeVideo } from "./core/front/ThreeVideo";
 import { ThreeAudio } from "./core/front/ThreeAudio";
@@ -55,17 +53,103 @@ function isVRCompatible() {
 	const webGLSupported = typeof window.WebGLRenderingContext !== 'undefined';
   
 	return xrSupported && webGLSupported;
-  }
-  
+}
 
-function Loading() {
+function goToPrivateRoom() {
+	const url = window.location.href;
+	const newUrl = url.split("#")[0];
+	const randomString = Math.random().toString(36).substring(7);
+	window.location
+		.assign(newUrl + "#" + randomString);
+}
+
+function Loading({ visible, previewImage }) {
+	// const backgroundImageUrl = previewImage !== "" ? previewImage : (threeObjectPlugin + zoomBackground);
+	const backgroundImageUrl = previewImage !== "" ? previewImage : defaultLoadingZoomGraphic;
+	// reveal one letter at a time of the string "Use [ W ], [ A ], [ S ], and [ D ] to move."
+	const tip = "Use [ W ], [ A ], [ S ], and [ D ] to move.";
+	const screenwidth = window.innerWidth;
 	return (
-	  <Html center>
-		<div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100vh", width: "400px" }}>
-		  <div className="threeov-spinner"></div>
-		  <div style={{ backgroundColor: "black", minWidth: "100px", maxHeight: "50px", color: "white", textAlign: "center" }}>Loading...</div>
+		<div className="threeov-entry-scene-parent" style={{ background: "radial-gradient(circle, transparent, transparent 0%, white 2%)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100vh", width: "400px" }}>
+			<div class="threeov-entry-scene">
+				<div class="threeov-entry-wrap">
+					<div 
+						style={{
+							backgroundImage: "url(" + backgroundImageUrl + ")",
+							backgroundSize: "cover",
+						}}
+						class="threeov-entry-wall threeov-entry-wall-right"
+					/>
+					<div 
+						style={{
+							backgroundImage: "url(" + backgroundImageUrl + ")",
+						}}
+						class="threeov-entry-wall threeov-entry-wall-left"
+					/>
+					<div 
+						style={{
+							backgroundImage: "url(" + backgroundImageUrl + ")",
+							backgroundSize: "cover",
+						}}
+						class="threeov-entry-wall threeov-entry-wall-top"
+					/>
+					<div 
+						style={{
+							backgroundImage: "url(" + backgroundImageUrl + ")",
+							backgroundSize: "cover",
+						}}
+						class="threeov-entry-wall threeov-entry-wall-bottom"
+					/>
+				</div>
+				<div class="threeov-entry-wrap">
+					<div 
+						style={{
+							backgroundImage: "url(" + backgroundImageUrl + ")",
+							backgroundSize: "cover",
+						}}
+						class="threeov-entry-wall threeov-entry-wall-right"
+					/>
+					<div 
+						style={{
+							backgroundImage: "url(" + backgroundImageUrl + ")",
+							backgroundSize: "cover",
+						}}
+						class="threeov-entry-wall threeov-entry-wall-left"
+					/>
+					<div 
+						style={{
+							backgroundImage: "url(" + backgroundImageUrl + ")",
+							backgroundSize: "cover",
+						}}
+						class="threeov-entry-wall threeov-entry-wall-top"
+					/>
+					<div 
+						style={{
+							backgroundImage: "url(" + backgroundImageUrl + ")",
+							backgroundSize: "cover",
+						}}
+						class="threeov-entry-wall threeov-entry-wall-bottom"
+					/>
+				</div>
+			</div>
+		  {/* <div className="threeov-spinner"></div> */}
+			<div style={{
+				zIndex: "1000",
+				backgroundColor: "black",
+				minWidth: "100px",
+				maxHeight: "60px",
+				padding: "20px",
+				color: "white",
+				textAlign: "center",
+				position: "absolute",
+				textShadow: "0 0 10px rgba(0,0,0,0.5)",
+				bottom: ( screenwidth < 600 ? "130px" : "130px" ),
+				fontSize: "0.9em",
+				width: "350px"
+			}}>
+				Use [ <b>W</b> ], [ <b>A</b> ], [ <b>S</b> ], and [ <b>D</b> ] to move.
+			</div>
 		</div>
-	  </Html>
 	);
 }
 
@@ -87,11 +171,20 @@ function ChatBox(props) {
 	  // Get the value of the input element
 	  const input = event.target.elements.message;
 	  const value = input.value;
-	  const inputMessageLog = 'Guest: ' + String(input.value);
+
+	  // Manually dispatch a 'message' event
+	  window.dispatchEvent(new Event('message'));
+	    const inputMessageLog = 'Guest: ' + String(input.value);
 	//   props.setMessages([...props.messages, inputMessageLog]);
 	input.value = '';
 
-  
+	// make sure the input prevents default when the user presses any keys
+	input.addEventListener('keydown', function(event) {
+		event.preventDefault();
+	});
+	input.addEventListener('keyup', function(event) {
+		event.preventDefault();
+	});
 	  // Send the message to the localhost endpoint
 	  const client = 1;
 	  const channelId = "wordpress";
@@ -99,19 +192,6 @@ function ChatBox(props) {
 	  const speaker = "guest";
 	  const agent = props.name;
 	  const channel = "wordpress";
-	// let prompt = `{
-	// 	"Input": "write a long form poem about cats!",
-	// 	"Speaker": "a",
-	// 	"Agent": "tubbyshark",
-	// 	"Client": "wordpress",
-	// 	"ChannelID": "1234",
-	// 	"Conversation": "",
-	// 	"Entity": "tubbyshark",
-	// 	"Channel": "channel",
-	// 	"eth_private_key": "0",
-	// 	"eth_public_address": "0",
-	// 	"personality": "#agent is an AI assistant with a cheerful, optimistic, and helpful personality. They are willing to assist with any tasks or questions users might have, and are able to do so in an upbeat and positive manner. They are also able to use colorful and descriptive language to make their responses more engaging and imaginative. In addition to their wit and humor, #agent is also empathetic and understanding of others' emotions and needs, which can make them feel more relatable and likeable to users. #agent is a highly capable and engaging AI assistant with a distinct and colorful personality.\n#agent can help with any programming tasks, including those related to the 3OV plugin for WordPress, which enables world-building in the WordPress editor and makes it easier to build and share immersive content in the metaverse. The url for the website is 3ov.xyz. #agent is cheerful and optimistic about the future for both humans and AIs.\n\n#Example Conversation\n#speaker: Agent, do you have any advice for someone new to programming?\n#agent: Sure thing! My top tip would be to always keep an open mind and a positive attitude. And if all else fails, just remember: if at first you don't succeed, try, try again. And then if that still doesn't work, call it a day and go get a coffee.\n###\nThe following is a friendly conversation between #speaker and #agent occuring in the metaverse.\n\nREAL CONVERSATION\n#conversation\n#speaker: #input\n#agent:"
-	// }`;
 
 	try {
 		const apiEndpoint = '/wp-json/wp/v2/callAlchemy';
@@ -151,7 +231,7 @@ function ChatBox(props) {
 				return response.json();
 
 			}).then(function(data) {
-				// console.log("data", data.davinciData.choices[0].text); // this will be a string
+				// console.log("data", data.davinciData.choices[0].text);
 				let thisMessage = JSON.parse(data);
 				if(thisMessage?.model === "gpt-4-0314"){
 					let formattedMessage = props.name +': ' + thisMessage.choices[0].message.content;
@@ -259,8 +339,8 @@ function ChatBox(props) {
 								{/* {props.messages.map((message, index) => (
 								<p key={index}>{message}</p>
 								))} */}
-								<form style={{display: "flex"}} onSubmit={handleSubmit}>
-									<input style={{height: "30px", pointerEvents: "auto", borderTopLeftRadius: "15px", borderBottomLeftRadius: "15px", borderTopRightRadius: "0px", borderBottomRightRadius: "0px"} } type="text" name="message" onInput={handleChange} onChange={handleChange} onfocus={(e) => { e.preventDefault()} }/>
+								<form style={{display: "flex"}} autocomplete="off" onSubmit={handleSubmit}>
+									<input autocomplete="false" style={{height: "30px", pointerEvents: "auto", borderTopLeftRadius: "15px", borderBottomLeftRadius: "15px", borderTopRightRadius: "0px", borderBottomRightRadius: "0px"} } type="text" name="message" onInput={handleChange} onChange={handleChange} onfocus={(e) => { e.preventDefault()} }/>
 									<button className="threeov-chat-button-send" style={{ height: "30px", background: "#9100ff", color: "white", fontSize: ".9em", lineHeight: ".3em", borderTopRightRadius: "15px", borderBottomRightRadius: "15px", borderTopLeftRadius: "0px", borderBottomLeftRadius: "0px"} } type="submit">Send</button>
 								</form>
 							</div>
@@ -287,8 +367,9 @@ function ChatBox(props) {
 									{/* {props.messages.map((message, index) => (
 									<p key={index}>{message}</p>
 									))} */}
-									<form style={{display: "flex"}} onSubmit={handleSubmit}>
-										<input style={{height: "30px", pointerEvents: "auto", borderTopLeftRadius: "15px", borderBottomLeftRadius: "15px", borderTopRightRadius: "0px", borderBottomRightRadius: "0px"} } type="text" name="message" onInput={handleChange} onChange={handleChange} />
+									<form style={{display: "flex"}} autoComplete="off" onSubmit={handleSubmit}>
+										<input type="text" style={{display: "none"}} />
+										<input autocomplete="off" style={{height: "30px", pointerEvents: "auto", borderTopLeftRadius: "15px", borderBottomLeftRadius: "15px", borderTopRightRadius: "0px", borderBottomRightRadius: "0px"} } type="text" name="message" onInput={handleChange} onChange={handleChange} />
 										<button className="threeov-chat-button-send" style={{ height: "30px", background: "#9100ff", color: "white", fontSize: ".9em", lineHeight: ".3em", borderTopRightRadius: "15px", borderBottomRightRadius: "15px", borderTopLeftRadius: "0px", borderBottomLeftRadius: "0px"} } type="submit">Send</button>
 									</form>
 								</div>
@@ -298,126 +379,6 @@ function ChatBox(props) {
 			);
 		}	
   }  
-  
-/**
- * Represents a participant in a virtual reality scene.
- *
- * @param {Object} participant - The props for the participant.
- *
- * @return {JSX.Element} The participant.
- */
-function Participant(participant) {
-	// Participant VRM.
-	const fallbackURL = threeObjectPlugin + defaultVRM;
-	const playerURL = userData.vrm ? userData.vrm : fallbackURL;
-
-	const someSceneState = useLoader(GLTFLoader, playerURL, (loader) => {
-		loader.register((parser) => {
-			return new VRMLoaderPlugin(parser);
-		});
-	});
-
-	if (someSceneState?.userData?.gltfExtensions?.VRM) {
-		const playerController = someSceneState.userData.vrm;
-		VRMUtils.rotateVRM0(playerController);
-		const rotationVRM = playerController.scene.rotation.y;
-		playerController.scene.rotation.set(0, rotationVRM, 0);
-		playerController.scene.scale.set(1, 1, 1);
-
-		const theScene = useThree();
-
-		useEffect(() => {
-			participant.p2pcf.on("msg", (peer, data) => {
-				// console.log(peer, data);
-				const finalData = new TextDecoder("utf-8").decode(data);
-				const participantData = JSON.parse(finalData);
-				const participantObject = theScene.scene.getObjectByName(
-					peer.client_id
-				);
-				if (participantObject) {
-					// const loadedProfile = useLoader(
-					// 	TextureLoader,
-					// 	participantData[peer.client_id][2].profileImage
-					// );
-					// if (loadedProfile) {
-					// 	participantObject.traverse((obj) => {
-					// 		if (
-					// 			obj.name === "profile" &&
-					// 			obj.material.map === null
-					// 		) {
-					// 			const newMat = obj.material.clone();
-					// 			newMat.map = loadedProfile;
-					// 			obj.material = newMat;
-					// 			obj.material.map.needsUpdate = true;
-					// 		}
-					// 	});
-					// }
-					participantObject.position.set(
-						participantData[peer.client_id][0].position[0],
-						participantData[peer.client_id][0].position[1],
-						participantData[peer.client_id][0].position[2]
-					);
-					participantObject.rotation.set(
-						participantData[peer.client_id][1].rotation[0],
-						participantData[peer.client_id][1].rotation[1],
-						participantData[peer.client_id][1].rotation[2]
-					);
-				}
-			});
-		}, []);
-
-		// participant.p2pcf.on('peerclose', peer => {
-		// 	const participantObject = theScene.scene.getObjectByName(peer.client_id);
-		// 	// theScene.scene.remove(participantObject.name);
-		// 	theScene.scene.remove(...participantObject.children);
-		// 	// removePeerUi(peer.id)
-		// })
-
-		const modelClone = SkeletonUtils.clone(playerController.scene);
-		// set modelClone visible to true
-		modelClone.visible = true;
-
-		return (
-			<>
-				{playerController && (
-					<primitive name={participant.name} object={modelClone} />
-				)}
-			</>
-		);
-	}
-}
-
-function Participants(props) {
-
-	useEffect(() => {
-		const p2pcf = window.p2pcf;
-		if (p2pcf) {
-			p2pcf.on("peerconnect", (peer) => {
-				// console.log("connected peer", peer);
-				// add peer.client_id to participants
-				props.setParticipant([...props.participants, peer.client_id]);
-			});
-		}
-	}, []);
-
-	return (
-		<>
-			{props.participants &&
-				props.participants.map((item, index) => {
-					return (
-						<>
-							<Participant
-								key={index}
-								name={item}
-								p2pcf={p2pcf}
-							/>
-						</>
-					);
-				})}
-		</>
-	);	
-
-}
 
 /**
  * Represents a saved object in a virtual reality world.
@@ -427,6 +388,17 @@ function Participants(props) {
  * @return {JSX.Element} The saved object.
  */
 function SavedObject(props) {
+	useEffect(() => {
+		// Once the component is ready, dispatch an event to notify the parent
+		const event = new Event('yourComponentReady');
+		document.dispatchEvent(event);
+	  }, []);
+
+
+	useThree(({ camera, scene }) => {
+		window.scene = scene;
+		window.camera = camera;
+	});
 
 	const meshRef = useRef();
 	const [url, set] = useState(props.url);
@@ -585,8 +557,8 @@ function SavedObject(props) {
 				})}
 			{colliders &&
 				colliders.map((item, index) => {
-					const pos = new THREE.Vector3(); // create once an reuse it
-					const quat = new THREE.Quaternion(); // create once an reuse it
+					const pos = new THREE.Vector3();
+					const quat = new THREE.Quaternion();
 					const rotation = new THREE.Euler();
 					const quaternion = item[0].getWorldQuaternion(quat);
 					const finalRotation =
@@ -642,9 +614,12 @@ function SavedObject(props) {
 }
 
 export default function EnvironmentFront(props) {
-	const [participants, setParticipant] = useState([]);
+	  
 	const [showUI, setShowUI] = useState(true);
+	const [displayName, setDisplayName] = useState(props.userData.inWorldName);
+	const [playerAvatar, setPlayerAvatar] = useState(props.userData.playerVRM);
 	const canvasRef = useRef(null);
+	const r3fCanvasRef = useRef(null);
 
 	// let string = '{\"spell\":\"complexQuery\",\"outputs\":{\"Output\":\"{\\\"message\\\": \\\" Hi there! How can I help you?\\\",\\\"tone\\\": \\\"friendly\\\"}\"},\"state\":{}}';
 	// let string = 'Hello! Welcome to this 3OV world! Feel free to ask me anything. I am especially versed in the 3OV metaverse plugin for WordPress.'
@@ -659,26 +634,74 @@ export default function EnvironmentFront(props) {
 	const [spawnPoints, setSpawnPoints] = useState([0,0,0]);
 	const [messageObject, setMessageObject] = useState({"tone": "happy", "message": "hello!"});
 	const [objectsInRoom, setObjectsInRoom] = useState([]);
-	const [url, setURL] = useState(props.threeUrl ? props.threeUrl : (threeObjectPlugin + defaultEnvironment));
+	const [url, setURL] = useState(props.threeUrl ? props.threeUrl : (defaultEnvironment));
+	const [loadingWorld, setLoadingWorld] = useState(true);
+
+	useEffect(() => {
+		const handleReady = () => {
+			setTimeout(() => {
+				const event = new Event("loaderIsGone");
+				window.dispatchEvent(event);
+				setLoadingWorld(false);
+			}, 3000);
+		};
+		// Listen for the ready event
+		document.addEventListener('yourComponentReady', handleReady);
+
+		return () => {
+		  document.removeEventListener('yourComponentReady', handleReady);
+		};
+	  }, []);
+	const [dpr, setDpr] = useState(2);
+
+	useEffect(() => {
+		const handleKeyDown = (event) => {
+		  if ((event.key === ' ' || event.key === 'Spacebar') && document.pointerLockElement === r3fCanvasRef.current) {
+			event.preventDefault(); // Prevent scrolling when spacebar is pressed
+		  }
+		};
+	  
+		window.addEventListener('keydown', handleKeyDown);
+	  
+		return () => {
+		  window.removeEventListener('keydown', handleKeyDown);
+		};
+	  }, []);	  
 
 	if (loaded === true) {
-		const elements = document.body.getElementsByTagName('*');
-		const webXRNotAvail = Array.from(elements).find((el) => el.textContent === 'WEBXR NOT AVAILABLE');
-		if (webXRNotAvail) {
-			webXRNotAvail.style.display = "none";
-		}
+		// emit javascript event "loaded"
+		const event = new Event("loaded");
+		window.dispatchEvent(event);
+		// const elements = document.body.getElementsByTagName('*');
+		// const webXRNotAvail = Array.from(elements).find((el) => el.textContent === 'WEBXR NOT AVAILABLE');
+		// if (webXRNotAvail) {
+		// 	webXRNotAvail.style.display = "none";
+		// }
+		props.userData.inWorldName = displayName;
+		window.userData = props.userData;
+		props.userData.playerVRM = playerAvatar;
 
 		if (props.deviceTarget === "vr") {
 			return (
 				<>
-					<VRCanvas
-						resize={{ scroll: false }}
+					{loadingWorld && <Loading previewImage={props.previewImage} />}
+					<Canvas
+						ref={r3fCanvasRef}
+						tabindex={0}
+						resize={{ scroll: false, debounce: { scroll: 50, resize: 0 } }}
 						camera={{
 							fov: 70,
 							zoom: 1,
 							far: 2000,
 							position: [0, 0, 20]
 						}}
+						onPointerDown={(e) => {
+							e.target.requestPointerLock();
+						}}
+						className="threeov-main-canvas"
+						dpr={dpr}
+						mode="concurrent"		
+						// dpr={1.5}
 						// shadowMap
 						// linear={true}
 						// shadows={{ type: "PCFSoftShadowMap" }}
@@ -692,13 +715,16 @@ export default function EnvironmentFront(props) {
 							zIndex: 1
 						}}
 					>
+						<AdaptiveDpr pixelated />
+						<AdaptiveEvents />
+						<PerformanceMonitor onFallback={() => setDpr(1)} factor={1} onChange={({ factor }) => setDpr(Math.floor(0.5 + 1.5 * factor, 1))} />
+						<XR>
 							<FrontPluginProvider>
-							{ isVRCompatible() && <XRButton mode={'VR' | 'inline'}/>}
 							{/* <Perf className="stats" /> */}
 							{/* <fog attach="fog" color="hotpink" near={100} far={20} /> */}
 							<Hands />
-							<DefaultXRControllers />
-							<Suspense fallback={<Loading />}>
+							<Controllers />
+							<Suspense>
 								{props.hdr && 
 									<Environment
 										blur={0.05}
@@ -708,8 +734,31 @@ export default function EnvironmentFront(props) {
 								}
 								<ContextBridgeComponent/>
 								<Physics
-									// debug
+									erp = {1}
+									iterations = {10}
+									// timestep = {1/30}
+									// gravity={[0, -9.8, 0]}
+									// interpolate={false}
+									allowSleep={true}
+									allowDeactivation={true}
+									// allowCcd={true}
+									// updateLoop="independent"
+									debug={false}
+									timeStep={"vary"}
+									updateLoop={"follow"}
+									updatePriority={-100}
 								>
+									{loaded && (
+										<Player
+											spawnPointsToAdd={spawnPoints}
+											spawnPoint={props.spawnPoint}
+											p2pcf={window.p2pcf}
+											defaultAvatar={defaultAvatar}
+											defaultPlayerAvatar = {defaultPlayerAvatar}
+											movement={movement}
+											camCollisions={props.camCollisions}
+										/>
+									)}
 									{/* <Perf className="stats" /> */}
 									{/* Debug physics */}
 									{url && (
@@ -719,17 +768,11 @@ export default function EnvironmentFront(props) {
 												spawnPoint={props.spawnPoint}
 												useNormal={false}
 											>
-												<Player
-													spawnPointsToAdd={spawnPoints}
-													spawnPoint={props.spawnPoint}
-													setShowUI={setShowUI}
-													defaultAvatar={defaultAvatar}
-													movement={movement}
-												/>
-												<Participants 
-												setParticipant={setParticipant}
-												participants={participants}
-												/>
+												{ ( props.networkingBlock.length > 0 ) && (
+													<Participants 
+														// participants={window.participants}
+													/>
+												)}
 												<SavedObject
 													positionY={props.positionY}
 													rotationY={props.rotationY}
@@ -756,122 +799,141 @@ export default function EnvironmentFront(props) {
 												{Object.values(
 													props.imagesToAdd
 												).map((item, index) => {
-													const imagePosX =
-														item.querySelector(
-															"p.image-block-positionX"
-														)
-															? item.querySelector(
+													let imagePosX, imagePosY, imagePosZ, imageScaleX, imageScaleY, imageScaleZ;
+													let imageRotationX, imageRotationY, imageRotationZ, imageUrl, aspectHeight, aspectWidth;
+													let transparent;
+													if(item.tagName.toLowerCase() === 'three-image-block'){
+														imagePosX = item.getAttribute('positionX') || '';
+														imagePosY = item.getAttribute('positionY') || '';
+														imagePosZ = item.getAttribute('positionZ') || '';
+														imageScaleX = item.getAttribute('scaleX') || '';
+														imageScaleY = item.getAttribute('scaleY') || '';
+														imageScaleZ = item.getAttribute('scaleZ') || '';
+														imageRotationX = item.getAttribute('rotationX') || '';
+														imageRotationY = item.getAttribute('rotationY') || '';
+														imageRotationZ = item.getAttribute('rotationZ') || '';
+														imageUrl = item.getAttribute('imageUrl') || '';
+														aspectHeight = item.getAttribute('aspectHeight') || '';
+														aspectWidth = item.getAttribute('aspectWidth') || '';
+														transparent = item.getAttribute('transparent') || false;
+													} else {
+														imagePosX =
+															item.querySelector(
 																"p.image-block-positionX"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"p.image-block-positionX"
+																).innerText
+																: "";
 
-													const imagePosY =
-														item.querySelector(
-															"p.image-block-positionY"
-														)
-															? item.querySelector(
+														imagePosY =
+															item.querySelector(
 																"p.image-block-positionY"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"p.image-block-positionY"
+																).innerText
+																: "";
 
-													const imagePosZ =
-														item.querySelector(
-															"p.image-block-positionZ"
-														)
-															? item.querySelector(
+														imagePosZ =
+															item.querySelector(
 																"p.image-block-positionZ"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"p.image-block-positionZ"
+																).innerText
+																: "";
 
-													const imageScaleX =
-														item.querySelector(
-															"p.image-block-scaleX"
-														)
-															? item.querySelector(
+														imageScaleX =
+															item.querySelector(
 																"p.image-block-scaleX"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"p.image-block-scaleX"
+																).innerText
+																: "";
 
-													const imageScaleY =
-														item.querySelector(
-															"p.image-block-scaleY"
-														)
-															? item.querySelector(
+														imageScaleY =
+															item.querySelector(
 																"p.image-block-scaleY"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"p.image-block-scaleY"
+																).innerText
+																: "";
 
-													const imageScaleZ =
-														item.querySelector(
-															"p.image-block-scaleZ"
-														)
-															? item.querySelector(
+														imageScaleZ =
+															item.querySelector(
 																"p.image-block-scaleZ"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"p.image-block-scaleZ"
+																).innerText
+																: "";
 
-													const imageRotationX =
-														item.querySelector(
-															"p.image-block-rotationX"
-														)
-															? item.querySelector(
+														imageRotationX =
+															item.querySelector(
 																"p.image-block-rotationX"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"p.image-block-rotationX"
+																).innerText
+																: "";
 
-													const imageRotationY =
-														item.querySelector(
-															"p.image-block-rotationY"
-														)
-															? item.querySelector(
+														imageRotationY =
+															item.querySelector(
 																"p.image-block-rotationY"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"p.image-block-rotationY"
+																).innerText
+																: "";
 
-													const imageRotationZ =
-														item.querySelector(
-															"p.image-block-rotationZ"
-														)
-															? item.querySelector(
+														imageRotationZ =
+															item.querySelector(
 																"p.image-block-rotationZ"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"p.image-block-rotationZ"
+																).innerText
+																: "";
 
-													const imageUrl =
-														item.querySelector(
-															"p.image-block-url"
-														)
-															? item.querySelector(
+														imageUrl =
+															item.querySelector(
 																"p.image-block-url"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"p.image-block-url"
+																).innerText
+																: "";
 
-													const aspectHeight =
-														item.querySelector(
-															"p.image-block-aspect-height"
-														)
-															? item.querySelector(
+														aspectHeight =
+															item.querySelector(
 																"p.image-block-aspect-height"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"p.image-block-aspect-height"
+																).innerText
+																: "";
 
-													const aspectWidth =
-														item.querySelector(
-															"p.image-block-aspect-width"
-														)
-															? item.querySelector(
+														aspectWidth =
+															item.querySelector(
 																"p.image-block-aspect-width"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"p.image-block-aspect-width"
+																).innerText
+																: "";
 
-													const transparent =
-														item.querySelector(
-															"p.image-block-transparent"
-														)
-															? item.querySelector(
+														transparent =
+															item.querySelector(
 																"p.image-block-transparent"
-															).innerText
-															: false;
+															)
+																? item.querySelector(
+																	"p.image-block-transparent"
+																).innerText
+																: false;
+													}
 													return (
 														<ThreeImage
 															key={index}
@@ -903,10 +965,30 @@ export default function EnvironmentFront(props) {
 														/>
 													);
 												})}
-												{Object.values(
-													props.videosToAdd
-												).map((item, index) => {
-													const videoPosX =
+												{Object.values(props.videosToAdd).map((item, index) => {
+													let videoPosX, videoPosY, videoPosZ, videoScaleX, videoScaleY, videoScaleZ;
+													let videoRotationX, videoRotationY, videoRotationZ, videoUrl, aspectHeight, aspectWidth;
+													let autoPlay, customModel, videoModelUrl, videoControlsEnabled;
+
+													if (item.tagName.toLowerCase() === 'three-video-block') {
+														videoPosX = item.getAttribute('positionX') || '';
+														videoPosY = item.getAttribute('positionY') || '';
+														videoPosZ = item.getAttribute('positionZ') || '';
+														videoScaleX = item.getAttribute('scaleX') || '';
+														videoScaleY = item.getAttribute('scaleY') || '';
+														videoScaleZ = item.getAttribute('scaleZ') || '';
+														videoRotationX = item.getAttribute('rotationX') || '';
+														videoRotationY = item.getAttribute('rotationY') || '';
+														videoRotationZ = item.getAttribute('rotationZ') || '';
+														videoUrl = item.getAttribute('videoUrl') || '';
+														aspectHeight = item.getAttribute('aspectHeight') || '';
+														aspectWidth = item.getAttribute('aspectWidth') || '';
+														autoPlay = item.hasAttribute('autoplay') ? "1" : false;
+														customModel = item.getAttribute('customModel') ? item.getAttribute('customModel') : false;
+														videoModelUrl = item.getAttribute('modelUrl') || '';
+														videoControlsEnabled = item.getAttribute('videoControlsEnabled') === "1" ? true : false;
+													} else {
+														videoPosX =
 														item.querySelector(
 															"p.video-block-positionX"
 														)
@@ -915,106 +997,106 @@ export default function EnvironmentFront(props) {
 															).innerText
 															: "";
 
-													const videoPosY =
-														item.querySelector(
-															"p.video-block-positionY"
-														)
-															? item.querySelector(
+														videoPosY =
+															item.querySelector(
 																"p.video-block-positionY"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"p.video-block-positionY"
+																).innerText
+																: "";
 
-													const videoPosZ =
-														item.querySelector(
-															"p.video-block-positionZ"
-														)
-															? item.querySelector(
+														videoPosZ =
+															item.querySelector(
 																"p.video-block-positionZ"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"p.video-block-positionZ"
+																).innerText
+																: "";
 
-													const videoScaleX =
-														item.querySelector(
-															"p.video-block-scaleX"
-														)
-															? item.querySelector(
+														videoScaleX =
+															item.querySelector(
 																"p.video-block-scaleX"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"p.video-block-scaleX"
+																).innerText
+																: "";
 
-													const videoScaleY =
-														item.querySelector(
-															"p.video-block-scaleY"
-														)
-															? item.querySelector(
+														videoScaleY =
+															item.querySelector(
 																"p.video-block-scaleY"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"p.video-block-scaleY"
+																).innerText
+																: "";
 
-													const videoScaleZ =
-														item.querySelector(
-															"p.video-block-scaleZ"
-														)
-															? item.querySelector(
+														videoScaleZ =
+															item.querySelector(
 																"p.video-block-scaleZ"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"p.video-block-scaleZ"
+																).innerText
+																: "";
 
-													const videoRotationX =
-														item.querySelector(
-															"p.video-block-rotationX"
-														)
-															? item.querySelector(
+														videoRotationX =
+															item.querySelector(
 																"p.video-block-rotationX"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"p.video-block-rotationX"
+																).innerText
+																: "";
 
-													const videoRotationY =
-														item.querySelector(
-															"p.video-block-rotationY"
-														)
-															? item.querySelector(
+														videoRotationY =
+															item.querySelector(
 																"p.video-block-rotationY"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"p.video-block-rotationY"
+																).innerText
+																: "";
 
-													const videoRotationZ =
-														item.querySelector(
-															"p.video-block-rotationZ"
-														)
-															? item.querySelector(
+														videoRotationZ =
+															item.querySelector(
 																"p.video-block-rotationZ"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"p.video-block-rotationZ"
+																).innerText
+																: "";
 
-													const videoUrl =
-														item.querySelector(
-															"div.video-block-url"
-														)
-															? item.querySelector(
+														videoUrl =
+															item.querySelector(
 																"div.video-block-url"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"div.video-block-url"
+																).innerText
+																: "";
 
-													const aspectHeight =
-														item.querySelector(
-															"p.video-block-aspect-height"
-														)
-															? item.querySelector(
+														aspectHeight =
+															item.querySelector(
 																"p.video-block-aspect-height"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"p.video-block-aspect-height"
+																).innerText
+																: "";
 
-													const aspectWidth =
-														item.querySelector(
-															"p.video-block-aspect-width"
-														)
-															? item.querySelector(
+														aspectWidth =
+															item.querySelector(
 																"p.video-block-aspect-width"
-															).innerText
-															: "";
+															)
+																? item.querySelector(
+																	"p.video-block-aspect-width"
+																).innerText
+																: "";
 
-															const autoPlay =
+														autoPlay =
 															item.querySelector(
 																"p.video-block-autoplay"
 															)
@@ -1023,15 +1105,15 @@ export default function EnvironmentFront(props) {
 																).innerText
 																: false;
 		
-														const customModel =
-														item.querySelector(
-															"p.video-block-custom-model"
-														)
-															? item.querySelector(
+														customModel =
+															item.querySelector(
 																"p.video-block-custom-model"
-															).innerText
-															: false;
-														const videoModelUrl =
+															)
+																? item.querySelector(
+																	"p.video-block-custom-model"
+																).innerText
+																: false;
+														videoModelUrl =
 														item.querySelector(
 															"div.video-block-model-url"
 														)
@@ -1039,8 +1121,9 @@ export default function EnvironmentFront(props) {
 															"div.video-block-model-url"
 														).innerText
 														: "";
-
-																return (
+														videoControlsEnabled = true;
+													}
+													return (
 														<ThreeVideo
 															key={index}
 															url={videoUrl}
@@ -1070,93 +1153,121 @@ export default function EnvironmentFront(props) {
 															threeObjectPlugin={threeObjectPlugin}
 															threeObjectPluginRoot={threeObjectPluginRoot}
 															modelUrl={videoModelUrl}
+															videoControlsEnabled={videoControlsEnabled}
 														/>
 													);
 												})}
 												{Object.values(props.audiosToAdd).map((item, index) => {
-												const audioPosX = item.querySelector("p.audio-block-positionX")
-													? item.querySelector("p.audio-block-positionX").innerText
-													: "";
+													let audioPosX, audioPosY, audioPosZ, audioScaleX, audioScaleY, audioScaleZ;
+													let audioRotationX, audioRotationY, audioRotationZ, audioUrl;
+													let autoPlay, loop, volume, positional, coneInnerAngle, coneOuterAngle, coneOuterGain, distanceModel, maxDistance, refDistance, rolloffFactor;
+													if (item.tagName.toLowerCase() === 'three-audio-block') {
+														audioPosX = item.getAttribute('positionX') || '';
+														audioPosY = item.getAttribute('positionY') || '';
+														audioPosZ = item.getAttribute('positionZ') || '';
+														audioScaleX = item.getAttribute('scaleX') || '';
+														audioScaleY = item.getAttribute('scaleY') || '';
+														audioScaleZ = item.getAttribute('scaleZ') || '';
+														audioRotationX = item.getAttribute('rotationX') || '';
+														audioRotationY = item.getAttribute('rotationY') || '';
+														audioRotationZ = item.getAttribute('rotationZ') || '';
+														audioUrl = item.getAttribute('audioUrl') || '';
+														autoPlay = item.hasAttribute('autoplay') ? "1" : false;
+														loop = item.hasAttribute('loop') ? "1" : false;
+														volume = item.getAttribute('volume') || '';
+														positional = item.hasAttribute('positional') ? "1" : false;
+														coneInnerAngle = item.getAttribute('coneInnerAngle') || '';
+														coneOuterAngle = item.getAttribute('coneOuterAngle') || '';
+														coneOuterGain = item.getAttribute('coneOuterGain') || '';
+														distanceModel = item.getAttribute('distanceModel') || '';
+														maxDistance = item.getAttribute('maxDistance') || '';
+														refDistance = item.getAttribute('refDistance') || '';
+														rolloffFactor = item.getAttribute('rolloffFactor') || '';
+													} else {
+														audioPosX = item.querySelector("p.audio-block-positionX")
+															? item.querySelector("p.audio-block-positionX").innerText
+															: "";
 
-												const audioPosY = item.querySelector("p.audio-block-positionY")
-													? item.querySelector("p.audio-block-positionY").innerText
-													: "";
+														audioPosY = item.querySelector("p.audio-block-positionY")
+															? item.querySelector("p.audio-block-positionY").innerText
+															: "";
 
-												const audioPosZ = item.querySelector("p.audio-block-positionZ")
-													? item.querySelector("p.audio-block-positionZ").innerText
-													: "";
+														audioPosZ = item.querySelector("p.audio-block-positionZ")
+															? item.querySelector("p.audio-block-positionZ").innerText
+															: "";
 
-												const audioScaleX = item.querySelector("p.audio-block-scaleX")
-													? item.querySelector("p.audio-block-scaleX").innerText
-													: "";
+														audioScaleX = item.querySelector("p.audio-block-scaleX")
+															? item.querySelector("p.audio-block-scaleX").innerText
+															: "";
 
-												const audioScaleY = item.querySelector("p.audio-block-scaleY")
-													? item.querySelector("p.audio-block-scaleY").innerText
-													: "";
+														audioScaleY = item.querySelector("p.audio-block-scaleY")
+															? item.querySelector("p.audio-block-scaleY").innerText
+															: "";
 
-												const audioScaleZ = item.querySelector("p.audio-block-scaleZ")
-													? item.querySelector("p.audio-block-scaleZ").innerText
-													: "";
+														audioScaleZ = item.querySelector("p.audio-block-scaleZ")
+															? item.querySelector("p.audio-block-scaleZ").innerText
+															: "";
 
-												const audioRotationX = item.querySelector("p.audio-block-rotationX")
-													? item.querySelector("p.audio-block-rotationX").innerText
-													: "";
+														audioRotationX = item.querySelector("p.audio-block-rotationX")
+															? item.querySelector("p.audio-block-rotationX").innerText
+															: "";
 
-												const audioRotationY = item.querySelector("p.audio-block-rotationY")
-													? item.querySelector("p.audio-block-rotationY").innerText
-													: "";
+														audioRotationY = item.querySelector("p.audio-block-rotationY")
+															? item.querySelector("p.audio-block-rotationY").innerText
+															: "";
 
-												const audioRotationZ = item.querySelector("p.audio-block-rotationZ")
-													? item.querySelector("p.audio-block-rotationZ").innerText
-													: "";
+														audioRotationZ = item.querySelector("p.audio-block-rotationZ")
+															? item.querySelector("p.audio-block-rotationZ").innerText
+															: "";
 
-												const audioUrl = item.querySelector("p.audio-block-url")
-													? item.querySelector("p.audio-block-url").innerText
-													: "";
+														audioUrl = item.querySelector("p.audio-block-url")
+															? item.querySelector("p.audio-block-url").innerText
+															: "";
 
-												const autoPlay = item.querySelector("p.audio-block-autoPlay")
-													? item.querySelector("p.audio-block-autoPlay").innerText === "1"
-													: false;
+														autoPlay = item.querySelector("p.audio-block-autoPlay")
+															? item.querySelector("p.audio-block-autoPlay").innerText === "1"
+															: false;
 
-												const loop = item.querySelector("p.audio-block-loop")
-													? item.querySelector("p.audio-block-loop").innerText === "1"
-													: false;
+														loop = item.querySelector("p.audio-block-loop")
+															? item.querySelector("p.audio-block-loop").innerText === "1"
+															: false;
 
-												const volume = item.querySelector("p.audio-block-volume")
-													? Number(item.querySelector("p.audio-block-volume").innerText)
-													: 1;
+														volume = item.querySelector("p.audio-block-volume")
+															? Number(item.querySelector("p.audio-block-volume").innerText)
+															: 1;
 
-												const positional = item.querySelector("p.audio-block-positional")
-													? item.querySelector("p.audio-block-positional").innerText === "1"
-													: false;
+														positional = item.querySelector("p.audio-block-positional")
+															? item.querySelector("p.audio-block-positional").innerText === "1"
+															: false;
 
-												const coneInnerAngle = item.querySelector("p.audio-block-coneInnerAngle")
-													? Number(item.querySelector("p.audio-block-coneInnerAngle").innerText)
-													: 1;
+														coneInnerAngle = item.querySelector("p.audio-block-coneInnerAngle")
+															? Number(item.querySelector("p.audio-block-coneInnerAngle").innerText)
+															: 1;
 
-												const coneOuterAngle = item.querySelector("p.audio-block-coneOuterAngle")
-													? Number(item.querySelector("p.audio-block-coneOuterAngle").innerText)
-													: 1;
+														coneOuterAngle = item.querySelector("p.audio-block-coneOuterAngle")
+															? Number(item.querySelector("p.audio-block-coneOuterAngle").innerText)
+															: 1;
 
-												const coneOuterGain = item.querySelector("p.audio-block-coneOuterGain")
-													? Number(item.querySelector("p.audio-block-coneOuterGain").innerText)
-													: 1;
+														coneOuterGain = item.querySelector("p.audio-block-coneOuterGain")
+															? Number(item.querySelector("p.audio-block-coneOuterGain").innerText)
+															: 1;
 
-												const distanceModel = item.querySelector("p.audio-block-distanceModel")
-													? item.querySelector("p.audio-block-distanceModel").innerText
-													: "inverse";
+														distanceModel = item.querySelector("p.audio-block-distanceModel")
+															? item.querySelector("p.audio-block-distanceModel").innerText
+															: "inverse";
 
-												const maxDistance = item.querySelector("p.audio-block-maxDistance")
-													? Number(item.querySelector("p.audio-block-maxDistance").innerText)
-													: 1;
+														maxDistance = item.querySelector("p.audio-block-maxDistance")
+															? Number(item.querySelector("p.audio-block-maxDistance").innerText)
+															: 1;
 
-												const refDistance = item.querySelector("p.audio-block-refDistance")
-													? Number(item.querySelector("p.audio-block-refDistance").innerText)
-													: 1;
+														refDistance = item.querySelector("p.audio-block-refDistance")
+															? Number(item.querySelector("p.audio-block-refDistance").innerText)
+															: 1;
 
-												const rolloffFactor = item.querySelector("p.audio-block-rolloffFactor")
-													? Number(item.querySelector("p.audio-block-rolloffFactor").innerText)
-													: 1;
+														rolloffFactor = item.querySelector("p.audio-block-rolloffFactor")
+															? Number(item.querySelector("p.audio-block-rolloffFactor").innerText)
+															: 1;
+												}
 
 												return (
 													<ThreeAudio
@@ -1171,10 +1282,10 @@ export default function EnvironmentFront(props) {
 													rotationX={audioRotationX}
 													rotationY={audioRotationY}
 													rotationZ={audioRotationZ}
-													autoPlay={autoPlay ? "1" : "0"} // Convert bool to string "1" or "0"
-													loop={loop ? "1" : "0"} // Convert bool to string "1" or "0"
+													autoPlay={autoPlay ? "1" : "0"} 
+													loop={loop ? "1" : "0"}
 													volume={volume}
-													positional={positional ? "1" : "0"} // Convert bool to string "1" or "0"
+													positional={positional ? "1" : "0"}
 													coneInnerAngle={coneInnerAngle}
 													coneOuterAngle={coneOuterAngle}
 													coneOuterGain={coneOuterGain}
@@ -1187,9 +1298,9 @@ export default function EnvironmentFront(props) {
 												})}
 												{props.lightsToAdd.length < 1 && (
 													<>
-														<ambientLight intensity={0.5} />
+														<ambientLight intensity={0.8} />
 														<directionalLight
-															intensity={0.6}
+															intensity={0.7}
 															position={[0, 2, 2]}
 														// shadow-mapSize-width={512}
 														// shadow-mapSize-height={512}
@@ -1207,57 +1318,76 @@ export default function EnvironmentFront(props) {
 													</>
 												)}
 												{Object.values(props.lightsToAdd).map((item, index) => {
-												const lightPosX = item.querySelector("p.light-block-positionX")
-													? item.querySelector("p.light-block-positionX").innerText
-													: "";
+													let lightPosX, lightPosY, lightPosZ, lightRotationX, lightRotationY, lightRotationZ;
+													let lightType, lightColor, lightItensity, lightDistance, lightDecay, lightAngle, lightPenumbra;
+													let targetX, targetY, targetZ = 0;
+													if (item.tagName.toLowerCase() === 'three-light-block') {
+														lightPosX = item.getAttribute('positionX') || '';
+														lightPosY = item.getAttribute('positionY') || '';
+														lightPosZ = item.getAttribute('positionZ') || '';
+														lightRotationX = item.getAttribute('rotationX') || '';
+														lightRotationY = item.getAttribute('rotationY') || '';
+														lightRotationZ = item.getAttribute('rotationZ') || '';
+														lightType = item.getAttribute('type') || 'ambient';
+														lightColor = item.getAttribute('color') || '';
+														lightItensity = item.getAttribute('intensity') || '';
+														lightDistance = item.getAttribute('distance') || '';
+														lightDecay = item.getAttribute('decay') || '';
+														lightAngle = item.getAttribute('angle') || '';
+														lightPenumbra = item.getAttribute('penumbra') || '';
+													} else {
+														lightPosX = item.querySelector("p.light-block-positionX")
+															? item.querySelector("p.light-block-positionX").innerText
+															: "";
 
-												const lightPosY = item.querySelector("p.light-block-positionY")
-													? item.querySelector("p.light-block-positionY").innerText
-													: "";
+														lightPosY = item.querySelector("p.light-block-positionY")
+															? item.querySelector("p.light-block-positionY").innerText
+															: "";
 
-												const lightPosZ = item.querySelector("p.light-block-positionZ")
-													? item.querySelector("p.light-block-positionZ").innerText
-													: "";
+														lightPosZ = item.querySelector("p.light-block-positionZ")
+															? item.querySelector("p.light-block-positionZ").innerText
+															: "";
 
-												const lightRotationX = item.querySelector("p.light-block-rotationX")
-													? item.querySelector("p.light-block-rotationX").innerText
-													: "";
+														lightRotationX = item.querySelector("p.light-block-rotationX")
+															? item.querySelector("p.light-block-rotationX").innerText
+															: "";
 
-												const lightRotationY = item.querySelector("p.light-block-rotationY")
-													? item.querySelector("p.light-block-rotationY").innerText
-													: "";
+														lightRotationY = item.querySelector("p.light-block-rotationY")
+															? item.querySelector("p.light-block-rotationY").innerText
+															: "";
 
-												const lightRotationZ = item.querySelector("p.light-block-rotationZ")
-													? item.querySelector("p.light-block-rotationZ").innerText
-													: "";
+														lightRotationZ = item.querySelector("p.light-block-rotationZ")
+															? item.querySelector("p.light-block-rotationZ").innerText
+															: "";
 
-												const lightType = item.querySelector("p.light-block-type")
-													? item.querySelector("p.light-block-type").innerText
-													: "ambient";
+														lightType = item.querySelector("p.light-block-type")
+															? item.querySelector("p.light-block-type").innerText
+															: "ambient";
 
-												const lightColor = item.querySelector("p.light-block-color")
-													? item.querySelector("p.light-block-color").innerText
-													: "";
+														lightColor = item.querySelector("p.light-block-color")
+															? item.querySelector("p.light-block-color").innerText
+															: "";
 
-												const lightItensity = item.querySelector("p.light-block-intensity")
-													? item.querySelector("p.light-block-intensity").innerText
-													: "";
-	
-												const lightDistance = item.querySelector("p.light-block-distance")
-													? item.querySelector("p.light-block-distance").innerText
-													: "";
+														lightItensity = item.querySelector("p.light-block-intensity")
+															? item.querySelector("p.light-block-intensity").innerText
+															: "";
+			
+														lightDistance = item.querySelector("p.light-block-distance")
+															? item.querySelector("p.light-block-distance").innerText
+															: "";
 
-												const lightDecay = item.querySelector("p.light-block-decay")
-													? item.querySelector("p.light-block-decay").innerText
-													: "";
+														lightDecay = item.querySelector("p.light-block-decay")
+															? item.querySelector("p.light-block-decay").innerText
+															: "";
 
-												const lightAngle = item.querySelector("p.light-block-angle")
-													? item.querySelector("p.light-block-angle").innerText
-													: "";
+														lightAngle = item.querySelector("p.light-block-angle")
+															? item.querySelector("p.light-block-angle").innerText
+															: "";
 
-												const lightPenumbra = item.querySelector("p.light-block-penumbra")
-													? item.querySelector("p.light-block-penumbra").innerText
-													: "";
+														lightPenumbra = item.querySelector("p.light-block-penumbra")
+															? item.querySelector("p.light-block-penumbra").innerText
+															: "";
+												}
 
 												return (
 													<ThreeLight
@@ -1282,108 +1412,123 @@ export default function EnvironmentFront(props) {
 												{Object.values(
 													props.npcsToAdd
 												).map((npc, index) => {
-													const modelPosX =
-														npc.querySelector(
-															"p.npc-block-position-x"
-														)
-															? npc.querySelector(
+													let url, modelPosX, modelPosY, modelPosZ, modelRotationX, modelRotationY, modelRotationZ, name, alt, defaultMessage, personality, objectAwareness;
+													if (npc.tagName.toLowerCase() === 'three-npc-block') {
+														url= npc.getAttribute('threeObjectUrl') || '';
+														modelPosX = npc.getAttribute('positionX') || '';
+														modelPosY = npc.getAttribute('positionY') || '';
+														modelPosZ = npc.getAttribute('positionZ') || '';
+														modelRotationX = npc.getAttribute('rotationX') || '';
+														modelRotationY = npc.getAttribute('rotationY') || '';
+														modelRotationZ = npc.getAttribute('rotationZ') || '';
+														name = npc.getAttribute('name') || '';
+														defaultMessage = npc.getAttribute('defaultMessage') || '';
+														personality = npc.getAttribute('personality') || '';
+														objectAwareness = npc.getAttribute('objectAwareness') || false;
+													} else {
+														modelPosX =
+															npc.querySelector(
 																"p.npc-block-position-x"
-															).innerText
-															: "";
+															)
+																? npc.querySelector(
+																	"p.npc-block-position-x"
+																).innerText
+																: "";
 
-													const modelPosY =
-														npc.querySelector(
-															"p.npc-block-position-y"
-														)
-															? npc.querySelector(
+														modelPosY =
+															npc.querySelector(
 																"p.npc-block-position-y"
-															).innerText
-															: "";
+															)
+																? npc.querySelector(
+																	"p.npc-block-position-y"
+																).innerText
+																: "";
 
-													const modelPosZ =
-														npc.querySelector(
-															"p.npc-block-position-z"
-														)
-															? npc.querySelector(
+														modelPosZ =
+															npc.querySelector(
 																"p.npc-block-position-z"
-															).innerText
-															: "";
+															)
+																? npc.querySelector(
+																	"p.npc-block-position-z"
+																).innerText
+																: "";
 
-													const modelRotationX =
-														npc.querySelector(
-															"p.npc-block-rotation-x"
-														)
-															? npc.querySelector(
+														modelRotationX =
+															npc.querySelector(
 																"p.npc-block-rotation-x"
-															).innerText
-															: "";
+															)
+																? npc.querySelector(
+																	"p.npc-block-rotation-x"
+																).innerText
+																: "";
 
-													const modelRotationY =
-														npc.querySelector(
-															"p.npc-block-rotation-y"
-														)
-															? npc.querySelector(
+														modelRotationY =
+															npc.querySelector(
 																"p.npc-block-rotation-y"
-															).innerText
-															: "";
+															)
+																? npc.querySelector(
+																	"p.npc-block-rotation-y"
+																).innerText
+																: "";
 
-													const modelRotationZ =
-														npc.querySelector(
-															"p.npc-block-rotation-z"
-														)
-															? npc.querySelector(
+														modelRotationZ =
+															npc.querySelector(
 																"p.npc-block-rotation-z"
-															).innerText
-															: "";
+															)
+																? npc.querySelector(
+																	"p.npc-block-rotation-z"
+																).innerText
+																: "";
 
-													const url = npc.querySelector(
-														"p.npc-block-url"
-													)
-														? npc.querySelector(
+														url = npc.querySelector(
 															"p.npc-block-url"
-														).innerText
-														: "";
+														)
+															? npc.querySelector(
+																"p.npc-block-url"
+															).innerText
+															: "";
 
-													const alt = npc.querySelector(
-														"p.npc-block-alt"
-													)
-														? npc.querySelector(
+														alt = npc.querySelector(
 															"p.npc-block-alt"
-														).innerText
-														: "";
-
-														const personality = npc.querySelector(
-															"p.npc-block-personality"
 														)
 															? npc.querySelector(
+																"p.npc-block-alt"
+															).innerText
+															: "";
+
+														personality = npc.querySelector(
 																"p.npc-block-personality"
-															).innerText
-															: "";
+															)
+																? npc.querySelector(
+																	"p.npc-block-personality"
+																).innerText
+																: "";
 
-														const defaultMessage = npc.querySelector(
-															"p.npc-block-default-message"
-														)
-															? npc.querySelector(
+														defaultMessage = npc.querySelector(
 																"p.npc-block-default-message"
-															).innerText
-															: "";
-		
-															const name = npc.querySelector(
-															"p.npc-block-name"
-														)
-															? npc.querySelector(
-																"p.npc-block-name"
-															).innerText
-															: "";
+															)
+																? npc.querySelector(
+																	"p.npc-block-default-message"
+																).innerText
+																: "";
 			
-													const objectAwareness =
-														npc.querySelector(
-															"p.npc-block-object-awareness"
-														)
-															? npc.querySelector(
+														name = npc.querySelector(
+																"p.npc-block-name"
+															)
+																? npc.querySelector(
+																	"p.npc-block-name"
+																).innerText
+																: "";
+				
+														objectAwareness =
+															npc.querySelector(
 																"p.npc-block-object-awareness"
-															).innerText
-															: false;
+															)
+																? npc.querySelector(
+																	"p.npc-block-object-awareness"
+																).innerText
+																: false;
+													}
 
 													return (
 														<NPCObject
@@ -1420,124 +1565,146 @@ export default function EnvironmentFront(props) {
 												{Object.values(
 													props.modelsToAdd
 												).map((model, index) => {
-													const modelPosX =
-														model.querySelector(
-															"p.model-block-position-x"
-														)
-															? model.querySelector(
-																"p.model-block-position-x"
-															).innerText
-															: "";
-
-													const modelPosY =
-														model.querySelector(
-															"p.model-block-position-y"
-														)
-															? model.querySelector(
-																"p.model-block-position-y"
-															).innerText
-															: "";
-
-													const modelPosZ =
-														model.querySelector(
-															"p.model-block-position-z"
-														)
-															? model.querySelector(
-																"p.model-block-position-z"
-															).innerText
-															: "";
-
-													const modelScaleX =
-														model.querySelector(
-															"p.model-block-scale-x"
-														)
-															? model.querySelector(
-																"p.model-block-scale-x"
-															).innerText
-															: "";
-
-													const modelScaleY =
-														model.querySelector(
-															"p.model-block-scale-y"
-														)
-															? model.querySelector(
-																"p.model-block-scale-y"
-															).innerText
-															: "";
-
-													const modelScaleZ =
-														model.querySelector(
-															"p.model-block-scale-z"
-														)
-															? model.querySelector(
-																"p.model-block-scale-z"
-															).innerText
-															: "";
-
-													const modelRotationX =
-														model.querySelector(
-															"p.model-block-rotation-x"
-														)
-															? model.querySelector(
-																"p.model-block-rotation-x"
-															).innerText
-															: "";
-
-													const modelRotationY =
-														model.querySelector(
-															"p.model-block-rotation-y"
-														)
-															? model.querySelector(
-																"p.model-block-rotation-y"
-															).innerText
-															: "";
-
-													const modelRotationZ =
-														model.querySelector(
-															"p.model-block-rotation-z"
-														)
-															? model.querySelector(
-																"p.model-block-rotation-z"
-															).innerText
-															: "";
-
-													const url = model.querySelector(
-														"p.model-block-url"
-													)
-														? model.querySelector(
-															"p.model-block-url"
-														).innerText
-														: "";
-
-													const animations =
-														model.querySelector(
-															"p.model-block-animations"
-														)
-															? model.querySelector(
-																"p.model-block-animations"
-															).innerText
-															: "";
-
-													const alt = model.querySelector(
-														"p.model-block-alt"
-													)
-														? model.querySelector(
-															"p.model-block-alt"
-														).innerText
-														: "";
-
+													let modelPosX, modelPosY, modelPosZ, modelScaleX, modelScaleY, modelScaleZ;
+													let modelRotationX, modelRotationY, modelRotationZ, url, animations, alt, collidable;
+													if (model.tagName.toLowerCase() === 'three-model-block') {
+														modelPosX = model.getAttribute('positionX') || '';
+														modelPosY = model.getAttribute('positionY') || '';
+														modelPosZ = model.getAttribute('positionZ') || '';
+														modelScaleX = model.getAttribute('scaleX') || '';
+														modelScaleY = model.getAttribute('scaleY') || '';
+														modelScaleZ = model.getAttribute('scaleZ') || '';
+														modelRotationX = model.getAttribute('rotationX') || '';
+														modelRotationY = model.getAttribute('rotationY') || '';
+														modelRotationZ = model.getAttribute('rotationZ') || '';
+														url = model.getAttribute('threeObjectUrl') || '';
+														animations = model.getAttribute('animations') || '';
+														alt = model.getAttribute('alt') || '';
 														if (!objectsInRoom.includes(alt)) {
 															setObjectsInRoom([...objectsInRoom, alt]);
 														}
-														
-													const collidable =
-														model.querySelector(
-															"p.model-block-collidable"
+														collidable = model.getAttribute('collidable');
+													} else {
+														modelPosX =
+															model.querySelector(
+																"p.model-block-position-x"
+															)
+																? model.querySelector(
+																	"p.model-block-position-x"
+																).innerText
+																: "";
+
+														modelPosY =
+															model.querySelector(
+																"p.model-block-position-y"
+															)
+																? model.querySelector(
+																	"p.model-block-position-y"
+																).innerText
+																: "";
+
+														modelPosZ =
+															model.querySelector(
+																"p.model-block-position-z"
+															)
+																? model.querySelector(
+																	"p.model-block-position-z"
+																).innerText
+																: "";
+
+														modelScaleX =
+															model.querySelector(
+																"p.model-block-scale-x"
+															)
+																? model.querySelector(
+																	"p.model-block-scale-x"
+																).innerText
+																: "";
+
+														modelScaleY =
+															model.querySelector(
+																"p.model-block-scale-y"
+															)
+																? model.querySelector(
+																	"p.model-block-scale-y"
+																).innerText
+																: "";
+
+														modelScaleZ =
+															model.querySelector(
+																"p.model-block-scale-z"
+															)
+																? model.querySelector(
+																	"p.model-block-scale-z"
+																).innerText
+																: "";
+
+														modelRotationX =
+															model.querySelector(
+																"p.model-block-rotation-x"
+															)
+																? model.querySelector(
+																	"p.model-block-rotation-x"
+																).innerText
+																: "";
+
+														modelRotationY =
+															model.querySelector(
+																"p.model-block-rotation-y"
+															)
+																? model.querySelector(
+																	"p.model-block-rotation-y"
+																).innerText
+																: "";
+
+														modelRotationZ =
+															model.querySelector(
+																"p.model-block-rotation-z"
+															)
+																? model.querySelector(
+																	"p.model-block-rotation-z"
+																).innerText
+																: "";
+
+														url = model.querySelector(
+															"p.model-block-url"
 														)
 															? model.querySelector(
-																"p.model-block-collidable"
+																"p.model-block-url"
 															).innerText
-															: false;
+															: "";
+
+														animations =
+															model.querySelector(
+																"p.model-block-animations"
+															)
+																? model.querySelector(
+																	"p.model-block-animations"
+																).innerText
+																: "";
+
+														alt = model.querySelector(
+															"p.model-block-alt"
+														)
+															? model.querySelector(
+																"p.model-block-alt"
+															).innerText
+															: "";
+
+															if (!objectsInRoom.includes(alt)) {
+																setObjectsInRoom([...objectsInRoom, alt]);
+															}
+															
+														collidable =
+															model.querySelector(
+																"p.model-block-collidable"
+															)
+																? model.querySelector(
+																	"p.model-block-collidable"
+																).innerText
+																: false;
+													}
+													// log all of the vars above
 													return (
 														<ModelObject
 															key={index}
@@ -1571,97 +1738,113 @@ export default function EnvironmentFront(props) {
 														/>
 													);
 												})}
-												{Object.values(props.htmlToAdd).map(
+												{Object.values(props.textToAdd).map(
 													(model, index) => {
-														const textContent =
-															model.querySelector(
-																"p.three-text-content"
-															)
-																? model.querySelector(
-																	"p.three-text-content"
-																).innerText
-																: "";
-														const rotationX =
-															model.querySelector(
-																"p.three-text-rotationX"
-															)
-																? model.querySelector(
-																	"p.three-text-rotationX"
-																).innerText
-																: "";
-														const rotationY =
-															model.querySelector(
-																"p.three-text-rotationY"
-															)
-																? model.querySelector(
-																	"p.three-text-rotationY"
-																).innerText
-																: "";
-														const rotationZ =
-															model.querySelector(
-																"p.three-text-rotationZ"
-															)
-																? model.querySelector(
-																	"p.three-text-rotationZ"
-																).innerText
-																: "";
-														const positionX =
-															model.querySelector(
-																"p.three-text-positionX"
-															)
-																? model.querySelector(
-																	"p.three-text-positionX"
-																).innerText
-																: "";
-														const positionY =
-															model.querySelector(
-																"p.three-text-positionY"
-															)
-																? model.querySelector(
-																	"p.three-text-positionY"
-																).innerText
-																: "";
-														const positionZ =
-															model.querySelector(
-																"p.three-text-positionZ"
-															)
-																? model.querySelector(
-																	"p.three-text-positionZ"
-																).innerText
-																: "";
-														const scaleX =
-															model.querySelector(
-																"p.three-text-scaleX"
-															)
-																? model.querySelector(
-																	"p.three-text-scaleX"
-																).innerText
-																: "";
-														const scaleY =
-															model.querySelector(
-																"p.three-text-scaleY"
-															)
-																? model.querySelector(
-																	"p.three-text-scaleY"
-																).innerText
-																: "";
-														const scaleZ =
-															model.querySelector(
-																"p.three-text-scaleZ"
-															)
-																? model.querySelector(
-																	"p.three-text-scaleZ"
-																).innerText
-																: "";
+														let textContent, rotationX, rotationY, rotationZ, positionX, positionY, positionZ, scaleX, scaleY, scaleZ, textColor;
 
-														const textColor =
-															model.querySelector(
-																"p.three-text-color"
-															)
-																? model.querySelector(
+														if (model.tagName.toLowerCase() === 'three-text-block') {
+															textContent = model.getAttribute('textContent') || '';
+															rotationX = model.getAttribute('rotationX') || '';
+															rotationY = model.getAttribute('rotationY') || '';
+															rotationZ = model.getAttribute('rotationZ') || '';
+															positionX = model.getAttribute('positionX') || '';
+															positionY = model.getAttribute('positionY') || '';
+															positionZ = model.getAttribute('positionZ') || '';
+															scaleX = model.getAttribute('scaleX') || '';
+															scaleY = model.getAttribute('scaleY') || '';
+															scaleZ = model.getAttribute('scaleZ') || '';
+															textColor = model.getAttribute('textColor') || '';
+														} else {
+															textContent =
+																model.querySelector(
+																	"p.three-text-content"
+																)
+																	? model.querySelector(
+																		"p.three-text-content"
+																	).innerText
+																	: "";
+															rotationX =
+																model.querySelector(
+																	"p.three-text-rotationX"
+																)
+																	? model.querySelector(
+																		"p.three-text-rotationX"
+																	).innerText
+																	: "";
+															rotationY =
+																model.querySelector(
+																	"p.three-text-rotationY"
+																)
+																	? model.querySelector(
+																		"p.three-text-rotationY"
+																	).innerText
+																	: "";
+															rotationZ =
+																model.querySelector(
+																	"p.three-text-rotationZ"
+																)
+																	? model.querySelector(
+																		"p.three-text-rotationZ"
+																	).innerText
+																	: "";
+															positionX =
+																model.querySelector(
+																	"p.three-text-positionX"
+																)
+																	? model.querySelector(
+																		"p.three-text-positionX"
+																	).innerText
+																	: "";
+															positionY =
+																model.querySelector(
+																	"p.three-text-positionY"
+																)
+																	? model.querySelector(
+																		"p.three-text-positionY"
+																	).innerText
+																	: "";
+															positionZ =
+																model.querySelector(
+																	"p.three-text-positionZ"
+																)
+																	? model.querySelector(
+																		"p.three-text-positionZ"
+																	).innerText
+																	: "";
+															scaleX =
+																model.querySelector(
+																	"p.three-text-scaleX"
+																)
+																	? model.querySelector(
+																		"p.three-text-scaleX"
+																	).innerText
+																	: "";
+															scaleY =
+																model.querySelector(
+																	"p.three-text-scaleY"
+																)
+																	? model.querySelector(
+																		"p.three-text-scaleY"
+																	).innerText
+																	: "";
+															scaleZ =
+																model.querySelector(
+																	"p.three-text-scaleZ"
+																)
+																	? model.querySelector(
+																		"p.three-text-scaleZ"
+																	).innerText
+																	: "";
+
+															textColor =
+																model.querySelector(
 																	"p.three-text-color"
-																).innerText
-																: "";
+																)
+																	? model.querySelector(
+																		"p.three-text-color"
+																	).innerText
+																	: "";
+														}
 
 														return (
 															<TextObject
@@ -1704,7 +1887,28 @@ export default function EnvironmentFront(props) {
 												{Object.values(
 													props.portalsToAdd
 												).map((model, index) => {
-													const modelPosX =
+													let modelPosX, modelPosY, modelPosZ, modelScaleX, modelScaleY, modelScaleZ;
+													let modelRotationX, modelRotationY, modelRotationZ, url, destinationUrl, animations, label, labelOffsetX, labelOffsetY, labelOffsetZ, labelTextColor;
+													if (model.tagName.toLowerCase() === 'three-portal-block') {
+														modelPosX = model.getAttribute('positionX') || '';
+														modelPosY = model.getAttribute('positionY') || '';
+														modelPosZ = model.getAttribute('positionZ') || '';
+														modelScaleX = model.getAttribute('scaleX') || '';
+														modelScaleY = model.getAttribute('scaleY') || '';
+														modelScaleZ = model.getAttribute('scaleZ') || '';
+														modelRotationX = model.getAttribute('rotationX') || '';
+														modelRotationY = model.getAttribute('rotationY') || '';
+														modelRotationZ = model.getAttribute('rotationZ') || '';
+														url = model.getAttribute('threeObjectUrl') || '';
+														destinationUrl = model.getAttribute('destinationUrl') || '';
+														animations = model.getAttribute('animations') || '';
+														label = model.getAttribute('label') || '';
+														labelOffsetX = model.getAttribute('labelOffsetX') || '';
+														labelOffsetY = model.getAttribute('labelOffsetY') || '';
+														labelOffsetZ = model.getAttribute('labelOffsetZ') || '';
+														labelTextColor = model.getAttribute('labelTextColor') || '';
+													} else {
+													modelPosX =
 														model.querySelector(
 															"p.three-portal-block-position-x"
 														)
@@ -1713,7 +1917,7 @@ export default function EnvironmentFront(props) {
 															).innerText
 															: "";
 
-													const modelPosY =
+													modelPosY =
 														model.querySelector(
 															"p.three-portal-block-position-y"
 														)
@@ -1722,7 +1926,7 @@ export default function EnvironmentFront(props) {
 															).innerText
 															: "";
 
-													const modelPosZ =
+													modelPosZ =
 														model.querySelector(
 															"p.three-portal-block-position-z"
 														)
@@ -1731,7 +1935,7 @@ export default function EnvironmentFront(props) {
 															).innerText
 															: "";
 
-													const modelScaleX =
+													modelScaleX =
 														model.querySelector(
 															"p.three-portal-block-scale-x"
 														)
@@ -1740,7 +1944,7 @@ export default function EnvironmentFront(props) {
 															).innerText
 															: "";
 
-													const modelScaleY =
+													modelScaleY =
 														model.querySelector(
 															"p.three-portal-block-scale-y"
 														)
@@ -1749,7 +1953,7 @@ export default function EnvironmentFront(props) {
 															).innerText
 															: "";
 
-													const modelScaleZ =
+													modelScaleZ =
 														model.querySelector(
 															"p.three-portal-block-scale-z"
 														)
@@ -1758,7 +1962,7 @@ export default function EnvironmentFront(props) {
 															).innerText
 															: "";
 
-													const modelRotationX =
+													modelRotationX =
 														model.querySelector(
 															"p.three-portal-block-rotation-x"
 														)
@@ -1767,7 +1971,7 @@ export default function EnvironmentFront(props) {
 															).innerText
 															: "";
 
-													const modelRotationY =
+													modelRotationY =
 														model.querySelector(
 															"p.three-portal-block-rotation-y"
 														)
@@ -1776,7 +1980,7 @@ export default function EnvironmentFront(props) {
 															).innerText
 															: "";
 
-													const modelRotationZ =
+													modelRotationZ =
 														model.querySelector(
 															"p.three-portal-block-rotation-z"
 														)
@@ -1785,7 +1989,7 @@ export default function EnvironmentFront(props) {
 															).innerText
 															: "";
 
-													const url = model.querySelector(
+													url = model.querySelector(
 														"p.three-portal-block-url"
 													)
 														? model.querySelector(
@@ -1793,7 +1997,7 @@ export default function EnvironmentFront(props) {
 														).innerText
 														: "";
 
-													const destinationUrl =
+													destinationUrl =
 														model.querySelector(
 															"p.three-portal-block-destination-url"
 														)
@@ -1802,7 +2006,7 @@ export default function EnvironmentFront(props) {
 															).innerText
 															: "";
 
-													const animations =
+													animations =
 														model.querySelector(
 															"p.three-portal-block-animations"
 														)
@@ -1811,7 +2015,7 @@ export default function EnvironmentFront(props) {
 															).innerText
 															: "";
 
-													const label =
+													label =
 														model.querySelector(
 															"p.three-portal-block-label"
 														)
@@ -1820,7 +2024,7 @@ export default function EnvironmentFront(props) {
 															).innerText
 															: "";
 
-													const labelOffsetX =
+													labelOffsetX =
 														model.querySelector(
 															"p.three-portal-block-label-offset-x"
 														)
@@ -1829,7 +2033,7 @@ export default function EnvironmentFront(props) {
 															).innerText
 															: "";
 
-													const labelOffsetY =
+													labelOffsetY =
 														model.querySelector(
 															"p.three-portal-block-label-offset-y"
 														)
@@ -1838,7 +2042,7 @@ export default function EnvironmentFront(props) {
 															).innerText
 															: "";
 
-													const labelOffsetZ =
+													labelOffsetZ =
 														model.querySelector(
 															"p.three-portal-block-label-offset-z"
 														)
@@ -1846,7 +2050,7 @@ export default function EnvironmentFront(props) {
 																"p.three-portal-block-label-offset-z"
 															).innerText
 															: "";
-													const labelTextColor =
+													labelTextColor =
 														model.querySelector(
 															"p.three-portal-block-label-text-color"
 														)
@@ -1854,6 +2058,7 @@ export default function EnvironmentFront(props) {
 																"p.three-portal-block-label-text-color"
 															).innerText
 															: "";
+													}
 
 													return (
 														<Portal
@@ -1906,41 +2111,130 @@ export default function EnvironmentFront(props) {
 								enableZoom={ true }
 							/> */}
 							</FrontPluginProvider>
-					</VRCanvas>
-					{Object.values(
-						props.npcsToAdd
-					).map((npc, index) => {
- 
-					const personality = npc.querySelector(
-						"p.npc-block-personality"
-					)
-						? npc.querySelector(
-							"p.npc-block-personality"
-						).innerText
-						: "";
-					const defaultMessage = npc.querySelector(
-						"p.npc-block-default-message"
-					)
-						? npc.querySelector(
-							"p.npc-block-default-message"
-						).innerText
-						: "";
-	
-					const objectAwareness = npc.querySelector(
-						"p.npc-block-object-awareness"
-					)
-						? npc.querySelector(
-							"p.npc-block-object-awareness"
-						).innerText
-						: "";
+						</XR>
+					</Canvas>
+				{Object.values(
+					props.npcsToAdd
+				).map((npc, index) => {
+					let url, modelPosX, modelPosY, modelPosZ, modelRotationX, modelRotationY, modelRotationZ, name, alt, defaultMessage, personality, objectAwareness;
+					
+					if (npc.tagName.toLowerCase() === 'three-npc-block') {
+						url= npc.getAttribute('threeObjectUrl') || '';
+						modelPosX = npc.getAttribute('positionX') || '';
+						modelPosY = npc.getAttribute('positionY') || '';
+						modelPosZ = npc.getAttribute('positionZ') || '';
+						modelRotationX = npc.getAttribute('rotationX') || '';
+						modelRotationY = npc.getAttribute('rotationY') || '';
+						modelRotationZ = npc.getAttribute('rotationZ') || '';
+						name = npc.getAttribute('name') || '';
+						defaultMessage = npc.getAttribute('defaultMessage') || '';
+						personality = npc.getAttribute('personality') || '';
+						objectAwareness = npc.getAttribute('objectAwareness') || false;
+					} else {
+						modelPosX =
+							npc.querySelector(
+								"p.npc-block-position-x"
+							)
+								? npc.querySelector(
+									"p.npc-block-position-x"
+								).innerText
+								: "";
 
-					const name = npc.querySelector(
-						"p.npc-block-name"
-					)
-						? npc.querySelector(
-							"p.npc-block-name"
-						).innerText
-						: "";
+						modelPosY =
+							npc.querySelector(
+								"p.npc-block-position-y"
+							)
+								? npc.querySelector(
+									"p.npc-block-position-y"
+								).innerText
+								: "";
+
+						modelPosZ =
+							npc.querySelector(
+								"p.npc-block-position-z"
+							)
+								? npc.querySelector(
+									"p.npc-block-position-z"
+								).innerText
+								: "";
+
+						modelRotationX =
+							npc.querySelector(
+								"p.npc-block-rotation-x"
+							)
+								? npc.querySelector(
+									"p.npc-block-rotation-x"
+								).innerText
+								: "";
+
+						modelRotationY =
+							npc.querySelector(
+								"p.npc-block-rotation-y"
+							)
+								? npc.querySelector(
+									"p.npc-block-rotation-y"
+								).innerText
+								: "";
+
+						modelRotationZ =
+							npc.querySelector(
+								"p.npc-block-rotation-z"
+							)
+								? npc.querySelector(
+									"p.npc-block-rotation-z"
+								).innerText
+								: "";
+
+						url = npc.querySelector(
+							"p.npc-block-url"
+						)
+							? npc.querySelector(
+								"p.npc-block-url"
+							).innerText
+							: "";
+
+						alt = npc.querySelector(
+							"p.npc-block-alt"
+						)
+							? npc.querySelector(
+								"p.npc-block-alt"
+							).innerText
+							: "";
+
+						personality = npc.querySelector(
+								"p.npc-block-personality"
+							)
+								? npc.querySelector(
+									"p.npc-block-personality"
+								).innerText
+								: "";
+
+						defaultMessage = npc.querySelector(
+								"p.npc-block-default-message"
+							)
+								? npc.querySelector(
+									"p.npc-block-default-message"
+								).innerText
+								: "";
+
+						name = npc.querySelector(
+								"p.npc-block-name"
+							)
+								? npc.querySelector(
+									"p.npc-block-name"
+								).innerText
+								: "";
+
+						objectAwareness =
+							npc.querySelector(
+								"p.npc-block-object-awareness"
+							)
+								? npc.querySelector(
+									"p.npc-block-object-awareness"
+								).innerText
+								: false;
+					}
+
 					
 					return (
 							<ChatBox 
@@ -1958,85 +2252,12 @@ export default function EnvironmentFront(props) {
 							/>
 					)
 					})}
-						<>
+					<>
 						{ isMobile() && (
-						<ReactNipple
-							// supports all nipplejs options
-							// see https://github.com/yoannmoinet/nipplejs#options
-							options={{ mode: 'static', position: { top: '50%', left: '50%' } }}
-							// any unknown props will be passed to the container element, e.g. 'title', 'style' etc
-							style={{
-								outline: '1px dashed red',
-								width: 150,
-								height: 150,
-								position: "absolute",
-								bottom: 30,
-								left: 30,
-								userSelect: "none",
-								transition: "opacity 0.5s"
-							}}
-							// all events supported by nipplejs are available as callbacks
-							// see https://github.com/yoannmoinet/nipplejs#start
-							onMove={( evt, data ) => {
-								if(data.force > 1.5){
-									movement.current.shift = true;
-								} else {
-									movement.current.shift = false;
-								}
-								if(data.direction && data.direction.angle){
-									if(data.direction.angle === "up" && ! movement.current.forward){
-										movement.current.forward = true;
-										movement.current.backward = false;
-										movement.current.left = false;
-										movement.current.right = false;
-									} else if(data.direction.angle === "down"  && ! movement.current.backward){
-										movement.current.forward = false;
-										movement.current.backward = true;
-										movement.current.left = false;
-										movement.current.right = false;
-									} else if(data.direction.angle === "left"  && ! movement.current.left){
-										movement.current.forward = false;
-										movement.current.backward = false;
-										movement.current.left = true;
-										movement.current.right = false;
-									} else if(data.direction.angle === "right"  && ! movement.current.right){
-										movement.current.forward = false;
-										movement.current.backward = false;
-										movement.current.left = false;
-										movement.current.right = true;
-									}	
-								}
-							}}
-							onEnd={( evt, data ) => {
-								movement.current.forward = false;
-								movement.current.backward = false;
-								movement.current.left = false;
-								movement.current.right = false;
-							}}
-						/>
-						/* <ReactNipple
-							// supports all nipplejs options
-							// see https://github.com/yoannmoinet/nipplejs#options
-							options={{ mode: 'static', position: { top: '50%', left: '50%' } }}
-							// any unknown props will be passed to the container element, e.g. 'title', 'style' etc
-							style={{
-								outline: '1px dashed red',
-								width: 150,
-								height: 150,
-								position: "absolute",
-								bottom: 30,
-								right: 30,
-								userSelect: "none",
-								transition: "opacity 0.5s" 
-							}}
-							// all events supported by nipplejs are available as callbacks
-							// see https://github.com/yoannmoinet/nipplejs#start
-							onMove={( evt, data ) => {
-								console.log(data.direction.angle);
-							}}
-							// onEnd={(evt, data) => setMobileRotControls(null)}
-						/> */
-					) }
+							<EcctrlJoystick
+						  		buttonNumber={1}
+							/>
+						) }
 					</>
 				</>
 			);
@@ -2049,24 +2270,59 @@ export default function EnvironmentFront(props) {
 					backgroundColor: props.backgroundColor,
 					backgroundImage: `url(${props.previewImage})`,
 					backgroundPosition: "center",
+					backgroundSize: "cover",
 					margin: "0",
-					height: "900px",
+					height: "100vh",
 					width: "100%",
 					padding: "0",
 					alignItems: "center",
-					justifyContent: "center"
+					justifyContent: "center",
+					display: "flex",
 				}}
 			>
 				<div
+					className={"threeov-entry-flow"}
 					style={{
-						height: "20px",
-						width: "200px",
+						width: "250px",
 						position: "relative",
-						top: "50%",
-						left: "50%",
-						padding: "0"
+						padding: "20px",
+						boxSizing: "border-box"
 					}}
 				>
+					<div>
+						<div className="threeov-entry-pfp" style={ { backgroundImage: `url(${props.userData.profileImage})` } }></div>
+						{/* <span>Display Name</span> */}
+						{ ( props.networkingBlock.length > 0 ) ? (
+							<>
+								<input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+								{( props.networkingBlock[0].attributes.customAvatars && props.networkingBlock[0].attributes.customAvatars.value === "1" ) && (
+									<div>
+										<span>VRM or Sprite URL</span>
+										<input type="text" value={playerAvatar} onChange={(e) => setPlayerAvatar(e.target.value)} />
+									</div>
+								)}
+								<button
+									class="threeov-load-world-button-secondary"
+									onClick={() => {
+										goToPrivateRoom();
+										canvasRef.current.scrollIntoView({ behavior: 'smooth' });
+										setLoaded(true);			
+									}}
+									style={{
+										padding: "10px"
+									}}
+								>
+									{" "}
+									{"Join Private"}
+								</button>
+							</>
+						):(
+							<div>
+								<span>VRM or Sprite URL</span>
+								<input type="text" value={playerAvatar} onChange={(e) => setPlayerAvatar(e.target.value)} />
+							</div>
+						) }
+					</div>
 					<button
 						class="threeov-load-world-button"
 						onClick={() => {
@@ -2074,13 +2330,17 @@ export default function EnvironmentFront(props) {
 							setLoaded(true);
 						}}
 						style={{
-							margin: "0 auto",
 							padding: "10px"
 						}}
 					>
 						{" "}
-						Load World{" "}
+						{props.networkingBlock.length > 0 ? "Join Public" : "Load World"}
 					</button>
+					{ ( props.networkingBlock.length > 0 ) && (
+						<div class="threeov-entry-flow-instruction">
+							<p>After entering, use the "Join Voice" button to select your microphone.</p>
+						</div>
+				)}
 				</div>
 			</div>
 		);

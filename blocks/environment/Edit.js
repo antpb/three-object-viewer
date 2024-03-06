@@ -28,7 +28,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 	const ALLOWED_BLOCKS = allowed_blocks;
 	const [focusPosition, setFocusPosition] = useState(new THREE.Vector3());
 	const [focusPoint, setFocus] = useState(new THREE.Vector3());
-	const [mainModel, setMainModel] = useState(attributes.threeObjectUrl ? attributes.threeObjectUrl : (threeObjectPlugin + defaultEnvironment));
+	const [mainModel, setMainModel] = useState(attributes.threeObjectUrl ? attributes.threeObjectUrl : (defaultEnvironment));
 	const changeFocusPoint = (newValue) => {
 		setFocusPosition(newValue);
 	}
@@ -36,7 +36,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 	// useEffect to initialize the value of the threeObjectUrl attribute if it is not set
 	useEffect(() => {
 		if (!attributes.threeObjectUrl) {
-			setAttributes({ threeObjectUrl: (threeObjectPlugin + defaultEnvironment) });
+			setAttributes({ threeObjectUrl: (defaultEnvironment) });
 		}
 	}, []);
 	const removeHDR = (imageObject) => {
@@ -79,6 +79,11 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 	const setDeviceTarget = (target) => {
 		setAttributes({ deviceTarget: target });
 	};
+
+	const setCamCollisions = (collisions) => {
+		setAttributes({ camCollisions: collisions });
+	};
+		
 
 	const [enteredURL, setEnteredURL] = useState("");
 
@@ -151,6 +156,11 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 									</button>
 								)}
 							/>
+						</PanelRow>
+						<PanelRow>
+							<button onClick={() => setAttributes({ threeObjectUrl: null })}>
+								{ __( 'Remove Environment', 'three-object-viewer' ) }
+							</button>
 						</PanelRow>
 						<PanelRow>
 							<span>
@@ -227,7 +237,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 						initialOpen={true}
 					>
 						<PanelRow>
-							<span>{ __( "Object Display Type:", "three-object-viewer" ) }</span>
+							<span>{ __( "Device Target Type:", "three-object-viewer" ) }</span>
 						</PanelRow>
 						<PanelRow>
 							<SelectControl
@@ -235,6 +245,23 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 								value={attributes.deviceTarget}
 								options={[{ label: "VR", value: "vr" }]}
 								onChange={(target) => setDeviceTarget(target)}
+							/>
+						</PanelRow>
+						<PanelRow>
+						<span>{ __( "Camera Collisions:", "three-object-viewer" ) }</span>
+						</PanelRow>
+						<PanelRow>
+							<ToggleControl
+									label={ __( "Camera Collisions will avoid the camera from going out of view of the player. Disable this setting if you are noticing frame rate dips.", 'three-object-viewer' ) }
+									help={
+										attributes.camCollisions
+											? __( "Camera is currently collidable. May impact performance.", 'three-object-viewer' )
+											: __( "Camera is not collidable.", 'three-object-viewer' )
+									}
+									checked={attributes.camCollisions}
+									onChange={(e) => {
+										setCamCollisions(e);
+									}}
 							/>
 						</PanelRow>
 						<PanelRow>
@@ -280,7 +307,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 				<>
 				<div
 				style={{
-					height: "90vh",
+					height: "100%",
 					maxWidth: "220px",
 					width: "220px",
 					overflowY: "scroll",
@@ -288,7 +315,10 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 					top: "0px",
 					left: "0px",
 					zIndex: "1",
-					backgroundColor: "#2a2a2a"
+					// backgroundColor: "#23192adb",
+					// // linear gradient from #23192adb to #23192a00
+					background: "linear-gradient(180deg, #23192adb 0%, #23192a3b 100%)",
+					borderRight: "3px solid #ffffff1f",
 				}}
 				>
 					<InnerBlocks
@@ -312,6 +342,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 									positionX={attributes.positionX}
 									positionY={attributes.positionY}
 									animations={attributes.animations}
+									camCollisions={attributes.camCollisions ? attributes.camCollisions : true}
 									rotationY={attributes.rotationY}
 									setFocusPosition={setFocusPosition}
 									setFocus={setFocus}

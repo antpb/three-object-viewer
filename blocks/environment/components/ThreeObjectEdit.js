@@ -1,6 +1,17 @@
-import * as THREE from "three";
+import {
+	VideoTexture,
+	Vector3,
+	TextureLoader,
+	Euler,
+	Color,
+	MeshBasicMaterial,
+	DoubleSide,
+	sRGBEncoding,
+	AudioListener
+  } from "three";
+  
 import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
-import { Canvas, useLoader, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useLoader, useFrame, useThree, extend } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import {
@@ -21,13 +32,16 @@ import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import { GLTFAudioEmitterExtension } from "three-omi";
 import { Icon, moveTo, rotateLeft, resizeCornerNE } from "@wordpress/icons";
 // import { A11y } from "@react-three/a11y";
-import { Perf } from "r3f-perf";
+// import { Perf } from "r3f-perf";
 // import EditControls from "./EditControls";
 import { Resizable } from "re-resizable";
 import defaultFont from "../../../inc/fonts/roboto.woff";
 import audioIcon from "../../../inc/assets/audio_icon.png";
 import lightIcon from "../../../inc/assets/light_icon.png";
 import { EditorPluginProvider, useEditorPlugins, EditorPluginContext } from './EditorPluginProvider';  // Import the PluginProvider
+import { LumaSplatsThree } from "@lumaai/luma-web";
+// Make LumaSplatsThree available to R3F
+extend( { LumaSplats: LumaSplatsThree } );
 
 const { registerStore } = wp.data;
 
@@ -42,7 +56,7 @@ function TextObject(text) {
 
 	useEffect(() => {
 		if( text.focusID === text.htmlobjectId ) {
-			const someFocus = new THREE.Vector3(Number(text.positionX), Number(text.positionY), Number(text.positionZ));
+			const someFocus = new Vector3(Number(text.positionX), Number(text.positionY), Number(text.positionZ));
 			text.changeFocusPoint(someFocus);
 		}
 	}, [text.focusID]);
@@ -66,7 +80,7 @@ function TextObject(text) {
 							object={textObj}
 							size={0.5}
 							onObjectChange={(e) => {
-								const rot = new THREE.Euler(0, 0, 0, "XYZ");
+								const rot = new Euler(0, 0, 0, "XYZ");
 								const scale = e?.target.worldScale;
 								rot.setFromQuaternion(
 									e?.target.worldQuaternion
@@ -106,7 +120,7 @@ function TextObject(text) {
 							scale={[text.scaleX, text.scaleY, text.scaleZ]}
 						>
 							<Text
-								font={(threeObjectPlugin + defaultFont)}
+								font={(defaultFont)}
 								scale={[4, 4, 4]}
 								color={text.textColor}
 							>
@@ -123,7 +137,7 @@ function TextObject(text) {
 function ThreeSky(sky) {
 	const skyUrl = sky.src.skyUrl;
 	if (skyUrl) {
-		const texture_1 = useLoader(THREE.TextureLoader, skyUrl);
+		const texture_1 = useLoader(TextureLoader, skyUrl);
 
 		return (
 			<mesh
@@ -133,7 +147,7 @@ function ThreeSky(sky) {
 				rotation={[0, 0, 0]}
 			>
 				<sphereGeometry args={[300, 50, 50]} />
-				<meshBasicMaterial side={THREE.DoubleSide} map={texture_1} />
+				<meshBasicMaterial side={DoubleSide} map={texture_1} />
 			</mesh>
 		);
 	} else {
@@ -150,15 +164,24 @@ function ThreeSky(sky) {
 function Spawn(spawn) {
 	const spawnObj = useRef();
 	const [isSelected, setIsSelected] = useState();
-	const spawnBlockAttributes = wp.data
-		.select("core/block-editor")
-		.getBlockAttributes(spawn.spawnpointID);
+	const [spawnBlockAttributes, setSpawnPointAttributes] = useState(
+		wp.data
+			.select("core/block-editor")
+			.getBlockAttributes(spawn.spawnpointID)
+	);
+	useEffect(() => {
+		const attributes = wp.data
+			.select("core/block-editor")
+			.getBlockAttributes(spawn.spawnpointID);
+		setSpawnPointAttributes(attributes);
+	}, [spawn.spawnpointID]);
+
 	const TransformController = ({ condition, wrap, children }) =>
 		condition ? wrap(children) : children;
 
 	useEffect(() => {
 		if( spawn.focusID === spawn.spawnpointID ) {
-			const someFocus = new THREE.Vector3(Number(spawn.positionX), Number(spawn.positionY), Number(spawn.positionZ));
+			const someFocus = new Vector3(Number(spawn.positionX), Number(spawn.positionY), Number(spawn.positionZ));
 			spawn.changeFocusPoint(someFocus);
 		}
 	}, [spawn.focusID]);
@@ -181,8 +204,8 @@ function Spawn(spawn) {
 							enabled={spawn.focusID === spawn.spawnpointID}
 							object={spawnObj}
 							size={0.5}
-							onObjectChange={(e) => {
-								const rot = new THREE.Euler(0, 0, 0, "XYZ");
+							onMouseUp={(e) => {
+								const rot = new Euler(0, 0, 0, "XYZ");
 								const scale = e?.target.worldScale;
 								rot.setFromQuaternion(
 									e?.target.worldQuaternion
@@ -200,31 +223,37 @@ function Spawn(spawn) {
 										scaleY: scale.y,
 										scaleZ: scale.z
 									});
+									setSpawnPointAttributes(
+										wp.data
+											.select("core/block-editor")
+											.getBlockAttributes(spawn.spawnpointID)
+									);
 							}}
 						>
 							{children}
 						</TransformControls>
 					)}
 				>
-					{spawnBlockAttributes && (
+					<group
+						position={[
+							spawnBlockAttributes.positionX,
+							spawnBlockAttributes.positionY,
+							spawnBlockAttributes.positionZ
+						]}					
+					>
 						<mesh
 							ref={spawnObj}
 							visible
-							position={[
-								spawnBlockAttributes.positionX,
-								spawnBlockAttributes.positionY,
-								spawnBlockAttributes.positionZ
-							]}
 							scale={[1, 1, 1]}
 							rotation={[0, 0, 0]}
 						>
 							<capsuleGeometry args={[.5, 1.3]} />
 							<meshStandardMaterial
-								side={THREE.DoubleSide}
+								side={DoubleSide}
 								color={0xff3399}
 							/>
 						</mesh>
-					)}
+					</group>
 				</TransformController>
 			</Select>
 		);
@@ -232,7 +261,7 @@ function Spawn(spawn) {
 }
 
 function ImageObject(threeImage) {
-	const texture2 = useLoader(THREE.TextureLoader, threeImage.url);
+	const texture2 = useLoader(TextureLoader, threeImage.url);
 	const imgObj = useRef();
 	const [isSelected, setIsSelected] = useState();
 	const threeImageBlockAttributes = wp.data
@@ -243,7 +272,7 @@ function ImageObject(threeImage) {
 
 	useEffect(() => {
 		if( threeImage.focusID === threeImage.imageID ) {
-			const someFocus = new THREE.Vector3(Number(threeImage.positionX), Number(threeImage.positionY), Number(threeImage.positionZ));
+			const someFocus = new Vector3(Number(threeImage.positionX), Number(threeImage.positionY), Number(threeImage.positionZ));
 			threeImage.changeFocusPoint(someFocus);
 		}
 	}, [threeImage.focusID]);
@@ -266,7 +295,7 @@ function ImageObject(threeImage) {
 						object={imgObj}
 						size={0.5}
 						onObjectChange={(e) => {
-							const rot = new THREE.Euler(0, 0, 0, "XYZ");
+							const rot = new Euler(0, 0, 0, "XYZ");
 							const scale = e?.target.worldScale;
 							rot.setFromQuaternion(e?.target.worldQuaternion);
 							wp.data
@@ -317,12 +346,12 @@ function ImageObject(threeImage) {
 						{threeImageBlockAttributes.transparent ? (
 							<meshBasicMaterial
 								transparent
-								side={THREE.DoubleSide}
+								side={DoubleSide}
 								map={texture2}
 							/>
 						) : (
 							<meshStandardMaterial
-								side={THREE.DoubleSide}
+								side={DoubleSide}
 								map={texture2}
 							/>
 						)}
@@ -334,7 +363,7 @@ function ImageObject(threeImage) {
 }
 
 function AudioObject(threeAudio) {
-	const texture2 = useLoader(THREE.TextureLoader, (threeObjectPlugin + audioIcon));
+	const texture2 = useLoader(TextureLoader, (audioIcon));
 
 	const [threeAudioBlockAttributes, setThreeAudioBlockAttributes] = useState(
 		wp.data
@@ -360,7 +389,7 @@ function AudioObject(threeAudio) {
 
 	useEffect(() => {
 		if( threeAudio.focusID === threeAudio.audioID ) {
-			const someFocus = new THREE.Vector3(Number(threeAudio.positionX), Number(threeAudio.positionY), Number(threeAudio.positionZ));
+			const someFocus = new Vector3(Number(threeAudio.positionX), Number(threeAudio.positionY), Number(threeAudio.positionZ));
 			threeAudio.changeFocusPoint(someFocus);
 		}
 	}, [threeAudio.focusID]);
@@ -387,7 +416,7 @@ function AudioObject(threeAudio) {
 						object={audioObj}
 						size={0.5}
 						onMouseUp={(e) => {
-							const rot = new THREE.Euler(0, 0, 0, "XYZ");
+							const rot = new Euler(0, 0, 0, "XYZ");
 							const scale = e?.target.worldScale;
 							rot.setFromQuaternion(e?.target.worldQuaternion);
 							wp.data
@@ -427,7 +456,7 @@ function AudioObject(threeAudio) {
 				<mesh>
 					<meshBasicMaterial
 						transparent
-						side={THREE.DoubleSide}
+						side={DoubleSide}
 						map={texture2}
 					/>
 					<planeGeometry
@@ -451,7 +480,7 @@ function LightObject(threeLight) {
     let LightComponent;
 	var colorValue = parseInt ( threeLight.color.replace("#","0x"), 16 );
 
-	const color = new THREE.Color( colorValue );
+	const color = new Color( colorValue );
 
     switch (threeLight.type) {
         case "directional":
@@ -515,7 +544,7 @@ function LightObject(threeLight) {
             LightComponent = null;
     }
 
-	const texture2 = useLoader(THREE.TextureLoader, (threeObjectPlugin + lightIcon));
+	const texture2 = useLoader(TextureLoader, (lightIcon));
 
 	const [threeLightBlockAttributes, setThreeLightBlockAttributes] = useState(
 		wp.data
@@ -541,7 +570,7 @@ function LightObject(threeLight) {
 
 	useEffect(() => {
 		if( threeLight.focusID === threeLight.lightID ) {
-			const someFocus = new THREE.Vector3(Number(threeLight.positionX), Number(threeLight.positionY), Number(threeLight.positionZ));
+			const someFocus = new Vector3(Number(threeLight.positionX), Number(threeLight.positionY), Number(threeLight.positionZ));
 			threeLight.changeFocusPoint(someFocus);
 		}
 	}, [threeLight.focusID]);
@@ -568,7 +597,7 @@ function LightObject(threeLight) {
 						object={lightObj}
 						size={0.5}
 						onMouseUp={(e) => {
-							const rot = new THREE.Euler(0, 0, 0, "XYZ");
+							const rot = new Euler(0, 0, 0, "XYZ");
 							const scale = e?.target.worldScale;
 							rot.setFromQuaternion(e?.target.worldQuaternion);
 							wp.data
@@ -609,7 +638,7 @@ function LightObject(threeLight) {
 					<mesh>
 						<meshBasicMaterial
 							transparent
-							side={THREE.DoubleSide}
+							side={DoubleSide}
 							map={texture2}
 						/>
 						<planeGeometry
@@ -684,9 +713,9 @@ function VideoObject(threeVideo) {
 			  setScreen(foundScreen);
 			  setScreenParent(foundScreen.parent);
 			  // Update screen's material with video texture
-			  const videoTexture = new THREE.VideoTexture(video);
-			  videoTexture.encoding= THREE.sRGBEncoding;
-			  const material = new THREE.MeshBasicMaterial({ map: videoTexture, toneMapped: false });
+			  const videoTexture = new VideoTexture(video);
+			  videoTexture.colorSpace= sRGBEncoding;
+			  const material = new MeshBasicMaterial({ map: videoTexture, toneMapped: false });
 			  foundScreen.material = material;
 			}
 		  }
@@ -710,7 +739,7 @@ function VideoObject(threeVideo) {
 
 	useEffect(() => {
 		if( threeVideo.focusID === threeVideo.videoID ) {
-			const someFocus = new THREE.Vector3(Number(threeVideo.positionX), Number(threeVideo.positionY), Number(threeVideo.positionZ));
+			const someFocus = new Vector3(Number(threeVideo.positionX), Number(threeVideo.positionY), Number(threeVideo.positionZ));
 			threeVideo.changeFocusPoint(someFocus);
 		}
 	}, [threeVideo.focusID]);
@@ -737,7 +766,7 @@ function VideoObject(threeVideo) {
 						object={videoObj}
 						size={0.5}
 						onMouseUp={(e) => {
-							const rot = new THREE.Euler(0, 0, 0, "XYZ");
+							const rot = new Euler(0, 0, 0, "XYZ");
 							const scale = e?.target.worldScale;
 							rot.setFromQuaternion(e?.target.worldQuaternion);
 							wp.data
@@ -790,7 +819,7 @@ function VideoObject(threeVideo) {
 								<videoTexture
 									attach="map"
 									args={[video]}
-									encoding={THREE.sRGBEncoding}
+									encoding={sRGBEncoding}
 								/>
 							</meshBasicMaterial>
 							<planeGeometry
@@ -813,7 +842,7 @@ function ModelObject(props) {
 	useEffect(() => {
 		setTimeout(() => set(props.url), 2000);
 	}, []);
-	const [listener] = useState(() => new THREE.AudioListener());
+	const [listener] = useState(() => new AudioListener());
 
 	useThree(({ camera }) => {
 		camera.add(listener);
@@ -823,7 +852,7 @@ function ModelObject(props) {
 	const gltf = useLoader(GLTFLoader, props.url, (loader) => {
 		const dracoLoader = new DRACOLoader();
 		dracoLoader.setDecoderPath( threeObjectPluginRoot + "/inc/utils/draco/");
-		dracoLoader.setDecoderConfig({type: 'js'}); // (Optional) Override detection of WASM support.
+		dracoLoader.setDecoderConfig({type: 'js'});
 		loader.setDRACOLoader(dracoLoader);
 
 		if(listener){
@@ -859,7 +888,7 @@ function ModelObject(props) {
 	// update id if active
 	useEffect(() => {
 		if( props.focusID === props.modelID ) {
-			const someFocus = new THREE.Vector3(Number(props.positionX), Number(props.positionY), Number(props.positionZ));
+			const someFocus = new Vector3(Number(props.positionX), Number(props.positionY), Number(props.positionZ));
 			props.changeFocusPoint(someFocus);
 		}
 	}, [props.focusID]);
@@ -891,7 +920,7 @@ function ModelObject(props) {
 								object={obj}
 								size={0.5}
 								onMouseUp={(e) => {
-									const rot = new THREE.Euler(0, 0, 0, "XYZ");
+									const rot = new Euler(0, 0, 0, "XYZ");
 									const scale = e?.target.worldScale;
 									rot.setFromQuaternion(
 										e?.target.worldQuaternion
@@ -973,7 +1002,7 @@ function ModelObject(props) {
 							object={obj}
 							size={0.5}
 							onMouseUp={(e) => {
-								const rot = new THREE.Euler(0, 0, 0, "XYZ");
+								const rot = new Euler(0, 0, 0, "XYZ");
 								const scale = e?.target.worldScale;
 								rot.setFromQuaternion(
 									e?.target.worldQuaternion
@@ -1055,7 +1084,7 @@ function NPCObject(props) {
 	// update id if active
 	useEffect(() => {
 		if( props.focusID === props.modelID ) {
-			const someFocus = new THREE.Vector3(Number(props.positionX), Number(props.positionY), Number(props.positionZ));
+			const someFocus = new Vector3(Number(props.positionX), Number(props.positionY), Number(props.positionZ));
 			props.changeFocusPoint(someFocus);
 		}
 	}, [props.focusID]);
@@ -1064,10 +1093,10 @@ function NPCObject(props) {
 		const vrm = gltf.userData.vrm;
 		VRMUtils.rotateVRM0(vrm);
 		const rotationVRM = vrm.scene.rotation.y + parseFloat(0);
-		let defaultColor = "0x000000";
+		let defaultColor = "#000000";
 		var colorValue = parseInt ( defaultColor.replace("#","0x"), 16 );
 	
-		const color = new THREE.Color( colorValue );
+		const color = new Color( colorValue );
 			
 		return (
 			<>
@@ -1092,7 +1121,7 @@ function NPCObject(props) {
 								object={obj}
 								size={0.5}
 								onMouseUp={(e) => {
-									const rot = new THREE.Euler(0, 0, 0, "XYZ");
+									const rot = new Euler(0, 0, 0, "XYZ");
 									const scale = e?.target.worldScale;
 									rot.setFromQuaternion(
 										e?.target.worldQuaternion
@@ -1170,7 +1199,7 @@ function NPCObject(props) {
 							object={obj}
 							size={0.5}
 							onMouseUp={(e) => {
-								const rot = new THREE.Euler(0, 0, 0, "XYZ");
+								const rot = new Euler(0, 0, 0, "XYZ");
 								const scale = e?.target.worldScale;
 								rot.setFromQuaternion(
 									e?.target.worldQuaternion
@@ -1231,7 +1260,7 @@ function PortalObject(model) {
 
 	useEffect(() => {
 		if( model.focusID === model.portalID ) {
-			const someFocus = new THREE.Vector3(Number(model.positionX), Number(model.positionY), Number(model.positionZ));
+			const someFocus = new Vector3(Number(model.positionX), Number(model.positionY), Number(model.positionZ));
 			model.changeFocusPoint(someFocus);
 		}
 	}, [model.focusID]);
@@ -1243,7 +1272,7 @@ function PortalObject(model) {
 	useEffect(() => {
 		setTimeout(() => set(model.url), 2000);
 	}, []);
-	const [listener] = useState(() => new THREE.AudioListener());
+	const [listener] = useState(() => new AudioListener());
 
 	useThree(({ camera }) => {
 		camera.add(listener);
@@ -1317,7 +1346,7 @@ function PortalObject(model) {
 							object={obj}
 							size={0.5}
 							onMouseUp={(e) => {
-								const rot = new THREE.Euler(0, 0, 0, "XYZ");
+								const rot = new Euler(0, 0, 0, "XYZ");
 								const scale = e?.target.worldScale;
 								rot.setFromQuaternion(
 									e?.target.worldQuaternion
@@ -1366,12 +1395,13 @@ function PortalObject(model) {
 							]}
 						>
 							<Text
-								font={(threeObjectPlugin + defaultFont)}
-								scale={[2, 2, 2]}
+								font={(defaultFont)}
+								scale={[1, 1, 1]}
 								color={portalBlockAttributes.labelTextColor}
 								maxWidth={1}
 								alignX="center"
 								textAlign="center"
+								fontSize={0.35}
 								position={[
 									0 + portalBlockAttributes.labelOffsetX,
 									0 + portalBlockAttributes.labelOffsetY,
@@ -1433,6 +1463,10 @@ function ThreeObject(props) {
 	let videoID;
 	let videoobject;
 	const videoElementsToAdd = [];
+
+	let networkingID;
+	let networkingObject;
+	const networkingElementsToAdd = [];
 
 	let audioID;
 	let audioObject;
@@ -1513,6 +1547,14 @@ function ThreeObject(props) {
 						}
 						if (
 							innerBlock.name ===
+							"three-object-viewer/three-networking-block"
+						) {
+							networkingObject = innerBlock.attributes;
+							networkingID = innerBlock.clientId;
+							networkingElementsToAdd.push({ networkingObject, networkingID });
+						}
+						if (
+							innerBlock.name ===
 							"three-object-viewer/three-audio-block"
 						) {
 							audioObject = innerBlock.attributes;
@@ -1554,7 +1596,7 @@ function ThreeObject(props) {
 	useEffect(() => {
 		setTimeout(() => set(props.url), 2000);
 	}, [props.url]);
-	const [listener] = useState(() => new THREE.AudioListener());
+	const [listener] = useState(() => new AudioListener());
 
 	useThree(({ camera }) => {
 		camera.add(listener);
@@ -1563,7 +1605,7 @@ function ThreeObject(props) {
 	const gltf = useLoader(GLTFLoader, url, (loader) => {
 		const dracoLoader = new DRACOLoader();
 		dracoLoader.setDecoderPath( threeObjectPluginRoot + "/inc/utils/draco/");
-		dracoLoader.setDecoderConfig({type: 'js'}); // (Optional) Override detection of WASM support.
+		dracoLoader.setDecoderConfig({type: 'js'});
 		loader.setDRACOLoader(dracoLoader);
 
 		loader.register(
@@ -1622,7 +1664,7 @@ function ThreeObject(props) {
 									size={0.5}
 									position={ [ blockPosition.positionX, blockPosition.positionY, blockPosition.positionZ ] }
 									onObjectChange={(e) => {
-										const rot = new THREE.Euler(0, 0, 0, "XYZ");
+										const rot = new Euler(0, 0, 0, "XYZ");
 										const scale = e?.target.worldScale;
 										rot.setFromQuaternion(
 											e?.target.worldQuaternion
@@ -1671,7 +1713,6 @@ function ThreeObject(props) {
 					positionZ={spawnpoint.positionZ}
 					transformMode={props.transformMode}
 					changeFocusPoint={props.changeFocusPoint}					
-					// setFocusPosition={props.setFocusPosition}
 					shouldFocus={props.shouldFocus}
 				/>
 			)}
@@ -1938,9 +1979,10 @@ export default function ThreeObjectEdit(props) {
 			  <div style={{ display: "flex", justifyContent: "space-between" }}>
 				<button
 					title="translate"
+					className="threeov-transform-button"
 					style={{
 						backgroundColor:
-							props.transformMode === "translate" ? "lightgray" : "white",
+							props.transformMode === "translate" ? "#b8adbf" : "white",
 							borderRadius: "10px",
 							paddingTop: "5px",
 							marginRight: "5px",
@@ -1951,9 +1993,10 @@ export default function ThreeObjectEdit(props) {
 				</button>
 				<button
 					title="rotate"
+					className="threeov-transform-button"
 					style={{
 						backgroundColor:
-							props.transformMode === "rotate" ? "lightgray" : "white",
+							props.transformMode === "rotate" ? "#b8adbf" : "white",
 							borderRadius: "10px",
 							paddingTop: "5px",
 							marginRight: "5px",
@@ -1964,9 +2007,10 @@ export default function ThreeObjectEdit(props) {
 				</button>
 				<button
 					title="scale"
+					className="threeov-transform-button"
 					style={{
 						backgroundColor:
-							props.transformMode === "scale" ? "lightgray" : "white",
+							props.transformMode === "scale" ? "#b8adbf" : "white",
 							borderRadius: "10px",
 							paddingTop: "5px",
 							marginRight: "5px",
@@ -2031,12 +2075,13 @@ export default function ThreeObjectEdit(props) {
 			<ObjectControls transformMode={transformMode} setTransformMode={setTransformMode}/>
 				<Canvas
 					name={"maincanvas"}
+					dpr={1}
 					camera={{
 						fov: 50,
 						near: 0.1,
 						far: 1000,
 						zoom: props.zoom,
-						position: [0, 0, 20]
+						position: [0, 0, 30]
 					}}
 					ref={canvasRef}
 					// shadowMap
@@ -2045,7 +2090,7 @@ export default function ThreeObjectEdit(props) {
 					style={{
 						margin: "0 Auto",
 						height: "100vh",
-						// width: "100vw",
+						width: "100%",
 						boxSizing: "border-box"
 					}}
 				>

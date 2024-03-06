@@ -13,64 +13,12 @@ import { GLTFAudioEmitterExtension } from "three-omi";
 import { GLTFGoogleTiltBrushMaterialExtension } from "three-icosa";
 import { VRMUtils, VRMSchema, VRMLoaderPlugin, VRMExpressionPresetName } from "@pixiv/three-vrm";
 import idle from "../../../../../inc/avatars/friendly.fbx";
+import { getMixamoRig } from "../../../utils/rigMap";
 
 /**
  * A map from Mixamo rig name to VRM Humanoid bone name
  */
-const mixamoVRMRigMap = {
-	mixamorigHips: 'hips',
-	mixamorigSpine: 'spine',
-	mixamorigSpine1: 'chest',
-	mixamorigSpine2: 'upperChest',
-	mixamorigNeck: 'neck',
-	mixamorigHead: 'head',
-	mixamorigLeftShoulder: 'leftShoulder',
-	mixamorigLeftArm: 'leftUpperArm',
-	mixamorigLeftForeArm: 'leftLowerArm',
-	mixamorigLeftHand: 'leftHand',
-	mixamorigLeftHandThumb1: 'leftThumbMetacarpal',
-	mixamorigLeftHandThumb2: 'leftThumbProximal',
-	mixamorigLeftHandThumb3: 'leftThumbDistal',
-	mixamorigLeftHandIndex1: 'leftIndexProximal',
-	mixamorigLeftHandIndex2: 'leftIndexIntermediate',
-	mixamorigLeftHandIndex3: 'leftIndexDistal',
-	mixamorigLeftHandMiddle1: 'leftMiddleProximal',
-	mixamorigLeftHandMiddle2: 'leftMiddleIntermediate',
-	mixamorigLeftHandMiddle3: 'leftMiddleDistal',
-	mixamorigLeftHandRing1: 'leftRingProximal',
-	mixamorigLeftHandRing2: 'leftRingIntermediate',
-	mixamorigLeftHandRing3: 'leftRingDistal',
-	mixamorigLeftHandPinky1: 'leftLittleProximal',
-	mixamorigLeftHandPinky2: 'leftLittleIntermediate',
-	mixamorigLeftHandPinky3: 'leftLittleDistal',
-	mixamorigRightShoulder: 'rightShoulder',
-	mixamorigRightArm: 'rightUpperArm',
-	mixamorigRightForeArm: 'rightLowerArm',
-	mixamorigRightHand: 'rightHand',
-	mixamorigRightHandPinky1: 'rightLittleProximal',
-	mixamorigRightHandPinky2: 'rightLittleIntermediate',
-	mixamorigRightHandPinky3: 'rightLittleDistal',
-	mixamorigRightHandRing1: 'rightRingProximal',
-	mixamorigRightHandRing2: 'rightRingIntermediate',
-	mixamorigRightHandRing3: 'rightRingDistal',
-	mixamorigRightHandMiddle1: 'rightMiddleProximal',
-	mixamorigRightHandMiddle2: 'rightMiddleIntermediate',
-	mixamorigRightHandMiddle3: 'rightMiddleDistal',
-	mixamorigRightHandIndex1: 'rightIndexProximal',
-	mixamorigRightHandIndex2: 'rightIndexIntermediate',
-	mixamorigRightHandIndex3: 'rightIndexDistal',
-	mixamorigRightHandThumb1: 'rightThumbMetacarpal',
-	mixamorigRightHandThumb2: 'rightThumbProximal',
-	mixamorigRightHandThumb3: 'rightThumbDistal',
-	mixamorigLeftUpLeg: 'leftUpperLeg',
-	mixamorigLeftLeg: 'leftLowerLeg',
-	mixamorigLeftFoot: 'leftFoot',
-	mixamorigLeftToeBase: 'leftToes',
-	mixamorigRightUpLeg: 'rightUpperLeg',
-	mixamorigRightLeg: 'rightLowerLeg',
-	mixamorigRightFoot: 'rightFoot',
-	mixamorigRightToeBase: 'rightToes',
-};
+const mixamoVRMRigMap = getMixamoRig();
 
 /* global THREE, mixamoVRMRigMap */
 
@@ -82,10 +30,10 @@ const mixamoVRMRigMap = {
  * @returns {Promise<AnimationClip>} The converted AnimationClip
  */
 function loadMixamoAnimation(url, vrm, positionY, positionX, positionZ, scaleX, scaleY, scaleZ, rotationX, rotationY, rotationZ, rotationW) {
-	const loader = new FBXLoader(); // A loader which loads FBX
+	const loader = new FBXLoader();
 	return loader.loadAsync(url).then((asset) => {
-		const clip = AnimationClip.findByName(asset.animations, 'mixamo.com'); // extract the AnimationClip
-		const tracks = []; // KeyframeTracks compatible with VRM will be added here
+		const clip = AnimationClip.findByName(asset.animations, 'mixamo.com');
+		const tracks = [];
 
 		const restRotationInverse = new Quaternion();
 		const parentRestWorldRotation = new Quaternion();
@@ -169,7 +117,7 @@ function loadMixamoAnimation(url, vrm, positionY, positionX, positionZ, scaleX, 
  * @return {JSX.Element} The model object.
  */
 export function ModelObject(model) {
-	const [idleFile, setIdleFile] = useState(model.threeObjectPlugin + idle);
+	const [idleFile, setIdleFile] = useState(idle);
 	const [clicked, setClickEvent] = useState();
 	const [url, set] = useState(model.url);
 	useEffect(() => {
@@ -185,7 +133,7 @@ export function ModelObject(model) {
 	const gltf = useLoader(GLTFLoader, url, (loader) => {
 		const dracoLoader = new DRACOLoader();
 		dracoLoader.setDecoderPath( model.threeObjectPluginRoot + "/inc/utils/draco/");
-		dracoLoader.setDecoderConfig({type: 'js'}); // (Optional) Override detection of WASM support.
+		dracoLoader.setDecoderConfig({type: 'js'});
 		loader.setDRACOLoader(dracoLoader);
 
 		loader.register(
@@ -215,7 +163,7 @@ export function ModelObject(model) {
 		if (animationList) {
 			animationList.forEach((name) => {
 				if (Object.keys(actions).includes(name)) {
-					console.log(actions[name].play());
+					actions[name].play();
 				}
 			});
 		}
@@ -324,6 +272,7 @@ export function ModelObject(model) {
 					colliders={audioObject ? "cuboid" : "trimesh"}
 					lockRotations={true}
 					lockTranslations={true}
+					friction={0.8}
 					rotation={[
 						model.rotationX,
 						model.rotationY,
@@ -336,8 +285,8 @@ export function ModelObject(model) {
 					]}
 					scale={[Number(model.scaleX) + 0.01, Number(model.scaleY) + 0.01, Number(model.scaleZ) + 0.01]}
 					onCollisionEnter={(manifold, target, other) => {
-						setClickEvent(!clicked);
 						if (audioObject) {
+							setClickEvent(!clicked);
 							if (clicked) {
 								audioObject.play();
 								triangle.material.visible = false;
@@ -349,26 +298,9 @@ export function ModelObject(model) {
 							}
 						}
 					}}
-				// onCollisionEnter={ ( props ) =>(
-				// 	// window.location.href = model.destinationUrl
-				// 	)
-				// }
 				>
 					<primitive
 						object={gltf.scene}
-						// castShadow
-						// receiveShadow
-						// rotation={[
-						// 	model.rotationX,
-						// 	model.rotationY,
-						// 	model.rotationZ
-						// ]}
-						// position={[
-						// 	model.positionX,
-						// 	model.positionY,
-						// 	model.positionZ
-						// ]}
-						// scale={[model.scaleX, model.scaleY, model.scaleZ]}
 					/>
 				</RigidBody>
 		);

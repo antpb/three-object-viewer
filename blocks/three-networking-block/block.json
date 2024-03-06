@@ -1,0 +1,24 @@
+{
+    "name": "three-object-viewer/three-networking-block",
+    "attributes": {
+        "participantLimit": {
+            "type": "int",
+            "default": 5
+        },
+		"customAvatars": {
+			"type": "bool",
+			"default": false
+		}
+    },
+    "category": "spatial",
+    "parent":  [ "three-object-viewer/environment" ],
+    "apiVersion": 2,
+    "supports": {
+        "html": false,
+        "multiple": true
+    },
+    "textdomain": "three-object-viewer",
+    "editorScript": "file:../../build/block-three-networking-block.js",
+	"editorStyle": "file:../../build/block-three-networking-block.css",
+	"style": "file:../../build/block-three-networking-block.css"
+}

@@ -7,7 +7,7 @@
 /* global crypto */
 
 import getBrowserRTC from "get-browser-rtc";
-import EventEmitter from "events";
+import { EventEmitter } from 'events'
 import Peer from "tiny-simple-peer";
 import {
 	encode as arrayBufferToBase64,
@@ -15,11 +15,13 @@ import {
 } from "base64-arraybuffer";
 import { hexToBytes } from "convert-hex";
 import arrayBufferToHex from "array-buffer-to-hex";
+import defaultVRM from "../../../../inc/avatars/3ov_default_avatar.vrm";
 
+let validlyInRoom = false;
 // Based on Chrome
 const MAX_MESSAGE_LENGTH_BYTES = 16000;
 
-const CHUNK_HEADER_LENGTH_BYTES = 12; // 2 magic, 2 msg id, 2 chunk id, 2 for done bit, 4 for length
+const CHUNK_HEADER_LENGTH_BYTES = 12;
 const CHUNK_MAGIC_WORD = 8121;
 const CHUNK_MAX_LENGTH_BYTES =
 	MAX_MESSAGE_LENGTH_BYTES - CHUNK_HEADER_LENGTH_BYTES;
@@ -183,7 +185,7 @@ const parseCandidate = (line) => {
 	}
 
 	while (candidate.length < 8) candidate.push(null);
-	candidate[7] = parseInt(parts[3], 10); // Priority last
+	candidate[7] = parseInt(parts[3], 10);
 
 	return candidate;
 };
@@ -220,7 +222,7 @@ export default class P2PCF extends EventEmitter {
 		this.peerSdpTransform = options.sdpTransform || ((sdp) => sdp);
 
 		this.workerUrl =
-			options.workerUrl || "https://p2pcf.minddrop.workers.dev";
+			options.workerUrl || "https://p2pcf.sxp.digital";
 
 		if (this.workerUrl.endsWith("/")) {
 			this.workerUrl = this.workerUrl.substring(
@@ -241,6 +243,7 @@ export default class P2PCF extends EventEmitter {
 		this.fastPollingDurationMs = options.fastPollingDurationMs || 10000;
 		this.fastPollingRateMs = options.fastPollingRateMs || 750;
 		this.slowPollingRateMs = options.slowPollingRateMs || 1500;
+		this.participantLimit = options.participantLimit || 8;
 
 		this.wrtc = getBrowserRTC();
 		this.dtlsCert = null;
@@ -292,7 +295,8 @@ export default class P2PCF extends EventEmitter {
 			packages,
 			fastPollingDurationMs,
 			fastPollingRateMs,
-			slowPollingRateMs
+			slowPollingRateMs,
+			participantLimit,
 		} = this;
 
 		const now = Date.now();
@@ -320,7 +324,7 @@ export default class P2PCF extends EventEmitter {
 				this.isSymmetric,
 				localDtlsFingerprintBase64,
 				this.startedAtTimestamp,
-				[...this.reflexiveIps]
+				[...this.reflexiveIps],
 			];
 
 			const payload = { r: roomId, k: contextId };
@@ -368,7 +372,6 @@ export default class P2PCF extends EventEmitter {
 					this.lastPackages = JSON.stringify(packages);
 				}
 			}
-
 			const body = JSON.stringify(payload);
 			const headers = { "Content-Type": "application/json " };
 			let keepalive = false;
@@ -405,7 +408,6 @@ export default class P2PCF extends EventEmitter {
 				payload.x = this.stateExpirationIntervalMs;
 				payload.p = packages;
 				this.lastPackages = JSON.stringify(packages);
-
 				const res = await fetch(this.workerUrl, {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
@@ -428,7 +430,8 @@ export default class P2PCF extends EventEmitter {
 				localDtlsFingerprintBase64,
 				packages,
 				remotePeerDatas,
-				remotePackages
+				remotePackages,
+				participantLimit
 			);
 
 			const activeSessionIds = remotePeerDatas.map((p) => p[0]);
@@ -466,7 +469,8 @@ export default class P2PCF extends EventEmitter {
 		localDtlsFingerprintBase64,
 		localPackages,
 		remotePeerDatas,
-		remotePackages
+		remotePackages,
+		participantLimit
 	) {
 		const localStartedAtTimestamp = this.startedAtTimestamp;
 
@@ -490,7 +494,7 @@ export default class P2PCF extends EventEmitter {
 				remoteDtlsFingerprintBase64,
 				remoteStartedAtTimestamp,
 				remoteReflexiveIps,
-				remoteDataTimestamp
+				remoteDataTimestamp,
 			] = remotePeerData;
 
 			// Don't process the same messages twice. This covers disconnect cases where stale data re-creates a peer too early.
@@ -587,7 +591,8 @@ export default class P2PCF extends EventEmitter {
 				peer.id = remoteSessionId;
 				peer.client_id = remoteClientId;
 
-				this._wireUpCommonPeerEvents(peer);
+
+				this._wireUpCommonPeerEvents(peer, participantLimit);
 
 				peers.set(peer.id, peer);
 
@@ -667,7 +672,7 @@ export default class P2PCF extends EventEmitter {
 					peer.id = remoteSessionId;
 					peer.client_id = remoteClientId;
 
-					this._wireUpCommonPeerEvents(peer);
+					this._wireUpCommonPeerEvents(peer, participantLimit);
 
 					peers.set(peer.id, peer);
 
@@ -814,8 +819,30 @@ export default class P2PCF extends EventEmitter {
 	/**
 	 * Connect to network and start discovering peers
 	 */
-	async start() {
+	async start(props) {
 		this.startedAtTimestamp = Date.now();
+		// const canStart = await this._getCurrentRoomCount(userData.currentPostId);
+		// if ( canStart ) {
+		// 	if( userData.heartbeatEnabled ) {
+		// 		// console.log("heartbeatEnabled", userData.heartbeatEnabled);
+
+		// 		const isInRoom = await this._pingIfInRoom();;
+
+		// 		if (isInRoom.body === 'true') {
+		// 			// console.log("User is already in the room, cannot start. Send another beat.");
+		// 			this._sendHeartbeat();
+		// 		} else {
+		// 			// console.log("User is not in the room, starting initial heartbeat.");
+		// 			this._updateRoomCount("add");
+		// 			this._sendHeartbeat();
+		// 		}
+		// 		this.startHeartbeat();
+		// 	}
+		// } else {
+		// 	console.warn("Room is full, cannot start.", canStart);
+		// 	return;
+		// }
+
 		await this._init();
 
 		const [udpEnabled, isSymmetric, reflexiveIps, dtlsFingerprint] =
@@ -827,6 +854,9 @@ export default class P2PCF extends EventEmitter {
 		this.isSymmetric = isSymmetric;
 		this.reflexiveIps = reflexiveIps;
 		this.dtlsFingerprint = dtlsFingerprint;
+
+		let guestDefaultAvatar = defaultAvatar === '' ? defaultVRM : defaultAvatar;
+		this.playerVRM = userData.playerVRM ? userData.playerVRM : guestDefaultAvatar;
 
 		this.networkSettingsInterval = setInterval(async () => {
 			const [
@@ -882,6 +912,11 @@ export default class P2PCF extends EventEmitter {
 		}
 
 		this.emit("peerclose", peer);
+		// // update the room count using the endpoint _updateRoomCountInDatabase
+		// let roomCount = p2pcf.peers.size + 1;
+
+		// this._updateRoomCountInDatabase(roomCount);
+		
 	}
 
 	/**
@@ -1009,6 +1044,9 @@ export default class P2PCF extends EventEmitter {
 		for (const peer of this.peers.values()) {
 			peer.destroy();
 		}
+		// update the room count using the endpoint _updateRoomCountInDatabase
+		// this._updateRoomCount("subtract");
+		// this.stopHeartbeat();
 	}
 
 	/**
@@ -1136,7 +1174,7 @@ export default class P2PCF extends EventEmitter {
 			err.errorDetail === "sctp-failure" &&
 			err.message.indexOf("User-Initiated Abort") >= 0
 		) {
-			return; // Benign shutdown
+			return;
 		}
 
 		console.error(err);
@@ -1168,14 +1206,186 @@ export default class P2PCF extends EventEmitter {
 
 		peer.signal(payload);
 	}
+	_pingIfInRoom(roomId) {
+		// check if the user is already in the room
+		const postId = userData.currentPostId;
+		const apiUrl = `/wp-json/threeov/v1/handle-heart-check/${postId}`;
+	
+		// fetch(apiUrl, {
+		// 	method: 'POST',
+		// 	headers: {
+		// 		'Content-Type': 'application/json',
+		// 		'X-WP-Nonce': userData.nonce,
+		// 	},
+		// 	body: JSON.stringify({ displayName: p2pcf.clientId  }) // send any necessary data
+		// })
+		// .then(response => response.json())
+		// .then(data => console.log('Heartbeat sent:', data))
+		// .catch(error => console.error('Error sending heartbeat:', error));
 
-	_wireUpCommonPeerEvents(peer) {
+		let isInRoom = false;
+		// post api endpoint to see if in room
+		return fetch(apiUrl, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-WP-Nonce': userData.nonce,
+			},
+			body: JSON.stringify({ displayName: p2pcf.clientId  })
+		})
+		.then(response => response.json())
+		.catch(error => console.error('Error sending heartbeat:', error));
+	}
+
+	// _sendHeartbeat() {
+	// 	const postId = userData.currentPostId;
+	// 	const apiUrl = `/wp-json/threeov/v1/send-heartbeat/${postId}`;
+	
+	// 	fetch(apiUrl, {
+	// 		method: 'POST',
+	// 		headers: {
+	// 			'Content-Type': 'application/json',
+	// 			'X-WP-Nonce': userData.nonce,
+	// 		},
+	// 		body: JSON.stringify({ displayName: p2pcf.clientId  })
+	// 	})
+	// 	.then(response => response.json())
+	// 	.then(data => console.log('Heartbeat sent:', data))
+	// 	.catch(error => console.error('Error sending heartbeat:', error));
+	// }
+	
+	// Start sending heartbeats at regular intervals
+	// startHeartbeat() {
+	// 	this.heartbeatInterval = setInterval(() => this._sendHeartbeat(), 30000); // send every 30 seconds
+	// }
+
+	// Stop sending heartbeats
+	// stopHeartbeat() {
+	// 	clearInterval(this.heartbeatInterval);
+	// }
+
+	// Function to get the current room count
+	// _getCurrentRoomCount(postId) {
+	// 	const apiUrl = `/wp-json/threeov/v1/get-room-count/${postId}`;
+	// 	return fetch(apiUrl, {
+	// 		method: 'GET',
+	// 		headers: {
+	// 			'Content-Type': 'application/json',
+	// 			'X-WP-Nonce': userData.nonce,
+	// 		}
+	// 	})
+	// 	.then(response => {
+	// 		if (!response.ok) {
+	// 			throw new Error('Network response was not ok');
+	// 		}
+	// 		// if the response from the get-room-count endpoint isnt true then the room is full
+	// 		return response.json();
+	// 	})
+	// 	.catch(error => {
+	// 		console.error('Error fetching room count:', error);
+	// 		throw error;
+	// 	});
+	// }
+
+	// _updateRoomCount(action) {
+	// 	const postId = userData.currentPostId;
+	// 	let actionNonce = '';
+	// 	let apiUrl = '';
+	// 	if(action === "add") {
+	// 		actionNonce = userData.addNonce;
+	// 		apiUrl = `/wp-json/threeov/v1/add-room-count/${postId}`;
+	// 	} else if(action === "subtract") {
+	// 		actionNonce = userData.subtractNonce;
+	// 		apiUrl = `/wp-json/threeov/v1/subtract-room-count/${postId}`;
+	// 	}
+	// 	const data = { action: action, actionNonce: actionNonce, clientId: p2pcf.clientId};
+
+	// 	fetch(apiUrl, {
+	// 		method: 'POST',
+	// 		headers: {
+	// 			'Content-Type': 'application/json',
+	// 			'X-WP-Nonce': userData.nonce,
+	// 		},
+	// 		body: JSON.stringify(data)
+	// 	})
+	// 	.then(response => response.json())
+	// 	.then(data => console.log('Room count updated:', data))
+	// 	.catch((error) => {
+	// 		console.error('Error updating room count:', error);
+	// 	});
+	// }
+
+	// // Function to update room count in database via WordPress REST API
+	// _updateRoomCountInDatabase(roomCount) {
+	// 	const postId = userData.currentPostId // Implement this method based on how you determine the post ID
+	// 	const apiUrl = `/wp-json/threeov/v1/update-room-count/${postId}`;
+	// 	const data = { count: roomCount };
+
+	// 	fetch(apiUrl, {
+	// 		method: 'POST',
+	// 		headers: {
+	// 			'Content-Type': 'application/json',
+	// 			'X-WP-Nonce': userData.nonce,
+	// 		},
+	// 		body: JSON.stringify(data)
+	// 	})
+	// 	.then(response => response.json())
+	// 	.then(data => console.log('Room count updated:', data))
+	// 	.catch((error) => {
+	// 		console.error('Error updating room count:', error);
+	// 	});
+	// }
+
+	_wireUpCommonPeerEvents(peer, participantLimit) {
 		peer.on("connect", () => {
-			this.emit("peerconnect", peer);
+			// console.log(p2pcf.peers.size, "peers connected", p2pcf.peers);
+			let roomCount = p2pcf.peers.size;
+			var limit = parseInt(participantLimit);
+			console.log("roomCount", roomCount, "limit", limit);
+			if( roomCount < limit ) {
+				console.log("clean room entry", p2pcf);
+				this.emit("peerconnect", peer);
+				// after connecting, send the player data to participant
+				const playerData = { playerVRM: this.playerVRM, inWorldName: userData.inWorldName, profileImage: userData.profileImage};
+				peer.send(new TextEncoder().encode(JSON.stringify(playerData)));
+				// set the user as validly in the room
+				validlyInRoom = true;
+				// Remove packages for the peer once connected
+				removeInPlace(this.packages, (pkg) => pkg[0] === peer.id);
+				this._updateConnectedSessions();
+			} else {
+				console.log("participants", "FULLLLLL");
+				if(! validlyInRoom ) {
+					console.log("participants are", window.participants);
+					console.log("room is full", this.roomId, p2pcf);
+					// if there are more than 2 participants, disconnect the peer increment the room id and retry
+					// Remove packages for the peer once connected
+					// removeInPlace(this.packages, (pkg) => pkg[0] === peer.id);
 
-			// Remove packages for the peer once connected
-			removeInPlace(this.packages, (pkg) => pkg[0] === peer.id);
-			this._updateConnectedSessions();
+					// peer.destroy();
+
+					let curentRoomHash = window.location.hash;
+					// remove the # from the hash
+					let currentRoomId = curentRoomHash.substring(1);
+					// example string #3ov-room-1 take the value after the last - and cast it to int
+					let newRoomId = parseInt(currentRoomId.substr(currentRoomId.lastIndexOf("-") + 1));
+					// if the room id is NaN, set it to 1
+					if(isNaN(newRoomId)) {
+						newRoomId = 1;
+					}
+					newRoomId = newRoomId + 1;
+					// remove the old room number from the currentRoomId and add the new one
+					currentRoomId = currentRoomId.substring(0, currentRoomId.lastIndexOf("-") + 1);
+					currentRoomId = currentRoomId + newRoomId;
+					// set the #room in the url
+					window.location.hash = currentRoomId;
+
+					roomCount = 0;
+					this.roomId = newRoomId;
+					// fire an event called "room full refresh"
+					this.emit("roomfullrefresh", peer);
+				}
+			}
 		});
 
 		peer.on("data", (data) => {
