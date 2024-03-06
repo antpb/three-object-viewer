@@ -403,6 +403,7 @@ export function Participants(props) {
 		if(window.p2pcf){
 			window.p2pcf.on("msg", (peer, data) => {
 				if(!(peer.id in window.participants)){
+					console.log("peer id not here!", peer.id);
 					return;
 				}
 				const finalData = new TextDecoder("utf-8").decode(data);

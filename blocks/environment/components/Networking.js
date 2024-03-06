@@ -529,6 +529,12 @@ const Networking = (props) => {
 	};
 
 	useEffect(() => {
+		if( isNetworkActivated ){
+			if ( ! document.location.hash ) {
+				document.location = document.location.toString() + `#3ov-${props.postSlug}`;
+			}
+		}
+	
 		const handleLoaded = (event) => {
 		  go();
 		  // Remove the event listener after handling the first 'loaded' event
