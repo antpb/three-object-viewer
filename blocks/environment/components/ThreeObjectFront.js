@@ -4,6 +4,8 @@ import React, { Suspense, useRef, useState, useEffect } from 'react';
 import { Canvas, useLoader, useFrame, useThree } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
+import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader';
+
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import { Physics, RigidBody } from "@react-three/rapier";
 import { USDZLoader } from 'three/examples/jsm/loaders/USDZLoader';
@@ -179,7 +181,7 @@ function SavedObject( props ) {
 		setTimeout( () => set( props.url ), 2000 );
 	}, [] );
 	const [ listener ] = useState( () => new THREE.AudioListener() );
-	const { clock, camera } = useThree();
+	const { clock, camera, gl } = useThree();
 	useThree( ( { camera } ) => {
 		camera.add( listener );
 	} );
@@ -199,6 +201,14 @@ function SavedObject( props ) {
 					new GLTFGoogleTiltBrushMaterialExtension(parser, openbrushDirectory)
 			);	
 		}
+		const ktx2Loader = new KTX2Loader();
+		ktx2Loader.setTranscoderPath(threeObjectPluginRoot + "/inc/utils/basis/");
+		ktx2Loader.detectSupport(gl);
+		loader.setKTX2Loader(ktx2Loader);
+		const dracoLoader = new DRACOLoader();
+		dracoLoader.setDecoderPath( threeObjectPluginRoot + "/inc/utils/draco/");
+		dracoLoader.setDecoderConfig({type: 'js'});
+		loader.setDRACOLoader(dracoLoader);
 		loader.register(
 			( parser ) => new GLTFAudioEmitterExtension( parser, listener )
 		);
@@ -247,7 +257,6 @@ function SavedObject( props ) {
 
 		const currentVrm = vrm;
 		const currentMixer = new AnimationMixer(currentVrm.scene);
-		console.log(currentVrm)
 		// Load animation
 		if (currentVrm) {
 			if (currentVrm.humanoid) {
@@ -257,7 +266,6 @@ function SavedObject( props ) {
 					head.getWorldPosition(headPos);
 					let offsetPositionY = headPos.y - props.positionY;
 					const newTarget = new Vector3( headPos.x, offsetPositionY , headPos.z);
-					console.log("newTarget", newTarget);
 					const newPos = new Vector3( camera.position.x, offsetPositionY , camera.position.z);
 					props.orbitRef.current.target = newTarget;
 					props.orbitRef.current.maxPolarAngle = Math.PI / 2;

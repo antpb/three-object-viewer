@@ -40,6 +40,9 @@ add_action('rest_api_init', function (){
 					'enabled' => get_option( '3ov_ai_enabled', false ),
 					'networkWorker' => get_option( '3ov_mp_networkWorker', '' ),
 					'multiplayerWorker' => get_option( '3ov_mp_multiplayerWorker', '' ),
+					'turnCredentialRelay' => get_option( '3ov_mp_turnCredentialRelay', '' ),
+					'turnServerKey' => get_option( '3ov_mp_turnServerKey', '' ),
+					'multiplayerAccess' => get_option( '3ov_mp_multiplayerAccess', '' ),
 					'openApiKey' => three_decrypt ( get_option( '3ov_ai_openApiKey', '' ) ),
 					'allowPublicAI' => get_option( '3ov_ai_allow', '' ),
 					'defaultVRM' => get_option( '3ov_defaultVRM', '' ),
@@ -58,6 +61,10 @@ add_action('rest_api_init', function (){
 				update_option( '3ov_ai_enabled', $data['enabled'] );
 				update_option( '3ov_mp_networkWorker', $data['networkWorker'] );
 				update_option( '3ov_mp_multiplayerWorker', $data['multiplayerWorker'] );
+				update_option( '3ov_mp_turnCredentialRelay', $data['turnCredentialRelay'] );
+				update_option( '3ov_mp_turnServerUser', $data['turnServerUser'] );
+				update_option( '3ov_mp_turnServerKey', $data['turnServerKey'] );
+				update_option( '3ov_mp_multiplayerAccess', $data['multiplayerAccess'] );
 				update_option( '3ov_defaultVRM', $data['defaultVRM'] );
 				update_option( '3ov_defaultAvatar', $data['defaultAvatar'] );
 				update_option( '3ov_ai_allow', $data['allowPublicAI'] );

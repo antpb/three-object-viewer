@@ -54,7 +54,14 @@ function isVRCompatible() {
   
 	return xrSupported && webGLSupported;
 }
-  
+
+function goToPrivateRoom() {
+	const url = window.location.href;
+	const newUrl = url.split("#")[0];
+	const randomString = Math.random().toString(36).substring(7);
+	window.location
+		.assign(newUrl + "#" + randomString);
+}
 
 function Loading({ visible, previewImage }) {
 	// const backgroundImageUrl = previewImage !== "" ? previewImage : (threeObjectPlugin + zoomBackground);
@@ -171,7 +178,13 @@ function ChatBox(props) {
 	//   props.setMessages([...props.messages, inputMessageLog]);
 	input.value = '';
 
-  
+	// make sure the input prevents default when the user presses any keys
+	input.addEventListener('keydown', function(event) {
+		event.preventDefault();
+	});
+	input.addEventListener('keyup', function(event) {
+		event.preventDefault();
+	});
 	  // Send the message to the localhost endpoint
 	  const client = 1;
 	  const channelId = "wordpress";
@@ -606,6 +619,7 @@ export default function EnvironmentFront(props) {
 	const [displayName, setDisplayName] = useState(props.userData.inWorldName);
 	const [playerAvatar, setPlayerAvatar] = useState(props.userData.playerVRM);
 	const canvasRef = useRef(null);
+	const r3fCanvasRef = useRef(null);
 
 	// let string = '{\"spell\":\"complexQuery\",\"outputs\":{\"Output\":\"{\\\"message\\\": \\\" Hi there! How can I help you?\\\",\\\"tone\\\": \\\"friendly\\\"}\"},\"state\":{}}';
 	// let string = 'Hello! Welcome to this 3OV world! Feel free to ask me anything. I am especially versed in the 3OV metaverse plugin for WordPress.'
@@ -638,7 +652,21 @@ export default function EnvironmentFront(props) {
 		  document.removeEventListener('yourComponentReady', handleReady);
 		};
 	  }, []);
-	const [dpr, setDpr] = useState(2)
+	const [dpr, setDpr] = useState(2);
+
+	useEffect(() => {
+		const handleKeyDown = (event) => {
+		  if ((event.key === ' ' || event.key === 'Spacebar') && document.pointerLockElement === r3fCanvasRef.current) {
+			event.preventDefault(); // Prevent scrolling when spacebar is pressed
+		  }
+		};
+	  
+		window.addEventListener('keydown', handleKeyDown);
+	  
+		return () => {
+		  window.removeEventListener('keydown', handleKeyDown);
+		};
+	  }, []);	  
 
 	if (loaded === true) {
 		// emit javascript event "loaded"
@@ -658,6 +686,8 @@ export default function EnvironmentFront(props) {
 				<>
 					{loadingWorld && <Loading previewImage={props.previewImage} />}
 					<Canvas
+						ref={r3fCanvasRef}
+						tabindex={0}
 						resize={{ scroll: false, debounce: { scroll: 50, resize: 0 } }}
 						camera={{
 							fov: 70,
@@ -668,6 +698,7 @@ export default function EnvironmentFront(props) {
 						onPointerDown={(e) => {
 							e.target.requestPointerLock();
 						}}
+						className="threeov-main-canvas"
 						dpr={dpr}
 						mode="concurrent"		
 						// dpr={1.5}
@@ -739,7 +770,7 @@ export default function EnvironmentFront(props) {
 											>
 												{ ( props.networkingBlock.length > 0 ) && (
 													<Participants 
-														participants={participants}
+														// participants={window.participants}
 													/>
 												)}
 												<SavedObject
@@ -2258,19 +2289,40 @@ export default function EnvironmentFront(props) {
 						boxSizing: "border-box"
 					}}
 				>
-					{ ( props.networkingBlock.length > 0 ) && (
 					<div>
 						<div className="threeov-entry-pfp" style={ { backgroundImage: `url(${props.userData.profileImage})` } }></div>
 						{/* <span>Display Name</span> */}
-						<input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
-						{ ( props.networkingBlock[0].attributes.customAvatars.value === "1" ) && (
+						{ ( props.networkingBlock.length > 0 ) ? (
+							<>
+								<input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+								{( props.networkingBlock[0].attributes.customAvatars && props.networkingBlock[0].attributes.customAvatars.value === "1" ) && (
+									<div>
+										<span>VRM or Sprite URL</span>
+										<input type="text" value={playerAvatar} onChange={(e) => setPlayerAvatar(e.target.value)} />
+									</div>
+								)}
+								<button
+									class="threeov-load-world-button-secondary"
+									onClick={() => {
+										goToPrivateRoom();
+										canvasRef.current.scrollIntoView({ behavior: 'smooth' });
+										setLoaded(true);			
+									}}
+									style={{
+										padding: "10px"
+									}}
+								>
+									{" "}
+									{"Join Private"}
+								</button>
+							</>
+						):(
 							<div>
 								<span>VRM or Sprite URL</span>
 								<input type="text" value={playerAvatar} onChange={(e) => setPlayerAvatar(e.target.value)} />
 							</div>
 						) }
 					</div>
-					)}
 					<button
 						class="threeov-load-world-button"
 						onClick={() => {
@@ -2282,7 +2334,7 @@ export default function EnvironmentFront(props) {
 						}}
 					>
 						{" "}
-						{props.networkingBlock.length > 0 ? "Enter Room" : "Load World"}
+						{props.networkingBlock.length > 0 ? "Join Public" : "Load World"}
 					</button>
 					{ ( props.networkingBlock.length > 0 ) && (
 						<div class="threeov-entry-flow-instruction">

@@ -62,6 +62,7 @@ export function ThreeSky(sky) {
 		return (
 			<>
 				<mesh
+					userData={{ camExcludeCollision: true }}
 					visible
 					position={[0, 0, 0]}
 					scale={[1, 1, 1]}

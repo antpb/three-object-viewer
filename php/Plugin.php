@@ -27,7 +27,9 @@ class Plugin
 		add_action('edit_user_profile', array($this, 'add_custom_user_profile_fields'));
 		add_action('personal_options_update', array($this, 'save_custom_user_profile_fields'));
 		add_action('edit_user_profile_update', array($this, 'save_custom_user_profile_fields'));
-		add_action( 'rest_api_init', array( $this, 'register_room_count_api_routes' ) );
+		add_action('rest_api_init', array( $this, 'register_room_count_api_routes' ));
+		add_action('rest_api_init', array( $this, 'register_turn_credential_endpoint' ));
+
 		// add_action( 'init', array( $this, 'register_room_count_post_meta' ) );
 		// Block Category
 		add_filter( 'block_categories_all', array( $this, 'add_spatial_block_category'), 10, 2 );	
@@ -35,6 +37,56 @@ class Plugin
 		
 	}
 
+	function register_turn_credential_endpoint() {
+		register_rest_route('threeov/v1', '/turn-credentials/', array(
+			'methods' => \WP_REST_Server::READABLE,
+			'callback' => array( $this, 'get_turn_credentials'),
+			'permission_callback' => array( $this, 'is_user_allowed_turn')
+		));
+	}
+
+	function is_user_allowed_turn() {
+		// check 3ov_mp_multiplayerAccess option if we even need to check this
+		if (get_option('3ov_mp_multiplayerAccess') === 'loggedIn') {
+			return is_user_logged_in();
+		} else {
+			return true;
+		}
+	}
+	
+	function get_turn_credentials($request) {
+		// Optional: Verify nonce for additional security
+		$nonce = $request->get_header('X-WP-Nonce');
+		if (!wp_verify_nonce($nonce, 'wp_rest')) {
+			return new \WP_Error('invalid_nonce', 'Invalid nonce', array('status' => 403));
+		}
+		// get the api key from 3ov_mp_turnServerKey
+		$apiKey = get_option('3ov_mp_turnServerKey');
+		// URL of your Cloudflare Worker
+		$workerUrl = 'https://turn.sxpdigital.workers.dev/';
+	
+		// Make a request to the Cloudflare Worker to get TURN credentials
+		$response = wp_remote_post($workerUrl, array(
+			'body' => json_encode(array(
+				'apiKey' => $apiKey,
+			)),
+			'headers' => array(
+				'Content-Type' => 'application/json',
+			),
+		));
+	
+		if (is_wp_error($response)) {
+			// failure reason
+			$error_message = $response->get_error_message();
+			return new \WP_Error('request_failed', $error_message, array('status' => 400));
+		}
+	
+		$body = wp_remote_retrieve_body($response);
+		$credentials = json_decode($body, true);
+	
+		return new \WP_REST_Response($credentials, 200);
+	}
+	
 	// _updateRoomCountInDatabase(roomCount) {
 	// 	const postId = userData.currentPostId // Implement this method based on how you determine the post ID
 	// 	const apiUrl = `/wp-json/threeov/v1/update-room-count/${postId}`;
@@ -720,7 +772,7 @@ class Plugin
 				$script_path = plugin_dir_path( __FILE__ ) . $frontend_js;
 				$script_version = filemtime($script_path);
 			
-			
+
 				wp_register_script( 'versepress-frontend', plugin_dir_url( __FILE__ ) . $frontend_js, ['wp-element', 'wp-data', 'wp-hooks'], $script_version, true );
 				wp_localize_script( 'versepress-frontend', 'userData', $user_data_passed );
 				wp_localize_script( 'versepress-frontend', 'postSlug', $post_slug );
@@ -730,6 +782,10 @@ class Plugin
 				wp_localize_script( 'versepress-frontend', 'threeObjectPluginRoot', $three_object_plugin_root );	
 				wp_localize_script( 'versepress-frontend', 'defaultAvatarAnimation', $default_animation );
 				wp_localize_script( 'versepress-frontend', 'defaultAvatar', $default_avatar );
+				wp_localize_script('versepress-frontend', 'turnCredentials', array(
+					'apiUrl' => rest_url('threeov/v1/turn-credentials/'),
+					'nonce' => wp_create_nonce('wp_rest'),
+				));			
 				wp_localize_script( 'versepress-frontend', 'defaultPlayerAvatar', $default_avatar );	
 				wp_localize_script( 'versepress-frontend', 'multiplayerWorker', $multiplayer_worker_url );
 				// wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatarAnimation', $default_animation );	

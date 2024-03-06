@@ -1,5 +1,5 @@
 import P2PCF from "./p2pcf/p2pcf.js";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import audioIcon from '../../../inc/assets/mic_icon.png';
 import audioIconMute from '../../../inc/assets/mic_icon_mute.png';
 import participants from '../../../inc/assets/participants.png';
@@ -9,11 +9,64 @@ import settingsIcon from '../../../inc/assets/settings_icon.png';
 import { color } from "@wordpress/icons";
 import { XRButton } from "@react-three/xr";
 
+const DEFAULT_TURN_ICE = [
+	{
+		urls: "turn:openrelay.metered.ca:80",
+		username: "openrelayproject",
+		credential: "openrelayproject"
+	},
+	{
+		urls: "turn:openrelay.metered.ca:443",
+		username: "openrelayproject",
+		credential: "openrelayproject"
+	},
+	{
+		urls: "turn:openrelay.metered.ca:443?transport=tcp",
+		username: "openrelayproject",
+		credential: "openrelayproject"
+	}
+];
+
+
+async function fetchTURNcredentials() {
+	const endpoint = turnCredentials['apiUrl'];
+	const nonce = turnCredentials['nonce'];
+	let urlsBlob = null;
+
+	try {
+		// // Fetch TURN credentials from WordPress endpoint
+		const response = await fetch(endpoint, {
+			method: 'GET',
+			headers: {
+			'X-WP-Nonce': nonce,
+			'Content-Type': 'application/json'
+			}
+		});
+
+		if (!response.ok) {
+			throw new Error('Failed to fetch TURN credentials');
+		}
+
+		const data = await response.json();
+		const apiKey = data.apiKey;
+		// Use the apiKey to fetch TURN URLs from metered.live
+		const turnUrlsResponse = await fetch(`https://3ov.metered.live/api/v1/turn/credentials?apiKey=${apiKey}`);
+		urlsBlob = await turnUrlsResponse.json();
+
+		// console.log("Fetched data", urlsBlob);
+		console.log("Data", urlsBlob);
+		return urlsBlob;
+	} catch (error) {
+		console.error('Failed to fetch TURN credentials. Using defaults.', error);
+		return DEFAULT_TURN_ICE;
+	}
+}
+
 const Networking = (props) => {
 	let isNetworkActivated = props.networkingBlock.length > 0;
 	let isMuted = false;  // Initial state of the microphone
 	let localStream = null;  // To hold the local media stream
-
+	const [p2pcf, setP2pcf] = useState(null);
 	const returnXRButton = (props) => {
 		return <XRButton {...props} />;
 	};
@@ -22,7 +75,7 @@ const Networking = (props) => {
 		let dropdown = document.getElementById("room-dropdown");
 		// empty the contents of the dropdown
 		dropdown.innerHTML = "";
-		dropdown.innerText = "Room: " + p2pcf.roomId;
+		dropdown.innerText = "Room: " + window.p2pcf.roomId;
 
 		// create a paragraph element to be added after the dropdown
 		let roomParagraph = document.createElement("p");
@@ -120,7 +173,7 @@ const Networking = (props) => {
 				// set a window variable for the local stream
 				window.localStream = stream;
 				// loop through the peers and set their streams to the new stream
-				for (const peer of p2pcf.peers.values()) {
+				for (const peer of window.p2pcf.peers.values()) {
 					peer.addStream(stream);
 				}
 			});
@@ -307,7 +360,7 @@ const Networking = (props) => {
 			? Math.floor(Math.random() * 100000)
 			: userData.userId;
 
-		window.participants[p2pcf.sessionId] = window.userData.inWorldName ? window.userData.inWorldName : "User-" + userProfileName;
+		window.participants[window.p2pcf.sessionId] = window.userData.inWorldName ? window.userData.inWorldName : "User-" + userProfileName;
 	
         let dropdown = document.getElementById("room-dropdown");
 		// empty the contents of the dropdown
@@ -317,8 +370,8 @@ const Networking = (props) => {
 		let index = 1;
 		if( index === 1 ){
 			let playerParagraph = document.createElement("p");
-			if(window.participants[p2pcf.sessionId]){
-				playerParagraph.innerHTML = '<b>' + index + ": </b>" + window.participants[p2pcf.sessionId];
+			if(window.participants[window.p2pcf.sessionId]){
+				playerParagraph.innerHTML = '<b>' + index + ": </b>" + window.participants[window.p2pcf.sessionId];
 			} else {
 				playerParagraph.innerHTML = '<b>' + index + ": </b>" + peer.client_id;
 			}
@@ -330,7 +383,7 @@ const Networking = (props) => {
 			index++;
 		}
 
-		for (const peer of p2pcf.peers.values()) {
+		for (const peer of window.p2pcf.peers.values()) {
 			let peerParagraph = document.createElement("p");
 
 			if(window.participants[peer.id]){
@@ -393,25 +446,180 @@ const Networking = (props) => {
 		mainContainer.style.backgroundSize = "cover";
 	}, []);
 
-	if(isNetworkActivated){
-		if (!document.location.hash) {
-			document.location = document.location.toString() + `#3ov-${props.postSlug}`;
+	const go = () => {
+		// document.getElementById("session-id").innerText = "Room: " + p2pcf.roomId;
+		
+		// document.getElementById('send-button').addEventListener('click', () => {
+		//     const box = document.getElementById('send-box');
+		//     addMessage(p2pcf.sessionId.substring(0, 5) + ': ' + box.value);
+		//     p2pcf.broadcast(new TextEncoder().encode(box.value));
+		//     box.value = '';
+		// })
+		const mainContainer = document.getElementById("networking");
+		
+		// set container background to accent image
+		mainContainer.style.backgroundImage = `url(${cornerAccent})`;
+		mainContainer.style.backgroundSize = "cover";
+		mainContainer.style.display = "block";
+		
+		const audioButton = document.getElementById("audio-button");
+		if (audioButton) {
+			audioButton.addEventListener("click", async (button) => {
+			// request permissions for microphone devices then do audioDropdownContent
+			navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+				AudioDropdownContent(button);
+			});
+			});
 		}
-		const userProfileName = Math.floor(Math.random() * 100000);
-		let p2pcf = new P2PCF(
+		
+		if (isNetworkActivated && !window.p2pcf) {
+			const userProfileName = Math.floor(Math.random() * 100000);
+		
+			fetchTURNcredentials().then(iceServers => {
+			if (!iceServers) {
+				console.error('Could not fetch TURN credentials. P2P functionality may be limited.');
+			}
+		
+			const p2pcf = new P2PCF(
+				"user-" + userProfileName,
+				document.location.hash.substring(1),
+				{
+				workerUrl: multiplayerWorker,
+				slowPollingRateMs: 5000,
+				fastPollingRateMs: 1500,
+				participantLimit: props.networkingBlock[0].attributes.participantLimit.value,
+				// Use fetched TURN credentials if available
+				turnIceServers: iceServers,
+				}
+			);
+		
+			setupP2PCF(p2pcf);
+			setP2pcf(p2pcf);
+			window.p2pcf = p2pcf;
+			window.participants = [];
+		
+			// Additional setup and event listener logic here
+			});
+		}
+		
+		// if the room id is different from the url/#hash then reinitialize the p2pcf
+		if (window.p2pcf && window.p2pcf.roomId !== window.location.hash.substring(1)) {
+			console.log("should not be hitting here");
+			// remove the window.p2pcf object from the window
+			delete window.p2pcf;
+			// Reinitialize P2PCF with the new room ID
+			const userProfileName = Math.floor(Math.random() * 100000);
+			let p2pcf = new P2PCF(
 			"user-" + userProfileName,
-			document.location.hash.substring(1),
+			window.location.hash.substring(1),
 			{
 				workerUrl: multiplayerWorker,
 				slowPollingRateMs: 5000,
 				fastPollingRateMs: 1500,
 				participantLimit: props.networkingBlock[0].attributes.participantLimit.value,
 			}
-		);
+			);
+			setupP2PCF(p2pcf);
+			p2pcf.start({ playerVRM: userData.playerVRM ? userData.playerVRM : defaultAvatar });
+		} else if (window.p2pcf) {
+			window.p2pcf.start({ playerVRM: userData.playerVRM ? userData.playerVRM : defaultAvatar });
+		}
+		addPeerUi();
+		addRoomUi();
+	};
 
-		window.p2pcf = p2pcf;
-		window.participants = [];
-	}
+	useEffect(() => {
+		const handleLoaded = (event) => {
+		  go();
+		  // Remove the event listener after handling the first 'loaded' event
+		  window.removeEventListener("loaded", handleLoaded);
+		};
+	  
+		window.addEventListener("loaded", handleLoaded);
+	  
+		return () => {
+		  window.removeEventListener("loaded", handleLoaded);
+		};
+	}, []);
+	  
+
+	useEffect(() => {
+		if(isNetworkActivated  && window.p2pcf ){
+			window.p2pcf.on("roomfullrefresh", (peer) => {
+				console.log("So sorry, Room full refresh", peer);
+				const userProfileName = Math.floor(Math.random() * 100000);
+
+				// Wait for the URL hash to update to ensure room ID is new
+				setTimeout(() => {
+					// remove the window.p2pcf object from the window
+					delete window.p2pcf;
+					// Reinitialize P2PCF with the new room ID
+					const p2pcf = new P2PCF(
+						"user-" + userProfileName,
+						window.location.hash.substring(1),
+						{
+							workerUrl: multiplayerWorker,
+							slowPollingRateMs: 5000,
+							fastPollingRateMs: 1500,
+							participantLimit: props.networkingBlock[0].attributes.participantLimit.value,
+						}
+					);
+					setupP2PCF(p2pcf);
+	
+				}, 500);
+			});
+		}
+
+		if( isNetworkActivated && window.p2pcf ){
+			window.p2pcf.on("peerconnect", (peer) => {
+				if (stream) {
+					peer.addStream(stream);
+				}
+				peer.on("track", (track, stream) => {
+					const video = document.createElement("audio");
+					video.id = `${peer.id}-audio`;
+					video.srcObject = stream;
+					video.setAttribute("playsinline", true);
+					document.getElementById("videos").appendChild(video);
+					video.play();
+				});
+			});
+	
+			window.p2pcf.on("peerclose", (peer) => {
+				removePeerUi(peer.id);
+			});
+	
+			window.p2pcf.on("msg", (peer, data) => {
+				addMessage(
+					peer.id.substring(0, 5) +
+						": " +
+						new TextDecoder("utf-8").decode(data)
+				);
+			});
+		}
+	}, [p2pcf]);
+	
+	// if( isNetworkActivated ){
+	// 	if ( ! document.location.hash ) {
+	// 		document.location = document.location.toString() + `#3ov-${props.postSlug}`;
+	// 	}
+	// 	const userProfileName = Math.floor( Math.random() * 100000 );
+	// 	let p2pcf = new P2PCF(
+	// 		"user-" + userProfileName,
+	// 		document.location.hash.substring(1),
+	// 		{
+	// 			workerUrl: multiplayerWorker,
+	// 			slowPollingRateMs: 5000,
+	// 			fastPollingRateMs: 1500,
+	// 			participantLimit: props.networkingBlock[0].attributes.participantLimit.value,
+	// 			turnCredentials: turnCredentials,
+	// 			turnIceServers: turnIceServers,
+	// 		}
+	// 	);
+
+		// window.p2pcf = p2pcf;
+		// window.participants = [];
+	//}
 
 	const removePeerUi = (clientId) => {
 		document.getElementById(clientId)?.remove();
@@ -517,99 +725,6 @@ const Networking = (props) => {
 	};
 	let stream;
 
-	if(isNetworkActivated){
-		p2pcf.on("roomfullrefresh", (peer) => {
-			console.log("So sorry, Room full refresh", peer);
-			// Wait for the URL hash to update to ensure room ID is new
-			setTimeout(() => {
-				// remove the window.p2pcf object from the window
-				delete window.p2pcf;
-				// Reinitialize P2PCF with the new room ID
-				p2pcf = new P2PCF(
-					"user-" + userProfileName,
-					window.location.hash.substring(1),
-					{
-						workerUrl: multiplayerWorker,
-						slowPollingRateMs: 5000,
-						fastPollingRateMs: 1500,
-						participantLimit: props.networkingBlock[0].attributes.participantLimit.value,
-					}
-				);
-				setupP2PCF(p2pcf);
-
-			}, 500);
-		});
-	}
-
-	if( isNetworkActivated ){
-		p2pcf.on("peerconnect", (peer) => {
-			if (stream) {
-				peer.addStream(stream);
-			}
-			peer.on("track", (track, stream) => {
-				const video = document.createElement("audio");
-				video.id = `${peer.id}-audio`;
-				video.srcObject = stream;
-				video.setAttribute("playsinline", true);
-				document.getElementById("videos").appendChild(video);
-				video.play();
-			});
-		});
-
-		p2pcf.on("peerclose", (peer) => {
-			console.log("Peer close", peer.id, peer);
-			removePeerUi(peer.id);
-		});
-
-		p2pcf.on("msg", (peer, data) => {
-			addMessage(
-				peer.id.substring(0, 5) +
-					": " +
-					new TextDecoder("utf-8").decode(data)
-			);
-		});
-		
-		useEffect(() => {
-			const go = () => {
-				// document.getElementById("session-id").innerText = "Room: " + p2pcf.roomId;
-
-				// document.getElementById('send-button').addEventListener('click', () => {
-				//     const box = document.getElementById('send-box');
-				//     addMessage(p2pcf.sessionId.substring(0, 5) + ': ' + box.value);
-				//     p2pcf.broadcast(new TextEncoder().encode(box.value));
-				//     box.value = '';
-				// })
-				const mainContainer = document.getElementById("networking");
-
-				// set container background to accent image
-				mainContainer.style.backgroundImage = `url(${cornerAccent})`;
-				mainContainer.style.backgroundSize = "cover";
-				mainContainer.style.display = "block";
-
-				const audioButton = document.getElementById("audio-button");
-				if(audioButton){
-					audioButton.addEventListener("click", async (button) => {
-						// request permissions for microphone devices then do audioDropdownContent
-						navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
-							AudioDropdownContent(button);
-						});
-					});
-				}
-
-				p2pcf.start({ playerVRM: userData.playerVRM ? userData.playerVRM : defaultAvatar });
-				addPeerUi();
-				addRoomUi();
-			};
-			const handleLoaded = (event) => {
-				go();
-				// Remove the event listener after handling the first 'loaded' event
-				window.removeEventListener("loaded", handleLoaded);
-			};
-			
-			window.addEventListener("loaded", handleLoaded);
-
-		}, []);
-	}
 
 	return <></>;
 };

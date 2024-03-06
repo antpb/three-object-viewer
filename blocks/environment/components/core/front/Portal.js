@@ -215,6 +215,7 @@ export function Portal(model) {
 				scale={[model.scaleX, model.scaleY, model.scaleZ]}
 			>
 				<group
+					userData={{ camExcludeCollision: true }}
 					name="portal"
 					rotation={[
 						model.rotationX,

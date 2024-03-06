@@ -4,6 +4,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Text, SpriteAnimator } from "@react-three/drei";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader';
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { VRMUtils, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import * as THREE from "three";
@@ -315,7 +316,7 @@ function Participant(participant) {
 	// ends with participant.playerVRM is png?
 	let isPng = participant.playerVRM.endsWith('.png');
 	const color = "#000000";
-	var colorValue = new Color( parseInt ( color.replace("#","0x"), 16 ) );
+	var colorValue = new THREE.Color( parseInt ( color.replace("#","0x"), 16 ) );
 
 	return (
 		<group userData={{ camExcludeCollision: true }}>

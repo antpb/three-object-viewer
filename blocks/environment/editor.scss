@@ -309,7 +309,9 @@ div:has(>.three-object-viewer-component-container,>.three-object-viewer-inner) {
 .wp-block-three-object-viewer-environment .block-editor-inner-blocks .block-editor-button-block-appender:hover {
 	background-color: #ccff4c;
 }
-
+.wp-block-three-object-viewer-environment .threeov-main-canvas {
+	outline: none !important;
+}
 
 .wp-block-three-object-viewer-environment:has(> .block-editor-inner-blocks) {
 	// display: flex !important;
@@ -480,19 +482,43 @@ div:has(>.three-object-viewer-component-container,>.three-object-viewer-inner) {
 .threeov-load-world-button {
 	background-color: #b7ff00;
 	border-radius: 20px;
-	padding: 5px 10px;
+	padding: 5px 20px !important;
 	border: 1px solid #98d400;
-	color: #fff;
+	color: #1a1a1a;
 	cursor: pointer;
 	margin-top: 20px;
 	color: #451a00;
 	font-weight: 600;
 	margin-right: 5px;
 	letter-spacing: .01em;
-	max-width: 120px;
-	text-transform: uppercase;
+	max-width: 140px;
 	box-shadow: 0px 0px 17px 9px rgb(15 0 0 / 57%);
 }
+
+.threeov-load-world-button-secondary {
+    background-color: #673AB7;
+    border: none;
+	border-radius: 20px;
+	padding: 5px 12px !important;
+	color: rgb(227, 198, 255) !important;
+	cursor: pointer;
+	margin-top: 20px;
+	color: #451a00;
+	font-weight: 600;
+	margin-right: 5px;
+	letter-spacing: .01em;
+	max-width: 140px;
+	font-size: 0.8em;
+	box-shadow: 0px 0px 17px 9px rgb(15 0 0 / 57%);
+}
+
+.threeov-load-world-button-secondary:hover {
+	background-color: #7e57c2 !important;
+	color: rgb(227, 198, 255) !important;
+	border: none !important;
+}
+
+
 
 .threeov-entry-flow button:hover {
 	background-color: #d1ff5b;
@@ -501,7 +527,7 @@ div:has(>.three-object-viewer-component-container,>.three-object-viewer-inner) {
 	// box-shadow: 0px 0px 5px 1px #7f7f7f5e;
 	box-shadow: 0px 0px 17px 9px rgb(15 0 0 / 57%);
 
-	color: white;
+	color: rgb(160, 88, 255);
 	cursor: pointer;
 	color: #451a00;
 	font-weight: 600;

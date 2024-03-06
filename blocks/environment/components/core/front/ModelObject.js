@@ -163,7 +163,7 @@ export function ModelObject(model) {
 		if (animationList) {
 			animationList.forEach((name) => {
 				if (Object.keys(actions).includes(name)) {
-					console.log(actions[name].play());
+					actions[name].play();
 				}
 			});
 		}

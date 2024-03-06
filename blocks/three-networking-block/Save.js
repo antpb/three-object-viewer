@@ -9,6 +9,7 @@ export default function save({ attributes }) {
 			{...blockProps}
 			participantLimit={attributes.participantLimit}
 			customAvatars={attributes.customAvatars ? '1' : '0'}
+			multiplayerAccess={attributes.multiplayerAccess}
 		/>
 	);
 }

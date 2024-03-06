@@ -174,6 +174,7 @@ useEffect(() => {
 		filter={items => items}
 		>
 		<group
+			userData={{ camExcludeCollision: true }}
 			name="video"
 			scale={[threeVideo.scaleX, threeVideo.scaleY, threeVideo.scaleZ]}
 			position={[

@@ -40,6 +40,9 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 	const onChangeParticipantLimit = (participantLimit) => {
 		setAttributes({ participantLimit });
 	};
+	const onChangeMultiplayerAccess = (multiplayerAccess) => {
+		setAttributes({ multiplayerAccess: multiplayerAccess });
+	};
 	const setCustomAvatars = (customAvatars) => {
 		setAttributes({ customAvatars: customAvatars });
 	};

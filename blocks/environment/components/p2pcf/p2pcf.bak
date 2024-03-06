@@ -7,7 +7,7 @@
 /* global crypto */
 
 import getBrowserRTC from "get-browser-rtc";
-import { EventEmitter } from 'events'
+import EventEmitter from "events";
 import Peer from "tiny-simple-peer";
 import {
 	encode as arrayBufferToBase64,
@@ -821,27 +821,27 @@ export default class P2PCF extends EventEmitter {
 	 */
 	async start(props) {
 		this.startedAtTimestamp = Date.now();
-		// const canStart = await this._getCurrentRoomCount(userData.currentPostId);
-		// if ( canStart ) {
-		// 	if( userData.heartbeatEnabled ) {
-		// 		// console.log("heartbeatEnabled", userData.heartbeatEnabled);
+		const canStart = await this._getCurrentRoomCount(userData.currentPostId);
+		if ( canStart ) {
+			if( userData.heartbeatEnabled ) {
+				// console.log("heartbeatEnabled", userData.heartbeatEnabled);
 
-		// 		const isInRoom = await this._pingIfInRoom();;
+				const isInRoom = await this._pingIfInRoom();;
 
-		// 		if (isInRoom.body === 'true') {
-		// 			// console.log("User is already in the room, cannot start. Send another beat.");
-		// 			this._sendHeartbeat();
-		// 		} else {
-		// 			// console.log("User is not in the room, starting initial heartbeat.");
-		// 			this._updateRoomCount("add");
-		// 			this._sendHeartbeat();
-		// 		}
-		// 		this.startHeartbeat();
-		// 	}
-		// } else {
-		// 	console.warn("Room is full, cannot start.", canStart);
-		// 	return;
-		// }
+				if (isInRoom.body === 'true') {
+					// console.log("User is already in the room, cannot start. Send another beat.");
+					this._sendHeartbeat();
+				} else {
+					// console.log("User is not in the room, starting initial heartbeat.");
+					this._updateRoomCount("add");
+					this._sendHeartbeat();
+				}
+				this.startHeartbeat();
+			}
+		} else {
+			console.warn("Room is full, cannot start.", canStart);
+			return;
+		}
 
 		await this._init();
 
@@ -1046,7 +1046,7 @@ export default class P2PCF extends EventEmitter {
 		}
 		// update the room count using the endpoint _updateRoomCountInDatabase
 		// this._updateRoomCount("subtract");
-		// this.stopHeartbeat();
+		this.stopHeartbeat();
 	}
 
 	/**
@@ -1237,83 +1237,83 @@ export default class P2PCF extends EventEmitter {
 		.catch(error => console.error('Error sending heartbeat:', error));
 	}
 
-	// _sendHeartbeat() {
-	// 	const postId = userData.currentPostId;
-	// 	const apiUrl = `/wp-json/threeov/v1/send-heartbeat/${postId}`;
+	_sendHeartbeat() {
+		const postId = userData.currentPostId;
+		const apiUrl = `/wp-json/threeov/v1/send-heartbeat/${postId}`;
 	
-	// 	fetch(apiUrl, {
-	// 		method: 'POST',
-	// 		headers: {
-	// 			'Content-Type': 'application/json',
-	// 			'X-WP-Nonce': userData.nonce,
-	// 		},
-	// 		body: JSON.stringify({ displayName: p2pcf.clientId  })
-	// 	})
-	// 	.then(response => response.json())
-	// 	.then(data => console.log('Heartbeat sent:', data))
-	// 	.catch(error => console.error('Error sending heartbeat:', error));
-	// }
+		fetch(apiUrl, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-WP-Nonce': userData.nonce,
+			},
+			body: JSON.stringify({ displayName: p2pcf.clientId  })
+		})
+		.then(response => response.json())
+		.then(data => console.log('Heartbeat sent:', data))
+		.catch(error => console.error('Error sending heartbeat:', error));
+	}
 	
 	// Start sending heartbeats at regular intervals
-	// startHeartbeat() {
-	// 	this.heartbeatInterval = setInterval(() => this._sendHeartbeat(), 30000); // send every 30 seconds
-	// }
+	startHeartbeat() {
+		this.heartbeatInterval = setInterval(() => this._sendHeartbeat(), 30000); // send every 30 seconds
+	}
 
 	// Stop sending heartbeats
-	// stopHeartbeat() {
-	// 	clearInterval(this.heartbeatInterval);
-	// }
+	stopHeartbeat() {
+		clearInterval(this.heartbeatInterval);
+	}
 
 	// Function to get the current room count
-	// _getCurrentRoomCount(postId) {
-	// 	const apiUrl = `/wp-json/threeov/v1/get-room-count/${postId}`;
-	// 	return fetch(apiUrl, {
-	// 		method: 'GET',
-	// 		headers: {
-	// 			'Content-Type': 'application/json',
-	// 			'X-WP-Nonce': userData.nonce,
-	// 		}
-	// 	})
-	// 	.then(response => {
-	// 		if (!response.ok) {
-	// 			throw new Error('Network response was not ok');
-	// 		}
-	// 		// if the response from the get-room-count endpoint isnt true then the room is full
-	// 		return response.json();
-	// 	})
-	// 	.catch(error => {
-	// 		console.error('Error fetching room count:', error);
-	// 		throw error;
-	// 	});
-	// }
+	_getCurrentRoomCount(postId) {
+		const apiUrl = `/wp-json/threeov/v1/get-room-count/${postId}`;
+		return fetch(apiUrl, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-WP-Nonce': userData.nonce,
+			}
+		})
+		.then(response => {
+			if (!response.ok) {
+				throw new Error('Network response was not ok');
+			}
+			// if the response from the get-room-count endpoint isnt true then the room is full
+			return response.json();
+		})
+		.catch(error => {
+			console.error('Error fetching room count:', error);
+			throw error;
+		});
+	}
 
-	// _updateRoomCount(action) {
-	// 	const postId = userData.currentPostId;
-	// 	let actionNonce = '';
-	// 	let apiUrl = '';
-	// 	if(action === "add") {
-	// 		actionNonce = userData.addNonce;
-	// 		apiUrl = `/wp-json/threeov/v1/add-room-count/${postId}`;
-	// 	} else if(action === "subtract") {
-	// 		actionNonce = userData.subtractNonce;
-	// 		apiUrl = `/wp-json/threeov/v1/subtract-room-count/${postId}`;
-	// 	}
-	// 	const data = { action: action, actionNonce: actionNonce, clientId: p2pcf.clientId};
+	_updateRoomCount(action) {
+		const postId = userData.currentPostId;
+		let actionNonce = '';
+		let apiUrl = '';
+		if(action === "add") {
+			actionNonce = userData.addNonce;
+			apiUrl = `/wp-json/threeov/v1/add-room-count/${postId}`;
+		} else if(action === "subtract") {
+			actionNonce = userData.subtractNonce;
+			apiUrl = `/wp-json/threeov/v1/subtract-room-count/${postId}`;
+		}
+		const data = { action: action, actionNonce: actionNonce, clientId: p2pcf.clientId};
 
-	// 	fetch(apiUrl, {
-	// 		method: 'POST',
-	// 		headers: {
-	// 			'Content-Type': 'application/json',
-	// 			'X-WP-Nonce': userData.nonce,
-	// 		},
-	// 		body: JSON.stringify(data)
-	// 	})
-	// 	.then(response => response.json())
-	// 	.then(data => console.log('Room count updated:', data))
-	// 	.catch((error) => {
-	// 		console.error('Error updating room count:', error);
-	// 	});
-	// }
+		fetch(apiUrl, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-WP-Nonce': userData.nonce,
+			},
+			body: JSON.stringify(data)
+		})
+		.then(response => response.json())
+		.then(data => console.log('Room count updated:', data))
+		.catch((error) => {
+			console.error('Error updating room count:', error);
+		});
+	}
 
 	// // Function to update room count in database via WordPress REST API
 	// _updateRoomCountInDatabase(roomCount) {
@@ -1341,9 +1341,8 @@ export default class P2PCF extends EventEmitter {
 			// console.log(p2pcf.peers.size, "peers connected", p2pcf.peers);
 			let roomCount = p2pcf.peers.size;
 			var limit = parseInt(participantLimit);
-			console.log("roomCount", roomCount, "limit", limit);
 			if( roomCount < limit ) {
-				console.log("clean room entry", p2pcf);
+				// console.log("clean room entry", p2pcf);
 				this.emit("peerconnect", peer);
 				// after connecting, send the player data to participant
 				const playerData = { playerVRM: this.playerVRM, inWorldName: userData.inWorldName, profileImage: userData.profileImage};

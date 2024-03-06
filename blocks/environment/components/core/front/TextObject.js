@@ -17,6 +17,7 @@ export function TextObject(model) {
 	return (
 		<>
 			<group
+				userData={{ camExcludeCollision: true }}
 				position={[model.positionX, model.positionY, model.positionZ]}
 				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
 				scale={[model.scaleX, model.scaleY, model.scaleZ]}

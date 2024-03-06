@@ -3,6 +3,7 @@ import { TextureLoader } from "three/src/loaders/TextureLoader";
 import { useFrame, useLoader, useThree, Interactive } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader';
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { OrbitControls, SpriteAnimator, KeyboardControls } from '@react-three/drei';
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
@@ -669,6 +670,7 @@ export default function Player(props) {
 
 						const message = JSON.stringify(messageObject);
 						if (now - lastNetworkUpdateTime > updateRate) {
+
 							window.p2pcf.broadcast(new TextEncoder().encode(message)), window.p2pcf;
 							lastNetworkUpdateTime = now;
 						}
@@ -781,6 +783,7 @@ export default function Player(props) {
 
 							const message = JSON.stringify(messageObject);
 							if (now - lastNetworkUpdateTime > updateRate) {
+
 								window.p2pcf.broadcast(new TextEncoder().encode(message)), window.p2pcf;
 								lastNetworkUpdateTime = now;
 							}
@@ -858,9 +861,14 @@ export default function Player(props) {
 				{ name: "action4", keys: ["KeyF"] },
 			];
 
+			const canvas = document.querySelector('div.threeov-main-canvas');
+
 			return (
 				<>
-				<KeyboardControls map={keyboardMap}>
+				<KeyboardControls
+					map={keyboardMap}
+					domElement={canvas}
+				>
 					<Ecctrl
 						ref={characterRef}
 						position={[Number(props.spawnPoint[0]), Number(props.spawnPoint[1]), Number(props.spawnPoint[2])]}

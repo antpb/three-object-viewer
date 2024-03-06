@@ -175,7 +175,7 @@ export default function App({ getSettings, updateSettings }) {
 					<td><h3>{__('Networking Settings', 'three-object-viewer' ) }</h3></td>
 				</tr>
 				<tr>
-					<td>
+				<td>
 						<label htmlFor="multiplayerWorker">{ __( 'Networking Endpoint URL', 'three-object-viewer' ) }</label>
 						<input
 							id="multiplayerWorker"
@@ -188,7 +188,80 @@ export default function App({ getSettings, updateSettings }) {
 								setSettings({ ...settings, multiplayerWorker: event.target.value });
 							}}
 						/>
-						<p>Use <b>https://p2pcf.sxpdigital.workers.dev/</b> or host your own CloudFlare Worker using <a href="https://github.com/gfodor/p2pcf" target="_blank">p2pcf</a>. A tutorial for setting up your own worker can be found <a href="https://github.com/gfodor/p2pcf/blob/master/INSTALL.md" target="_blank">here</a>.</p>
+						<p>Use <b>https://p2pcf.sxp.digital/</b> or host your own CloudFlare Worker using <a href="https://github.com/gfodor/p2pcf" target="_blank">p2pcf</a>. A tutorial for setting up your own worker can be found <a href="https://github.com/gfodor/p2pcf/blob/master/INSTALL.md" target="_blank">here</a>.</p>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<h4><label htmlFor="turnCredentialRelay">{ __( 'TURN Settings', 'three-object-viewer' ) }</label></h4>
+						<p>These settings are used to configure the TURN server for WebRTC connections. You can use the public TURN server or host your own. The public TURN server is hosted at <b>turn.sxp.digital</b> but is limited.</p>
+						<p>A TURN server is used to relay WebRTC connections when a direct connection cannot be established. This is common when two peers are behind different NATs or firewalls.</p>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<tr>
+							<td>
+								<label htmlFor="turnCredentialRelay">{ __( 'TURN Credential Relay', 'three-object-viewer' ) }</label>
+							</td>
+						</tr>
+						<tr>
+							<input
+								id="turnCredentialRelay"
+								type="text"
+								label="TURN Credential Relay"
+								name="turnCredentialRelay"
+								autoComplete="off"
+								value={settings.turnCredentialRelay}
+								onChange={(event) => {
+									setSettings({ ...settings, turnCredentialRelay: event.target.value });
+								}}
+							/>
+							<p>A CloudFlare Worker is used to relay TURN credentials. You can use the public worker at <b>https://turn.sxp.digital/</b> or host your own.</p>
+							<p>The public worker is resource limited and should only be used to test. You can bypass these limits using your API key below or by hosting your own CloudFlare Worker to run the exact same credential handling. A tutorial for setting up your own worker can be found <a href="https://github.com/gfodor/p2pcf/blob/master/INSTALL.md" target="_blank">here</a>.</p>
+						</tr>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<tr>
+							<td>
+								<label htmlFor="turnServerKey">{ __( 'Turn API Key', 'three-object-viewer' ) }</label>
+							</td>
+						</tr>
+						<tr>
+							<input
+								id="turnServerKey"
+								type="password"
+								label="Turn Server Password"
+								name="turnServerKey"
+								autoComplete="off"
+								value={settings.turnServerKey}
+								onChange={(event) => {
+									setSettings({ ...settings, turnServerKey: event.target.value });
+								}}
+							/>
+							<p>This secret key will bypass limitations of the 3OV public turn worker. You can use metered.ca to establish a secret key. More info can be found here: <a href="https://www.metered.ca/docs/turnserver-guides/expiring-turn-credentials/#step-1-obtain-your-metered-domain-and-secret-key">https://www.metered.ca/docs/turnserver-guides/expiring-turn-credentials/#step-1-obtain-your-metered-domain-and-secret-key</a></p>
+						</tr>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<tr>
+							<select
+								id="multiplayerAccess"
+								name="Multiplayer Access"
+								label="Multiplayer TURN Access"
+								value={settings.multiplayerAccess}
+								defaultValue={'loggedIn'}
+								onChange={(event) => {
+									setSettings({ ...settings, multiplayerAccess: event.target.value });
+								}}
+							>
+								<option value="loggedIn">{ __( 'TURN for Logged In Only', 'three-object-viewer' ) }</option>
+								<option value="public">{ __( 'TURN allowed for Public', 'three-object-viewer' ) }</option>
+							</select>
+						</tr>
 					</td>
 				</tr>
 				<tr>
