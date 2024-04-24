@@ -220,9 +220,8 @@ export default class P2PCF extends EventEmitter {
 		this.peerProprietaryConstraints =
 			options.rtcPeerConnectionProprietaryConstraints || {};
 		this.peerSdpTransform = options.sdpTransform || ((sdp) => sdp);
-
 		this.workerUrl =
-			options.workerUrl || "https://p2pcf.sxp.digital";
+			options.workerUrl[0] || "https://p2pcf.sxp.digital";
 
 		if (this.workerUrl.endsWith("/")) {
 			this.workerUrl = this.workerUrl.substring(

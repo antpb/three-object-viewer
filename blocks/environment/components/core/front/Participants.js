@@ -403,13 +403,13 @@ export function Participants(props) {
 		if(window.p2pcf){
 			window.p2pcf.on("msg", (peer, data) => {
 				if(!(peer.id in window.participants)){
-					console.log("peer id not here!", peer.id);
 					return;
 				}
+
 				const finalData = new TextDecoder("utf-8").decode(data);
 				const participantData = JSON.parse(finalData);
 				const participantObject = theScene.scene.getObjectByName(peer.client_id);
-	
+
 				if (animationsRef.current[peer.client_id]) {
 					const walkAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][1]);
 					const idleAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][0]);
@@ -469,7 +469,7 @@ export function Participants(props) {
 				}
 			});
 		}
-	}, []);	
+	}, [window.p2pcf]);	
 
 	useEffect(() => {
 		const p2pcf = window.p2pcf;
@@ -489,7 +489,7 @@ export function Participants(props) {
 				removeParticipant(peer.client_id);
 			});
 		}
-	}, [removeParticipant, theScene.scene]); // Add removeParticipant and theScene.scene as dependencies
+	}, [removeParticipant, theScene.scene, window.p2pcf]); // Add removeParticipant and theScene.scene as dependencies
 	
 	useEffect(() => {
 		const p2pcf = window.p2pcf;
@@ -509,7 +509,7 @@ export function Participants(props) {
 				}
 				});
 		}
-	}, [addParticipant]); // Add addParticipant as a dependency
+	}, [window.p2pcf]); // Add addParticipant as a dependency
 	
 	return (
 		<>

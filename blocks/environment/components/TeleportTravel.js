@@ -6,58 +6,6 @@ import { useRapier, useRigidBody, RigidBody } from "@react-three/rapier";
 import {
 	Text,
 } from "@react-three/drei";
-import { BLUE } from "@wordpress/components/build/utils/colors-values";
-
-export function indexAndThumbColliders() {
-	const { world, rapier } = useRapier();
-
-	// const indexLeftRigidBody = world.createRigidBody(
-	// 	new rapier.RigidBodyDesc(rapier.RigidBodyType.Kinematic)
-	// );
-	// indexLeftRigidBody.name = "index_click_left";
-	// const thumbLeftRigidBody = world.createRigidBody(
-	// 	new rapier.RigidBodyDesc(rapier.RigidBodyType.Kinematic)
-	// );
-	// thumbLeftRigidBody.name = "thumb_click_left";
-
-	const indexRightRigidBody = world.createRigidBody(
-		new rapier.RigidBodyDesc(rapier.RigidBodyType.Kinematic)
-	);
-	indexRightRigidBody.name = "index_click_right";
-	const thumbRightRigidBody = world.createRigidBody(
-		new rapier.RigidBodyDesc(rapier.RigidBodyType.Kinematic)
-	);
-	thumbRightRigidBody.name = "thumb_click_right";
-
-	// add the colliders to the world
-	// const indexLeftCollider = world.createCollider(
-	// 	rapier.ColliderDesc.cuboid(0.05, 0.05, 0.05),
-	// 	indexLeftRigidBody
-	// );
-	// const thumbLeftCollider = world.createCollider(
-	// 	rapier.ColliderDesc.cuboid(0.05, 0.05, 0.05),
-	// 	thumbLeftRigidBody
-	// );
-	const indexRightCollider = world.createCollider(
-		rapier.ColliderDesc.cuboid(0.05, 0.05, 0.05),
-		indexRightRigidBody
-	);
-	const thumbRightCollider = world.createCollider(
-		rapier.ColliderDesc.cuboid(0.05, 0.05, 0.05),
-		thumbRightRigidBody
-	);
-
-	const {controllers} = useXR();
-	// use the controllers object to find the index and thumb positions and rotations and update the colliders to match
-	// const thumbLeft = controllers[0].inputSource.gamepad.buttons[0];
-	// const indexLeft = controllers[0].inputSource.gamepad.buttons[1];
-	// add them to the respective thumb and index locations of the controllers as children
-	// controllers[0].add(indexLeftRigidBody);
-	// controllers[0].add(thumbLeftRigidBody);
-	controllers[1].add(indexRightRigidBody);
-	controllers[1].add(thumbRightRigidBody);
-	// return [indexLeftCollider, thumbLeftCollider, indexRightCollider, thumbRightCollider];
-}
 
 export function TeleportIndicator(props) {
 
@@ -134,11 +82,11 @@ function Menu() {
 	// }, [player]);
 
 
-	useFrame(() => {
-		if (menuRef.current) {
+	// useFrame(() => {
+	// 	if (menuRef.current) {
 
-		}
-	});
+	// 	}
+	// });
 
 	return (
 		<group ref={menuRef} visible={false}>
@@ -164,12 +112,7 @@ function Menu() {
 
 
 export default function TeleportTravel(props) {
-
-	const doubleClickThreshold = 1000;
-	const clickTimeoutRef = useRef(null);
-	const pinchThreshold = 0.01;
-	const controllerStateRef = useRef(new Map());
-	const { scene, camera } = useThree();
+	const { scene } = useThree();
 	const {
 		centerOnTeleport,
 		Indicator = TeleportIndicator,
@@ -179,110 +122,34 @@ export default function TeleportTravel(props) {
 	const [isHovered, setIsHovered] = useState(false);
 	const [canTeleport, setCanTeleport] = useState(true);
 	const [canInteract, setCanInteract] = useState(false);
-	const [currentPosition, setCurrentPosition] = useState(new Vector3());
 	const [spawnPos, setSpawnPos] = useState(props.spawnPoint);
-	const { controllers, player, isPresenting } = useXR();
+	const [intersectionPoint, setIntersectionPoint] = useState();
+	const [currentPosition, setCurrentPosition] = useState(new Vector3());
 
 	const target = useRef();
 	const targetLoc = useRef();
 	const ray = useRef(new Raycaster());
 	const { world, rapier } = useRapier();
-	let controllersFound = false;
-	useEffect(() => {
-		controllers.forEach((controller) => {
-			// if this is the left hand ignore
-			if (controller.inputSource.handedness === "right") {
-				const { hand } = controller;
-				if(hand){
-					const thumbTip = hand.joints['thumb-tip'];
-					const indexTip = hand.joints['index-finger-tip'];
-					if( thumbTip && indexTip ){
-						// Visual indicators for thumb and index tips
-						indexTip.add(new Mesh(new BoxGeometry(0.0081, 0.0081, 0.0081), new MeshBasicMaterial({ color: 0x0000ff })));
-						thumbTip.add(new Mesh(new BoxGeometry(0.0081, 0.0081, 0.008), new MeshBasicMaterial({ color: 0x0000ff })));
-					}
-				}
-			}
-	
-		});
-	}, [controllers, world, rapier]);
-	
-	useFrame(() => {
-		controllers.forEach((controller, index) => {
-			if (controller.inputSource.handedness === "right") {
-				let state = controllerStateRef.current.get(controller) || { isPinching: false, timer: null };
-			
-				const { hand } = controller;
-				if (hand) {
-					const thumbTip = hand.joints['thumb-tip'];
-					const indexTip = hand.joints['index-finger-tip'];
-					if (thumbTip && indexTip) {
-						const thumbPos = new Vector3();
-						const indexPos = new Vector3();
-						thumbTip.getWorldPosition(thumbPos);
-						indexTip.getWorldPosition(indexPos);
-						const distance = thumbPos.distanceTo(indexPos);
-				
-						if (distance < pinchThreshold && !state.isPinching) {
-							state.isPinching = true;
-							controllerStateRef.current.set(controller, state);
-						} else if (distance >= pinchThreshold && state.isPinching) {
-							state.isPinching = false;
-							const now = Date.now();
-							if (state.lastPinchTime && (now - state.lastPinchTime) < doubleClickThreshold) {
-							// Double pinch detected
-							click();
-							}
-							state.lastPinchTime = now;
-							controllerStateRef.current.set(controller, state);
-				
-							// Reset pinch count after a delay to avoid false double pinch detection
-							clearTimeout(clickTimeoutRef.current);
-							clickTimeoutRef.current = setTimeout(() => {
-							state.lastPinchTime = null;
-							controllerStateRef.current.set(controller, state);
-							}, doubleClickThreshold);
-						} else if (state.timer) {
-							// Clean up if the hand is no longer present
-							clearTimeout(state.timer);
-							state.timer = null;
-							controllerStateRef.current.set(controller, state);
-						}
-					}
-				}
-			}
-		});
-	  });
-	
-	  // Cleanup to prevent memory leaks
-	  useEffect(() => {
-		return () => {
-		  controllerStateRef.current.forEach((state) => {
-			if (state.timer) {
-			  clearTimeout(state.timer);
-			}
-		  });
-		};
-	  }, []);
-				
+
 	const rayDir = useRef({
 		pos: new Vector3(),
 		dir: new Vector3()
 	});
 
+	const { controllers, player, isPresenting } = useXR();
 
 	useEffect(() => {
 		const x = Number(spawnPos[0]);
 		const y = Number(spawnPos[1]) + 0.1;
 		const z = Number(spawnPos[2]);
 
-		if (isPresenting) {
-			player.position.x = 0
-			player.position.y = 0
-			player.position.z = 0
-		}
+	if (isPresenting) {
+		player.position.x = x
+		player.position.y = y
+		player.position.z = z
+	}
 	}, [isPresenting])
-	
+
 
 	// Set a variable finding an object in the three.js scene that is named reticle.
 	useEffect(() => {
@@ -298,20 +165,19 @@ export default function TeleportTravel(props) {
 	}, [controllers]);
 	const movementTimeoutRef = useRef(null);
 	const teleport = useTeleportation();
-	const rightController = useController('right')
+	let dominantController = useController('right');
+	// const rightController = useController('right')
 
 	useFrame(() => {
 		if (
 			isHovered &&
-			controllers?.length > 0 &&
+			controllers.length > 0 &&
 			ray.current &&
 			target.current &&
-			targetLoc.current &&
-			rightController?.controller
+			targetLoc.current
 		) {
-			// get the right hand controller
-			rightController.controller.getWorldDirection(rayDir.current.dir);
-			rightController.controller.getWorldPosition(rayDir.current.pos);
+			dominantController.controller.getWorldDirection(rayDir.current.dir);
+			dominantController.controller.getWorldPosition(rayDir.current.pos);
 			// ray.far = 0.05;
 			// ray.near = 0.01;
 			rayDir.current.dir.multiplyScalar(-1);
@@ -324,6 +190,7 @@ export default function TeleportTravel(props) {
 				intersection.distance < 100 &&
 				intersection.distance > .5
 			) {
+				console.log("dominantController", dominantController);
 				const intersectionObject = intersection.object;
 				let containsInteractiveObject = false;
 				intersectionObject.traverseAncestors((parent) => {
@@ -344,8 +211,18 @@ export default function TeleportTravel(props) {
 				}
 				if (useNormal) {
 					const p = intersection.point;
-					targetLoc.current.position.copy(p);
-					
+					setIntersectionPoint(p);
+					// targetLoc.current.position.set(0, 0, 0);
+
+					// const n = intersection.face.normal.clone();
+					// n.transformDirection(intersection.object.matrixWorld);
+
+					// targetLoc.current.lookAt(n);
+					// targetLoc.current.rotateOnAxis(
+					// 	new Vector3(1, 0, 0),
+					// 	Math.PI / 2
+					// );
+					targetLoc.current.position.copy(p);					
 				} else {
 					targetLoc.current.position.copy(intersection.point);
 				}
@@ -471,7 +348,10 @@ export default function TeleportTravel(props) {
 			)}
 			<Menu/>
 			<Interactive
-				onSelect={click}
+				onSelect={(e) => {
+					
+					click();
+				}}
 				onHover={(e) => {
 					setIsHovered(true);
 				}}

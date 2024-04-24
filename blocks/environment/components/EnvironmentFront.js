@@ -688,6 +688,7 @@ export default function EnvironmentFront(props) {
 					<Canvas
 						ref={r3fCanvasRef}
 						tabindex={0}
+						shadows
 						resize={{ scroll: false, debounce: { scroll: 50, resize: 0 } }}
 						camera={{
 							fov: 70,
@@ -2298,7 +2299,16 @@ export default function EnvironmentFront(props) {
 								{( props.networkingBlock[0].attributes.customAvatars && props.networkingBlock[0].attributes.customAvatars.value === "1" ) && (
 									<div>
 										<span>VRM or Sprite URL</span>
-										<input type="text" value={playerAvatar} onChange={(e) => setPlayerAvatar(e.target.value)} />
+										<input 
+											type="text"
+											// when something is dragged on this, clear the value and take the new one
+											onDrop={(e) => {
+												e.preventDefault();
+												setPlayerAvatar(e.dataTransfer.getData('text'));
+											}}
+											value={playerAvatar}
+											onChange={(e) => setPlayerAvatar(e.target.value)}
+										/>
 									</div>
 								)}
 								<button

@@ -32,11 +32,145 @@ class Plugin
 
 		// add_action( 'init', array( $this, 'register_room_count_post_meta' ) );
 		// Block Category
-		add_filter( 'block_categories_all', array( $this, 'add_spatial_block_category'), 10, 2 );	
+		add_filter( 'block_categories_all', array( $this, 'add_spatial_block_category'), 10, 2 );
+		add_action('admin_enqueue_scripts', array( $this, 'threeov_assets_tab_assets' ) );
+		add_action('admin_footer', array($this,'custom_media_tab_template'));
+		add_action('rest_api_init', array($this, 'register_toybox_assets_endpoint'));
+		add_action('rest_api_init', array($this, 'register_toybox_categories_endpoint'));
 
-		
 	}
 
+	// Callback function for the REST API endpoint
+	function get_toybox_assets($request) {
+		if (!$this->check_user_permissions($request)) {
+			return new \WP_Error('toybox_api_error', 'Sorry, you are not allowed to do that.', array('status' => 403));
+		}
+
+		$api_key = get_option('3ov_toyboxApiKey');
+		$limit = $request->get_param('limit');
+		$offset = $request->get_param('offset');
+		$search = $request->get_param('search');
+		$categories = $request->get_param('categories');
+
+		$url = "https://cfdb.sxpdigital.workers.dev/assets-by-key?limit={$limit}&offset={$offset}&search={$search}&categories={$categories}";
+
+		$args = array(
+			'headers'     => array(
+				'Content-Type' => 'application/json',
+				'Authorization' => 'Bearer ' . $api_key,
+			),
+		); 
+		
+		$response = wp_remote_request($url, $args);
+
+		if (is_wp_error($response)) {
+			return new \WP_Error('toybox_api_error', 'Error retrieving assets from Toybox API', array('status' => 500));
+		}
+
+		$body = wp_remote_retrieve_body($response);
+		$data = json_decode($body, true);
+
+		// // make a new nonce to send back to the client
+		// $data['nonce'] = wp_create_nonce('wp_rest');
+
+		return new \WP_REST_Response($data, 200);
+	}
+
+	function get_toybox_categories($request) {
+		if (!$this->check_user_permissions($request)) {
+			return new \WP_Error('toybox_api_error', 'Sorry, you are not allowed to do that.', array('status' => 403));
+		}
+	
+		$api_key = get_option('3ov_toyboxApiKey');
+	
+		$url = "https://cfdb.sxpdigital.workers.dev/categories-by-key";
+	
+		$args = array(
+			'headers' => array(
+				'Content-Type' => 'application/json',
+				'Authorization' => 'Bearer ' . $api_key,
+			),
+		);
+	
+		$response = wp_remote_request($url, $args);
+	
+		if (is_wp_error($response)) {
+			return new \WP_Error('toybox_api_error', 'Error retrieving categories from Toybox API', array('status' => 500));
+		}
+	
+		$body = wp_remote_retrieve_body($response);
+		$data = json_decode($body, true);
+	
+		return new \WP_REST_Response($data, 200);
+	}
+	
+	// Check user permissions using nonce verification
+	function check_user_permissions($request) {
+		$nonce = $request->get_header('X-WP-Nonce');
+		if (!wp_verify_nonce($nonce, 'wp_rest')) {
+			return false;
+		}
+		return current_user_can('edit_posts');
+	}
+
+	function register_toybox_assets_endpoint() {
+		register_rest_route('toybox/v1', '/assets', array(
+			'methods' => 'GET',
+			'callback' => array($this, 'get_toybox_assets'),
+			'permission_callback' => array($this, 'check_user_permissions'),
+		));
+	}
+
+	function register_toybox_categories_endpoint() {
+		register_rest_route('toybox/v1', '/categories', array(
+			'methods' => 'GET',
+			'callback' => array($this, 'get_toybox_categories'),
+			'permission_callback' => array($this, 'check_user_permissions'),
+		));
+	}
+	
+	function custom_media_tab_template() {
+		?>
+		<script type="text/html" id="tmpl-custom-media-tab">
+			<div class="custom-media-tab-content">
+				<div class="search-container">
+					<form class="search-form">
+						<input type="text" class="search-input" placeholder="Search assets...">
+						<button type="submit" class="button button-primary search-submit">Search</button>
+						<button type="button" class="button button-secondary clear-search">Clear</button>
+					</form>
+				</div>
+				<div class="category-filters">
+					<!-- Category filter buttons will be rendered here -->
+				</div>
+				<ul class="asset-list" style="display: grid; grid-template-columns: repeat(auto-fill, 150px); gap: 10px;"></ul>
+				<button class="button button-primary assets-load-more">Load More</button>
+			</div>
+		</script>
+	
+		<script type="text/html" id="tmpl-asset-template">
+			<div class="asset-details" style="width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+				<img src="{{ model.attributes.thumburl }}" alt="{{ model.attributes.filename }}" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
+			</div>
+		</script>
+		<?php
+	}
+	
+	function threeov_assets_tab_assets($hook) {
+		// Only enqueue the script on post edit screens
+		if ('post.php' !== $hook && 'post-new.php' !== $hook) {
+			return;
+		}
+		wp_enqueue_script('wp-element');
+		wp_enqueue_script('threeov-assets-tab', plugin_dir_url(__FILE__) . '../inc/utils/media-modal/media-modal.js', array('jquery', 'media-views', 'wp-element'), '1.0', true);
+		wp_localize_script('threeov-assets-tab', 'threeovAssetsTab', array(
+			'toybox_nonce' => wp_create_nonce('wp_rest'),
+		));		
+		// Enqueue the CSS file
+		wp_enqueue_style('threeov-assets-tab-css', plugin_dir_url(__FILE__) . '../inc/utils/media-modal/media-modal.css', array(), '1.0');
+
+	}
+	
 	function register_turn_credential_endpoint() {
 		register_rest_route('threeov/v1', '/turn-credentials/', array(
 			'methods' => \WP_REST_Server::READABLE,
@@ -660,6 +794,7 @@ class Plugin
 		$inWorldName = "Guest";
 		// get the current postID
 		global $post;
+		// get the current post
 		$currentPostId = $post->ID;
 		
 		if ( is_user_logged_in() && get_option('3ov_ai_allow') === "loggedIn" ) {
@@ -775,19 +910,19 @@ class Plugin
 
 				wp_register_script( 'versepress-frontend', plugin_dir_url( __FILE__ ) . $frontend_js, ['wp-element', 'wp-data', 'wp-hooks'], $script_version, true );
 				wp_localize_script( 'versepress-frontend', 'userData', $user_data_passed );
-				wp_localize_script( 'versepress-frontend', 'postSlug', $post_slug );
-				wp_localize_script( 'versepress-frontend', 'openbrushDirectory', $three_icosa_brushes_url );
-				wp_localize_script( 'versepress-frontend', 'openbrushEnabled', $openbrush_enabled );
-				wp_localize_script( 'versepress-frontend', 'threeObjectPlugin', $three_object_plugin );
-				wp_localize_script( 'versepress-frontend', 'threeObjectPluginRoot', $three_object_plugin_root );	
-				wp_localize_script( 'versepress-frontend', 'defaultAvatarAnimation', $default_animation );
-				wp_localize_script( 'versepress-frontend', 'defaultAvatar', $default_avatar );
+				wp_localize_script( 'versepress-frontend', 'postSlug', (array) $post_slug );
+				wp_localize_script( 'versepress-frontend', 'openbrushDirectory', (array) $three_icosa_brushes_url );
+				wp_localize_script( 'versepress-frontend', 'openbrushEnabled', (array) $openbrush_enabled );
+				wp_localize_script( 'versepress-frontend', 'threeObjectPlugin', (array) $three_object_plugin );
+				wp_localize_script( 'versepress-frontend', 'threeObjectPluginRoot', (array) $three_object_plugin_root );	
+				wp_localize_script( 'versepress-frontend', 'defaultAvatarAnimation', (array) $default_animation );
+				wp_localize_script( 'versepress-frontend', 'defaultAvatar', (array) $default_avatar );
 				wp_localize_script('versepress-frontend', 'turnCredentials', array(
 					'apiUrl' => rest_url('threeov/v1/turn-credentials/'),
 					'nonce' => wp_create_nonce('wp_rest'),
 				));			
-				wp_localize_script( 'versepress-frontend', 'defaultPlayerAvatar', $default_avatar );	
-				wp_localize_script( 'versepress-frontend', 'multiplayerWorker', $multiplayer_worker_url );
+				wp_localize_script( 'versepress-frontend', 'defaultPlayerAvatar', (array) $default_avatar );	
+				wp_localize_script( 'versepress-frontend', 'multiplayerWorker', (array) $multiplayer_worker_url );
 				// wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatarAnimation', $default_animation );	
 				// wp_localize_script( 'threeobjectloader-frontend', 'defaultAvatar', $default_avatar );	
 				wp_enqueue_script( 
@@ -1002,12 +1137,12 @@ class Plugin
 		$ALLOWED_BLOCKS = apply_filters( 'three-object-environment-inner-allowed-blocks', $DEFAULT_BLOCKS );
 
 		$default_avatar = get_option('3ov_defaultAvatar');
-		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'defaultAvatar', $default_avatar );	
-		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'userData', $user_data_passed );
+		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'defaultAvatar', (array) $default_avatar );	
+		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'userData', (array) $user_data_passed );
 		// @todo find out if this is really needed
 		// wp_enqueue_script( 'three-object-viewer-three-object-block-editor-script', 'three-object-viewer', ['wp-element', 'wp-data', 'wp-i18n', 'wp-hooks'], '', true );
-		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'threeObjectPlugin', $three_object_plugin );	
-		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'threeObjectPluginRoot', $three_object_plugin_root );	
+		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'threeObjectPlugin', (array) $three_object_plugin );	
+		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'threeObjectPluginRoot', (array) $three_object_plugin_root );	
 		wp_localize_script( 'three-object-viewer-three-object-block-editor-script', 'allowed_blocks', $ALLOWED_BLOCKS );		
 	}
 }

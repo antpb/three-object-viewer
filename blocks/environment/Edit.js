@@ -8,6 +8,9 @@ import {
 	MediaUpload,
 	InnerBlocks
 } from "@wordpress/block-editor";
+import { useDispatch } from '@wordpress/data';
+import { createBlock } from '@wordpress/blocks';
+
 import {
 	Panel,
 	PanelBody,
@@ -24,7 +27,7 @@ import defaultEnvironment from "../../inc/assets/default_grid.glb";
 import ThreeObjectEdit from "./components/ThreeObjectEdit";
 import { EditorPluginProvider, useEditorPlugins, EditorPluginContext } from './components/EditorPluginProvider';  // Import the PluginProvider
 
-export default function Edit({ attributes, setAttributes, isSelected }) {
+export default function Edit({ attributes, setAttributes, isSelected, clientId }) {
 	const ALLOWED_BLOCKS = allowed_blocks;
 	const [focusPosition, setFocusPosition] = useState(new THREE.Vector3());
 	const [focusPoint, setFocus] = useState(new THREE.Vector3());
@@ -121,6 +124,83 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 			</div>
 		);
 	};
+    // "name": "three-object-viewer/model-block",
+    // "attributes": {
+    //     "scaleX": {
+    //         "type": "int",
+    //         "default":1
+    //     },
+    //     "name": {
+    //         "type": "string"
+    //     },
+    //     "scaleY": {
+    //         "type": "int",
+    //         "default":1
+    //     },
+    //     "scaleZ": {
+    //         "type": "int",
+    //         "default":1
+    //     },
+    //     "positionX": {
+    //         "type": "int",
+    //         "default":0
+    //     },
+    //     "positionY": {
+    //         "type": "int",
+    //         "default":0
+    //     },
+    //     "positionZ": {
+    //         "type": "int",
+    //         "default":0
+    //     },
+    //     "rotationX": {
+    //         "type": "int",
+    //         "default":0
+    //     },
+    //     "rotationY": {
+    //         "type": "int",
+    //         "default":0
+    //     },
+    //     "rotationZ": {
+    //         "type": "int",
+    //         "default":0
+    //     },
+    //     "threeObjectUrl": {
+    //         "type": "string",
+    //         "default": null
+    //     },
+    //     "animations": {
+    //         "type": "string",
+    //         "default": ""
+    //     },
+    //     "alt": {
+    //         "type": "string",
+    //         "default": ""
+    //     },
+    //     "collidable": {
+    //         "type": "boolean",
+    //         "default": false
+    //     }
+    // },
+    // "category": "spatial",
+    // "parent":  [ "three-object-viewer/environment" ],
+	const { insertBlock } = useDispatch('core/block-editor');
+
+	const handleDrop = (e) => {
+		e.dataTransfer.dropEffect = 'copy';
+		const fileUrl = e.dataTransfer.getData('text');
+		console.log('event', fileUrl);
+		e.preventDefault();
+		e.stopPropagation();
+	
+		// Create a new block based on the dropped URL
+		const newBlock = createBlock('three-object-viewer/model-block', {
+			threeObjectUrl: fileUrl,
+		});
+	
+		// Insert the new block as an inner block
+		insertBlock(newBlock, undefined, clientId);
+	  };
 
 	return (
 		<div {...useBlockProps()}>
@@ -168,19 +248,21 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 							</span>
 						</PanelRow>
 						<PanelRow>
-							<span>
-								<img
-									alt="Preview"
-									src={
-										attributes.threePreviewImage
-											? attributes.threePreviewImage
-											: ""
-									}
-									style={{
-										maxHeight: "150px"
-									}}
-								/>
-							</span>
+							{attributes.threePreviewImage && (
+								<span>
+									<img
+										alt="Preview"
+										src={
+											attributes.threePreviewImage
+												? attributes.threePreviewImage
+												: ""
+										}
+										style={{
+											maxHeight: "150px"
+										}}
+									/>
+								</span>
+							)}
 						</PanelRow>
 						<PanelRow>
 							<MediaUpload
@@ -204,6 +286,11 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 							{attributes.hdr && (<span>
 								{ attributes.hdr }
 							</span>)}
+						</PanelRow>
+						<PanelRow>
+							<span>
+								{__( "Use an .hdr to give your scene a HDR image to use as the environment. This influences lighting and reflections.", "three-object-viewer" )}
+							</span>
 						</PanelRow>
 						<PanelRow>
 							<MediaUpload
@@ -306,21 +393,21 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 			</InspectorControls>
 				<>
 				<div
-				style={{
-					height: "100%",
-					maxWidth: "220px",
-					width: "220px",
-					overflowY: "scroll",
-					position: "absolute",
-					top: "0px",
-					left: "0px",
-					zIndex: "1",
-					// backgroundColor: "#23192adb",
-					// // linear gradient from #23192adb to #23192a00
-					background: "linear-gradient(180deg, #23192adb 0%, #23192a3b 100%)",
-					borderRight: "3px solid #ffffff1f",
-				}}
+					style={{
+						height: "100%",
+						maxWidth: "220px",
+						width: "220px",
+						overflowY: "scroll",
+						position: "absolute",
+						top: "0px",
+						left: "0px",
+						zIndex: "1",
+						background: "linear-gradient(180deg, #23192adb 0%, #23192a3b 100%)",
+						borderRight: "3px solid #ffffff1f",
+					}}
 				>
+					<DropZone onDrop={handleDrop} />
+
 					<InnerBlocks
 						renderAppender={ InnerBlocks.ButtonBlockAppender }
 						allowedBlocks={ALLOWED_BLOCKS}
