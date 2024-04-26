@@ -485,7 +485,7 @@ export default function Player(props) {
 
 		const movementTimeoutRef = useRef(null);
 		// fps for network updates
-		const updateRate = 1000 / 30;
+		const updateRate = 1000 / 5;
 		let lastNetworkUpdateTime = 0;
 		let countHangtime = 0;
 		let isMoving;
@@ -496,7 +496,7 @@ export default function Player(props) {
 		const getJoystickValues = useJoystickControls(
 			(state) => state.getJoystickValues
 		);
-	
+
 		useFrame((state, delta) => {
 			const joystickValues = getJoystickValues();
 			let forward = props.movement.current.forward;
@@ -526,6 +526,7 @@ export default function Player(props) {
 			if (backward || forward || left || right) {
 				if(characterRef.current.userData.canJump){
 					isMoving = true;
+					clearTimeout(movementTimeoutRef.current);
 				}
 			} else {
 				isMoving = false;
@@ -670,7 +671,6 @@ export default function Player(props) {
 
 						const message = JSON.stringify(messageObject);
 						if (now - lastNetworkUpdateTime > updateRate) {
-
 							window.p2pcf.broadcast(new TextEncoder().encode(message)), window.p2pcf;
 							lastNetworkUpdateTime = now;
 						}

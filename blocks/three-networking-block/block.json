@@ -15,7 +15,7 @@
     "apiVersion": 2,
     "supports": {
         "html": false,
-        "multiple": true
+        "multiple": false
     },
     "textdomain": "three-object-viewer",
     "editorScript": "file:../../build/block-three-networking-block.js",

@@ -387,6 +387,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									}
 									type="image"
 									allowedTypes={ALLOWED_MEDIA_TYPES}
+									threeov={true}
 									value={attributes.threeObjectUrl}
 									render={({ open }) => (
 										<button

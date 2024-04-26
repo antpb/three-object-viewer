@@ -27,7 +27,12 @@ const DEFAULT_TURN_ICE = [
 	}
 ];
 
-
+const generateRoomId = (sharedRoomID) => {
+	const domainName = window.location.hostname;
+	return `${domainName}-${sharedRoomID}`;
+  };
+  
+  
 async function fetchTURNcredentials() {
 	const endpoint = turnCredentials['apiUrl'];
 	const nonce = turnCredentials['nonce'];
@@ -474,7 +479,10 @@ const Networking = (props) => {
 		
 		if (isNetworkActivated && !window.p2pcf) {
 			const userProfileName = Math.floor(Math.random() * 100000);
-		
+			const domainName = window.location.hostname.replace(/\./g, '-');
+			const roomIdentifier = `3ov-${props.postSlug}`;
+			const roomId = `${domainName}-${roomIdentifier}`;
+							
 			fetchTURNcredentials().then(iceServers => {
 			if (!iceServers) {
 				console.error('Could not fetch TURN credentials. P2P functionality may be limited.');
@@ -482,7 +490,7 @@ const Networking = (props) => {
 		
 			const p2pcf = new P2PCF(
 				"user-" + userProfileName,
-				document.location.hash.substring(1),
+				roomId,
 				{
 				workerUrl: multiplayerWorker,
 				slowPollingRateMs: 5000,
@@ -529,12 +537,16 @@ const Networking = (props) => {
 	};
 
 	useEffect(() => {
-		if( isNetworkActivated ){
-			if ( ! document.location.hash ) {
-				document.location = document.location.toString() + `#3ov-${props.postSlug}`;
+		if (isNetworkActivated) {
+			const domainName = window.location.hostname.replace(/\./g, '-');
+			const roomIdentifier = `3ov-${props.postSlug}`;
+			const roomId = `${domainName}-${roomIdentifier}`;
+			
+			if (!document.location.hash) {
+				document.location = document.location.toString() + `#${roomId}`;
 			}
 		}
-	
+				  
 		const handleLoaded = (event) => {
 		  go();
 		  // Remove the event listener after handling the first 'loaded' event

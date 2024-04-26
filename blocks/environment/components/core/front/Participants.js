@@ -1,4 +1,3 @@
-// add the missing imports
 import React, { useEffect, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Text, SpriteAnimator } from "@react-three/drei";
@@ -135,10 +134,8 @@ function loadMixamoAnimation(url, vrm) {
  * @return {JSX.Element} The participant.
  */
 function Participant(participant) {
-
 	const fallbackURL = defaultVRM;
 	let playerURL = participant.playerVRM;
-	const clonedModelRef = useRef(null);
 	const animationMixerRef = participant.animationMixerRef;
 	const animationsRef = participant.animationsRef;
 	const vrmsRef = participant.vrmsRef;
@@ -148,388 +145,384 @@ function Participant(participant) {
 	const theScene = useThree();
 	const { gl } = theScene;
 	const displayNameTextRef = useRef(null);
-	const setTextRef = (el) => {
-        textRef(el);
-    };
+	const [participantData, setParticipantData] = useState(null);
+	const participantObject = useRef(null);
+	const interpolationDuration = 800; // Adjust this value to control the smoothness
+	const [profileImage, setProfileImage] = useState(null);
 
+	useEffect(() => {
+		const textureLoader = new THREE.TextureLoader();
+		textureLoader.crossOrigin = '';
+		textureLoader.load(participant.profileImage, (texture) => {
+		// Set the texture directly on the material
+		const material = participantObject.current.getObjectByName('displayNamePfp').material;
+		material.map = texture;
+		material.needsUpdate = true;
+		});
+	}, [participant.profileImage, participantObject]);
 
 	// Load the VRM model
 	useEffect(() => {
-		const loader = new GLTFLoader();
-		const ktx2Loader = new KTX2Loader();
-		ktx2Loader.setTranscoderPath(threeObjectPluginRoot + "/inc/utils/basis/");
-		ktx2Loader.detectSupport(gl);
-		loader.setKTX2Loader(ktx2Loader);
-		loader.register(parser => new VRMLoaderPlugin(parser));
-		if( playerURL.endsWith( '.png' ) ){
-			// console.log("visitor url is", playerURL);
-			playerURL = blankVRM;
-		}
-
-		loader.load(playerURL, gltf => {
-			setSomeVRM(gltf);
-		});
-	}, [playerURL]);
-
+	  const loader = new GLTFLoader();
+	  const ktx2Loader = new KTX2Loader();
+	  ktx2Loader.setTranscoderPath(threeObjectPluginRoot + "/inc/utils/basis/");
+	  ktx2Loader.detectSupport(gl);
+	  loader.setKTX2Loader(ktx2Loader);
+	  loader.register(parser => new VRMLoaderPlugin(parser));
+	  if (playerURL.endsWith('.png')) {
+		playerURL = blankVRM;
+	  }
+  
+	  loader.load(playerURL, gltf => {
+		setSomeVRM(gltf);
+	  });
+	}, [playerURL, gl]);
+  
 	useEffect(() => {
-		if (someVRM?.userData?.gltfExtensions?.VRM) {
-			const playerController = someVRM.userData.vrm;
-			// add the playerController to the vrmsRef
-			vrmsRef.current[participant.playerName] = playerController;
-			const fetchProfile = async (pfp, modelToModify) => {
-				console.log("modelToModify", modelToModify);
-
-				try {
-					const response = await fetch(pfp);
-					console.log("pfp", pfp, response);
-					if (response.status === 200) {
-						const textureLoader = new THREE.TextureLoader();
-						textureLoader.crossOrigin = '';
-						textureLoader.load(pfp, (loadedProfile) => {
-							// Now we are sure the texture is loaded
-							if(modelToModify.isObject3D){
-								modelToModify.traverse((obj) => {
-									obj.frustumCulled = false;
-				
-									if (obj.name === "profile" && obj.material) {
-										console.log("profile", obj);
-										const newMat = obj.material.clone();
-										newMat.map = loadedProfile;
-										newMat.map.needsUpdate = true;
-										newMat.needsUpdate = true;
-										obj.material = newMat;
-									}
-								});	
-							}
-						});
-						return response;
-					}
-				} catch (err) {
-					// Handle the error properly or rethrow it to be caught elsewhere.
-					// console.error("Error fetching profile:", err);
-					// throw err;
-				}
-			};
-
-			// VRMUtils.rotateVRM0(playerController);
-			// playerController.scene.rotation.y = 0;
-			playerController.scene.scale.set(1, 1, 1);
-
-			// Animation files
-			const idleFile = idle;
-			const walkingFile = walk;
-			const runningFile = run;
-			const jumpFile	= jump;
-			// Load animations
-			let animationFiles = [idleFile, walkingFile, runningFile, jumpFile];
-			let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, playerController));
-
-			// Clone the model
-			// const clonedModel = SkeletonUtils.clone(playerController.scene);
-			// clonedModel.userData.vrm = clonedModel;
-
-			// Create animation mixer for the cloned model
-			const newMixer = new THREE.AnimationMixer(playerController.scene);
-			animationMixerRef.current[participant.playerName] = newMixer;
-			// console.log("heres the current mixers", animationMixerRef.current[participant.name]);
-			mixers.current[participant.playerName] = animationMixerRef.current[participant.playerName];
-			participant.profileUserData.current[participant.playerName] = {inWorldName : participant.playerName, pfp: participant.pfp };
-			Promise.all(animationsPromises).then(animations => {
-				animationsRef.current[participant.playerName] = animations;
-
-				const idleAction = animationMixerRef.current[participant.playerName].clipAction(animations[0]);
-				const walkingAction = animationMixerRef.current[participant.playerName].clipAction(animations[1]);
-				const runningAction = animationMixerRef.current[participant.playerName].clipAction(animations[2]);
-				// console.log("animationmixer", animationMixerRef.current[participant.name] , idleAction, walkingAction, runningAction);
-				idleAction.timeScale = 1;
-				idleAction.play();
-			});
-			let isProfileFetched = false;
-			// return () => {
-			// 	// Cleanup function to stop and dispose mixers
-			// 	mixers.current[participant.name].forEach(mixer => mixer.stopAllAction());
-			// 	mixers.current[participant.name] = [];
-			// };
-		}
-	}, [someVRM, theScene, participant.p2pcf]);
+	  if (someVRM?.userData?.gltfExtensions?.VRM) {
+		const playerController = someVRM.userData.vrm;
+		vrmsRef.current[participant.playerName] = playerController;
+		playerController.scene.scale.set(1, 1, 1);
+  
+		// Animation files
+		const animationFiles = [idle, walk, run, jump];
+		const animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, playerController));
+  
+		// Create animation mixer
+		const newMixer = new THREE.AnimationMixer(playerController.scene);
+		animationMixerRef.current[participant.playerName] = newMixer;
+		mixers.current[participant.playerName] = animationMixerRef.current[participant.playerName];
+		participant.profileUserData.current[participant.playerName] = { inWorldName: participant.playerName, pfp: participant.pfp };
+  
+		Promise.all(animationsPromises).then(animations => {
+		  animationsRef.current[participant.playerName] = animations;
+  
+		  const idleAction = animationMixerRef.current[participant.playerName].clipAction(animations[0]);
+		  idleAction.timeScale = 1;
+		  idleAction.play();
+		});
+	  }
+	}, [someVRM, theScene, participant.p2pcf, participant.playerName, participant.pfp, vrmsRef, animationMixerRef, mixers, animationsRef]);
+  
+	useEffect(() => {
+	  if (window.p2pcf) {
+		window.p2pcf.on("msg", (peer, data) => {
+		  if (!(peer.id in window.participants)) {
+			return;
+		  }
+  
+		  const finalData = new TextDecoder("utf-8").decode(data);
+		  const participantData = JSON.parse(finalData);
+  
+		  if (participantObject.current) {
+			if (participantData[peer.client_id]?.position && participantData[peer.client_id]?.rotation) {
+			  setParticipantData((prevData) => ({
+				...prevData,
+				[peer.client_id]: {
+				  ...participantData[peer.client_id],
+				  position: participantData[peer.client_id].position,
+				  rotation: participantData[peer.client_id].rotation,
+				  timestamp: Date.now(),
+				},
+			  }));
+			}
+		  }
+  
+		  if (animationsRef.current[peer.client_id]) {
+			const walkAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][1]);
+			const idleAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][0]);
+			const runAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][2]);
+			const jumpAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][3]);
+  
+			if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "walking") {
+			  jumpAction.stop();
+			  walkAction.play();
+			  runAction.stop();
+			  idleAction.stop();
+			} else if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "jumping") {
+			  if (!jumpAction.isRunning()) {
+				walkAction.stop();
+				runAction.stop();
+				idleAction.stop();
+				jumpAction.setEffectiveTimeScale(1);
+				jumpAction.setEffectiveWeight(1);
+				jumpAction.setLoop(THREE.LoopOnce, 1);
+				jumpAction.clampWhenFinished = true;
+				jumpAction.time = jumpAction._clip.duration;
+				jumpAction.play();
+			  }
+			} else if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "running") {
+			  walkAction.stop();
+			  runAction.play();
+			  idleAction.stop();
+			  jumpAction.stop();
+			} else {
+			  idleAction.play();
+			  walkAction.stop();
+			  runAction.stop();
+			  jumpAction.stop();
+			}
+		  }
+  
+		  if (displayNameTextRef.current && participantData[peer.client_id]?.inWorldName) {
+			displayNameTextRef.current.text = participantData[peer.client_id].inWorldName;
+			window.participants[peer.id] = participantData[peer.client_id].inWorldName;
+		  } else {
+			window.participants[peer.id] = participantData[peer.client_id].inWorldName;
+		  }
+		});
+	  }
+	}, [window.p2pcf, animationMixerRef, animationsRef]);
+  
 
 	useFrame((state, delta) => {
-		if(mixers.current[participant.playerName]){
-				// Log each action in the mixer
-				// mixer._actions.forEach(action => {
-				// 	console.log(`Action: ${action._clip.name}, Is Running: ${action.isRunning()}, Effective Weight: ${action.getEffectiveWeight()}, Current Time: ${action.time}`);
-				// });
-				// Find and play the idle animation explicitly
-				const idleAction = mixers.current[participant.playerName]._actions.find(action => action._clip.name === 'idle');
-				if (idleAction && !idleAction.isRunning()) {
-					console.log("idle action", idleAction);
-					idleAction.reset().play();
-				}
-	
-				// Update the mixer
-				mixers.current[participant.playerName].update(delta);
+		if (participantObject.current && participantData && participantData[participant.playerName]) {
+			const { position, rotation, timestamp } = participantData[participant.playerName];
+			const now = Date.now();
+			const interpolationFactor = Math.min((now - timestamp) / interpolationDuration, 1);
+			  
+		  participantObject.current.parent.position.lerp(new THREE.Vector3(...position), interpolationFactor);
+	  
+		  // Convert rotation array to Euler
+		  const targetRotation = new THREE.Euler(...rotation);
+		  // Create a Quaternion from the target rotation
+		  const targetQuaternion = new THREE.Quaternion().setFromEuler(targetRotation);
+		  // Slerp the current rotation towards the target rotation
+		  participantObject.current.parent.quaternion.slerp(targetQuaternion, interpolationFactor);
 		}
-	
+	  
+		if (mixers.current[participant.playerName]) {
+		  const idleAction = mixers.current[participant.playerName]._actions.find(action => action._clip.name === 'idle');
+		  if (idleAction && !idleAction.isRunning()) {
+			idleAction.reset().play();
+		  }
+	  
+		  mixers.current[participant.playerName].update(state.clock.getDelta());
+		}
+		if (mixers.current[participant.playerName]) {
+			mixers.current[participant.playerName].update(delta);
+		  }
+		
+		  if (someVRM?.userData?.vrm) {
+			someVRM.userData.vrm.update(delta);
+		  }
+			  
 		if (someVRM?.userData?.vrm) {
-			someVRM.userData.vrm.update(delta);  // Update the VRM model
+		  someVRM.userData.vrm.update(state.clock.getDelta());
 		}
-		if (clonedModelRef?.current?.userData?.vrm) {
-			clonedModelRef.current.userData.vrm.update(delta);  // Update the cloned VRM model
-		}
-	});
-	
+		
+	  });
+		
 	if (!someVRM || !someVRM.userData?.gltfExtensions?.VRM) {
-		return null;
+	  return null;
 	}
-
+  
 	const playerController = someVRM.userData.vrm;
 	const modelClone = SkeletonUtils.clone(playerController.scene);
 	modelClone.userData.vrm = playerController;
-
-	//calculate the height of the avatar to be used in the Text component position below
+  
+	// Calculate the height of the avatar
 	const box = new THREE.Box3().setFromObject(modelClone);
 	let height = (box.max.y - box.min.y) + 0.1;
-	// if the height is negative infinity, set the height to 1.5
 	if (height === -Infinity) {
-		height = 1.8;
+	  height = 1.8;
 	}
-
-	// use textureLoader to load the profile image.
-	const textureLoader = new THREE.TextureLoader();
-	textureLoader.crossOrigin = '';
-	const profileImage = textureLoader.load(participant.profileImage);
+  
 	const displayName = participant.inWorldName ? participant.inWorldName : participant.playerName;
-
+  
 	let planeWidth = 0.25;
 	let fontSize = 0.04;
 	let xPos = 0.045;
-	if(displayName.length > 8){
-		planeWidth = 0.35;
-		xPos = -0.005;
+	if (displayName.length > 8) {
+	  planeWidth = 0.35;
+	  xPos = -0.005;
 	}
-	if(displayName.length >= 16){
-		planeWidth = 0.35;
-		fontSize = 0.032;
-		xPos = -0.005;
+	if (displayName.length >= 16) {
+	  planeWidth = 0.35;
+	  fontSize = 0.032;
+	  xPos = -0.005;
 	}
-
-	// ends with participant.playerVRM is png?
-	let isPng = participant.playerVRM.endsWith('.png');
+  
+	const isPng = participant.playerVRM.endsWith('.png');
 	const color = "#000000";
-	var colorValue = new THREE.Color( parseInt ( color.replace("#","0x"), 16 ) );
-
+	const colorValue = new THREE.Color(parseInt(color.replace("#", "0x"), 16));
+  
 	return (
 		<group userData={{ camExcludeCollision: true }}>
-			<group rotation={[0, Math.PI, 0 ]}>
-				<mesh
-					visible={true}
-					position={[0.22, height, 0.005]}
-					rotation-y={-Math.PI}
-					geometry={new THREE.PlaneGeometry(0.1, 0.1)}
-					name="displayNamePfp"
-				>
-					<meshPhongMaterial side={THREE.DoubleSide} shininess={0} map={profileImage} />
-				</mesh>
-				<mesh
-					visible={true}
-					position={[xPos, height, 0.005]}
-					rotation-y={-Math.PI}
-					geometry={new THREE.PlaneGeometry(planeWidth, 0.07)}
-					name="displayNameBackground"
-				>	
-			
-					<meshPhongMaterial side={THREE.DoubleSide} shininess={0} color={colorValue} />
-				</mesh>
-					<Text
-						font={defaultFont}
-						anchorX="left"
-						overflowWrap="break-word"
-						// whiteSpace="nowrap"
-						// anchorY="middle"				  
-						ref={participant.textRef}
-						className="content"
-						scale={[1, 1, 1]}
-						fontSize={fontSize}
-						rotation-y={-Math.PI}
-						width={0.5}
-						maxWidth={0.5}
-						height={10}
-						position={[0.15, (height - 0.005), 0]}
-						// color={model.textColor}
-						transform
-					>
-						{displayName}
-					</Text>
-			</group>
-			<primitive name={participant.playerName} object={playerController.scene} rotation={[0, Math.PI, 0 ]}/>
-			{ isPng && <SpriteAnimator
-				position={[0, 1, 0]}
-				frameName={frameName}
-				scale={[2, 2, 2]}
-				fps={10}
-				animationNames={['WalkForward', 'WalkBackward', 'ForwardIdle', 'BackwardIdle', 'WalkLeft', 'WalkRight']}
-				autoPlay={true}
-				asSprite={false}
-				alphaTest={0.1}
-				loop={true}
-				textureImageURL={participant.playerVRM}
-				textureDataURL={threeObjectPluginRoot + "/inc/utils/sprite.json"}
-			/>}
+			<group rotation={[0, Math.PI, 0]}>
+			<mesh
+				visible={true}
+				position={[0.22, height, 0.005]}
+				rotation-y={-Math.PI}
+				geometry={new THREE.PlaneGeometry(0.1, 0.1)}
+				name="displayNamePfp"
+			>
+				<meshPhongMaterial side={THREE.DoubleSide} shininess={0} map={profileImage} />
+			</mesh>
+			<mesh
+			visible={true}
+			position={[xPos, height, 0.005]}
+			rotation-y={-Math.PI}
+			geometry={new THREE.PlaneGeometry(planeWidth, 0.07)}
+			name="displayNameBackground"
+		  >
+			<meshPhongMaterial side={THREE.DoubleSide} shininess={0} color={colorValue} />
+		  </mesh>
+		  <Text
+			font={defaultFont}
+			anchorX="left"
+			overflowWrap="break-word"
+			ref={displayNameTextRef}
+			className="content"
+			scale={[1, 1, 1]}
+			fontSize={fontSize}
+			rotation-y={-Math.PI}
+			width={0.5}
+			maxWidth={0.5}
+			height={10}
+			position={[0.15, (height - 0.005), 0]}
+			transform
+		  >
+			{displayName}
+		  </Text>
 		</group>
+		<primitive ref={participantObject} name={participant.playerName} object={playerController.scene} rotation={[0, Math.PI, 0]} />
+		{isPng && (
+		  <SpriteAnimator
+			position={[0, 1, 0]}
+			frameName={frameName}
+			scale={[2, 2, 2]}
+			fps={10}
+			animationNames={['WalkForward', 'WalkBackward', 'ForwardIdle', 'BackwardIdle', 'WalkLeft', 'WalkRight']}
+			autoPlay={true}
+			asSprite={false}
+			alphaTest={0.1}
+			loop={true}
+			textureImageURL={participant.playerVRM}
+			textureDataURL={threeObjectPluginRoot + "/inc/utils/sprite.json"}
+		  />
+		)}
+	  </group>
 	);
-}
-
-
+  }
 export function Participants(props) {
 	const theScene = useThree();
-	// create a ref for the profile user data information for each participant to be held in an array
 	const profileUserData = useRef([]);
-	// make ref for animation mixer for each participant
 	const animationMixerRef = useRef([]);
 	const animationsRef = useRef([]);
 	const mixers = useRef([]);
-	const displayNameTextRef = useRef(null);
-    const textRefs = useRef({});
-	const participantRefs = useRef({});
 	const vrmsRef = useRef({});
-	// const [participants, setParticipant] = useState([]);
-	// zustand state and setters
 	const participants = useParticipantsStore(state => state.participants);
-	const setParticipants = useParticipantsStore(state => state.setParticipants);
 	const addParticipant = useParticipantsStore(state => state.addParticipant);
 	const removeParticipant = useParticipantsStore(state => state.removeParticipant);
-
+  
 	useEffect(() => {
-		if(window.p2pcf){
-			window.p2pcf.on("msg", (peer, data) => {
-				if(!(peer.id in window.participants)){
-					return;
-				}
-
-				const finalData = new TextDecoder("utf-8").decode(data);
-				const participantData = JSON.parse(finalData);
-				const participantObject = theScene.scene.getObjectByName(peer.client_id);
-
-				if (animationsRef.current[peer.client_id]) {
-					const walkAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][1]);
-					const idleAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][0]);
-					const runAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][2]);
-					const jumpAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][3]);
-					// get their headbone and apply the rotation using the participantData[peer.client_id].headRotation
-
-					if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "walking") {
-						jumpAction.stop();
-						walkAction.play();
-						runAction.stop();
-						idleAction.stop();
-					} else if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "jumping") {
-						// if jumpaction is not playing stop all others and play it
-						if(!jumpAction.isRunning()){
-							walkAction.stop();
-							runAction.stop();
-							idleAction.stop();
-							jumpAction.setEffectiveTimeScale(1);
-							jumpAction.setEffectiveWeight(1);
-							jumpAction.setLoop(THREE.LoopOnce, 1);
-							jumpAction.clampWhenFinished = true;
-							// initialize on the last frame of the jump animation
-							jumpAction.time = jumpAction._clip.duration;
-							jumpAction.play();
-						}
-					} else if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "running") {
-						walkAction.stop();
-						runAction.play();
-						idleAction.stop();
-						jumpAction.stop();
-					} else {
-						idleAction.play();
-						walkAction.stop();
-						runAction.stop();
-						jumpAction.stop();
-					}
-
-				}
-	
-				if (participantObject) {
-					if(participantData[peer.client_id]?.position && participantData[peer.client_id]?.rotation){
-						participantObject.parent.position.fromArray(participantData[peer.client_id].position);
-						participantObject.parent.rotation.fromArray(participantData[peer.client_id].rotation);
-						// const targetPosition = new THREE.Vector3().fromArray(participantData[peer.client_id].position);
-						// participantObject.parent.position.lerp(targetPosition, 0.9); // Adjust the 0.1 factor as needed for smoothness
-						// const targetQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler().fromArray(participantData[peer.client_id].rotation));
-						// participantObject.parent.quaternion.slerp(targetQuaternion, 0.9); // Adjust the 0.1 factor for smoothness
-
-					}
-				}
-				if(textRefs.current[peer.client_id] && participantData[peer.client_id]?.inWorldName) {
-					textRefs.current[peer.client_id].text = participantData[peer.client_id].inWorldName;
-					window.participants[peer.id] = participantData[peer.client_id].inWorldName;
-				} else {
-					window.participants[peer.id] = participantData[peer.client_id].inWorldName;
-				}
-			});
-		}
-	}, [window.p2pcf]);	
-
+	  if (window.p2pcf) {
+		window.p2pcf.on("msg", (peer, data) => {
+		  if (!(peer.id in window.participants)) {
+			return;
+		  }
+  
+		  const finalData = new TextDecoder("utf-8").decode(data);
+		  const participantData = JSON.parse(finalData);
+  
+		  if (animationsRef.current[peer.client_id]) {
+			const walkAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][1]);
+			const idleAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][0]);
+			const runAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][2]);
+			const jumpAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][3]);
+  
+			if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "walking") {
+			  jumpAction.stop();
+			  walkAction.play();
+			  runAction.stop();
+			  idleAction.stop();
+			} else if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "jumping") {
+			  if (!jumpAction.isRunning()) {
+				walkAction.stop();
+				runAction.stop();
+				idleAction.stop();
+				jumpAction.setEffectiveTimeScale(1);
+				jumpAction.setEffectiveWeight(1);
+				jumpAction.setLoop(THREE.LoopOnce, 1);
+				jumpAction.clampWhenFinished = true;
+				jumpAction.time = jumpAction._clip.duration;
+				jumpAction.play();
+			  }
+			} else if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "running") {
+			  walkAction.stop();
+			  runAction.play();
+			  idleAction.stop();
+			  jumpAction.stop();
+			} else {
+			  idleAction.play();
+			  walkAction.stop();
+			  runAction.stop();
+			  jumpAction.stop();
+			}
+		  }
+  
+		  if (participantData[peer.client_id]?.inWorldName) {
+			window.participants[peer.id] = participantData[peer.client_id].inWorldName;
+		  }
+		});
+	  }
+	}, [window.p2pcf, animationMixerRef, animationsRef]);
+  
 	useEffect(() => {
-		const p2pcf = window.p2pcf;
-		if (p2pcf) {
-			p2pcf.on("peerclose", (peer) => {
-				// Directly delete from global participants
-				delete window.participants[peer.id];
-				const participantObject = theScene.scene.getObjectByName(peer.client_id);
-				if (participantObject) {
-					theScene.scene.remove(participantObject);
-					// Clean up related references
-					delete animationMixerRef.current[peer.client_id];
-					delete animationsRef.current[peer.client_id];
-					delete mixers.current[peer.client_id];
-				}
-				// Use Zustand's removeParticipant action
-				removeParticipant(peer.client_id);
-			});
-		}
-	}, [removeParticipant, theScene.scene, window.p2pcf]); // Add removeParticipant and theScene.scene as dependencies
-	
+	  const p2pcf = window.p2pcf;
+	  if (p2pcf) {
+		p2pcf.on("peerclose", (peer) => {
+		  delete window.participants[peer.id];
+		  delete animationMixerRef.current[peer.client_id];
+		  delete animationsRef.current[peer.client_id];
+		  delete mixers.current[peer.client_id];
+		  removeParticipant(peer.client_id);
+		});
+	  }
+	}, [removeParticipant, window.p2pcf]);
+  
 	useEffect(() => {
-		const p2pcf = window.p2pcf;
-		if (p2pcf) {
-			p2pcf.on("msg", (peer, data) => {
-				if (!(peer.id in window.participants)) {
-					const finalData = new TextDecoder("utf-8").decode(data);
-					const participantData = JSON.parse(finalData);
-					// Initialize participant entry if not present
-					window.participants[peer.id] = "";
-	
-					// Construct participant array
-					const newParticipant = [peer.client_id, participantData.playerVRM, participantData.inWorldName, participantData.profileImage];
-	
-					// Use Zustand's addParticipant action
-					addParticipant(newParticipant);
-				}
-				});
-		}
-	}, [window.p2pcf]); // Add addParticipant as a dependency
-	
+	  const p2pcf = window.p2pcf;
+	  if (p2pcf) {
+		p2pcf.on("msg", (peer, data) => {
+		  if (!(peer.id in window.participants)) {
+			const finalData = new TextDecoder("utf-8").decode(data);
+			const participantData = JSON.parse(finalData);
+			window.participants[peer.id] = "";
+  
+			const newParticipant = [peer.client_id, participantData.playerVRM, participantData.inWorldName, participantData.profileImage];
+			addParticipant(newParticipant);
+		  }
+		});
+	  }
+	}, [window.p2pcf]);
+  
 	return (
 		<>
-			{participants && participants.map((item, index) => (
-				<Participant 
-					key={index}
-					playerName={item[0]}
-					p2pcf={p2pcf}
-					animationMixerRef={animationMixerRef}
-					vrmsRef={vrmsRef}
-					animationsRef={animationsRef}
-					mixers={mixers}
-					textRef={(ref) => textRefs.current[item[0]] = ref}
-					profileUserData={profileUserData}
-					playerVRM = {item[1]}
-					inWorldName = {item[2]}
-					profileImage = {item[3]}
+		  {participants && participants.map((item, index) => {
+			const profileImage = item[3];
+			console.log('profileImage', profileImage);
+			if (profileImage) {
+			  return (
+				<Participant
+				  key={index}
+				  playerName={item[0]}
+				  p2pcf={p2pcf}
+				  animationMixerRef={animationMixerRef}
+				  vrmsRef={vrmsRef}
+				  animationsRef={animationsRef}
+				  mixers={mixers}
+				  profileUserData={profileUserData}
+				  playerVRM={item[1]}
+				  inWorldName={item[2]}
+				  profileImage={profileImage}
 				/>
-			))}
+			  );
+			}
+	
+			return null;
+		  })}
 		</>
-	);
-}
-
+	  );
+}	
