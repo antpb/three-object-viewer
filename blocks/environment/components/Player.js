@@ -489,6 +489,8 @@ export default function Player(props) {
 		let lastNetworkUpdateTime = 0;
 		let countHangtime = 0;
 		let isMoving;
+		let lastKeyPressTime = 0;
+
 		useEffect(() => {
 			isMoving = false;
 		}, []);
@@ -505,347 +507,413 @@ export default function Player(props) {
 			let right = props.movement.current.right;
 			let shift = props.movement.current.shift;
 			let space = props.movement.current.space;
-			if(joystickValues){
-				// if the joystick angle is between .6 and 2.2 set the forward movement to true
-				if(joystickValues.joystickAng > 0){
-					if(joystickValues.joystickDis > 60){
-						shift = true;
-					}
-					forward = true;
+		  
+			if (joystickValues) {
+			  if (joystickValues.joystickAng > 0) {
+				if (joystickValues.joystickDis > 60) {
+				  shift = true;
 				}
-				if(joystickValues.button1Pressed === true){
-					space = true;
-				}
+				forward = true;
+			  }
+			  if (joystickValues.button1Pressed === true) {
+				space = true;
+			  }
 			}
+		  
 			if (playerControllerRef.current) {
-				playerControllerRef.current.update(delta);
+			  playerControllerRef.current.update(delta);
 			}
+		  
 			if (playerMixerRef.current) {
-				playerMixerRef.current.update(delta);
+			  playerMixerRef.current.update(delta);
 			}
-			if (backward || forward || left || right) {
-				if(characterRef.current.userData.canJump){
-					isMoving = true;
-					clearTimeout(movementTimeoutRef.current);
-				}
-			} else {
-				isMoving = false;
-			}
-
+		  
 			const now = state.clock.elapsedTime * 1000;
-			if (isPresenting && !presentingState) {
-				const newCamera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-
-				// Entering XR
-				const xrCamera = gl.xr.getCamera(newCamera);
-				gl.xr.enabled = true;
-				console.log("xrCamera", state);
-				// set it as the default camera for the scene
-				state.camera = xrCamera;
-				// Adjust the xrCamera as needed here
-				// For example, you might need to set its position or properties based on your character controller or scene requirements
-				setPresentingState(true);
-			} else if (!isPresenting && presentingState) {
-				setPresentingState(false);
-			}
-
-			handleBlinking(delta);
-
-
-			// if(avatarIsSprite && isMoving && frameName !== 'WalkForward'){
-			// 	console.log("forwardwalk", frameName);
-			// 	setFrameName('WalkForward');
-			// }
-
-			// if( avatarIsSprite && !isMoving && frameName !== 'ForwardIdle' ){
-			// 	console.log("forwardidle", frameName);
-			// 	setFrameName('ForwardIdle');
-			// }
-			if(animationsRef.current){
-				if (playerControllerRef.current && participantObject) {
-					// Calculate character's current forward vector in world space
-					const cameraWorldQuaternion = new Quaternion();
-					camera.getWorldQuaternion(cameraWorldQuaternion);
-					const cameraForward = new Vector3(0, 0, -1).applyQuaternion(cameraWorldQuaternion);
-
-					const characterWorldQuaternion = new Quaternion();
-					participantObject.parent.getWorldQuaternion(characterWorldQuaternion);
-					const characterForward = new Vector3(0, 0, 1).applyQuaternion(characterWorldQuaternion);
-					const neutralRotation = new Euler(0, 0, 0);
-	
-					// Calculate vector from character to camera
-					const characterToCamera = new Vector3().subVectors(camera.position, participantObject.getWorldPosition(new Vector3())).normalize();
-				
-					// Determine azimuthal angle
-					const dotProduct = characterForward.dot(cameraForward);
-					const azimuthalAngle = Math.acos(Math.min(Math.max(dotProduct, -1), 1));
-									
-					// Perform head rotation if within the desired azimuthal range
-					const angleThreshold = Math.PI / 2; // 60 degrees
-					if ( azimuthalAngle < angleThreshold ) {
-							if( avatarIsSprite ){
-								if( isMoving && frameName !== 'WalkForward' ){
-									setFrameName('WalkForward');
-								}
-								if( isMoving === false ){
-									if( frameName !== 'ForwardIdle' ){
-										setFrameName( 'ForwardIdle' );
-									}
-								}
-							}
-						} else {
-						if( avatarIsSprite && isMoving && frameName !== 'WalkBackward'){
-							setFrameName('WalkBackward');
-						}
-						if( avatarIsSprite && isMoving === false && frameName !== 'BackwardIdle' ){
-							setFrameName('BackwardIdle');
-						}	
+		  
+			if (backward || forward || left || right) {
+			  if (characterRef.current.userData.canJump) {
+				isMoving = true;
+		  
+				// Send message immediately if a key is pressed and enough time has passed
+				if (now - lastKeyPressTime > 100) {
+				  if (window.p2pcf) {
+					const participantObject = scene.getObjectByName("playerOne");
+		  
+					var target = new Vector3();
+					var worldPosition = participantObject.getWorldPosition(target);
+					const position = [
+					  worldPosition.x,
+					  worldPosition.y,
+					  worldPosition.z
+					];
+		  
+					const rotation = [
+					  participantObject.parent.parent.rotation.x,
+					  participantObject.parent.parent.rotation.y,
+					  participantObject.parent.parent.rotation.z
+					];
+		  
+					const currentAction = !characterRef.current.userData.canJump ? "jumping" : "walking";
+					const messageObject = {
+					  [window.p2pcf.clientId]: {
+						position: position,
+						rotation: rotation,
+						profileImage: userData.profileImage,
+						playerVRM: userData.playerVRM,
+						vrm: userData.vrm,
+						inWorldName: window.userData.inWorldName ? window.userData.inWorldName : userData.inWorldName,
+						isMoving: {
+							action: currentAction,
+							hangtime: countHangtime
+						  }
+						  }
+					};
+		  
+					if (shift && characterRef.current.userData.canJump) {
+					  messageObject[window.p2pcf.clientId].isMoving.action = "running";
 					}
+		  
+					const message = JSON.stringify(messageObject);
+					window.p2pcf.broadcast(new TextEncoder().encode(message)), window.p2pcf;
+					lastKeyPressTime = now;
+				  }
 				}
-	
-				const { idle, walking, running, jump, falling } = animationsRef.current;
-				// if the player hits the R key respawn using the characterRef to move it to the origin spawn point
-				if(props.movement.current.respawn){
-					characterRef.current.setBodyType(rapier.RigidBodyType.Fixed, 1);
-					characterRef.current.setTranslation(new Vector3(Number(spawnPoint[0]), Number(spawnPoint[1]), Number(spawnPoint[2])), true);
-				} else if(!props.movement.current.respawn && characterRef.current.bodyType() === 1){
-					characterRef.current.setBodyType(rapier.RigidBodyType.Dynamic, 0);
+		  
+				// Send movement message at 5Hz refresh rate
+				if (now - lastNetworkUpdateTime > updateRate) {
+				  if (window.p2pcf) {
+					const participantObject = scene.getObjectByName("playerOne");
+		  
+					var target = new Vector3();
+					var worldPosition = participantObject.getWorldPosition(target);
+					const position = [
+					  worldPosition.x,
+					  worldPosition.y,
+					  worldPosition.z
+					];
+		  
+					const rotation = [
+					  participantObject.parent.parent.rotation.x,
+					  participantObject.parent.parent.rotation.y,
+					  participantObject.parent.parent.rotation.z
+					];
+		  
+					const currentAction = !characterRef.current.userData.canJump ? "jumping" : "walking";
+					const messageObject = {
+					  [window.p2pcf.clientId]: {
+						position: position,
+						rotation: rotation,
+						profileImage: userData.profileImage,
+						playerVRM: userData.playerVRM,
+						vrm: userData.vrm,
+						inWorldName: window.userData.inWorldName ? window.userData.inWorldName : userData.inWorldName,
+						isMoving: {
+							action: currentAction,
+							hangtime: countHangtime
+						  }
+						}
+					};
+		  
+					if (shift && characterRef.current.userData.canJump) {
+					  messageObject[window.p2pcf.clientId].isMoving.action = "running";
+					}
+		  
+					const message = JSON.stringify(messageObject);
+					window.p2pcf.broadcast(new TextEncoder().encode(message)), window.p2pcf;
+					lastNetworkUpdateTime = now;
+				  }
 				}
-				if ( isMoving && characterRef.current.userData.canJump ) {
-					jump.clampWhenFinished = false;
-					jump.reset();
-					jump.setEffectiveTimeScale(0);
-					jump.setEffectiveWeight(0);
-				} else if( !isMoving && characterRef.current.userData.canJump ) {
-					jump.clampWhenFinished = false;
-					jump.reset();
-					jump.setEffectiveTimeScale(0);
-					jump.setEffectiveWeight(0);
-					// and now play idle
-					idle.setEffectiveTimeScale(1);
-					idle.setEffectiveWeight(1);
+		  
+				clearTimeout(movementTimeoutRef.current);
+				movementTimeoutRef.current = setTimeout(() => {
+				  isMoving = false;
+				}, 500);
+			  }
+			} else {
+			  if (isMoving) {
+				isMoving = false;
+				clearTimeout(movementTimeoutRef.current);
+		  
+				const participantObject = scene.getObjectByName("playerOne");
+				var target = new Vector3();
+				var worldPosition = participantObject.getWorldPosition(target);
+				const position = [
+				  worldPosition.x,
+				  worldPosition.y,
+				  worldPosition.z
+				];
+		  
+				const messageStopObject = {
+				  [window.p2pcf.clientId]: {
+					isMoving: false,
+					position: position
+				  }
+				};
+				const messageStop = JSON.stringify(messageStopObject);
+				window.p2pcf.broadcast(new TextEncoder().encode(messageStop));
+			  }
+			}
+							  
+			if (isPresenting && !presentingState) {
+			  const newCamera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+		  
+			  // Entering XR
+			  const xrCamera = gl.xr.getCamera(newCamera);
+			  gl.xr.enabled = true;
+			  console.log("xrCamera", state);
+			  state.camera = xrCamera;
+			  setPresentingState(true);
+			} else if (!isPresenting && presentingState) {
+			  setPresentingState(false);
+			}
+		  
+			handleBlinking(delta);
+		  
+			if (animationsRef.current) {
+			  if (playerControllerRef.current && participantObject) {
+				// Calculate character's current forward vector in world space
+				const cameraWorldQuaternion = new Quaternion();
+				camera.getWorldQuaternion(cameraWorldQuaternion);
+				const cameraForward = new Vector3(0, 0, -1).applyQuaternion(cameraWorldQuaternion);
+		  
+				const characterWorldQuaternion = new Quaternion();
+				participantObject.parent.getWorldQuaternion(characterWorldQuaternion);
+				const characterForward = new Vector3(0, 0, 1).applyQuaternion(characterWorldQuaternion);
+				const neutralRotation = new Euler(0, 0, 0);
+		  
+				// Calculate vector from character to camera
+				const characterToCamera = new Vector3().subVectors(camera.position, participantObject.getWorldPosition(new Vector3())).normalize();
+		  
+				// Determine azimuthal angle
+				const dotProduct = characterForward.dot(cameraForward);
+				const azimuthalAngle = Math.acos(Math.min(Math.max(dotProduct, -1), 1));
+		  
+				// Perform head rotation if within the desired azimuthal range
+				const angleThreshold = Math.PI / 2; // 60 degrees
+				if (azimuthalAngle < angleThreshold) {
+				  if (avatarIsSprite) {
+					if (isMoving && frameName !== 'WalkForward') {
+					  setFrameName('WalkForward');
+					}
+					if (isMoving === false) {
+					  if (frameName !== 'ForwardIdle') {
+						setFrameName('ForwardIdle');
+					  }
+					}
+				  }
+				} else {
+				  if (avatarIsSprite && isMoving && frameName !== 'WalkBackward') {
+					setFrameName('WalkBackward');
+				  }
+				  if (avatarIsSprite && isMoving === false && frameName !== 'BackwardIdle') {
+					setFrameName('BackwardIdle');
+				  }
 				}
-				if ( ! characterRef.current.userData.canJump ) {
-					if (window.p2pcf) {
-						const participantObject = scene.getObjectByName("playerOne");
-
+			  }
+		  
+			  const { idle, walking, running, jump, falling } = animationsRef.current;
+		  
+			  // if the player hits the R key respawn using the characterRef to move it to the origin spawn point
+			  if (props.movement.current.respawn) {
+				characterRef.current.setBodyType(rapier.RigidBodyType.Fixed, 1);
+				characterRef.current.setTranslation(new Vector3(Number(spawnPoint[0]), Number(spawnPoint[1]), Number(spawnPoint[2])), true);
+			  } else if (!props.movement.current.respawn && characterRef.current.bodyType() === 1) {
+				characterRef.current.setBodyType(rapier.RigidBodyType.Dynamic, 0);
+			  }
+		  
+			  if (isMoving && characterRef.current.userData.canJump) {
+				jump.clampWhenFinished = false;
+				jump.reset();
+				jump.setEffectiveTimeScale(0);
+				jump.setEffectiveWeight(0);
+			  } else if (!isMoving && characterRef.current.userData.canJump) {
+				jump.clampWhenFinished = false;
+				jump.reset();
+				jump.setEffectiveTimeScale(0);
+				jump.setEffectiveWeight(0);
+				idle.setEffectiveTimeScale(1);
+				idle.setEffectiveWeight(1);
+			  }
+		  
+			  if (!characterRef.current.userData.canJump) {
+				if (window.p2pcf) {
+				  const participantObject = scene.getObjectByName("playerOne");
+			
+				  var target = new Vector3();
+				  var worldPosition = participantObject.getWorldPosition(target);
+				  const position = [
+					worldPosition.x,
+					worldPosition.y,
+					worldPosition.z
+				  ];
+			
+				  const rotation = [
+					participantObject.parent.parent.rotation.x,
+					participantObject.parent.parent.rotation.y,
+					participantObject.parent.parent.rotation.z
+				  ];
+				  const messageObject = {
+					[window.p2pcf.clientId]: {
+					  position: position,
+					  rotation: rotation,
+					  profileImage: userData.profileImage,
+					  playerVRM: userData.playerVRM,
+					  vrm: userData.vrm,
+					  inWorldName: window.userData.inWorldName ? window.userData.inWorldName : userData.inWorldName,
+					  isMoving: {
+						action: "jumping",
+						hangtime: countHangtime
+					  }
+					}
+				  };
+			
+				  const message = JSON.stringify(messageObject);
+				  if (now - lastNetworkUpdateTime > updateRate) {
+					window.p2pcf.broadcast(new TextEncoder().encode(message)), window.p2pcf;
+					lastNetworkUpdateTime = now;
+				  }
+				}
+			
+				// start tracking hangtime
+				countHangtime++;
+			
+				// if the current timescale of the jump animation is 0, set it to 1
+				if (jump.getEffectiveTimeScale() === 0) {
+				  if (countHangtime > 3) {
+					jump.setEffectiveTimeScale(1);
+					jump.setEffectiveWeight(1);
+					jump.clampWhenFinished = true;
+					jump.time = jump._clip.duration;
+					jump.play();
+					running.setEffectiveTimeScale(0);
+					running.setEffectiveWeight(0);
+					walking.setEffectiveTimeScale(0);
+					walking.setEffectiveWeight(0);
+				  }
+				}
+			  } else {
+				// Player has landed
+				if (window.p2pcf) {
+					const participantObject = scene.getObjectByName("playerOne");
+					setTimeout(() => {
 						var target = new Vector3();
-						var worldPosition = participantObject.getWorldPosition( target );
+						var worldPosition = participantObject.getWorldPosition(target);
 						const position = [
-							worldPosition.x,
-							worldPosition.y,
-							worldPosition.z
+						worldPosition.x,
+						worldPosition.y,
+						worldPosition.z
 						];
-						// console.log("sending position", participantObject, position);
-
+				
 						const rotation = [
-							participantObject.parent.parent.rotation.x,
-							participantObject.parent.parent.rotation.y,
-							participantObject.parent.parent.rotation.z
+						participantObject.parent.parent.rotation.x,
+						participantObject.parent.parent.rotation.y,
+						participantObject.parent.parent.rotation.z
 						];
-						// console.log("userData", userData);
-						const messageObject = {
-							[window.p2pcf.clientId]: {
-								position: position,
-								rotation: rotation,
-								profileImage: userData.profileImage,
-								playerVRM: userData.playerVRM,
-								vrm: userData.vrm,
-								inWorldName: window.userData.inWorldName ? window.userData.inWorldName : userData.inWorldName,
-								isMoving: "jumping"
-							}
-						};
-						// console.log("userdata", userData);
-						clearTimeout(movementTimeoutRef.current);
-						movementTimeoutRef.current = setTimeout(() => {
-							// Send "isMoving: false" message here
+	
+						if (countHangtime > 0) {
 							const messageStopObject = {
 								[window.p2pcf.clientId]: {
-									isMoving: false
+									isMoving: {
+										action: "jumpStop",
+										hangtime: countHangtime
+									},
+									position: position,
+									rotation: rotation
 								}
 							};
 							const messageStop = JSON.stringify(messageStopObject);
-							isMoving = false;
 							window.p2pcf.broadcast(new TextEncoder().encode(messageStop));
-						}, 100);
-
-						const message = JSON.stringify(messageObject);
-						if (now - lastNetworkUpdateTime > updateRate) {
-							window.p2pcf.broadcast(new TextEncoder().encode(message)), window.p2pcf;
-							lastNetworkUpdateTime = now;
+							countHangtime = 0;
 						}
-					}
-
-					// start tracking hangtime
-					countHangtime++;
-					// if the current timescale of the jump animation is 0, set it to 1
-					if(jump.getEffectiveTimeScale() === 0){
-						if(countHangtime > 3){
-							jump.setEffectiveTimeScale(1);
-							jump.setEffectiveWeight(1);
-							jump.clampWhenFinished = true;
-							// initialize on the last frame of the jump animation
-							jump.time = jump._clip.duration;
-							jump.play();
-							running.setEffectiveTimeScale(0);
-							running.setEffectiveWeight(0);
-							walking.setEffectiveTimeScale(0);
-							walking.setEffectiveWeight(0);
-							// console.log("falling all", "idle:" + idle.getEffectiveTimeScale() + idle.getEffectiveWeight(), "walking:" + walking.getEffectiveTimeScale() + walking.getEffectiveWeight(), "running:" + running.getEffectiveTimeScale() + running.getEffectiveWeight(), "jumping" + jump.getEffectiveTimeScale() + jump.getEffectiveWeight());
-						}
-					}
+					}, 100);
 				}
-
-				if ( isMoving && characterRef.current.userData.canJump ) {
-					countHangtime = 0;
-
-							if(shift) {
-								if (walking.isRunning()) {
-									walking.crossFadeTo(running, 1.1);
-								} else {
-									idle.crossFadeTo(running, 1.1);
-								}
-								running.enabled = true;
-								running.setEffectiveTimeScale(1);
-								running.setEffectiveWeight(1);
-								idle.enabled = true;
-								idle.setEffectiveTimeScale(1);
-								idle.setEffectiveWeight(0);
-								walking.enabled = true;
-								walking.setEffectiveTimeScale(1);
-								walking.setEffectiveWeight(0);
-								running.play();
-							} else {
-								if (running.isRunning()) {
-									running.crossFadeTo(walking, 1);
-								} else {
-									idle.crossFadeTo(walking, 1);
-								}
-								walking.enabled = true;
-								walking.setEffectiveTimeScale(1);
-								walking.setEffectiveWeight(1);
-								running.enabled = true;
-								running.setEffectiveTimeScale(1);
-								running.setEffectiveWeight(0);
-								idle.enabled = true;
-								idle.setEffectiveTimeScale(1);
-								idle.setEffectiveWeight(0);
-								walking.play();
-							}
-
-						//if moving, send a network event of where we are and our current state....animations probably need to go here too.
-						if (window.p2pcf) {
-							const participantObject = scene.getObjectByName("playerOne");
-
-							var target = new Vector3();
-							var worldPosition = participantObject.getWorldPosition( target );
-							const position = [
-								worldPosition.x,
-								worldPosition.y,
-								worldPosition.z
-							];
-							// console.log("sending position", participantObject, position);
-
-							const rotation = [
-								participantObject.parent.parent.rotation.x,
-								participantObject.parent.parent.rotation.y,
-								participantObject.parent.parent.rotation.z
-							];
-							// console.log("userData", userData);
-							const currentAction = ! characterRef.current.userData.canJump ? "jumping" : "walking";
-							const messageObject = {
-								[window.p2pcf.clientId]: {
-									position: position,
-									rotation: rotation,
-									profileImage: userData.profileImage,
-									playerVRM: userData.playerVRM,
-									vrm: userData.vrm,
-									inWorldName: window.userData.inWorldName ? window.userData.inWorldName : userData.inWorldName,
-									isMoving: currentAction
-								}
-							};
-							if( shift && characterRef.current.userData.canJump ){
-								messageObject[window.p2pcf.clientId].isMoving = "running";
-							}
-							// console.log("userdata", userData);
-							clearTimeout(movementTimeoutRef.current);
-							movementTimeoutRef.current = setTimeout(() => {
-								// Send "isMoving: false" message here
-								const messageStopObject = {
-									[window.p2pcf.clientId]: {
-										isMoving: false
-									}
-								};
-								const messageStop = JSON.stringify(messageStopObject);
-								isMoving = false;
-								window.p2pcf.broadcast(new TextEncoder().encode(messageStop));
-							}, 100);
-
-							const message = JSON.stringify(messageObject);
-							if (now - lastNetworkUpdateTime > updateRate) {
-
-								window.p2pcf.broadcast(new TextEncoder().encode(message)), window.p2pcf;
-								lastNetworkUpdateTime = now;
-							}
-						}
-					// }
+			  }
+					  
+			  if (isMoving && characterRef.current.userData.canJump) {
+				countHangtime = 0;
+		  
+				if (shift) {
+				  if (walking.isRunning()) {
+					walking.crossFadeTo(running, 1.1);
+				  } else {
+					idle.crossFadeTo(running, 1.1);
+				  }
+				  running.enabled = true;
+				  running.setEffectiveTimeScale(1);
+				  running.setEffectiveWeight(1);
+				  idle.enabled = true;
+				  idle.setEffectiveTimeScale(1);
+				  idle.setEffectiveWeight(0);
+				  walking.enabled = true;
+				  walking.setEffectiveTimeScale(1);
+				  walking.setEffectiveWeight(0);
+				  running.play();
 				} else {
-					if(characterRef.current.userData.canJump){
-						isJumping = false;
-						if (walking.isRunning()) {	
-							walking.crossFadeTo(idle, 1);
-							walking.enabled = true;
-							walking.setEffectiveTimeScale(1);
-							walking.setEffectiveWeight(0);
-							running.setEffectiveTimeScale(1);
-							running.setEffectiveWeight(0);
-							idle.enabled = true;
-							idle.setEffectiveTimeScale(1);
-							idle.setEffectiveWeight(1);
-							idle.play();
-						} else if (running.isRunning()) {
-							// blend from running to idle
-							running.crossFadeTo(idle, 1);
-							running.enabled = true;
-							running.setEffectiveTimeScale(1);
-							running.setEffectiveWeight(0);
-							walking.setEffectiveTimeScale(1);
-							walking.setEffectiveWeight(0);
-							idle.enabled = true;
-							idle.setEffectiveTimeScale(1);
-							idle.setEffectiveWeight(1);
-							idle.play();
-						}
-					}
+				  if (running.isRunning()) {
+					running.crossFadeTo(walking, 1);
+				  } else {
+					idle.crossFadeTo(walking, 1);
+				  }
+				  walking.enabled = true;
+				  walking.setEffectiveTimeScale(1);
+				  walking.setEffectiveWeight(1);
+				  running.enabled = true;
+				  running.setEffectiveTimeScale(1);
+				  running.setEffectiveWeight(0);
+				  idle.enabled = true;
+				  idle.setEffectiveTimeScale(1);
+				  idle.setEffectiveWeight(0);
+				  walking.play();
 				}
-				if(space) {
-					if( characterRef.current.userData.canJump ) {
-						isJumping = true;
-						// reset hangtime
-						countHangtime = 0;
-						jump.setEffectiveTimeScale(1);
-						jump.setEffectiveWeight(1);
-
-						// set all animations to timescale of 0
-						idle.setEffectiveTimeScale(0);
-						walking.setEffectiveTimeScale(0);
-						running.setEffectiveTimeScale(0);
-						// falling.setEffectiveTimeScale(0);
-						idle.setEffectiveWeight(0);
-						walking.setEffectiveWeight(0);
-						running.setEffectiveWeight(0);
-						// falling.setEffectiveWeight(0);
-
-						// console.log("jump all", "idle:" + idle.getEffectiveTimeScale() + idle.getEffectiveWeight(), "walking:" + walking.getEffectiveTimeScale() + walking.getEffectiveWeight(), "running:" + running.getEffectiveTimeScale() + running.getEffectiveWeight(), "jumping" + jump.getEffectiveTimeScale() + jump.getEffectiveWeight());
-						jump.setLoop(LoopOnce, 1);
-						jump.reset();
-						jump.clampWhenFinished = true;
-						jump.play();			
-					}
+			  } else {
+				if (characterRef.current.userData.canJump) {
+				  isJumping = false;
+				  if (walking.isRunning()) {
+					walking.crossFadeTo(idle, 1);
+					walking.enabled = true;
+					walking.setEffectiveTimeScale(1);
+					walking.setEffectiveWeight(0);
+					running.setEffectiveTimeScale(1);
+					running.setEffectiveWeight(0);
+					idle.enabled = true;
+					idle.setEffectiveTimeScale(1);
+					idle.setEffectiveWeight(1);
+					idle.play();
+				  } else if (running.isRunning()) {
+					running.crossFadeTo(idle, 1);
+					running.enabled = true;
+					running.setEffectiveTimeScale(1);
+					running.setEffectiveWeight(0);
+					walking.setEffectiveTimeScale(1);
+					walking.setEffectiveWeight(0);
+					idle.enabled = true;
+					idle.setEffectiveTimeScale(1);
+					idle.setEffectiveWeight(1);
+					idle.play();
+				  }
 				}
+			  }
+		  
+			  if (space) {
+				if (characterRef.current.userData.canJump) {
+				  isJumping = true;
+				  countHangtime = 0;
+				  jump.setEffectiveTimeScale(1);
+				  jump.setEffectiveWeight(1);
+				  idle.setEffectiveTimeScale(0);
+				  walking.setEffectiveTimeScale(0);
+				  running.setEffectiveTimeScale(0);
+				  idle.setEffectiveWeight(0);
+				  walking.setEffectiveWeight(0);
+				  running.setEffectiveWeight(0);
+				  jump.setLoop(LoopOnce, 1);
+				  jump.reset();
+				  jump.clampWhenFinished = true;
+				  jump.play();
+				}
+			  }
 			}
-
-		});
+		  });
 
 			const keyboardMap = [
 				{ name: "forward", keys: ["ArrowUp", "KeyW"] },
@@ -879,6 +947,8 @@ export default function Player(props) {
 						camMaxDis={-6} // More range for zooming out
 						camMinDis={-0.5} // Allows for a closer view when needed
 						animated
+						restitution={0.0} // Slightly increased for more bounce
+						springK={0} // Increased for more springiness
 						camMoveSpeed={1.5} // Increased camera movement speed for more dynamic camera follow
 						camZoomSpeed={1.5} // Faster zoom to adjust view quicker
 						autoBalance={true} // Disabled to prevent auto-balance
@@ -894,7 +964,7 @@ export default function Player(props) {
 					>
 						{isModelLoaded && playerControllerRef.current && (
 							<>
-								<primitive visible={true} name="playerOne" object={playerControllerRef.current.scene} position={[0, -0.9, 0]} rotation={[0, Math.PI, 0 ]}/>
+								<primitive visible={true} name="playerOne" object={playerControllerRef.current.scene} position={[0, -0.65, 0]} rotation={[0, Math.PI, 0 ]}/>
 								{avatarIsSprite && <SpriteAnimator
 									name="playerOneSprite"
 									ref={spriteRef}

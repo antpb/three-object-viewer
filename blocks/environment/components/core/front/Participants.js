@@ -147,19 +147,18 @@ function Participant(participant) {
 	const displayNameTextRef = useRef(null);
 	const [participantData, setParticipantData] = useState(null);
 	const participantObject = useRef(null);
-	const interpolationDuration = 800; // Adjust this value to control the smoothness
+	const interpolationDuration = 300; // Adjust this value to control the smoothness
 	const [profileImage, setProfileImage] = useState(null);
+	const lastJumpTimes = useRef({});
+	const height = useRef(1.8);
 
 	useEffect(() => {
-		const textureLoader = new THREE.TextureLoader();
-		textureLoader.crossOrigin = '';
-		textureLoader.load(participant.profileImage, (texture) => {
-		// Set the texture directly on the material
-		const material = participantObject.current.getObjectByName('displayNamePfp').material;
-		material.map = texture;
-		material.needsUpdate = true;
-		});
-	}, [participant.profileImage, participantObject]);
+			const textureLoader = new THREE.TextureLoader();
+			textureLoader.crossOrigin = '';
+			textureLoader.load(participant.profileImage, (texture) => {
+				setProfileImage(texture);
+			});
+	}, []);
 
 	// Load the VRM model
 	useEffect(() => {
@@ -205,90 +204,110 @@ function Participant(participant) {
 	}, [someVRM, theScene, participant.p2pcf, participant.playerName, participant.pfp, vrmsRef, animationMixerRef, mixers, animationsRef]);
   
 	useEffect(() => {
-	  if (window.p2pcf) {
-		window.p2pcf.on("msg", (peer, data) => {
-		  if (!(peer.id in window.participants)) {
-			return;
-		  }
-  
-		  const finalData = new TextDecoder("utf-8").decode(data);
-		  const participantData = JSON.parse(finalData);
-  
-		  if (participantObject.current) {
-			if (participantData[peer.client_id]?.position && participantData[peer.client_id]?.rotation) {
-			  setParticipantData((prevData) => ({
-				...prevData,
-				[peer.client_id]: {
-				  ...participantData[peer.client_id],
-				  position: participantData[peer.client_id].position,
-				  rotation: participantData[peer.client_id].rotation,
-				  timestamp: Date.now(),
-				},
-			  }));
+		if (window.p2pcf) {
+		  window.p2pcf.on("msg", (peer, data) => {
+			if (!(peer.id in window.participants)) {
+			  return;
 			}
-		  }
-  
-		  if (animationsRef.current[peer.client_id]) {
-			const walkAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][1]);
-			const idleAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][0]);
-			const runAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][2]);
-			const jumpAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][3]);
-  
-			if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "walking") {
-			  jumpAction.stop();
-			  walkAction.play();
-			  runAction.stop();
-			  idleAction.stop();
-			} else if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "jumping") {
-			  if (!jumpAction.isRunning()) {
-				walkAction.stop();
-				runAction.stop();
-				idleAction.stop();
-				jumpAction.setEffectiveTimeScale(1);
-				jumpAction.setEffectiveWeight(1);
-				jumpAction.setLoop(THREE.LoopOnce, 1);
-				jumpAction.clampWhenFinished = true;
-				jumpAction.time = jumpAction._clip.duration;
-				jumpAction.play();
-			  }
-			} else if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "running") {
-			  walkAction.stop();
-			  runAction.play();
-			  idleAction.stop();
-			  jumpAction.stop();
-			} else {
-			  idleAction.play();
-			  walkAction.stop();
-			  runAction.stop();
-			  jumpAction.stop();
-			}
-		  }
-  
-		  if (displayNameTextRef.current && participantData[peer.client_id]?.inWorldName) {
-			displayNameTextRef.current.text = participantData[peer.client_id].inWorldName;
-			window.participants[peer.id] = participantData[peer.client_id].inWorldName;
-		  } else {
-			window.participants[peer.id] = participantData[peer.client_id].inWorldName;
-		  }
-		});
-	  }
-	}, [window.p2pcf, animationMixerRef, animationsRef]);
-  
 
+			const finalData = new TextDecoder("utf-8").decode(data);
+			const participantData = JSON.parse(finalData);
+			if (participantObject.current) {
+				// Calculate the height of the avatar
+				const box = new THREE.Box3().setFromObject(participantObject.current);
+				height.current = (box.max.y - box.min.y) + (participantData[peer.client_id].isMoving?.action === "jumping" ? 0.5 : 0.1);
+				if (height.current === -Infinity) {
+					height.current = 1.8;
+				}
+
+				if (participantData[peer.client_id]?.position && participantData[peer.client_id]?.rotation) {
+					setParticipantData((prevData) => ({
+						...prevData,
+						[peer.client_id]: {
+						...participantData[peer.client_id],
+						position: participantData[peer.client_id].position,
+						rotation: participantData[peer.client_id].rotation,
+						timestamp: Date.now(),
+						},
+					}));
+				}
+			}
+
+			if (animationsRef.current[peer.client_id]) {
+				const walkAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][1]);
+				const idleAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][0]);
+				const runAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][2]);
+				const jumpAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][3]);
+		
+				if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving.action === "jumping") {				
+				  if (!jumpAction.isRunning()) {
+					const currentTime = Date.now();
+					const lastJumpTime = lastJumpTimes.current[peer.client_id] || 0;
+					const jumpCooldown = 1000; // Adjust this value to set a cooldown between jumps
+				
+					if (currentTime - lastJumpTime >= jumpCooldown) {
+					  console.log("Jumping. this should only happen once.");
+					  lastJumpTimes.current[peer.client_id] = currentTime;
+					  walkAction.stop();
+					  runAction.stop();
+					  idleAction.stop();
+	
+					  jumpAction.reset();
+					  jumpAction.setEffectiveTimeScale(1);
+					  jumpAction.setEffectiveWeight(1);
+					  jumpAction.setLoop(THREE.LoopOnce, 1);
+					  jumpAction.clampWhenFinished = true;
+					  jumpAction.play();
+					}
+				  }
+				} else if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving.action === "walking") {
+				  jumpAction.stop();
+				  walkAction.play();
+				  runAction.stop();
+				  idleAction.stop();
+				} else if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving.action === "running") {
+				  walkAction.stop();
+				  runAction.play();
+				  idleAction.stop();
+				  jumpAction.stop();
+				} else {
+				  idleAction.play();
+				  walkAction.stop();
+				  runAction.stop();
+				  jumpAction.stop();
+				}
+			  }
+					  
+			if (displayNameTextRef.current && participantData[peer.client_id]?.inWorldName) {
+			  displayNameTextRef.current.text = participantData[peer.client_id].inWorldName;
+			  window.participants[peer.id] = participantData[peer.client_id].inWorldName;
+			} else {
+			  window.participants[peer.id] = participantData[peer.client_id].inWorldName;
+			}
+		  });
+		}
+	  }, [window.p2pcf, animationMixerRef, animationsRef]);
+	  
 	useFrame((state, delta) => {
 		if (participantObject.current && participantData && participantData[participant.playerName]) {
-			const { position, rotation, timestamp } = participantData[participant.playerName];
+			const { position, rotation, timestamp, isMoving } = participantData[participant.playerName];
 			const now = Date.now();
-			const interpolationFactor = Math.min((now - timestamp) / interpolationDuration, 1);
-			  
-		  participantObject.current.parent.position.lerp(new THREE.Vector3(...position), interpolationFactor);
-	  
-		  // Convert rotation array to Euler
-		  const targetRotation = new THREE.Euler(...rotation);
-		  // Create a Quaternion from the target rotation
-		  const targetQuaternion = new THREE.Quaternion().setFromEuler(targetRotation);
-		  // Slerp the current rotation towards the target rotation
-		  participantObject.current.parent.quaternion.slerp(targetQuaternion, interpolationFactor);
+			const interpolationFactor = isMoving.action === "jumping" ? Math.min((now - timestamp) / 800, 1) :  Math.min((now - timestamp) / interpolationDuration, 1);
+
+			if(isMoving?.action === "jumpStop") {
+				console.log("we got a stopper")
+				//statically set the position, no lerp.
+				participantObject.current.parent.position.lerp(new THREE.Vector3(...position), Math.min((now - timestamp) / 100, 1));
+			} else{
+				participantObject.current.parent.position.lerp(new THREE.Vector3(...position), interpolationFactor);
+			}
+		
+			// Convert rotation array to Euler
+			const targetRotation = new THREE.Euler(...rotation);
+			// Create a Quaternion from the target rotation
+			const targetQuaternion = new THREE.Quaternion().setFromEuler(targetRotation);
+			// Slerp the current rotation towards the target rotation
+			participantObject.current.parent.quaternion.slerp(targetQuaternion, interpolationFactor);
 		}
 	  
 		if (mixers.current[participant.playerName]) {
@@ -311,7 +330,7 @@ function Participant(participant) {
 		  someVRM.userData.vrm.update(state.clock.getDelta());
 		}
 		
-	  });
+	});
 		
 	if (!someVRM || !someVRM.userData?.gltfExtensions?.VRM) {
 	  return null;
@@ -320,13 +339,6 @@ function Participant(participant) {
 	const playerController = someVRM.userData.vrm;
 	const modelClone = SkeletonUtils.clone(playerController.scene);
 	modelClone.userData.vrm = playerController;
-  
-	// Calculate the height of the avatar
-	const box = new THREE.Box3().setFromObject(modelClone);
-	let height = (box.max.y - box.min.y) + 0.1;
-	if (height === -Infinity) {
-	  height = 1.8;
-	}
   
 	const displayName = participant.inWorldName ? participant.inWorldName : participant.playerName;
   
@@ -350,42 +362,42 @@ function Participant(participant) {
 	return (
 		<group userData={{ camExcludeCollision: true }}>
 			<group rotation={[0, Math.PI, 0]}>
-			<mesh
-				visible={true}
-				position={[0.22, height, 0.005]}
-				rotation-y={-Math.PI}
-				geometry={new THREE.PlaneGeometry(0.1, 0.1)}
-				name="displayNamePfp"
-			>
-				<meshPhongMaterial side={THREE.DoubleSide} shininess={0} map={profileImage} />
-			</mesh>
-			<mesh
-			visible={true}
-			position={[xPos, height, 0.005]}
-			rotation-y={-Math.PI}
-			geometry={new THREE.PlaneGeometry(planeWidth, 0.07)}
-			name="displayNameBackground"
-		  >
-			<meshPhongMaterial side={THREE.DoubleSide} shininess={0} color={colorValue} />
-		  </mesh>
-		  <Text
-			font={defaultFont}
-			anchorX="left"
-			overflowWrap="break-word"
-			ref={displayNameTextRef}
-			className="content"
-			scale={[1, 1, 1]}
-			fontSize={fontSize}
-			rotation-y={-Math.PI}
-			width={0.5}
-			maxWidth={0.5}
-			height={10}
-			position={[0.15, (height - 0.005), 0]}
-			transform
-		  >
-			{displayName}
-		  </Text>
-		</group>
+				<mesh
+					visible={true}
+					position={[0.22, height.current, 0.005]}
+					rotation-y={-Math.PI}
+					geometry={new THREE.PlaneGeometry(0.1, 0.1)}
+					name="displayNamePfp"
+				>
+					<meshPhongMaterial side={THREE.DoubleSide} shininess={0} map={profileImage} />
+				</mesh>
+				<mesh
+					visible={true}
+					position={[xPos, height.current, 0.005]}
+					rotation-y={-Math.PI}
+					geometry={new THREE.PlaneGeometry(planeWidth, 0.07)}
+					name="displayNameBackground"
+				>
+					<meshPhongMaterial side={THREE.DoubleSide} shininess={0} color={colorValue} />
+				</mesh>
+				<Text
+					font={defaultFont}
+					anchorX="left"
+					overflowWrap="break-word"
+					ref={displayNameTextRef}
+					className="content"
+					scale={[1, 1, 1]}
+					fontSize={fontSize}
+					rotation-y={-Math.PI}
+					width={0.5}
+					maxWidth={0.5}
+					height={10}
+					position={[0.15, (height.current - 0.005), 0]}
+					transform
+				>
+					{displayName}
+				</Text>
+			</group>
 		<primitive ref={participantObject} name={participant.playerName} object={playerController.scene} rotation={[0, Math.PI, 0]} />
 		{isPng && (
 		  <SpriteAnimator
@@ -415,60 +427,70 @@ export function Participants(props) {
 	const participants = useParticipantsStore(state => state.participants);
 	const addParticipant = useParticipantsStore(state => state.addParticipant);
 	const removeParticipant = useParticipantsStore(state => state.removeParticipant);
-  
-	useEffect(() => {
-	  if (window.p2pcf) {
-		window.p2pcf.on("msg", (peer, data) => {
-		  if (!(peer.id in window.participants)) {
-			return;
-		  }
-  
-		  const finalData = new TextDecoder("utf-8").decode(data);
-		  const participantData = JSON.parse(finalData);
-  
-		  if (animationsRef.current[peer.client_id]) {
-			const walkAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][1]);
-			const idleAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][0]);
-			const runAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][2]);
-			const jumpAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][3]);
-  
-			if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "walking") {
-			  jumpAction.stop();
-			  walkAction.play();
-			  runAction.stop();
-			  idleAction.stop();
-			} else if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "jumping") {
-			  if (!jumpAction.isRunning()) {
-				walkAction.stop();
-				runAction.stop();
-				idleAction.stop();
-				jumpAction.setEffectiveTimeScale(1);
-				jumpAction.setEffectiveWeight(1);
-				jumpAction.setLoop(THREE.LoopOnce, 1);
-				jumpAction.clampWhenFinished = true;
-				jumpAction.time = jumpAction._clip.duration;
-				jumpAction.play();
-			  }
-			} else if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving === "running") {
-			  walkAction.stop();
-			  runAction.play();
-			  idleAction.stop();
-			  jumpAction.stop();
-			} else {
-			  idleAction.play();
-			  walkAction.stop();
-			  runAction.stop();
-			  jumpAction.stop();
-			}
-		  }
-  
-		  if (participantData[peer.client_id]?.inWorldName) {
-			window.participants[peer.id] = participantData[peer.client_id].inWorldName;
-		  }
-		});
-	  }
-	}, [window.p2pcf, animationMixerRef, animationsRef]);
-  
+	// const lastJumpTimes = useRef({});
+
+	// useEffect(() => {
+	// 	if (window.p2pcf) {
+	// 	  window.p2pcf.on("msg", (peer, data) => {
+	// 		if (!(peer.id in window.participants)) {
+	// 		  return;
+	// 		}
+	  
+	// 		const finalData = new TextDecoder("utf-8").decode(data);
+	// 		const participantData = JSON.parse(finalData);
+	  
+	// 		if (animationsRef.current[peer.client_id]) {
+	// 		  const walkAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][1]);
+	// 		  const idleAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][0]);
+	// 		  const runAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][2]);
+	// 		  const jumpAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][3]);
+	  
+	// 		  if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving.action === "jumping") {
+	// 			walkAction.stop();
+	// 			runAction.stop();
+	// 			idleAction.stop();
+			  
+	// 			if (!jumpAction.isRunning()) {
+	// 			  const currentTime = Date.now();
+	// 			  const lastJumpTime = lastJumpTimes.current[peer.client_id] || 0;
+	// 			  const jumpCooldown = 1000; // Adjust this value to set a cooldown between jumps
+			  
+	// 			  if (currentTime - lastJumpTime >= jumpCooldown) {
+	// 				console.log("Jumping. this should only happen once.");
+	// 				lastJumpTimes.current[peer.client_id] = currentTime;
+	// 				jumpAction.reset();
+	// 				jumpAction.setEffectiveTimeScale(1);
+	// 				jumpAction.setEffectiveWeight(1);
+	// 				jumpAction.setLoop(THREE.LoopOnce, 1);
+	// 				jumpAction.clampWhenFinished = true;
+	// 				jumpAction.play();
+	// 			  }
+	// 			}
+	// 		  } else if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving.action === "walking") {
+	// 			jumpAction.stop();
+	// 			walkAction.play();
+	// 			runAction.stop();
+	// 			idleAction.stop();
+	// 		  } else if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving.action === "running") {
+	// 			walkAction.stop();
+	// 			runAction.play();
+	// 			idleAction.stop();
+	// 			jumpAction.stop();
+	// 		  } else {
+	// 			idleAction.play();
+	// 			walkAction.stop();
+	// 			runAction.stop();
+	// 			jumpAction.stop();
+	// 		  }
+	// 		}
+
+	// 		if (participantData[peer.client_id]?.inWorldName) {
+	// 		  window.participants[peer.id] = participantData[peer.client_id].inWorldName;
+	// 		}
+	// 	  });
+	// 	}
+	//   }, [window.p2pcf, animationMixerRef, animationsRef]);
+
 	useEffect(() => {
 	  const p2pcf = window.p2pcf;
 	  if (p2pcf) {
@@ -502,7 +524,6 @@ export function Participants(props) {
 		<>
 		  {participants && participants.map((item, index) => {
 			const profileImage = item[3];
-			console.log('profileImage', profileImage);
 			if (profileImage) {
 			  return (
 				<Participant

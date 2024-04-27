@@ -59,7 +59,7 @@ async function fetchTURNcredentials() {
 		urlsBlob = await turnUrlsResponse.json();
 
 		// console.log("Fetched data", urlsBlob);
-		console.log("Data", urlsBlob);
+		// console.log("Data", urlsBlob);
 		return urlsBlob;
 	} catch (error) {
 		console.error('Failed to fetch TURN credentials. Using defaults.', error);
@@ -168,20 +168,30 @@ const Networking = (props) => {
 		submit.style.cursor = "pointer";
 		submit.style.boxSizing = "border-box";
 		submit.addEventListener("click", async (event) => {
-			// get the selected audio device
+			// Get the selected audio device
 			let audioSelect = document.getElementById("audio-select");
 			let audioDevice = audioSelect.options[audioSelect.selectedIndex].value;
-			// set the audio device
-			navigator.mediaDevices.getUserMedia({ audio: { deviceId: audioDevice } }).then(function(stream) {
-				// set the local stream to the new stream
-				localStream = stream;
-				// set a window variable for the local stream
-				window.localStream = stream;
-				// loop through the peers and set their streams to the new stream
-				for (const peer of window.p2pcf.peers.values()) {
-					peer.addStream(stream);
+		  
+			// Stop the tracks of the current local stream
+			if (localStream) {
+			  localStream.getTracks().forEach(track => track.stop());
+			}
+		  
+			// Create a new stream with the selected audio device
+			navigator.mediaDevices.getUserMedia({ audio: { deviceId: audioDevice } })
+			.then(function(stream) {
+			  // Update the local stream with the new stream
+			  localStream = stream;
+		
+			  // Replace the old stream with the new one for each peer
+			  for (const peer of p2pcf.peers.values()) {
+				if (peer.streams.length > 0) {
+				  peer.removeStream(peer.streams[0]);
 				}
+				peer.addStream(stream);
+			  }
 			});
+				  
 			// getUserMedia();  // Initialize media stream
 
 			stream = await navigator.mediaDevices.getUserMedia({
@@ -307,6 +317,7 @@ const Networking = (props) => {
 					}
 				});
 			});
+
 			dropdown.appendChild(select);
 			// create a button for submitting the audio device change
 			let submit = document.createElement("button");
@@ -334,14 +345,15 @@ const Networking = (props) => {
 				let audioSelect = document.getElementById("audio-select");
 				let audioDevice = audioSelect.options[audioSelect.selectedIndex].value;
 				// set the audio device
-				navigator.mediaDevices.getUserMedia({ audio: { deviceId: audioDevice } }).then(function(stream) {
-					// loop through the peers and set their streams to the new stream
-					for (const peer of p2pcf.peers.values()) {
-						peer.removeStream(localStream);
-						peer.addStream(stream);
-					}
-					// set the local stream to the new stream
-					localStream = stream;
+				navigator.mediaDevices.getUserMedia({ audio: { deviceId: audioDevice } })
+				.then(function(stream) {
+				  // Loop through the peers and set their streams to the new stream
+				  for (const peer of p2pcf.peers.values()) {
+					peer.removeStream(localStream);
+					peer.addStream(stream);
+				  }
+				  // Set the local stream to the new stream
+				  localStream = stream;
 				});
 				getUserMedia();  // Initialize media stream
 
@@ -590,8 +602,8 @@ const Networking = (props) => {
 
 		if( isNetworkActivated && window.p2pcf ){
 			window.p2pcf.on("peerconnect", (peer) => {
-				if (stream) {
-					peer.addStream(stream);
+				if (localStream) {
+					peer.addStream(localStream);
 				}
 				peer.on("track", (track, stream) => {
 					const video = document.createElement("audio");
