@@ -1363,7 +1363,7 @@ export default class P2PCF extends EventEmitter {
 
 					// peer.destroy();
 
-					let curentRoomHash = window.location.hash;
+					let curentRoomHash = window.location;
 					// remove the # from the hash
 					let currentRoomId = curentRoomHash.substring(1);
 					// example string #3ov-room-1 take the value after the last - and cast it to int
@@ -1377,7 +1377,7 @@ export default class P2PCF extends EventEmitter {
 					currentRoomId = currentRoomId.substring(0, currentRoomId.lastIndexOf("-") + 1);
 					currentRoomId = currentRoomId + newRoomId;
 					// set the #room in the url
-					window.location.hash = currentRoomId;
+					window.location = currentRoomId;
 
 					roomCount = 0;
 					this.roomId = newRoomId;

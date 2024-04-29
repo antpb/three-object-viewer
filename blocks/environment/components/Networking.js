@@ -33,38 +33,32 @@ const generateRoomId = (sharedRoomID) => {
   };
   
   
-async function fetchTURNcredentials() {
-	const endpoint = turnCredentials['apiUrl'];
-	const nonce = turnCredentials['nonce'];
-	let urlsBlob = null;
+  async function fetchTURNcredentials() {
+    const endpoint = turnCredentials['apiUrl'];
+    const nonce = turnCredentials['nonce'];
 
-	try {
-		// // Fetch TURN credentials from WordPress endpoint
-		const response = await fetch(endpoint, {
-			method: 'GET',
-			headers: {
-			'X-WP-Nonce': nonce,
-			'Content-Type': 'application/json'
-			}
-		});
+    try {
+        // Fetch TURN credentials from the WordPress endpoint
+        const response = await fetch(endpoint, {
+            method: 'GET',
+            headers: {
+                'X-WP-Nonce': nonce,
+                'Content-Type': 'application/json'
+            }
+        });
 
-		if (!response.ok) {
-			throw new Error('Failed to fetch TURN credentials');
-		}
+        if (!response.ok) {
+            throw new Error('Failed to fetch TURN credentials');
+        }
 
-		const data = await response.json();
-		const apiKey = data.apiKey;
-		// Use the apiKey to fetch TURN URLs from metered.live
-		const turnUrlsResponse = await fetch(`https://3ov.metered.live/api/v1/turn/credentials?apiKey=${apiKey}`);
-		urlsBlob = await turnUrlsResponse.json();
+        const data = await response.json();
+        const turnUrls = data.turnUrls;
 
-		// console.log("Fetched data", urlsBlob);
-		// console.log("Data", urlsBlob);
-		return urlsBlob;
-	} catch (error) {
-		console.error('Failed to fetch TURN credentials. Using defaults.', error);
-		return DEFAULT_TURN_ICE;
-	}
+        return turnUrls;
+    } catch (error) {
+        console.error('Failed to fetch TURN credentials. Using defaults.', error);
+        return DEFAULT_TURN_ICE;
+    }
 }
 
 const Networking = (props) => {

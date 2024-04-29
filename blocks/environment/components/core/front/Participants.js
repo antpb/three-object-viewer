@@ -197,6 +197,13 @@ function Participant(participant) {
 		  animationsRef.current[participant.playerName] = animations;
   
 		  const idleAction = animationMixerRef.current[participant.playerName].clipAction(animations[0]);
+		  const walkAction = animationMixerRef.current[participant.playerName].clipAction(animations[1]);
+		  const runAction = animationMixerRef.current[participant.playerName].clipAction(animations[2]);
+		  const jumpAction = animationMixerRef.current[participant.playerName].clipAction(animations[3]);
+		  walkAction.setEffectiveWeight(0);
+		  runAction.setEffectiveWeight(0);
+		  jumpAction.setEffectiveWeight(0);
+		  idleAction.setEffectiveWeight(1);
 		  idleAction.timeScale = 1;
 		  idleAction.play();
 		});
@@ -234,47 +241,59 @@ function Participant(participant) {
 			}
 
 			if (animationsRef.current[peer.client_id]) {
-				const walkAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][1]);
 				const idleAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][0]);
+				const walkAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][1]);
 				const runAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][2]);
 				const jumpAction = animationMixerRef.current[peer.client_id].clipAction(animationsRef.current[peer.client_id][3]);
-		
-				if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving.action === "jumping") {				
+				if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving.action === "jumping") {	
 				  if (!jumpAction.isRunning()) {
 					const currentTime = Date.now();
 					const lastJumpTime = lastJumpTimes.current[peer.client_id] || 0;
 					const jumpCooldown = 1000; // Adjust this value to set a cooldown between jumps
-				
+			  
 					if (currentTime - lastJumpTime >= jumpCooldown) {
-					  console.log("Jumping. this should only happen once.");
 					  lastJumpTimes.current[peer.client_id] = currentTime;
 					  walkAction.stop();
 					  runAction.stop();
 					  idleAction.stop();
-	
+					  jumpAction.setEffectiveWeight(1);
+					  idleAction.setEffectiveWeight(0);
+					  runAction.setEffectiveWeight(0);
+					  walkAction.setEffectiveWeight(0);	  
 					  jumpAction.reset();
 					  jumpAction.setEffectiveTimeScale(1);
-					  jumpAction.setEffectiveWeight(1);
 					  jumpAction.setLoop(THREE.LoopOnce, 1);
 					  jumpAction.clampWhenFinished = true;
 					  jumpAction.play();
 					}
 				  }
 				} else if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving.action === "walking") {
-				  jumpAction.stop();
-				  walkAction.play();
-				  runAction.stop();
-				  idleAction.stop();
+					jumpAction.setEffectiveWeight(0);
+					idleAction.setEffectiveWeight(0);
+					runAction.setEffectiveWeight(0);
+					walkAction.setEffectiveWeight(1);
+					jumpAction.stop();
+					walkAction.play();
+					runAction.stop();
+					idleAction.stop();
 				} else if (participantData[peer.client_id].isMoving && participantData[peer.client_id].isMoving.action === "running") {
-				  walkAction.stop();
-				  runAction.play();
-				  idleAction.stop();
-				  jumpAction.stop();
+					jumpAction.setEffectiveWeight(0);
+					idleAction.setEffectiveWeight(0);
+					runAction.setEffectiveWeight(1);
+					walkAction.setEffectiveWeight(0);
+					walkAction.stop();
+					runAction.play();
+					idleAction.stop();
+					jumpAction.stop();
 				} else {
-				  idleAction.play();
-				  walkAction.stop();
-				  runAction.stop();
-				  jumpAction.stop();
+					jumpAction.setEffectiveWeight(0);
+					idleAction.setEffectiveWeight(1);
+					runAction.setEffectiveWeight(0);
+					walkAction.setEffectiveWeight(0);
+					idleAction.play();
+					walkAction.stop();
+					runAction.stop();
+					jumpAction.stop();
 				}
 			  }
 					  
@@ -298,6 +317,15 @@ function Participant(participant) {
 				console.log("we got a stopper")
 				//statically set the position, no lerp.
 				participantObject.current.parent.position.lerp(new THREE.Vector3(...position), Math.min((now - timestamp) / 100, 1));
+				// set the action to idle
+				setParticipantData((prevData) => ({
+					...prevData,
+					[participant.playerName]: {
+						...prevData[participant.playerName],
+						isMoving: false,
+						position: position,
+					},
+				}));				
 			} else{
 				participantObject.current.parent.position.lerp(new THREE.Vector3(...position), interpolationFactor);
 			}
@@ -311,10 +339,19 @@ function Participant(participant) {
 		}
 	  
 		if (mixers.current[participant.playerName]) {
-		  const idleAction = mixers.current[participant.playerName]._actions.find(action => action._clip.name === 'idle');
-		  if (idleAction && !idleAction.isRunning()) {
-			idleAction.reset().play();
-		  }
+		//   const idleAction = mixers.current[participant.playerName]._actions.find(action => action._clip.name === 'idle');
+		  const idleAction = mixers.current[participant.playerName]._actions[0];
+		  const walkAction = mixers.current[participant.playerName]._actions[1];
+		  const runAction = mixers.current[participant.playerName]._actions[2];
+		  const jumpAction = mixers.current[participant.playerName]._actions[3];
+
+		//   if (idleAction && !idleAction.isRunning()) {
+		// 	idleAction.setEffectiveWeight(1);
+		// 	jumpAction.setEffectiveWeight(0);
+		// 	walkAction.setEffectiveWeight(0);
+		// 	runAction.setEffectiveWeight(0);
+		// 	idleAction.reset().play();
+		//   }
 	  
 		  mixers.current[participant.playerName].update(state.clock.getDelta());
 		}
@@ -361,7 +398,7 @@ function Participant(participant) {
   
 	return (
 		<group userData={{ camExcludeCollision: true }}>
-			<group rotation={[0, Math.PI, 0]}>
+			<group userData={{ camExcludeCollision: true }} rotation={[0, Math.PI, 0]}>
 				<mesh
 					visible={true}
 					position={[0.22, height.current, 0.005]}
@@ -398,11 +435,12 @@ function Participant(participant) {
 					{displayName}
 				</Text>
 			</group>
-		<primitive ref={participantObject} name={participant.playerName} object={playerController.scene} rotation={[0, Math.PI, 0]} />
+		<primitive userData={{ camExcludeCollision: true }} ref={participantObject} name={participant.playerName} object={playerController.scene} rotation={[0, Math.PI, 0]} />
 		{isPng && (
 		  <SpriteAnimator
 			position={[0, 1, 0]}
 			frameName={frameName}
+			userData={{ camExcludeCollision: true }}
 			scale={[2, 2, 2]}
 			fps={10}
 			animationNames={['WalkForward', 'WalkBackward', 'ForwardIdle', 'BackwardIdle', 'WalkLeft', 'WalkRight']}
@@ -417,6 +455,7 @@ function Participant(participant) {
 	  </group>
 	);
   }
+
 export function Participants(props) {
 	const theScene = useThree();
 	const profileUserData = useRef([]);

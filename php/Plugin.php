@@ -187,17 +187,18 @@ class Plugin
 			return true;
 		}
 	}
-	
+
 	function get_turn_credentials($request) {
-		// Optional: Verify nonce for additional security
 		$nonce = $request->get_header('X-WP-Nonce');
 		if (!wp_verify_nonce($nonce, 'wp_rest')) {
 			return new \WP_Error('invalid_nonce', 'Invalid nonce', array('status' => 403));
 		}
-		// get the api key from 3ov_mp_turnServerKey
+	
+		// Get the API key from '3ov_mp_turnServerKey'
 		$apiKey = get_option('3ov_mp_turnServerKey');
+	
 		// URL of your Cloudflare Worker
-		$workerUrl = 'https://turn.sxpdigital.workers.dev/';
+		$workerUrl = 'https://turn-dev.sxpdigital.workers.dev/';
 	
 		// Make a request to the Cloudflare Worker to get TURN credentials
 		$response = wp_remote_post($workerUrl, array(
@@ -210,7 +211,6 @@ class Plugin
 		));
 	
 		if (is_wp_error($response)) {
-			// failure reason
 			$error_message = $response->get_error_message();
 			return new \WP_Error('request_failed', $error_message, array('status' => 400));
 		}
@@ -219,8 +219,8 @@ class Plugin
 		$credentials = json_decode($body, true);
 	
 		return new \WP_REST_Response($credentials, 200);
-	}
-	
+	}	
+
 	// _updateRoomCountInDatabase(roomCount) {
 	// 	const postId = userData.currentPostId // Implement this method based on how you determine the post ID
 	// 	const apiUrl = `/wp-json/threeov/v1/update-room-count/${postId}`;

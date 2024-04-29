@@ -13,6 +13,8 @@ const movement = useRef({
 	space: false,
 	mouseDown: false
 });
+const spacebarDebounceTime = 100; // Adjust this value as needed
+let lastSpacebarTime = 0;
 
 useEffect(() => {
 	const handleKeyDown = (e) => {
@@ -23,7 +25,13 @@ useEffect(() => {
 	else if (e.key === 's' || e.key === 'S' && ! movement.current.backward) movement.current.backward = true;
 	else if (e.key === 'a' || e.key === 'A' && ! movement.current.left) movement.current.left = true;
 	else if (e.key === 'd' || e.key === 'D' && ! movement.current.right) movement.current.right = true;
-	else if (e.code === 'Space') movement.current.space = true;
+	else if (e.code === 'Space') {
+		const currentTime = Date.now();
+		if (currentTime - lastSpacebarTime > spacebarDebounceTime) {
+			movement.current.space = true;
+			lastSpacebarTime = currentTime;
+		}
+	}	
 	else if (e.key === 'Shift') movement.current.shift = true;
 	else if (e.key === 'r' || e.key === 'R'){
 		if (e.metaKey || e.ctrlKey){
