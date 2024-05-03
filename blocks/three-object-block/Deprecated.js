@@ -228,11 +228,11 @@ export default function Deprecated(){
 								<p className="three-object-block-url">
 									{ props.attributes.threeObjectUrl }
 								</p>
-								<p className="three-object-scale">{ attributes.scale }</p>
+								<p className="three-object-scale">{ props.attributes.scale }</p>
 								<p className="three-object-background-color">
 									{ props.attributes.bg_color }
 								</p>
-								<p className="three-object-zoom">{ attributes.zoom }</p>
+								<p className="three-object-zoom">{ props.attributes.zoom }</p>
 								<p className="three-object-has-zoom">
 									{ props.attributes.hasZoom ? 1 : 0 }
 								</p>
@@ -245,7 +245,7 @@ export default function Deprecated(){
 								<p className="three-object-rotation-y">
 									{ props.attributes.rotationY }
 								</p>
-								<p className="three-object-scale">{ attributes.scale }</p>
+								<p className="three-object-scale">{ props.attributes.scale }</p>
 								<p className="three-object-animations">
 									{ props.attributes.animations }
 								</p>

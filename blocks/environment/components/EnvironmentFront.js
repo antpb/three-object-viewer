@@ -43,6 +43,7 @@ import { ThreeSky } from "./core/front/ThreeSky";
 import { TextObject } from "./core/front/TextObject";
 import { useKeyboardControls } from "./Controls";
 import { ContextBridgeComponent } from "./ContextBridgeComponent";
+import { Reflector } from 'three/examples/jsm/objects/Reflector';
 
 function isMobile() {
 	return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -636,6 +637,14 @@ export default function EnvironmentFront(props) {
 	const [objectsInRoom, setObjectsInRoom] = useState([]);
 	const [url, setURL] = useState(props.threeUrl ? props.threeUrl : (defaultEnvironment));
 	const [loadingWorld, setLoadingWorld] = useState(true);
+	const mirror = new Reflector(
+		new THREE.PlaneGeometry(Number(100), Number(100)),
+		{
+		  color: new THREE.Color(0x7f7f7f),
+		  textureWidth: 1000,
+		  textureHeight: 1000
+		}
+	  );
 
 	useEffect(() => {
 		const handleReady = () => {
@@ -734,6 +743,13 @@ export default function EnvironmentFront(props) {
 									/>
 								}
 								<ContextBridgeComponent/>
+								<group
+									position={[Number(-46.62386046622553), Number(0.9854560429847763), Number(-3.2510508096355206)]}
+									rotation={[Number(0), Number(0), Number(0)]}
+								>
+									<primitive object={mirror} />
+								</group>
+
 								<Physics
 									erp = {1}
 									iterations = {10}

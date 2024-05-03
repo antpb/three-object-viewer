@@ -198,15 +198,13 @@ class Plugin
 		$apiKey = get_option('3ov_mp_turnServerKey');
 	
 		// URL of your Cloudflare Worker
-		$workerUrl = 'https://turn-dev.sxpdigital.workers.dev/';
+		$workerUrl = 'https://cfdb.sxpdigital.workers.dev/generate-turn-credentials';
 	
 		// Make a request to the Cloudflare Worker to get TURN credentials
 		$response = wp_remote_post($workerUrl, array(
-			'body' => json_encode(array(
-				'apiKey' => $apiKey,
-			)),
 			'headers' => array(
 				'Content-Type' => 'application/json',
+				'Authorization' => 'Bearer ' . $apiKey,
 			),
 		));
 	
@@ -219,8 +217,9 @@ class Plugin
 		$credentials = json_decode($body, true);
 	
 		return new \WP_REST_Response($credentials, 200);
-	}	
-
+	}
+	
+	
 	// _updateRoomCountInDatabase(roomCount) {
 	// 	const postId = userData.currentPostId // Implement this method based on how you determine the post ID
 	// 	const apiUrl = `/wp-json/threeov/v1/update-room-count/${postId}`;

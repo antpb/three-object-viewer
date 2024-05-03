@@ -182,7 +182,7 @@
 
 .wp-block-three-object-viewer-environment .block-editor-block-list__layout .block-editor-block-list__block:not([contenteditable]):focus:after {
 	border-radius: 30px;
-    box-shadow: 0 0 0 2px #7022e8;
+    box-shadow: 0 0 0 3px #f5eaff;
     margin-left: 10px;
     max-width: 178px;
     z-index: 2;
@@ -237,7 +237,13 @@
 .three-object-viewer-inner {
 	z-index:1;
 	flex: 1;
-	background-color: #3a323fdb;
+	// background-color: #5f00b5ed;
+	background-color:#6b3077e6;
+	background-image:
+	radial-gradient(at 5% 31%, rgb(54 0 255 / 27%) 0, transparent 50%),
+	radial-gradient(at 1% 0, rgba(200, 82, 255, .392) 0, transparent 50%);
+	background-size: 100% 111%;
+    background-position: 0 -2px;
 	color: white;
 	box-sizing: border-box;
 	// margin-bottom: 3px;
@@ -254,6 +260,19 @@
 	padding-left: 10px;
 	padding-top: 5px;
 	border: 2px solid #ffffff17;
+}
+
+.threeov-block-list-container {
+	backdrop-filter: blur(12px);
+	background-color:#3a017d80;
+	background-image:
+	radial-gradient(at 5% 61%, hsla(290, 77%, 64%, 0.253) 0px, transparent 50%),
+	radial-gradient(at 12% 22%, rgba(163, 152, 231, 0.235) 0px, transparent 50%),
+	radial-gradient(at 88% 26%, hsla(243,69%,70%,1) 0px, transparent 50%),
+	radial-gradient(at 81% 21%, rgba(158, 112, 250, 0.322) 0px, transparent 50%),
+	radial-gradient(at 26% 69%, rgba(76, 198, 250, 0.388) 0px, transparent 50%),
+	radial-gradient(at 1% 32%, hsla(260,50%,67%,0.17) 0px, transparent 50%),
+	radial-gradient(at 23% 96%, hsla(229,100%,50%,0.19) 0px, transparent 50%);
 }
 
 div:has(> .three-object-viewer-component-container, > .three-object-viewer-inner) {

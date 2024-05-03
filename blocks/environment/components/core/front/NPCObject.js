@@ -217,7 +217,7 @@ export function NPCObject(model) {
 		if (animationList) {
 			animationList.forEach((name) => {
 				if (Object.keys(actions).includes(name)) {
-					console.log(actions[name].play());
+					actions[name].play();
 				}
 			});
 		}
@@ -325,7 +325,8 @@ export function NPCObject(model) {
 		});
 
 		// retarget the animations from mixamo to the current vrm 
-		if (model.defaultAvatarAnimation){
+		// if model.defaultAvatarAnimation is not empty
+		if (model.defaultAvatarAnimation[0]){
 			// hide the model while we load the animation
 			currentVrm.scene.visible = false;
 			loadMixamoAnimation(model.defaultAvatarAnimation, currentVrm).then((clip) => {

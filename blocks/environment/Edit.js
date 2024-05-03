@@ -393,6 +393,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 			</InspectorControls>
 				<>
 				<div
+					className="threeov-block-list-container"
 					style={{
 						height: "100%",
 						maxWidth: "220px",
@@ -402,7 +403,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 						top: "0px",
 						left: "0px",
 						zIndex: "1",
-						background: "linear-gradient(180deg, #23192adb 0%, #23192a3b 100%)",
+						// background: "linear-gradient(180deg, #23192adb 0%, #23192a3b 100%)",
 						borderRight: "3px solid #ffffff1f",
 					}}
 				>

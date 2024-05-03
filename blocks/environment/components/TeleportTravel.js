@@ -4,7 +4,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useCallback, useRef, useState, useEffect } from "react";
 import { useRapier, useRigidBody, RigidBody } from "@react-three/rapier";
 import {
-	Text,
+  Text,
 } from "@react-three/drei";
 
 export function TeleportIndicator(props) {
@@ -144,9 +144,15 @@ export default function TeleportTravel(props) {
 		const z = Number(spawnPos[2]);
 
 	if (isPresenting) {
-		player.position.x = x
-		player.position.y = y
-		player.position.z = z
+		const participantObject = scene.getObjectByName("playerOne");
+		console.log("participantObject", participantObject);
+		if (participantObject) {
+			player.position.x = participantObject.parent.parent.position.x;
+			player.position.y = participantObject.parent.parent.position.y;
+			player.position.z = participantObject.parent.parent.position.z;
+		} else {
+			player.position.set(x, y, z);
+		}
 	}
 	}, [isPresenting])
 
@@ -168,13 +174,21 @@ export default function TeleportTravel(props) {
 	let dominantController = useController('right');
 	// const rightController = useController('right')
 
-	useFrame(() => {
+	const updateRate = 1000 / 5; // 5Hz update rate
+	const lastNetworkUpdateTimeRef = useRef(0);
+  
+  
+	useFrame((state, delta) => {
+		const now = state.clock.elapsedTime * 1000;
+
 		if (
 			isHovered &&
 			controllers.length > 0 &&
 			ray.current &&
 			target.current &&
-			targetLoc.current
+			targetLoc.current &&
+			dominantController &&
+			dominantController.controller
 		) {
 			dominantController.controller.getWorldDirection(rayDir.current.dir);
 			dominantController.controller.getWorldPosition(rayDir.current.pos);
@@ -190,7 +204,6 @@ export default function TeleportTravel(props) {
 				intersection.distance < 100 &&
 				intersection.distance > .5
 			) {
-				console.log("dominantController", dominantController);
 				const intersectionObject = intersection.object;
 				let containsInteractiveObject = false;
 				intersectionObject.traverseAncestors((parent) => {
@@ -202,7 +215,7 @@ export default function TeleportTravel(props) {
 					}
 				});
 				if (containsInteractiveObject) {
-					console.log("set teleport false in contains interactive object");
+					// console.log("set teleport false in contains interactive object");
 					setCanInteract(true);
 					setCanTeleport(false);
 				} else {
@@ -228,112 +241,112 @@ export default function TeleportTravel(props) {
 				}
 				setCurrentPosition(intersection.point);
 			}
+			if (now - lastNetworkUpdateTimeRef.current > updateRate) {
+				const p2pcf = window.p2pcf;
+				if (p2pcf) {
+				  const rotation = [
+					player.rotation.x,
+					player.rotation.y,
+					player.rotation.z,
+				  ];
+				  const messageObject = {
+					[p2pcf.clientId]: {
+					  rotation: rotation,
+					  profileImage: userData.profileImage,
+					  vrm: userData.vrm,
+					  inWorldName: userData.inWorldName,
+					},
+				  };
+				  const message = JSON.stringify(messageObject);
+				  p2pcf.broadcast(new TextEncoder().encode(message)), p2pcf;
+				  lastNetworkUpdateTimeRef.current = now;
+				}
+			}
 		}
 	});
 
 	const click = useCallback(() => {
 		console.log("clicking", player);
 		if (isHovered && !canInteract) {
-			targetLoc.current.position.set(
-				targetLoc.current.position.x,
-				targetLoc.current.position.y + 0.4,
-				targetLoc.current.position.z
-			);
-			if (canTeleport) {
-				console.log("teleporting to", targetLoc.current.position);
-				player.position.copy(targetLoc.current.position);
-				const p2pcf = window.p2pcf;
-				const participantObject = scene.getObjectByName("playerOne");
-				//if moving, send a network event of where we are and our current state....animations probably need to go here too.
-				if(participantObject){
-					console.log("participantObject", participantObject);
-					if (p2pcf) {	
-						var target = new Vector3();
-						var worldPosition = participantObject.getWorldPosition( target );
-						const position = [
-							targetLoc.current.position.x,
-							targetLoc.current.position.y,
-							targetLoc.current.position.z
-						];
-						// console.log("sending position", participantObject, position);
-						// get the z rotation of the headset
-						const rotation = [
-							player.rotation.x,
-							player.rotation.y,
-							player.rotation.z
-						];
-						const messageObject = {
-							[p2pcf.clientId]: {
-								position: position,
-								rotation: rotation,
-								profileImage: userData.profileImage,
-								vrm: userData.vrm,
-								inWorldName: userData.inWorldName,
-								isMoving: "walking"
-							}
-						};
-						console.log("sending message", messageObject);
-						// console.log("userdata", userData);
-						clearTimeout(movementTimeoutRef.current);
-						movementTimeoutRef.current = setTimeout(() => {
-							// Send "isMoving: false" message here
-							const messageStopObject = {
-								[p2pcf.clientId]: {
-									isMoving: false
-								}
-							};
-							const messageStop = JSON.stringify(messageStopObject);
-							p2pcf.broadcast(new TextEncoder().encode(messageStop));
-						}, 100);
-
-						const message = JSON.stringify(messageObject);
-						p2pcf.broadcast(new TextEncoder().encode(message)), p2pcf;
-					}
-				}
+		  targetLoc.current.position.set(
+			targetLoc.current.position.x,
+			targetLoc.current.position.y + 0.4,
+			targetLoc.current.position.z
+		  );
+		  if (canTeleport) {
+			console.log("teleporting to", targetLoc.current.position);
+			player.position.copy(targetLoc.current.position);
+			const p2pcf = window.p2pcf;
+			const participantObject = scene.getObjectByName("playerOne");
+			if (participantObject) {
+			  console.log("participantObject", participantObject);
+			  if (p2pcf) {
+				var target = new Vector3();
+				var worldPosition = participantObject.getWorldPosition(target);
+				const position = [
+				  targetLoc.current.position.x,
+				  targetLoc.current.position.y,
+				  targetLoc.current.position.z,
+				];
+				const rotation = [
+				  player.rotation.x,
+				  player.rotation.y,
+				  player.rotation.z,
+				];
+				const messageObject = {
+				  [p2pcf.clientId]: {
+					position: position,
+					rotation: rotation,
+					profileImage: userData.profileImage,
+					vrm: userData.vrm,
+					inWorldName: userData.inWorldName,
+					isMoving: "walking",
+				  },
+				};
+				console.log("sending message", messageObject);
+				clearTimeout(movementTimeoutRef.current);
+				movementTimeoutRef.current = setTimeout(() => {
+				  const messageStopObject = {
+					[p2pcf.clientId]: {
+					  isMoving: false,
+					},
+				  };
+				  const messageStop = JSON.stringify(messageStopObject);
+				  p2pcf.broadcast(new TextEncoder().encode(messageStop));
+				}, 100);
+				const message = JSON.stringify(messageObject);
+				p2pcf.broadcast(new TextEncoder().encode(message)), p2pcf;
+			  }
 			}
+		  }
 		}
 		if (isHovered && canInteract) {
-			if (controllers.length > 0) {
-				const rigidBodyDesc = new rapier.RigidBodyDesc(
-					rapier.RigidBodyType.Static
-				)
-					// The rigid body translation.
-					// Default: zero vector.
-					.setTranslation(
-						targetLoc.current.position.x,
-						targetLoc.current.position.y,
-						targetLoc.current.position.z - 0.008
-					)
-					.setLinvel(0, 0, 0)
-					// The linear velocity of this body.
-					// .setLinvel(targetLoc.current.position.x, targetLoc.current.position.y - 1.1, targetLoc.current.position.z)
-					// Default: zero vector.
-					.setGravityScale(1)
-					// Default: zero velocity.
-					.setCanSleep(false)
-					// Whether or not CCD is enabled for this rigid-body.
-					// Default: false
-					.setCcdEnabled(true);
-				const rigidBody = world.createRigidBody(rigidBodyDesc);
-
-				const collider = world.createCollider(
-					rapier.ColliderDesc.cuboid(0.05, 0.05, 0.05),
-					rigidBody
-					// rapier.ColliderDesc.capsule(0.5, 0.5), rigidBody
-				);
-
-				collider.setFriction(0.1);
-				collider.setRestitution(0);
-				// collider.setSensor(true);
-				// collider.setTranslation(intersects[0].point);
-				setTimeout(() => {
-					world.removeCollider(collider);
-					world.removeRigidBody(rigidBody);
-				}, 200);
-			}
+		  if (controllers.length > 0) {
+			const rigidBodyDesc = new rapier.RigidBodyDesc(rapier.RigidBodyType.Static)
+			  .setTranslation(
+				targetLoc.current.position.x,
+				targetLoc.current.position.y,
+				targetLoc.current.position.z - 0.008
+			  )
+			  .setLinvel(0, 0, 0)
+			  .setGravityScale(1)
+			  .setCanSleep(false)
+			  .setCcdEnabled(true);
+			const rigidBody = world.createRigidBody(rigidBodyDesc);
+			const collider = world.createCollider(
+			  rapier.ColliderDesc.cuboid(0.05, 0.05, 0.05),
+			  rigidBody
+			);
+			collider.setFriction(0.1);
+			collider.setRestitution(0);
+			setTimeout(() => {
+			  world.removeCollider(collider);
+			  world.removeRigidBody(rigidBody);
+			}, 200);
+		  }
 		}
-	}, [isHovered, canTeleport, canInteract]);
-
+	  }, [isHovered, canTeleport, canInteract]);
+	  
 	return (
 		<>
 			{isHovered && canTeleport && (
