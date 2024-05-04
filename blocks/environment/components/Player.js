@@ -30,27 +30,6 @@ const __originWPos = new Vector3();
 const __originWDir = new Vector3();
 const __offset = new Vector3();
 
-function useGameWithLogging() {
-  const gameStore = useGame();
-
-  const wrapWithLogging = (action) => {
-    return (...args) => {
-      return action(...args);
-    };
-  };
-
-  const idle = wrapWithLogging(gameStore.idle);
-  const walk = wrapWithLogging(gameStore.walk);
-  const run = wrapWithLogging(gameStore.run);
-
-  return {
-    ...gameStore,
-    idle,
-    walk,
-    run,
-  };
-}
-
 const mixamoVRMRigMap = getMixamoRig();
 
 function loadMixamoAnimation(url, vrm) {
@@ -164,29 +143,6 @@ function addResetButton(props) {
   document.body.appendChild(button);
 }
 
-function calculateSpineRotation(headBone, rightHandBone, leftHandBone) {
-  const spineRotation = new Quaternion();
-
-  const handsMidpoint = new Vector3()
-    .addVectors(rightHandBone.getWorldPosition(new Vector3()), leftHandBone.getWorldPosition(new Vector3()))
-    .multiplyScalar(0.5);
-  const headToHandsDirection = new Vector3()
-    .subVectors(handsMidpoint, headBone.getWorldPosition(new Vector3()))
-    .normalize();
-
-  const headUpVector = new Vector3(0, 1, 0).applyQuaternion(headBone.getWorldQuaternion(new Quaternion()));
-
-  spineRotation.setFromUnitVectors(new Vector3(0, 1, 0), headToHandsDirection);
-  const spineUpVector = new Vector3(0, 1, 0).applyQuaternion(spineRotation);
-  const spineRotationAdjustment = new Quaternion().setFromUnitVectors(
-    spineUpVector,
-    headUpVector
-  );
-  spineRotation.multiply(spineRotationAdjustment);
-
-  return spineRotation;
-}
-
 class XrHead {
   constructor(context) {
     this.context = context;
@@ -242,94 +198,7 @@ class Vector3Damper {
     this._total.setScalar(0);
     this._average.setScalar(0);
   }
-}
-
-// FABRIK algorithm implementation
-class FABRIK {
-	constructor(bones, targetPosition, maxIterations, tolerance) {
-	  this.bones = bones;
-	  this.targetPosition = targetPosition;
-	  this.maxIterations = maxIterations;
-	  this.tolerance = tolerance;
-	}
-  
-	solve() {
-	  const boneCount = this.bones.length;
-	  const positions = new Array(boneCount);
-  
-	  for (let i = 0; i < boneCount; i++) {
-		positions[i] = this.bones[i].position.clone();
-	  }
-  
-	  for (let iteration = 0; iteration < this.maxIterations; iteration++) {
-		// Forward reaching phase
-		positions[boneCount - 1].copy(this.targetPosition);
-  
-		for (let i = boneCount - 2; i >= 0; i--) {
-		  const directionToNext = positions[i].clone().sub(positions[i + 1]).normalize();
-		  const distanceToNext = this.bones[i].position.distanceTo(this.bones[i + 1].position);
-		  positions[i].copy(positions[i + 1]).add(directionToNext.multiplyScalar(distanceToNext));
-		}
-  
-		// Backward reaching phase
-		positions[0].copy(this.bones[0].position);
-  
-		for (let i = 1; i < boneCount; i++) {
-		  const directionToPrevious = positions[i].clone().sub(positions[i - 1]).normalize();
-		  const distanceToPrevious = this.bones[i].position.distanceTo(this.bones[i - 1].position);
-		  positions[i].copy(positions[i - 1]).add(directionToPrevious.multiplyScalar(distanceToPrevious));
-		}
-  
-		// Check convergence
-		const distanceToTarget = positions[boneCount - 1].distanceTo(this.targetPosition);
-		if (distanceToTarget < this.tolerance) {
-		  break;
-		}
-	  }
-  
-	  // Update bone positions
-	  for (let i = 0; i < boneCount; i++) {
-		this.bones[i].position.copy(positions[i]);
-	  }
-	}
-  }
-  
-  
-  class CCDIKSolver {
-	constructor(bone, targetPosition) {
-	  this.bone = bone;
-	  this.targetPosition = targetPosition;
-	  this.maxIterations = 10;
-	  this.tolerance = 0.001;
-	}
-  
-	solve() {
-	  let iter = 0;
-	  let distance = this.targetPosition.distanceTo(this.bone.position);
-  
-	  while (iter < this.maxIterations && distance > this.tolerance) {
-		const direction = new Vector3().subVectors(this.targetPosition, this.bone.position).normalize();
-		const quaternion = new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), direction);
-		this.bone.quaternion.slerp(quaternion, 0.5);
-		this.bone.updateMatrixWorld(true);
-  
-		distance = this.targetPosition.distanceTo(this.bone.position);
-		iter++;
-	  }
-	}
-  }
-  
-function updateBoneRotations(bones) {
-	for (let i = 0; i < bones.length - 1; i++) {
-	  const currentBone = bones[i];
-	  const nextBone = bones[i + 1];
-  
-	  const direction = new Vector3().subVectors(nextBone.position, currentBone.position).normalize();
-	  const quaternion = new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), direction);
-  
-	  currentBone.quaternion.copy(quaternion);
-	}
-  }
+}  
 
 export default function Player(props) {
   const [isModelLoaded, setIsModelLoaded] = useState(false);
@@ -445,14 +314,24 @@ useEffect(() => {
 	  
 	  loader.register( parser => new VRMLoaderPlugin( parser, { helperRoot } ) );
 
-      loader.load(playerURL, (gltf) => {
-        currentPlayerAvatarRef.current = gltf;
-        playerControllerRef.current = gltf.userData.vrm;
-		
-        setIsModelLoaded(true);
-	}, undefined, error => {
-        console.error('An error happened during the loading of the model:', error);
-      });
+	  loader.load(playerURL, (gltf) => {
+		currentPlayerAvatarRef.current = gltf;
+		playerControllerRef.current = gltf.userData.vrm;
+	  
+		// Calculate the avatar's height offset
+		const headBone = gltf.userData.vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Head);
+		const headWorldPosition = new Vector3();
+		headBone.getWorldPosition(headWorldPosition);
+	  
+		const avatarWorldPosition = new Vector3();
+		gltf.scene.getWorldPosition(avatarWorldPosition);
+	  
+		props.avatarHeightOffset.current = headWorldPosition.y - avatarWorldPosition.y;
+	  
+		setIsModelLoaded(true);
+	  }, undefined, error => {
+		console.error('An error happened during the loading of the model:', error);
+	  });
     }
   }, [playerURL, gl]);
 
@@ -985,170 +864,111 @@ useEffect(() => {
 		}
 		}
 	});
-  
 
-	function applyIK(vrm, boneName, targetPosition) {
-		const bone = vrm.humanoid.getNormalizedBoneNode(boneName);
+
+	function applySimpleIK(boneChain, targetPosition, iterations = 10, elbowWeight = 0.8, wristWeight = 0.2, shoulderWeight = 0.2) {
+		const endEffector = boneChain[boneChain.length - 1];
 	  
-		if (bone) {
-		  // Convert the target position from world space to the avatar's local space
-		  const localTargetPosition = bone.parent.worldToLocal(targetPosition.clone());
+		for (let i = 0; i < iterations; i++) {
+		  for (let j = boneChain.length - 2; j >= 0; j--) {
+			const bone = boneChain[j];
+			const nextBone = boneChain[j + 1];
 	  
-		  // Apply IK to the hand bone
-		  const handIK = new CCDIKSolver(bone, localTargetPosition);
-		  handIK.solve();
+			const toTarget = targetPosition.clone().sub(bone.getWorldPosition(new Vector3()));
+			const toNextBone = nextBone.getWorldPosition(new Vector3()).sub(bone.getWorldPosition(new Vector3()));
 	  
-		  // Update the elbow, upper arm, and shoulder rotations based on the hand position
-		  if (boneName === VRMHumanBoneName.RightHand) {
-			const rightElbowBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightLowerArm);
-			const rightUpperArmBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm);
-			const rightShoulderBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightShoulder);
-			updateArmBonesIK(rightShoulderBone, rightUpperArmBone, rightElbowBone, bone, localTargetPosition);
-		  } else if (boneName === VRMHumanBoneName.LeftHand) {
-			const leftElbowBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftLowerArm);
-			const leftUpperArmBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm);
-			const leftShoulderBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftShoulder);
-			updateArmBonesIK(leftShoulderBone, leftUpperArmBone, leftElbowBone, bone, localTargetPosition);
-		  } else if (boneName === VRMHumanBoneName.Head) {
-			// Apply IK to the head bone
-			const headIK = new CCDIKSolver(bone, localTargetPosition);
-			headIK.solve();
+			const quaternion = new Quaternion().setFromUnitVectors(toNextBone.normalize(), toTarget.normalize());
+	  
+			// Apply different weights to the shoulder, elbow, and wrist rotations
+			let weight;
+			if (j === 0) {
+			  weight = shoulderWeight;
+			} else if (j === 1) {
+			  weight = elbowWeight;
+			} else {
+			  weight = wristWeight;
+			}
+			bone.quaternion.slerp(quaternion, weight);
 		  }
 		}
 	  }
-		//   function updateArmBonesIK(shoulderBone, upperArmBone, elbowBone, handBone, targetPosition) {
-	// 	const lerpFactor = 0.2;
-	  
-	// 	// Convert the target position from world space to the elbow bone's local space
-	// 	const localElbowPosition = elbowBone.parent.worldToLocal(targetPosition.clone());
-	  
-	// 	// Apply IK to the elbow bone
-	// 	const elbowIK = new CCDIKSolver(elbowBone, localElbowPosition);
-	// 	elbowIK.maxIterations = 5;
-	// 	elbowIK.tolerance = 0.01;
-	// 	elbowIK.solve();
-	  
-	// 	// Convert the elbow bone's position from world space to the upper arm bone's local space
-	// 	const localUpperArmPosition = upperArmBone.parent.worldToLocal(elbowBone.getWorldPosition(new Vector3()));
-	  
-	// 	// Apply IK to the upper arm bone
-	// 	const upperArmIK = new CCDIKSolver(upperArmBone, localUpperArmPosition);
-	// 	upperArmIK.maxIterations = 5;
-	// 	upperArmIK.tolerance = 0.01;
-	// 	upperArmIK.solve();
-	  
-	// 	// Convert the upper arm bone's position from world space to the shoulder bone's local space
-	// 	const localShoulderPosition = shoulderBone.parent.worldToLocal(upperArmBone.getWorldPosition(new Vector3()));
-	  
-	// 	// Apply IK to the shoulder bone
-	// 	const shoulderIK = new CCDIKSolver(shoulderBone, localShoulderPosition);
-	// 	shoulderIK.maxIterations = 5;
-	// 	shoulderIK.tolerance = 0.01;
-	// 	shoulderIK.solve();
-	  
-	// 	// Interpolate the bone rotations
-	// 	shoulderBone.quaternion.slerp(shoulderIK.bone.quaternion, lerpFactor);
-	// 	upperArmBone.quaternion.slerp(upperArmIK.bone.quaternion, lerpFactor);
-	// 	elbowBone.quaternion.slerp(elbowIK.bone.quaternion, lerpFactor);
-	//   }
-
-	function updateArmBonesIK(shoulderBone, upperArmBone, elbowBone, handBone, targetPosition) {
-		const armChain = [shoulderBone, upperArmBone, elbowBone, handBone];
-		const chainLength = armChain.length;
-		
-		const bonePositions = armChain.map(bone => bone.parent.parent.getWorldPosition(new Vector3()));
-		const boneLengths = [];
-		
-		for (let i = 0; i < chainLength - 1; i++) {
-			const length = bonePositions[i].distanceTo(bonePositions[i + 1]);
-			boneLengths.push(length);
-		}
-		
-		const fabrik = new FABRIK(armChain, targetPosition, 10, 0.01);
-		fabrik.solve();
-		
-		for (let i = 0; i < chainLength - 1; i++) {
-			const jointDirection = new Vector3().subVectors(armChain[i + 1].position, armChain[i].position).normalize();
-			const quatLookAt = new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), jointDirection);
-			armChain[i].quaternion.slerp(quatLookAt, 0.2);
-		}
-	}
 
 	useFrame((state, delta) => {
 		if (isPresenting && playerControllerRef.current && rightController && leftController) {
-		  const vrm = playerControllerRef.current;
-		  const rightHandTarget = new Vector3();
-		  const leftHandTarget = new Vector3();
-		  const headTarget = new Vector3();
-	  
-		  // Get the world position of the right controller
-		  rightController.controller.getWorldPosition(rightHandTarget);
-	  
-		  // Get the world position of the left controller
-		  leftController.controller.getWorldPosition(leftHandTarget);
-	  
-		  // Get the world position of the camera (head)
-		  camera.getWorldPosition(headTarget);
-	  
-		  // Apply the avatar's world rotation to the target positions
-		  const avatarWorldQuaternion = new Quaternion();
-		  vrm.scene.getWorldQuaternion(avatarWorldQuaternion);
-		  rightHandTarget.applyQuaternion(avatarWorldQuaternion.invert());
-		  leftHandTarget.applyQuaternion(avatarWorldQuaternion.invert());
-		  headTarget.applyQuaternion(avatarWorldQuaternion.invert());
-	  
-		  // Calculate the midpoint between the hands
-		  const handsMidpoint = new Vector3()
-			.addVectors(rightHandTarget, leftHandTarget)
-			.multiplyScalar(0.5);
-	  
-		  // Calculate the shoulder position
-		  const shoulderTarget = new Vector3()
-			.subVectors(headTarget, handsMidpoint)
-			.normalize()
-			.multiplyScalar(0.2) // Adjust the distance between the head and shoulders
-			.add(headTarget);
-	  
-		  // Calculate the elbow position
-		  const elbowTarget = new Vector3()
-			.subVectors(handsMidpoint, shoulderTarget)
-			.multiplyScalar(0.5)
-			.add(shoulderTarget);
-	  
-		  // Apply IK to the right hand
-		  applyIK(vrm, VRMHumanBoneName.RightHand, rightHandTarget);
-	  
-		  // Apply IK to the left hand
-		  applyIK(vrm, VRMHumanBoneName.LeftHand, leftHandTarget);
-	  
-		  // Apply IK to the head
-		  applyIK(vrm, VRMHumanBoneName.Head, headTarget);
-	  
-		  // Apply IK to the shoulders
-		  applyIK(vrm, VRMHumanBoneName.RightShoulder, shoulderTarget);
-		  applyIK(vrm, VRMHumanBoneName.LeftShoulder, shoulderTarget);
-	  
-		  // Apply IK to the elbows
-		  applyIK(vrm, VRMHumanBoneName.RightLowerArm, elbowTarget);
-		  applyIK(vrm, VRMHumanBoneName.LeftLowerArm, elbowTarget);
-		// Adjust hand wrist rotations
-		const rightWristBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightHand);
-		const leftWristBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftHand);
+			const vrm = playerControllerRef.current;
+			const avatarRootGroup = vrm.scene;
+		
+			// Align the avatar's position relative to the camera
+			const cameraPosition = new Vector3();
+			camera.getWorldPosition(cameraPosition);
+			avatarRootGroup.parent.parent.position.set(
+			  cameraPosition.x,
+			  cameraPosition.y - ( props.avatarHeightOffset.current - 0.4),
+			  cameraPosition.z
+			);
+					
+		// Get the world position and rotation of the right controller
+		const rightHandTarget = new Vector3();
+		const rightHandRotation = new Quaternion();
+		rightController.controller.getWorldPosition(rightHandTarget);
+		rightController.controller.getWorldQuaternion(rightHandRotation);
+	
+		// Get the world position and rotation of the left controller
+		const leftHandTarget = new Vector3();
+		const leftHandRotation = new Quaternion();
+		leftController.controller.getWorldPosition(leftHandTarget);
+		leftController.controller.getWorldQuaternion(leftHandRotation);
+	
+		// Convert the controller positions to the avatar's local space
+		const avatarWorldMatrix = new Matrix4();
+		avatarRootGroup.matrixWorld.copy(avatarWorldMatrix);
+		avatarWorldMatrix.invert();
+		rightHandTarget.applyMatrix4(avatarWorldMatrix);
+		leftHandTarget.applyMatrix4(avatarWorldMatrix);
 
 
-		  if (rightWristBone && leftWristBone) {
-			const rightControllerQuaternion = new Quaternion();
-			const leftControllerQuaternion = new Quaternion();
-			rightController.controller.getWorldQuaternion(rightControllerQuaternion);
-			leftController.controller.getWorldQuaternion(leftControllerQuaternion);
+		// Calculate the distance between each hand and the camera
+		const rightHandDistance = rightHandTarget.distanceTo(cameraPosition);
+		const leftHandDistance = leftHandTarget.distanceTo(cameraPosition);
 
-			rightWristBone?.quaternion.copy(rightControllerQuaternion);
-			leftWristBone?.quaternion.copy(leftControllerQuaternion);
-		}
+		// Calculate the dynamic offset for each hand based on its distance from the camera
+		const offsetScale = 0.05; // Adjust this value as needed
+		const rightHandOffset = new Vector3(-offsetScale * rightHandDistance, 0, 0);
+		const leftHandOffset = new Vector3(offsetScale * leftHandDistance, 0, 0);
 
-		}
-	  });
-	  
+		// Apply the dynamic offsets
+		rightHandTarget.add(rightHandOffset);
+		leftHandTarget.add(leftHandOffset);
+			
+		// Get the avatar's arm bones
+		const rightShoulderBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightShoulder);
+		const rightUpperArmBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm);
+		const rightLowerArmBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightLowerArm);
+		const rightHandBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightHand);
+		const leftShoulderBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftShoulder);
+		const leftUpperArmBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm);
+		const leftLowerArmBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftLowerArm);
+		const leftHandBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftHand);
+
+		// Apply simple IK to the right arm with weights for shoulder, elbow, and wrist
+		const rightArmChain = [rightShoulderBone, rightUpperArmBone, rightLowerArmBone];
+		applySimpleIK(rightArmChain, rightHandTarget, 10, 0.8, 0.2, 0.2);
+
+		// Apply simple IK to the left arm with weights for shoulder, elbow, and wrist
+		const leftArmChain = [leftShoulderBone, leftUpperArmBone, leftLowerArmBone];
+		applySimpleIK(leftArmChain, leftHandTarget, 10, 0.8, 0.2, 0.2);
+
+		// Get the world rotation of the right and left controllers
+		const rightWristRotation = new Quaternion();
+		const leftWristRotation = new Quaternion();
+		rightController.controller.getWorldQuaternion(rightWristRotation);
+		leftController.controller.getWorldQuaternion(leftWristRotation);
+
+		// Set the rotation of the avatar's hand bones to match the controllers
+		rightHandBone.quaternion.copy(rightWristRotation);
+		leftHandBone.quaternion.copy(leftWristRotation);
+	}
+});
 
 	const keyboardMap = [
 	  { name: "forward", keys: ["ArrowUp", "KeyW"] },

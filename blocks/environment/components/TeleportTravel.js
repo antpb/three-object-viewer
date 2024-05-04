@@ -270,7 +270,7 @@ export default function TeleportTravel(props) {
 		if (isHovered && !canInteract) {
 		  targetLoc.current.position.set(
 			targetLoc.current.position.x,
-			targetLoc.current.position.y + 0.4,
+			targetLoc.current.position.y + (props.avatarHeightOffset.current? (props.avatarHeightOffset.current -0.8) : 0.4),
 			targetLoc.current.position.z
 		  );
 		  if (canTeleport) {

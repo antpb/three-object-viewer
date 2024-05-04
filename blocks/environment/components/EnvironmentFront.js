@@ -637,6 +637,8 @@ export default function EnvironmentFront(props) {
 	const [objectsInRoom, setObjectsInRoom] = useState([]);
 	const [url, setURL] = useState(props.threeUrl ? props.threeUrl : (defaultEnvironment));
 	const [loadingWorld, setLoadingWorld] = useState(true);
+	const avatarHeightOffset = useRef(0);
+
 	const mirror = new Reflector(
 		new THREE.PlaneGeometry(Number(100), Number(100)),
 		{
@@ -774,6 +776,7 @@ export default function EnvironmentFront(props) {
 											defaultPlayerAvatar = {defaultPlayerAvatar}
 											movement={movement}
 											camCollisions={props.camCollisions}
+											avatarHeightOffset={avatarHeightOffset}
 										/>
 									)}
 									{/* <Perf className="stats" /> */}
@@ -783,6 +786,7 @@ export default function EnvironmentFront(props) {
 											<TeleportTravel
 												spawnPointsToAdd={props.spawnPointsToAdd}
 												spawnPoint={props.spawnPoint}
+												avatarHeightOffset={avatarHeightOffset}
 												useNormal={false}
 											>
 												{ ( props.networkingBlock.length > 0 ) && (
