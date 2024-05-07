@@ -1,4 +1,4 @@
-import { Box3, Mesh, Raycaster, PerspectiveCamera, ArrowHelper, Euler, NearestFilter, LoopOnce, DoubleSide, MeshBasicMaterial, RingGeometry, BoxGeometry, AudioListener, Color, Group, Quaternion, Matrix4, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, Vector2, BufferGeometry, CircleGeometry, sRGBEncoding, MathUtils } from "three";
+import { Box3, Mesh, Raycaster, PerspectiveCamera, ArrowHelper, Euler, MathUtils, NearestFilter, LoopOnce, DoubleSide, MeshBasicMaterial, RingGeometry, BoxGeometry, AudioListener, Color, Group, Quaternion, Matrix4, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, Vector2, BufferGeometry, CircleGeometry, sRGBEncoding } from "three";
 import { TextureLoader } from "three/src/loaders/TextureLoader";
 import { useFrame, useLoader, useThree, Interactive } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
@@ -244,6 +244,8 @@ export default function Player(props) {
   const action4Animation = useGame((state) => state.action4);
   const resetAnimation = useGame((state) => state.reset);
   const [open, setOpen] = useState(false);
+  const HEAD_LAYER = 1;
+
 
   const animationSet = {
     idle: "idle",
@@ -312,7 +314,8 @@ useEffect(() => {
 	  helperRoot.renderOrder = 10000;
 	  scene.add(helperRoot);
 	  
-	  loader.register( parser => new VRMLoaderPlugin( parser, { helperRoot } ) );
+	loader.register( parser => new VRMLoaderPlugin( parser, { helperRoot } ) );
+	// loader.register( parser => new VRMLoaderPlugin( parser ) );
 
 	  loader.load(playerURL, (gltf) => {
 		currentPlayerAvatarRef.current = gltf;
@@ -320,6 +323,14 @@ useEffect(() => {
 	  
 		// Calculate the avatar's height offset
 		const headBone = gltf.userData.vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Head);
+		headBone.layers.set(HEAD_LAYER);
+		headBone.visible = false;
+		// traverse the head bone to hide the mesh
+		headBone.traverse((child) => {
+			if(child.isMesh){
+				child.visible = false;
+			}
+		});
 		const headWorldPosition = new Vector3();
 		headBone.getWorldPosition(headWorldPosition);
 	  
@@ -865,81 +876,137 @@ useEffect(() => {
 		}
 	});
 
-
-	function applySimpleIK(boneChain, targetPosition, iterations = 10, elbowWeight = 0.8, wristWeight = 0.2, shoulderWeight = 0.2) {
+	function applySimpleIK(spineBone, boneChain, targetPosition, iterations = 10, elbowWeight = 0.8, wristWeight = 0.2, shoulderWeight = 0.2) {
 		const endEffector = boneChain[boneChain.length - 1];
-	  
+	
 		for (let i = 0; i < iterations; i++) {
-		  for (let j = boneChain.length - 2; j >= 0; j--) {
+		for (let j = boneChain.length - 2; j >= 0; j--) {
 			const bone = boneChain[j];
 			const nextBone = boneChain[j + 1];
-	  
+			
 			const toTarget = targetPosition.clone().sub(bone.getWorldPosition(new Vector3()));
 			const toNextBone = nextBone.getWorldPosition(new Vector3()).sub(bone.getWorldPosition(new Vector3()));
-	  
+			
 			const quaternion = new Quaternion().setFromUnitVectors(toNextBone.normalize(), toTarget.normalize());
-	  
-			// Apply different weights to the shoulder, elbow, and wrist rotations
+			
 			let weight;
 			if (j === 0) {
-			  weight = shoulderWeight;
+			weight = shoulderWeight;
 			} else if (j === 1) {
-			  weight = elbowWeight;
+			const spineWorldPosition = new Vector3();
+			spineBone.getWorldPosition(spineWorldPosition);
+			const distanceToBody = targetPosition.distanceTo(spineWorldPosition);
+			const elbowBendThreshold = 0.3;
+		
+			if (distanceToBody < elbowBendThreshold) {
+				const elbowBendAngle = Math.PI / 16;
+				const elbowBendAxis = new Vector3(0, 0, 1);
+				const elbowBendQuaternion = new Quaternion().setFromAxisAngle(elbowBendAxis, elbowBendAngle);
+				quaternion.multiply(elbowBendQuaternion);
+			}
+			weight = elbowWeight;
 			} else {
-			  weight = wristWeight;
+			weight = wristWeight;
 			}
 			bone.quaternion.slerp(quaternion, weight);
-		  }
 		}
-	  }
+		}
+	}
 
 	useFrame((state, delta) => {
-		if (isPresenting && playerControllerRef.current && rightController && leftController) {
-			const vrm = playerControllerRef.current;
-			const avatarRootGroup = vrm.scene;
+		if (isPresenting) {
+			camera.layers.disableAll();
+			camera.layers.enable(0); // Enable the default layer
+			camera.layers.disable(HEAD_LAYER); // Disable the head layer
+			// console.log('Presenting', playerControllerRef.current.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Head));
+		} else {
+			camera.layers.enableAll(); // Enable all layers when not in presenting mode
+		}
 		
-			// Align the avatar's position relative to the camera
-			const cameraPosition = new Vector3();
-			camera.getWorldPosition(cameraPosition);
-			avatarRootGroup.parent.parent.position.set(
-			  cameraPosition.x,
-			  cameraPosition.y - ( props.avatarHeightOffset.current - 0.4),
-			  cameraPosition.z
-			);
-					
-		// Get the world position and rotation of the right controller
-		const rightHandTarget = new Vector3();
-		const rightHandRotation = new Quaternion();
-		rightController.controller.getWorldPosition(rightHandTarget);
-		rightController.controller.getWorldQuaternion(rightHandRotation);
+		if (isPresenting && playerControllerRef.current && (rightController || leftController)) {
+		const vrm = playerControllerRef.current;
+		const avatarRootGroup = vrm.scene;
 	
-		// Get the world position and rotation of the left controller
-		const leftHandTarget = new Vector3();
-		const leftHandRotation = new Quaternion();
-		leftController.controller.getWorldPosition(leftHandTarget);
-		leftController.controller.getWorldQuaternion(leftHandRotation);
+		// Align the avatar's position relative to the camera
+		const cameraPosition = new Vector3();
+		camera.getWorldPosition(cameraPosition);
+		avatarRootGroup.parent.parent.position.set(
+			cameraPosition.x,
+			cameraPosition.y - (props.avatarHeightOffset.current - 0.6),
+			cameraPosition.z
+		);
 	
-		// Convert the controller positions to the avatar's local space
-		const avatarWorldMatrix = new Matrix4();
-		avatarRootGroup.matrixWorld.copy(avatarWorldMatrix);
-		avatarWorldMatrix.invert();
-		rightHandTarget.applyMatrix4(avatarWorldMatrix);
-		leftHandTarget.applyMatrix4(avatarWorldMatrix);
-
-
-		// Calculate the distance between each hand and the camera
-		const rightHandDistance = rightHandTarget.distanceTo(cameraPosition);
-		const leftHandDistance = leftHandTarget.distanceTo(cameraPosition);
-
-		// Calculate the dynamic offset for each hand based on its distance from the camera
-		const offsetScale = 0.05; // Adjust this value as needed
-		const rightHandOffset = new Vector3(-offsetScale * rightHandDistance, 0, 0);
-		const leftHandOffset = new Vector3(offsetScale * leftHandDistance, 0, 0);
-
-		// Apply the dynamic offsets
-		rightHandTarget.add(rightHandOffset);
-		leftHandTarget.add(leftHandOffset);
-			
+		// Set the avatar's body rotation to match the camera's Y rotation
+		const cameraRotation = new Quaternion();
+		camera.getWorldQuaternion(cameraRotation);
+		const yRotation = new Euler().setFromQuaternion(cameraRotation, 'YXZ').y;
+		avatarRootGroup.parent.parent.rotation.y = yRotation;
+	
+		const applyArmIK = (controllerVisible, controller, shoulderBone, upperArmBone, lowerArmBone, handBone, isRightArm) => {
+			if (controllerVisible) {
+			const handTarget = new Vector3();
+			const handRotation = new Quaternion();
+			controller.controller.getWorldPosition(handTarget);
+			controller.controller.getWorldQuaternion(handRotation);
+		
+			const avatarWorldMatrix = new Matrix4();
+			avatarRootGroup.matrixWorld.copy(avatarWorldMatrix);
+			avatarWorldMatrix.invert();
+			handTarget.applyMatrix4(avatarWorldMatrix);
+		
+			const handDistance = handTarget.distanceTo(cameraPosition);
+		
+			const offsetScale = 0.1;
+			const handOffset = new Vector3(controllerVisible === rightController ? -offsetScale * handDistance : offsetScale * handDistance, 0, 0);
+		
+			handTarget.add(handOffset);
+		
+			const armChain = [shoulderBone, upperArmBone, lowerArmBone];
+			const spineBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Spine);
+		
+			applySimpleIK(spineBone, armChain, handTarget, 10);
+		
+			const spineWorldPosition = new Vector3();
+			spineBone.getWorldPosition(spineWorldPosition);
+			const distanceToBody = handTarget.distanceTo(spineWorldPosition);
+			const elbowBendThreshold = 0.45;
+		
+			if (distanceToBody < elbowBendThreshold) {
+				const minRotationX = 0; // Block rotation around X-axis
+				const maxRotationX = 0; // Block rotation around X-axis
+				const minRotationY = 0; // Block rotation around Y-axis
+				const maxRotationY = 0; // Block rotation around Y-axis
+				const minRotationZ = isRightArm ? 0 : -Math.PI / 2; // Allow rotation around Z-axis based on arm
+				const maxRotationZ = isRightArm ? Math.PI / 2 : 0; // Limit the maximum rotation around Z-axis based on arm
+		
+				const lowerArmWorldQuaternion = new Quaternion();
+				lowerArmBone.getWorldQuaternion(lowerArmWorldQuaternion);
+		
+				const elbowBendAngle = MathUtils.clamp(Math.PI / 8 * (1 - distanceToBody / elbowBendThreshold), minRotationZ, maxRotationZ);
+				const elbowBendAxis = new Vector3(0, 0, 1);
+				const elbowBendQuaternion = new Quaternion().setFromAxisAngle(elbowBendAxis, elbowBendAngle);
+		
+				const targetRotation = lowerArmWorldQuaternion.multiply(elbowBendQuaternion);
+		
+				const lowerArmLocalRotation = new Euler().setFromQuaternion(targetRotation.multiply(lowerArmBone.parent.quaternion.clone().invert()), 'YXZ');
+				lowerArmLocalRotation.x = MathUtils.clamp(lowerArmLocalRotation.x, minRotationX, maxRotationX);
+				lowerArmLocalRotation.y = MathUtils.clamp(lowerArmLocalRotation.y, minRotationY, maxRotationY);
+				lowerArmLocalRotation.z = MathUtils.clamp(lowerArmLocalRotation.z, minRotationZ, maxRotationZ);
+		
+				lowerArmBone.quaternion.setFromEuler(lowerArmLocalRotation);
+			} else {
+				lowerArmBone.quaternion.slerp(new Quaternion(), 0.1); // Smoothly reset the rotation
+			}
+		
+			handBone.quaternion.copy(handRotation);
+			} else {
+			shoulderBone.quaternion.setFromEuler(new Euler(0, 0, 0));
+			upperArmBone.quaternion.setFromEuler(new Euler(0, 0, 0));
+			lowerArmBone.quaternion.setFromEuler(new Euler(0, 0, 0));
+			handBone.quaternion.setFromEuler(new Euler(0, 0, 0));
+			}
+		};
+						
 		// Get the avatar's arm bones
 		const rightShoulderBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightShoulder);
 		const rightUpperArmBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm);
@@ -949,28 +1016,87 @@ useEffect(() => {
 		const leftUpperArmBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm);
 		const leftLowerArmBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftLowerArm);
 		const leftHandBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftHand);
+			// Apply IK to the right arm
+			applyArmIK(rightController, rightController, rightShoulderBone, rightUpperArmBone, rightLowerArmBone, rightHandBone, true);
 
-		// Apply simple IK to the right arm with weights for shoulder, elbow, and wrist
-		const rightArmChain = [rightShoulderBone, rightUpperArmBone, rightLowerArmBone];
-		applySimpleIK(rightArmChain, rightHandTarget, 10, 0.8, 0.2, 0.2);
+			// Apply IK to the left arm
+			applyArmIK(leftController, leftController, leftShoulderBone, leftUpperArmBone, leftLowerArmBone, leftHandBone, false);
+	
+			// Get the world rotation of the right and left controllers
+			const rightWristRotation = new Quaternion();
+			const leftWristRotation = new Quaternion();
+			if (rightController) {
+				rightController.controller.getWorldQuaternion(rightWristRotation);
+			}
+			if (leftController) {
+				leftController.controller.getWorldQuaternion(leftWristRotation);
+			}
 
-		// Apply simple IK to the left arm with weights for shoulder, elbow, and wrist
-		const leftArmChain = [leftShoulderBone, leftUpperArmBone, leftLowerArmBone];
-		applySimpleIK(leftArmChain, leftHandTarget, 10, 0.8, 0.2, 0.2);
+			// Configurable rotation offsets for each axis (in degrees)
+			const rightHandRotationOffsetX = 0;
+			const rightHandRotationOffsetY = 0;
+			const rightHandRotationOffsetZ = -90;
 
-		// Get the world rotation of the right and left controllers
-		const rightWristRotation = new Quaternion();
-		const leftWristRotation = new Quaternion();
-		rightController.controller.getWorldQuaternion(rightWristRotation);
-		leftController.controller.getWorldQuaternion(leftWristRotation);
+			const leftHandRotationOffsetX = 0;
+			const leftHandRotationOffsetY = 0;
+			const leftHandRotationOffsetZ = 90;
 
-		// Set the rotation of the avatar's hand bones to match the controllers
-		rightHandBone.quaternion.copy(rightWristRotation);
-		leftHandBone.quaternion.copy(leftWristRotation);
-	}
-});
+			// Configurable rotation axes for each hand
+			const rightHandRotationAxisX = new Vector3(1, 0, 0); // X-axis
+			const rightHandRotationAxisY = new Vector3(0, 1, 0); // Y-axis
+			const rightHandRotationAxisZ = new Vector3(0, 0, 1); // Z-axis
 
-	const keyboardMap = [
+			const leftHandRotationAxisX = new Vector3(1, 0, 0); // X-axis
+			const leftHandRotationAxisY = new Vector3(0, 1, 0); // Y-axis
+			const leftHandRotationAxisZ = new Vector3(0, 0, 1); // Z-axis
+
+			// Convert degrees to radians
+			const rightHandRotationOffsetXRad = rightHandRotationOffsetX * (Math.PI / 180);
+			const rightHandRotationOffsetYRad = rightHandRotationOffsetY * (Math.PI / 180);
+			const rightHandRotationOffsetZRad = rightHandRotationOffsetZ * (Math.PI / 180);
+
+			const leftHandRotationOffsetXRad = leftHandRotationOffsetX * (Math.PI / 180);
+			const leftHandRotationOffsetYRad = leftHandRotationOffsetY * (Math.PI / 180);
+			const leftHandRotationOffsetZRad = leftHandRotationOffsetZ * (Math.PI / 180);
+
+			// Adjust the rotation offset for the right hand
+			const rightHandRotationOffset = new Quaternion()
+			.setFromAxisAngle(rightHandRotationAxisX, rightHandRotationOffsetXRad) // Rotate around the X-axis
+			.multiply(new Quaternion().setFromAxisAngle(rightHandRotationAxisY, rightHandRotationOffsetYRad)) // Rotate around the Y-axis
+			.multiply(new Quaternion().setFromAxisAngle(rightHandRotationAxisZ, rightHandRotationOffsetZRad)); // Rotate around the Z-axis
+
+			// Adjust the rotation offset for the left hand
+			const leftHandRotationOffset = new Quaternion()
+			.setFromAxisAngle(leftHandRotationAxisX, leftHandRotationOffsetXRad) // Rotate around the X-axis
+			.multiply(new Quaternion().setFromAxisAngle(leftHandRotationAxisY, leftHandRotationOffsetYRad)) // Rotate around the Y-axis
+			.multiply(new Quaternion().setFromAxisAngle(leftHandRotationAxisZ, leftHandRotationOffsetZRad)); // Rotate around the Z-axis
+
+			if (rightController) {
+				const adjustedRightWristRotation = rightWristRotation.clone().multiply(rightHandRotationOffset);
+				
+				// Convert the adjusted wrist rotation from world space to avatar's local space
+				const avatarWorldQuaternion = new Quaternion();
+				avatarRootGroup.getWorldQuaternion(avatarWorldQuaternion);
+				const invertedAvatarWorldQuaternion = avatarWorldQuaternion.clone().invert();
+				const localAdjustedRightWristRotation = adjustedRightWristRotation.clone().premultiply(invertedAvatarWorldQuaternion);
+				
+				rightHandBone.quaternion.copy(localAdjustedRightWristRotation);
+			  }
+			  if (leftController) {
+				const adjustedLeftWristRotation = leftWristRotation.clone().multiply(leftHandRotationOffset);
+				
+				// Convert the adjusted wrist rotation from world space to avatar's local space
+				const avatarWorldQuaternion = new Quaternion();
+				avatarRootGroup.getWorldQuaternion(avatarWorldQuaternion);
+				const invertedAvatarWorldQuaternion = avatarWorldQuaternion.clone().invert();
+				const localAdjustedLeftWristRotation = adjustedLeftWristRotation.clone().premultiply(invertedAvatarWorldQuaternion);
+				
+				leftHandBone.quaternion.copy(localAdjustedLeftWristRotation);
+			  }
+					  }
+	});
+
+	  const keyboardMap = [
 	  { name: "forward", keys: ["ArrowUp", "KeyW"] },
 	  { name: "backward", keys: ["ArrowDown", "KeyS"] },
 	  { name: "leftward", keys: ["ArrowLeft", "KeyA"] },
