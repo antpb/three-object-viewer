@@ -7,7 +7,9 @@ import {
 	MeshBasicMaterial,
 	DoubleSide,
 	sRGBEncoding,
-	AudioListener
+	AudioListener,
+	BoxGeometry,
+	Mesh
   } from "three";
   
 import React, { Suspense, useRef, useState, useEffect, useMemo } from "react";
@@ -849,23 +851,32 @@ function ModelObject(props) {
 	});
 	const { camera } = useThree();
 
-	const gltf = useLoader(GLTFLoader, props.url, (loader) => {
+	let gltf;
+	try {
+	  gltf = useLoader(GLTFLoader, props.url, (loader) => {
 		const dracoLoader = new DRACOLoader();
 		dracoLoader.setDecoderPath( threeObjectPluginRoot + "/inc/utils/draco/");
 		dracoLoader.setDecoderConfig({type: 'js'});
 		loader.setDRACOLoader(dracoLoader);
-
+	
 		if(listener){
-			loader.register(
-				(parser) => new GLTFAudioEmitterExtension(parser, listener)
-			);	
+		  loader.register(
+			(parser) => new GLTFAudioEmitterExtension(parser, listener)
+		  );  
 		}
 		loader.register((parser) => {
-			return new VRMLoaderPlugin(parser);
+		  return new VRMLoaderPlugin(parser);
 		});
-	});
+	  });
+	} catch (error) {
+	  console.error("Failed to load GLTF file: ", error);
+	  // Set gltf to a fallback Three.js object
+	  const geometry = new BoxGeometry();
+	  const material = new MeshBasicMaterial({color: 0x00ff00});
+	  gltf = new Mesh(geometry, material);
+	}
 
-	const { actions } = useAnimations(gltf.animations, gltf.scene);
+	const { actions } = useAnimations(gltf?.animations, gltf?.scene);
 
 	const animationList = props.animations ? props.animations.split(",") : "";
 	useEffect(() => {
@@ -976,7 +987,10 @@ function ModelObject(props) {
 			</>
 		);	
 	}
-	gltf.scene.rotation.set(0, 0, 0);
+
+	if ( gltf.scene ) {
+		gltf.scene.rotation.set(0, 0, 0);
+	}
 	// const copyGltf = useMemo(() => gltf.scene.clone(), [gltf.scene]);
 
 	return (
@@ -1031,7 +1045,7 @@ function ModelObject(props) {
 						</TransformControls>
 					)}
 				>
-					{modelBlockAttributes && (
+					{modelBlockAttributes && gltf.scene && (
 						<group
 							ref={obj}
 							position={[

@@ -3,7 +3,25 @@ import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
-import { AudioListener, Group, Quaternion, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, BufferGeometry, MeshBasicMaterial, DoubleSide, Mesh, CircleGeometry, sRGBEncoding } from "three";
+import {
+	AudioListener,
+	Group,
+	Quaternion,
+	VectorKeyframeTrack,
+	QuaternionKeyframeTrack,
+	LoopPingPong,
+	AnimationClip,
+	NumberKeyframeTrack,
+	AnimationMixer,
+	Vector3,
+	BufferGeometry,
+	MeshBasicMaterial,
+	DoubleSide,
+	Mesh,
+	CircleGeometry,
+	sRGBEncoding,
+	BoxGeometry
+} from "three";
 import { RigidBody } from "@react-three/rapier";
 import {
 	useAnimations,
@@ -130,30 +148,41 @@ export function ModelObject(model) {
 		camera.add(listener);
 	});
 
-	const gltf = useLoader(GLTFLoader, url, (loader) => {
-		const dracoLoader = new DRACOLoader();
-		dracoLoader.setDecoderPath( model.threeObjectPluginRoot + "/inc/utils/draco/");
-		dracoLoader.setDecoderConfig({type: 'js'});
-		loader.setDRACOLoader(dracoLoader);
+	let gltf;
 
-		loader.register(
-			(parser) => new GLTFAudioEmitterExtension(parser, listener)
-		);
-		if (openbrushEnabled === true) {
+	try{
+		gltf = useLoader(GLTFLoader, url, (loader) => {
+			const dracoLoader = new DRACOLoader();
+			dracoLoader.setDecoderPath( model.threeObjectPluginRoot + "/inc/utils/draco/");
+			dracoLoader.setDecoderConfig({type: 'js'});
+			loader.setDRACOLoader(dracoLoader);
+	
 			loader.register(
-				(parser) =>
-					new GLTFGoogleTiltBrushMaterialExtension(
-						parser,
-						openbrushDirectory
-					)
+				(parser) => new GLTFAudioEmitterExtension(parser, listener)
 			);
-		}
-		loader.register((parser) => {
-			return new VRMLoaderPlugin(parser);
-		});
-	});
+			if (openbrushEnabled === true) {
+				loader.register(
+					(parser) =>
+						new GLTFGoogleTiltBrushMaterialExtension(
+							parser,
+							openbrushDirectory
+						)
+				);
+			}
+			loader.register((parser) => {
+				return new VRMLoaderPlugin(parser);
+			});
+		});	
+	} catch (error) {
+		console.error("Failed to load GLTF file: ", error);
+		// Set gltf to a fallback Three.js object
+		const geometry = new BoxGeometry();
+		const material = new MeshBasicMaterial({color: 0x00ff00});
+		gltf = new Mesh(geometry, material);
+	}
 
-	const audioObject = gltf.scene.getObjectByProperty('type', 'Audio');
+
+	const audioObject = gltf?.scene?.getObjectByProperty('type', 'Audio');
 
 	const { actions } = useAnimations(gltf.animations, gltf.scene);
 	const animationClips = gltf.animations;
@@ -169,7 +198,7 @@ export function ModelObject(model) {
 		}
 	}, []);
 
-	const generator = gltf.asset.generator;
+	const generator = gltf?.asset?.generator;
 
 	// return tilt brush if tilt brush
 	if (String(generator).includes("Tilt Brush")) {
@@ -264,57 +293,58 @@ export function ModelObject(model) {
 		const circle = new Mesh(geometryCircle, materialCircle);
 		return circle;
 	});
-
-	if (model.collidable === "1") {
-		return (
-				<RigidBody
-					type="fixed"
-					colliders={audioObject ? "cuboid" : "trimesh"}
-					lockRotations={true}
-					lockTranslations={true}
-					friction={0.8}
-					rotation={[
-						model.rotationX,
-						model.rotationY,
-						model.rotationZ
-					]}
-					position={[
-						Number(model.positionX),
-						Number(model.positionY),
-						Number(model.positionZ)
-					]}
-					scale={[Number(model.scaleX) + 0.01, Number(model.scaleY) + 0.01, Number(model.scaleZ) + 0.01]}
-					onCollisionEnter={(manifold, target, other) => {
-						if (audioObject) {
-							setClickEvent(!clicked);
-							if (clicked) {
-								audioObject.play();
-								triangle.material.visible = false;
-								circle.material.visible = false;
-							} else {
-								audioObject.pause();
-								triangle.material.visible = true;
-								circle.material.visible = true;
+	if(gltf.scene) {
+		if (model.collidable === "1") {
+			return (
+					<RigidBody
+						type="fixed"
+						colliders={audioObject ? "cuboid" : "trimesh"}
+						lockRotations={true}
+						lockTranslations={true}
+						friction={0.8}
+						rotation={[
+							model.rotationX,
+							model.rotationY,
+							model.rotationZ
+						]}
+						position={[
+							Number(model.positionX),
+							Number(model.positionY),
+							Number(model.positionZ)
+						]}
+						scale={[Number(model.scaleX) + 0.01, Number(model.scaleY) + 0.01, Number(model.scaleZ) + 0.01]}
+						onCollisionEnter={(manifold, target, other) => {
+							if (audioObject) {
+								setClickEvent(!clicked);
+								if (clicked) {
+									audioObject.play();
+									triangle.material.visible = false;
+									circle.material.visible = false;
+								} else {
+									audioObject.pause();
+									triangle.material.visible = true;
+									circle.material.visible = true;
+								}
 							}
-						}
-					}}
-				>
-					<primitive
-						object={gltf.scene}
-					/>
-				</RigidBody>
+						}}
+					>
+						<primitive
+							object={gltf.scene}
+						/>
+					</RigidBody>
+			);
+		}
+		return (
+			<>
+				<primitive
+					object={gltf.scene}
+					// castShadow
+					// receiveShadow
+					rotation={[model.rotationX, model.rotationY, model.rotationZ]}
+					position={[model.positionX, model.positionY, model.positionZ]}
+					scale={[model.scaleX, model.scaleY, model.scaleZ]}
+				/>
+			</>
 		);
 	}
-	return (
-		<>
-			<primitive
-				object={gltf.scene}
-				// castShadow
-				// receiveShadow
-				rotation={[model.rotationX, model.rotationY, model.rotationZ]}
-				position={[model.positionX, model.positionY, model.positionZ]}
-				scale={[model.scaleX, model.scaleY, model.scaleZ]}
-			/>
-		</>
-	);
 }

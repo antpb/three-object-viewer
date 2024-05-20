@@ -643,8 +643,8 @@ export default function EnvironmentFront(props) {
 		new THREE.PlaneGeometry(Number(100), Number(100)),
 		{
 		  color: new THREE.Color(0x7f7f7f),
-		  textureWidth: 1000,
-		  textureHeight: 1000
+		  textureWidth: 1440,
+		  textureHeight: 1440
 		}
 	  );
 

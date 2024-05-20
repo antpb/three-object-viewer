@@ -8992,6 +8992,11 @@ gifsicle@^5.0.0:
     bin-wrapper "^4.0.0"
     execa "^5.0.0"
 
+gl-matrix@^3.4.3:
+  version "3.4.3"
+  resolved "https://registry.yarnpkg.com/gl-matrix/-/gl-matrix-3.4.3.tgz#fc1191e8320009fd4d20e9339595c6041ddc22c9"
+  integrity sha512-wcCp8vu8FT22BnvKVPjXa/ICBWRq/zjFfdofZy1WSpQZpphblv12/bOQLBC1rMM7SGOFS9ltVmKOHil5+Ml7gA==
+
 glob-parent@^5.0.0, glob-parent@^5.1.2, glob-parent@~5.1.2:
   version "5.1.2"
   resolved "https://registry.yarnpkg.com/glob-parent/-/glob-parent-5.1.2.tgz#869832c58034fe68a4093c17dc15e8340d8401c4"
@@ -12675,6 +12680,13 @@ os-tmpdir@~1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/os-tmpdir/-/os-tmpdir-1.0.2.tgz#bbe67406c79aa85c5cfec766fe5734555dfa1274"
   integrity sha512-D2FR03Vir7FIu45XBY20mTb+/ZSWB00sjU9jdQXt83gDrI4Ztz5Fs7/yy74g2N5SVQY4xY1qDr4rNddwYRVX0g==
+
+ossos@^0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/ossos/-/ossos-0.0.3.tgz#3394aee77af7676f45c0c089aa60315e71b2b72a"
+  integrity sha512-rBAuf/UUvOr7aSe9bUJn7lKuaKKmztMCXRA29XwpJtEJSWYIKAlk7NMw2YnYruuBaQY7eoT7oeEsZfDFMlkdUQ==
+  dependencies:
+    gl-matrix "^3.4.3"
 
 outpipe@^1.1.0:
   version "1.1.1"
