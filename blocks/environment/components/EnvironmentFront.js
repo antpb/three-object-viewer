@@ -44,6 +44,7 @@ import { TextObject } from "./core/front/TextObject";
 import { useKeyboardControls } from "./Controls";
 import { ContextBridgeComponent } from "./ContextBridgeComponent";
 import { Reflector } from 'three/examples/jsm/objects/Reflector';
+import { XRDevice, metaQuest3 } from "iwer";
 
 function isMobile() {
 	return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -615,7 +616,11 @@ function SavedObject(props) {
 }
 
 export default function EnvironmentFront(props) {
-	  
+	
+	const [loadedAudios, setLoadedAudios] = useState([]);
+	const [allAudiosLoaded, setAllAudiosLoaded] = useState(false);
+	
+	
 	const [showUI, setShowUI] = useState(true);
 	const [displayName, setDisplayName] = useState(props.userData.inWorldName);
 	const [playerAvatar, setPlayerAvatar] = useState(props.userData.playerVRM);
@@ -647,7 +652,17 @@ export default function EnvironmentFront(props) {
 		  textureHeight: 1440
 		}
 	  );
-
+	  useEffect(() => {
+		if (loadedAudios.length === props.audiosToAdd.length && !allAudiosLoaded) {
+		  setAllAudiosLoaded(true);
+		  loadedAudios.forEach(audio => {
+			if (audio.userData.autoPlay === "1") {
+			  audio.play();
+			}
+		  });
+		}
+	  }, [loadedAudios, props.audiosToAdd, allAudiosLoaded]);
+	  
 	useEffect(() => {
 		const handleReady = () => {
 			setTimeout(() => {
@@ -677,7 +692,69 @@ export default function EnvironmentFront(props) {
 		return () => {
 		  window.removeEventListener('keydown', handleKeyDown);
 		};
-	  }, []);	  
+	  }, []);
+	//   useEffect(() => {
+	// 	const xrDevice = new XRDevice(metaQuest3);
+	// 	xrDevice.ipd = 0;
+	// 	xrDevice.fovy = Math.PI / 3;
+
+	// 	xrDevice.installRuntime();
+	// 	window.xrDevice = xrDevice;
+
+	// 	const handleKeyDown = (event) => {
+	// 		if (event.shiftKey) {
+	// 			switch (event.key) {
+	// 				case "ArrowLeft":
+	// 					xrDevice.controllers.right.position.x -= 0.1;
+	// 					break;
+	// 				case "ArrowRight":
+	// 					xrDevice.controllers.right.position.x += 0.1;
+	// 					break;
+	// 				case "ArrowUp":
+	// 					xrDevice.controllers.right.position.y += 0.1;
+	// 					break;
+	// 				case "ArrowDown":
+	// 					xrDevice.controllers.right.position.y -= 0.1;
+	// 					break;
+	// 				case "?":
+	// 					xrDevice.controllers.right.position.z -= 0.1;
+	// 					break;
+	// 				case ">":
+	// 					xrDevice.controllers.right.position.z += 0.1;
+	// 					break;
+	// 			}
+	// 		} else {
+	// 			switch (event.key) {
+	// 				case "ArrowLeft":
+	// 					xrDevice.controllers.left.position.x -= 0.1;
+	// 					break;
+	// 				case "ArrowRight":
+	// 					xrDevice.controllers.left.position.x += 0.1;
+	// 					break;
+	// 				case "ArrowUp":
+	// 					xrDevice.controllers.left.position.y += 0.1;
+	// 					break;
+	// 				case "ArrowDown":
+	// 					xrDevice.controllers.left.position.y -= 0.1;
+	// 					break;
+	// 				case ".":
+	// 					xrDevice.controllers.left.position.z -= 0.1;
+	// 					break;
+	// 				case "/":
+	// 					xrDevice.controllers.left.position.z += 0.1;
+	// 					break;	
+	// 			}
+	// 		};
+	// 	};
+	  
+	// 	document.addEventListener("keydown", handleKeyDown);
+	  
+	// 	return () => {
+	// 	  document.removeEventListener("keydown", handleKeyDown);
+	// 	};
+	//   }, []);
+	  
+	  
 
 	if (loaded === true) {
 		// emit javascript event "loaded"
@@ -767,7 +844,6 @@ export default function EnvironmentFront(props) {
 									updateLoop={"follow"}
 									updatePriority={-100}
 								>
-									{loaded && (
 										<Player
 											spawnPointsToAdd={spawnPoints}
 											spawnPoint={props.spawnPoint}
@@ -778,10 +854,9 @@ export default function EnvironmentFront(props) {
 											camCollisions={props.camCollisions}
 											avatarHeightOffset={avatarHeightOffset}
 										/>
-									)}
 									{/* <Perf className="stats" /> */}
 									{/* Debug physics */}
-									{url && (
+									{url && loaded && (
 										<>
 											<TeleportTravel
 												spawnPointsToAdd={props.spawnPointsToAdd}
@@ -1179,144 +1254,80 @@ export default function EnvironmentFront(props) {
 													);
 												})}
 												{Object.values(props.audiosToAdd).map((item, index) => {
-													let audioPosX, audioPosY, audioPosZ, audioScaleX, audioScaleY, audioScaleZ;
-													let audioRotationX, audioRotationY, audioRotationZ, audioUrl;
-													let autoPlay, loop, volume, positional, coneInnerAngle, coneOuterAngle, coneOuterGain, distanceModel, maxDistance, refDistance, rolloffFactor;
-													if (item.tagName.toLowerCase() === 'three-audio-block') {
-														audioPosX = item.getAttribute('positionX') || '';
-														audioPosY = item.getAttribute('positionY') || '';
-														audioPosZ = item.getAttribute('positionZ') || '';
-														audioScaleX = item.getAttribute('scaleX') || '';
-														audioScaleY = item.getAttribute('scaleY') || '';
-														audioScaleZ = item.getAttribute('scaleZ') || '';
-														audioRotationX = item.getAttribute('rotationX') || '';
-														audioRotationY = item.getAttribute('rotationY') || '';
-														audioRotationZ = item.getAttribute('rotationZ') || '';
-														audioUrl = item.getAttribute('audioUrl') || '';
-														autoPlay = item.hasAttribute('autoplay') ? "1" : false;
-														loop = item.hasAttribute('loop') ? "1" : false;
-														volume = item.getAttribute('volume') || '';
-														positional = item.hasAttribute('positional') ? "1" : false;
-														coneInnerAngle = item.getAttribute('coneInnerAngle') || '';
-														coneOuterAngle = item.getAttribute('coneOuterAngle') || '';
-														coneOuterGain = item.getAttribute('coneOuterGain') || '';
-														distanceModel = item.getAttribute('distanceModel') || '';
-														maxDistance = item.getAttribute('maxDistance') || '';
-														refDistance = item.getAttribute('refDistance') || '';
-														rolloffFactor = item.getAttribute('rolloffFactor') || '';
-													} else {
-														audioPosX = item.querySelector("p.audio-block-positionX")
-															? item.querySelector("p.audio-block-positionX").innerText
-															: "";
-
-														audioPosY = item.querySelector("p.audio-block-positionY")
-															? item.querySelector("p.audio-block-positionY").innerText
-															: "";
-
-														audioPosZ = item.querySelector("p.audio-block-positionZ")
-															? item.querySelector("p.audio-block-positionZ").innerText
-															: "";
-
-														audioScaleX = item.querySelector("p.audio-block-scaleX")
-															? item.querySelector("p.audio-block-scaleX").innerText
-															: "";
-
-														audioScaleY = item.querySelector("p.audio-block-scaleY")
-															? item.querySelector("p.audio-block-scaleY").innerText
-															: "";
-
-														audioScaleZ = item.querySelector("p.audio-block-scaleZ")
-															? item.querySelector("p.audio-block-scaleZ").innerText
-															: "";
-
-														audioRotationX = item.querySelector("p.audio-block-rotationX")
-															? item.querySelector("p.audio-block-rotationX").innerText
-															: "";
-
-														audioRotationY = item.querySelector("p.audio-block-rotationY")
-															? item.querySelector("p.audio-block-rotationY").innerText
-															: "";
-
-														audioRotationZ = item.querySelector("p.audio-block-rotationZ")
-															? item.querySelector("p.audio-block-rotationZ").innerText
-															: "";
-
-														audioUrl = item.querySelector("p.audio-block-url")
-															? item.querySelector("p.audio-block-url").innerText
-															: "";
-
-														autoPlay = item.querySelector("p.audio-block-autoPlay")
-															? item.querySelector("p.audio-block-autoPlay").innerText === "1"
-															: false;
-
-														loop = item.querySelector("p.audio-block-loop")
-															? item.querySelector("p.audio-block-loop").innerText === "1"
-															: false;
-
-														volume = item.querySelector("p.audio-block-volume")
-															? Number(item.querySelector("p.audio-block-volume").innerText)
-															: 1;
-
-														positional = item.querySelector("p.audio-block-positional")
-															? item.querySelector("p.audio-block-positional").innerText === "1"
-															: false;
-
-														coneInnerAngle = item.querySelector("p.audio-block-coneInnerAngle")
-															? Number(item.querySelector("p.audio-block-coneInnerAngle").innerText)
-															: 1;
-
-														coneOuterAngle = item.querySelector("p.audio-block-coneOuterAngle")
-															? Number(item.querySelector("p.audio-block-coneOuterAngle").innerText)
-															: 1;
-
-														coneOuterGain = item.querySelector("p.audio-block-coneOuterGain")
-															? Number(item.querySelector("p.audio-block-coneOuterGain").innerText)
-															: 1;
-
-														distanceModel = item.querySelector("p.audio-block-distanceModel")
-															? item.querySelector("p.audio-block-distanceModel").innerText
-															: "inverse";
-
-														maxDistance = item.querySelector("p.audio-block-maxDistance")
-															? Number(item.querySelector("p.audio-block-maxDistance").innerText)
-															: 1;
-
-														refDistance = item.querySelector("p.audio-block-refDistance")
-															? Number(item.querySelector("p.audio-block-refDistance").innerText)
-															: 1;
-
-														rolloffFactor = item.querySelector("p.audio-block-rolloffFactor")
-															? Number(item.querySelector("p.audio-block-rolloffFactor").innerText)
-															: 1;
+												let audioPosX, audioPosY, audioPosZ, audioRotationX, audioRotationY, audioRotationZ;
+												let audioUrl, autoPlay, loop, volume, positional, coneInnerAngle, coneOuterAngle, coneOuterGain, distanceModel, maxDistance, refDistance, rolloffFactor;
+												
+												if (item.tagName.toLowerCase() === 'three-audio-block') {
+													audioPosX = item.getAttribute('positionX') || '';
+													audioPosY = item.getAttribute('positionY') || '';
+													audioPosZ = item.getAttribute('positionZ') || '';
+													audioRotationX = item.getAttribute('rotationX') || '';
+													audioRotationY = item.getAttribute('rotationY') || '';
+													audioRotationZ = item.getAttribute('rotationZ') || '';
+													audioUrl = item.getAttribute('audioUrl') || '';
+													autoPlay = item.hasAttribute('autoplay') ? "1" : "0";
+													loop = item.hasAttribute('loop') ? "1" : "0";
+													volume = item.getAttribute('volume') || '';
+													positional = item.hasAttribute('positional') ? "1" : "0";
+													coneInnerAngle = item.getAttribute('coneInnerAngle') || '';
+													coneOuterAngle = item.getAttribute('coneOuterAngle') || '';
+													coneOuterGain = item.getAttribute('coneOuterGain') || '';
+													distanceModel = item.getAttribute('distanceModel') || '';
+													maxDistance = item.getAttribute('maxDistance') || '';
+													refDistance = item.getAttribute('refDistance') || '';
+													rolloffFactor = item.getAttribute('rolloffFactor') || '';
+												} else {
+													audioPosX = item.querySelector("p.audio-block-positionX")?.innerText || "";
+													audioPosY = item.querySelector("p.audio-block-positionY")?.innerText || "";
+													audioPosZ = item.querySelector("p.audio-block-positionZ")?.innerText || "";
+													audioRotationX = item.querySelector("p.audio-block-rotationX")?.innerText || "";
+													audioRotationY = item.querySelector("p.audio-block-rotationY")?.innerText || "";
+													audioRotationZ = item.querySelector("p.audio-block-rotationZ")?.innerText || "";
+													audioUrl = item.querySelector("p.audio-block-url")?.innerText || "";
+													autoPlay = item.querySelector("p.audio-block-autoPlay")?.innerText === "1" ? "1" : "0";
+													loop = item.querySelector("p.audio-block-loop")?.innerText === "1" ? "1" : "0";
+													volume = item.querySelector("p.audio-block-volume")?.innerText || "";
+													positional = item.querySelector("p.audio-block-positional")?.innerText === "1" ? "1" : "0";
+													coneInnerAngle = item.querySelector("p.audio-block-coneInnerAngle")?.innerText || "";
+													coneOuterAngle = item.querySelector("p.audio-block-coneOuterAngle")?.innerText || "";
+													coneOuterGain = item.querySelector("p.audio-block-coneOuterGain")?.innerText || "";
+													distanceModel = item.querySelector("p.audio-block-distanceModel")?.innerText || "";
+													maxDistance = item.querySelector("p.audio-block-maxDistance")?.innerText || "";
+													refDistance = item.querySelector("p.audio-block-refDistance")?.innerText || "";
+													rolloffFactor = item.querySelector("p.audio-block-rolloffFactor")?.innerText || "";
 												}
 
 												return (
 													<ThreeAudio
 													key={index}
-													audioUrl={audioUrl}
-													positionX={audioPosX}
-													positionY={audioPosY}
-													positionZ={audioPosZ}
-													scaleX={audioScaleX}
-													scaleY={audioScaleY}
-													scaleZ={audioScaleZ}
-													rotationX={audioRotationX}
-													rotationY={audioRotationY}
-													rotationZ={audioRotationZ}
-													autoPlay={autoPlay ? "1" : "0"} 
-													loop={loop ? "1" : "0"}
-													volume={volume}
-													positional={positional ? "1" : "0"}
-													coneInnerAngle={coneInnerAngle}
-													coneOuterAngle={coneOuterAngle}
-													coneOuterGain={coneOuterGain}
-													distanceModel={distanceModel}
-													maxDistance={maxDistance}
-													refDistance={refDistance}
-													rolloffFactor={rolloffFactor}
+													threeAudio={{
+														audioUrl: audioUrl,
+														positionX: audioPosX,
+														positionY: audioPosY,
+														positionZ: audioPosZ,
+														rotationX: audioRotationX,
+														rotationY: audioRotationY,
+														rotationZ: audioRotationZ,
+														autoPlay: autoPlay,
+														loop: loop,
+														volume: volume,
+														positional: positional,
+														coneInnerAngle: coneInnerAngle,
+														coneOuterAngle: coneOuterAngle,
+														coneOuterGain: coneOuterGain,
+														distanceModel: distanceModel,
+														maxDistance: maxDistance,
+														refDistance: refDistance,
+														rolloffFactor: rolloffFactor
+													}}
+													onLoad={(loadedAudio) => {
+														setLoadedAudios(prev => [...prev, loadedAudio]);
+													}}
 													/>
 												);
 												})}
+
+
 												{props.lightsToAdd.length < 1 && (
 													<>
 														<ambientLight intensity={0.8} />

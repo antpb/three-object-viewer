@@ -63,6 +63,7 @@ const generateRoomId = (sharedRoomID) => {
 
 const Networking = (props) => {
 	let isNetworkActivated = props.networkingBlock.length > 0;
+	let isOffline = false;
 	let isMuted = false;  // Initial state of the microphone
 	let localStream = null;  // To hold the local media stream
 	const [p2pcf, setP2pcf] = useState(null);
@@ -471,7 +472,7 @@ const Networking = (props) => {
 			});
 		}
 		
-		if (isNetworkActivated && !window.p2pcf) {
+		if (isNetworkActivated && !window.p2pcf && !isOffline ) {
 			const userProfileName = Math.floor(Math.random() * 100000);
 			const domainName = window.location.hostname.replace(/\./g, '-');
 			const roomIdentifier = `3ov-${props.postSlug}`;
@@ -500,7 +501,6 @@ const Networking = (props) => {
 			window.p2pcf = p2pcf;
 			window.participants = [];
 		
-			// Additional setup and event listener logic here
 			});
 		}
 		

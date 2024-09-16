@@ -41,7 +41,7 @@ import {
 	SwingTwistSolver,
 	SwingTwistEndsSolver,
 	ZSolver
- } from 'ossos';
+} from 'ossos';
 
 const DamperTimeS = 0.15;
 
@@ -53,259 +53,366 @@ const __offset = new Vector3();
 
 const mixamoVRMRigMap = getMixamoRig();
 
-function loadMixamoAnimation(url, vrm) {
-  let loader;
-  if (url.endsWith('.fbx')) {
-    loader = new FBXLoader();
-  } else {
-    loader = new GLTFLoader();
+function addHandRotationControls() {
+	const container = document.createElement('div');
+	container.style.position = 'fixed';
+	container.style.top = '10px';
+	container.style.right = '10px';
+	container.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+	container.style.padding = '10px';
+	container.style.borderRadius = '5px';
+	container.style.color = 'white';
+	container.style.fontFamily = 'Arial, sans-serif';
+	container.style.zIndex = '10000';
+	container.style.maxHeight = '80vh';
+	container.style.overflowY = 'auto';
+  
+	const createSlider = (name, min, max, step, defaultValue) => {
+	  const label = document.createElement('label');
+	  label.textContent = `${name}: `;
+	  label.style.display = 'block';
+	  label.style.marginBottom = '5px';
+  
+	  const slider = document.createElement('input');
+	  slider.type = 'range';
+	  slider.min = min;
+	  slider.max = max;
+	  slider.step = step;
+	  slider.value = defaultValue;
+	  slider.style.width = '100%';
+  
+	  const valueDisplay = document.createElement('span');
+	  valueDisplay.textContent = defaultValue;
+	  valueDisplay.style.marginLeft = '5px';
+  
+	  slider.addEventListener('input', () => {
+		valueDisplay.textContent = slider.value;
+		window.handRotationControls[name] = parseFloat(slider.value);
+	  });
+  
+	  label.appendChild(slider);
+	  label.appendChild(valueDisplay);
+	  return label;
+	};
+  
+	const createCheckbox = (name) => {
+	  const label = document.createElement('label');
+	  label.style.display = 'block';
+	  label.style.marginBottom = '5px';
+  
+	  const checkbox = document.createElement('input');
+	  checkbox.type = 'checkbox';
+	  checkbox.style.marginRight = '5px';
+  
+	  checkbox.addEventListener('change', () => {
+		window.handRotationControls[name] = checkbox.checked;
+	  });
+  
+	  label.appendChild(checkbox);
+	  label.appendChild(document.createTextNode(name));
+	  return label;
+	};
+  
+	window.handRotationControls = {
+		rightHandRotationOffsetX: 0,
+		rightHandRotationOffsetY: 0,
+		rightHandRotationOffsetZ: -90,
+		leftHandRotationOffsetX: 0,
+		leftHandRotationOffsetY: 0,
+		leftHandRotationOffsetZ: 90,
+		flipRightHandX: false,
+		flipRightHandY: false,
+		flipRightHandZ: false,
+		flipLeftHandX: false,
+		flipLeftHandY: false,
+		flipLeftHandZ: false,
+		  rightArmPoleX: 0,
+	  rightArmPoleY: 0,
+	  rightArmPoleZ: -1,
+	  leftArmPoleX: 0,
+	  leftArmPoleY: 0,
+	  leftArmPoleZ: -1
+	};
+  
+	container.appendChild(createSlider('rightHandRotationOffsetX', -180, 180, 1, 0));
+	container.appendChild(createSlider('rightHandRotationOffsetY', -180, 180, 1, 0));
+	container.appendChild(createSlider('rightHandRotationOffsetZ', -180, 180, 1, 0));
+	container.appendChild(createSlider('leftHandRotationOffsetX', -180, 180, 1, 0));
+	container.appendChild(createSlider('leftHandRotationOffsetY', -180, 180, 1, 0));
+	container.appendChild(createSlider('leftHandRotationOffsetZ', -180, 180, 1, 0));
+	container.appendChild(createCheckbox('flipRightHandX'));
+	container.appendChild(createCheckbox('flipRightHandY'));
+	container.appendChild(createCheckbox('flipRightHandZ'));
+	container.appendChild(createCheckbox('flipLeftHandX'));
+	container.appendChild(createCheckbox('flipLeftHandY'));
+	container.appendChild(createCheckbox('flipLeftHandZ'));
+  
+	// Add arm pole target sliders
+	container.appendChild(document.createElement('hr'));
+	container.appendChild(document.createTextNode('Arm Pole Targets:'));
+	container.appendChild(createSlider('rightArmPoleX', -1, 1, 0.1, 0));
+	container.appendChild(createSlider('rightArmPoleY', -1, 1, 0.1, 0));
+	container.appendChild(createSlider('rightArmPoleZ', -1, 1, 0.1, -1));
+	container.appendChild(createSlider('leftArmPoleX', -1, 1, 0.1, 0));
+	container.appendChild(createSlider('leftArmPoleY', -1, 1, 0.1, 0));
+	container.appendChild(createSlider('leftArmPoleZ', -1, 1, 0.1, -1));
+  
+	document.body.appendChild(container);
   }
-  return loader.loadAsync(url).then((resource) => {
-    const clip = resource.animations[0];
+  
+function loadMixamoAnimation(url, vrm) {
+let loader;
+if (url.endsWith('.fbx')) {
+	loader = new FBXLoader();
+} else {
+	loader = new GLTFLoader();
+}
+return loader.loadAsync(url).then((resource) => {
+	const clip = resource.animations[0];
 
-    if (url.endsWith('.glb')) {
-      resource = resource.scene;
-    }
+	if (url.endsWith('.glb')) {
+	resource = resource.scene;
+	}
 
-    let tracks = [];
+	let tracks = [];
 
-    let restRotationInverse = new Quaternion();
-    let parentRestWorldRotation = new Quaternion();
-    let _quatA = new Quaternion();
-    let _vec3 = new Vector3();
+	let restRotationInverse = new Quaternion();
+	let parentRestWorldRotation = new Quaternion();
+	let _quatA = new Quaternion();
+	let _vec3 = new Vector3();
 
-    let mixamoHips = resource.getObjectByName('mixamorigHips');
-    let regularHips = resource.getObjectByName('hips');
-    let mainHip;
-    if (mixamoHips) {
-      mainHip = mixamoHips.position.y;
-    } else if (regularHips) {
-      mainHip = regularHips.position.y;
-    }
+	let mixamoHips = resource.getObjectByName('mixamorigHips');
+	let regularHips = resource.getObjectByName('hips');
+	let mainHip;
+	if (mixamoHips) {
+	mainHip = mixamoHips.position.y;
+	} else if (regularHips) {
+	mainHip = regularHips.position.y;
+	}
 	VRMUtils.rotateVRM0(vrm);
 	VRMUtils.removeUnnecessaryVertices( vrm.scene );
 	VRMUtils.removeUnnecessaryJoints( vrm.scene );
 	const vrmHipsY = vrm.humanoid?.getNormalizedBoneNode('hips').getWorldPosition(_vec3).y;
-    const vrmRootY = vrm.scene.getWorldPosition(_vec3).y;
-    const vrmHipsHeight = Math.abs(vrmHipsY - vrmRootY);
-    const hipsPositionScale = vrmHipsHeight / mainHip;
+	const vrmRootY = vrm.scene.getWorldPosition(_vec3).y;
+	const vrmHipsHeight = Math.abs(vrmHipsY - vrmRootY);
+	const hipsPositionScale = vrmHipsHeight / mainHip;
 
-    clip.tracks.forEach((track) => {
-      let trackSplitted = track.name.split('.');
-      let mixamoRigName = trackSplitted[0];
-      let vrmBoneName = mixamoVRMRigMap[mixamoRigName];
-      let vrmNodeName = vrm.humanoid?.getNormalizedBoneNode(vrmBoneName)?.name;
-      let mixamoRigNode = resource.getObjectByName(mixamoRigName);
+	clip.tracks.forEach((track) => {
+	let trackSplitted = track.name.split('.');
+	let mixamoRigName = trackSplitted[0];
+	let vrmBoneName = mixamoVRMRigMap[mixamoRigName];
+	let vrmNodeName = vrm.humanoid?.getNormalizedBoneNode(vrmBoneName)?.name;
+	let mixamoRigNode = resource.getObjectByName(mixamoRigName);
 
-      if (vrmNodeName != null) {
-        let propertyName = trackSplitted[1];
+	if (vrmNodeName != null) {
+		let propertyName = trackSplitted[1];
 
-        mixamoRigNode.getWorldQuaternion(restRotationInverse).invert();
-        mixamoRigNode.parent.getWorldQuaternion(parentRestWorldRotation);
+		mixamoRigNode.getWorldQuaternion(restRotationInverse).invert();
+		mixamoRigNode.parent.getWorldQuaternion(parentRestWorldRotation);
 
-        if (track instanceof QuaternionKeyframeTrack) {
-          for (let i = 0; i < track.values.length; i += 4) {
-            let flatQuaternion = track.values.slice(i, i + 4);
+		if (track instanceof QuaternionKeyframeTrack) {
+		for (let i = 0; i < track.values.length; i += 4) {
+			let flatQuaternion = track.values.slice(i, i + 4);
 
-            _quatA.fromArray(flatQuaternion);
+			_quatA.fromArray(flatQuaternion);
 
-            _quatA
-              .premultiply(parentRestWorldRotation)
-              .multiply(restRotationInverse);
+			_quatA
+			.premultiply(parentRestWorldRotation)
+			.multiply(restRotationInverse);
 
-            _quatA.toArray(flatQuaternion);
+			_quatA.toArray(flatQuaternion);
 
-            flatQuaternion.forEach((v, index) => {
-              track.values[index + i] = v;
-            });
-          }
+			flatQuaternion.forEach((v, index) => {
+			track.values[index + i] = v;
+			});
+		}
 
-          tracks.push(
-            new QuaternionKeyframeTrack(
-              `${vrmNodeName}.${propertyName}`,
-              track.times,
-              track.values.map((v, i) => (vrm.meta?.metaVersion === '0' && i % 2 === 0 ? -v : v)),
-            ),
-          );
-        } else if (track instanceof VectorKeyframeTrack) {
-          let value = track.values.map((v, i) => (vrm.meta?.metaVersion === '0' && i % 3 !== 1 ? -v : v) * hipsPositionScale);
-          tracks.push(new VectorKeyframeTrack(`${vrmNodeName}.${propertyName}`, track.times, value));
-        }
-      }
-    });
+		tracks.push(
+			new QuaternionKeyframeTrack(
+			`${vrmNodeName}.${propertyName}`,
+			track.times,
+			track.values.map((v, i) => (vrm.meta?.metaVersion === '0' && i % 2 === 0 ? -v : v)),
+			),
+		);
+		} else if (track instanceof VectorKeyframeTrack) {
+		let value = track.values.map((v, i) => (vrm.meta?.metaVersion === '0' && i % 3 !== 1 ? -v : v) * hipsPositionScale);
+		tracks.push(new VectorKeyframeTrack(`${vrmNodeName}.${propertyName}`, track.times, value));
+		}
+	}
+	});
 
-    return new AnimationClip('vrmAnimation', clip.duration, tracks);
-  });
+	return new AnimationClip('vrmAnimation', clip.duration, tracks);
+});
 }
 
 function addResetButton(props) {
-  const button = document.createElement('button');
-  button.innerHTML = 'Respawn';
-  button.onclick = () => {
-    props.movement.current.respawn = true;
-    setTimeout(() => {
-      props.movement.current.respawn = false;
-    }, 100);
-  };
+const button = document.createElement('button');
+button.innerHTML = 'Respawn';
+button.onclick = () => {
+	props.movement.current.respawn = true;
+	setTimeout(() => {
+	props.movement.current.respawn = false;
+	}, 100);
+};
 
-  button.style.position = 'fixed';
-  button.style.bottom = '190px';
-  button.style.left = '10px';
-  button.style.zIndex = '1000';
-  button.style.padding = '10px';
-  button.style.border = 'none';
-  button.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-  button.style.color = 'white';
-  button.style.cursor = 'pointer';
-  button.style.borderRadius = '5px';
-  button.style.fontFamily = 'Arial';
-  button.style.fontSize = '16px';
-  button.style.fontWeight = 'bold';
-  document.body.appendChild(button);
+button.style.position = 'fixed';
+button.style.bottom = '190px';
+button.style.left = '10px';
+button.style.zIndex = '1000';
+button.style.padding = '10px';
+button.style.border = 'none';
+button.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+button.style.color = 'white';
+button.style.cursor = 'pointer';
+button.style.borderRadius = '5px';
+button.style.fontFamily = 'Arial';
+button.style.fontSize = '16px';
+button.style.fontWeight = 'bold';
+document.body.appendChild(button);
 }
 
 class XrHead {
-  constructor(context) {
-    this.context = context;
-    this.position = new Vector3();
-    this.quaternion = new Quaternion();
-    this.worldUp = new Vector3();
-    this.forward = new Vector3();
-    this.up = new Vector3();
-    this.right = new Vector3();
-  }
+constructor(context) {
+	this.context = context;
+	this.position = new Vector3();
+	this.quaternion = new Quaternion();
+	this.worldUp = new Vector3();
+	this.forward = new Vector3();
+	this.up = new Vector3();
+	this.right = new Vector3();
+}
 
-  update() {
-    this.context.camera.getWorldPosition(this.position);
-    this.context.camera.getWorldQuaternion(this.quaternion);
-    this.worldUp.set(0, 1, 0);
-    this.up.set(0, 1, 0).applyQuaternion(this.quaternion);
-    this.forward.set(0, 0, -1).applyQuaternion(this.quaternion);
-    this.right.set(1, 0, 0).applyQuaternion(this.quaternion);
-  }
+update() {
+	this.context.camera.getWorldPosition(this.position);
+	this.context.camera.getWorldQuaternion(this.quaternion);
+	this.worldUp.set(0, 1, 0);
+	this.up.set(0, 1, 0).applyQuaternion(this.quaternion);
+	this.forward.set(0, 0, -1).applyQuaternion(this.quaternion);
+	this.right.set(1, 0, 0).applyQuaternion(this.quaternion);
+}
 }
 
 class Vector3Damper {
-  constructor(period) {
-    this.period = period || 0.15;
-    this._samples = [];
-    this._total = new Vector3();
-    this._average = new Vector3();
-  }
+constructor(period) {
+	this.period = period || 0.15;
+	this._samples = [];
+	this._total = new Vector3();
+	this._average = new Vector3();
+}
 
-  add(time, sample) {
-    const removeSamplesBefore = time - this.period;
-    while (this._samples.length && this._samples[0].time < removeSamplesBefore) {
-      const s = this._samples.shift();
-      this._total.x -= s.x;
-      this._total.y -= s.y;
-      this._total.z -= s.z;
-    }
-    this._total.x += sample.x;
-    this._total.y += sample.y;
-    this._total.z += sample.z;
-    this._samples.push({ time: time, x: sample.x, y: sample.y, z: sample.z });
-    const count = this._samples.length;
-    this._average.set(this._total.x / count, this._total.y / count, this._total.z / count);
-    return this._average;
-  }
+add(time, sample) {
+	const removeSamplesBefore = time - this.period;
+	while (this._samples.length && this._samples[0].time < removeSamplesBefore) {
+	const s = this._samples.shift();
+	this._total.x -= s.x;
+	this._total.y -= s.y;
+	this._total.z -= s.z;
+	}
+	this._total.x += sample.x;
+	this._total.y += sample.y;
+	this._total.z += sample.z;
+	this._samples.push({ time: time, x: sample.x, y: sample.y, z: sample.z });
+	const count = this._samples.length;
+	this._average.set(this._total.x / count, this._total.y / count, this._total.z / count);
+	return this._average;
+}
 
-  get average() {
-    return this._average;
-  }
+get average() {
+	return this._average;
+}
 
-  clear() {
-    this._samples = [];
-    this._total.setScalar(0);
-    this._average.setScalar(0);
-  }
+clear() {
+	this._samples = [];
+	this._total.setScalar(0);
+	this._average.setScalar(0);
+}
 }  
 
 export default function Player(props) {
-  const [isModelLoaded, setIsModelLoaded] = useState(false);
-  const currentPlayerAvatarRef = useRef(null);
-  const playerControllerRef = useRef(null);
-  const playerMixerRef = useRef(null);
-  const { camera, gl } = useThree();
-  const { isPresenting } = useXR();
-  const [presentingState, setPresentingState] = useState(false);
-  const prevPositionRef = useRef(null);
-  const { controllers } = useXR();
-  const rightController = useController('right');
-  const leftController = useController('left');
-  const head = useRef(new XrHead(useThree()));
-  const pointerOriginDamper = useRef(new Vector3Damper(DamperTimeS));
-  const pointerDirectionDamper = useRef(new Vector3Damper(DamperTimeS));
+const [isModelLoaded, setIsModelLoaded] = useState(false);
+const currentPlayerAvatarRef = useRef(null);
+const playerControllerRef = useRef(null);
+const playerMixerRef = useRef(null);
+const { camera, gl } = useThree();
+const { isPresenting } = useXR();
+const [presentingState, setPresentingState] = useState(false);
+const prevPositionRef = useRef(null);
+const { controllers } = useXR();
+const rightController = useController('right');
+const leftController = useController('left');
+const head = useRef(new XrHead(useThree()));
+const pointerOriginDamper = useRef(new Vector3Damper(DamperTimeS));
+const pointerDirectionDamper = useRef(new Vector3Damper(DamperTimeS));
 
-  const characterRef = useRef(null);
+const characterRef = useRef(null);
 
-  const [frameName, setFrameName] = useState();
+const [frameName, setFrameName] = useState();
 
-  const canMoveRef = useRef(true);
-  const spriteRef = useRef();
-  const animationsRef = useRef();
-  const playerModelRef = useRef();
+const canMoveRef = useRef(true);
+const spriteRef = useRef();
+const animationsRef = useRef();
+const playerModelRef = useRef();
 
-  const orbitRef = useRef();
-  const rigidRef = useRef();
-  const castRef = useRef();
-  const [loaderIsGone, setLoaderIsGone] = useState(false);
-  const [avatarIsSprite, setAvatarIsSprite] = useState(false);
+const orbitRef = useRef();
+const rigidRef = useRef();
+const castRef = useRef();
+const [loaderIsGone, setLoaderIsGone] = useState(false);
+const [avatarIsSprite, setAvatarIsSprite] = useState(false);
 
-  const curAnimation = useGame((state) => state.curAnimation);
-  const initializeAnimationSet = useGame(
-    (state) => state.initializeAnimationSet
-  );
-  const idleAnimation = useGame((state) => state.idle);
-  const walkAnimation = useGame((state) => state.walk);
-  const runAnimation = useGame((state) => state.run);
-  const action1Animation = useGame((state) => state.action1);
-  const action2Animation = useGame((state) => state.action2);
-  const action3Animation = useGame((state) => state.action3);
-  const action4Animation = useGame((state) => state.action4);
-  const resetAnimation = useGame((state) => state.reset);
-  const [open, setOpen] = useState(false);
-  const HEAD_LAYER = 1;
+const curAnimation = useGame((state) => state.curAnimation);
+const initializeAnimationSet = useGame(
+	(state) => state.initializeAnimationSet
+);
+const idleAnimation = useGame((state) => state.idle);
+const walkAnimation = useGame((state) => state.walk);
+const runAnimation = useGame((state) => state.run);
+const action1Animation = useGame((state) => state.action1);
+const action2Animation = useGame((state) => state.action2);
+const action3Animation = useGame((state) => state.action3);
+const action4Animation = useGame((state) => state.action4);
+const resetAnimation = useGame((state) => state.reset);
+const [open, setOpen] = useState(false);
+const HEAD_LAYER = 1;
 
 
-  const animationSet = {
-    idle: "idle",
-    walk: "walking",
-    run: "running",
-    jump: "jump",
-  };
+const animationSet = {
+	idle: "idle",
+	walk: "walking",
+	run: "running",
+	jump: "jump",
+};
 
-  useEffect(() => {
-    initializeAnimationSet(animationSet);
-  }, []);
+useEffect(() => {
+	initializeAnimationSet(animationSet);
+}, []);
 
-  useEffect(() => {
-    const handleReady = () => {
-      setLoaderIsGone(true);
-      removeEventListener('loaderIsGone', handleReady);
-    };
-    window.addEventListener('loaderIsGone', handleReady);
-    addResetButton(props);
-  }, []);
+useEffect(() => {
+	const handleReady = () => {
+	setLoaderIsGone(true);
+	removeEventListener('loaderIsGone', handleReady);
+	};
+	window.addEventListener('loaderIsGone', handleReady);
+	addResetButton(props);
+}, []);
 
-  const idleFile = idle;
-  const walkingFile = walk;
-  const runningFile = run;
-  const jumpFile = jump;
-  const fallingFile = fall;
-  const spawnPoint = props.spawnPoint ? props.spawnPoint.map(Number) : [0, 0, 0];
-  const { scene, clock } = useThree();
-  const { world, rapier } = useRapier();
-  const participantObject = scene.getObjectByName("playerOne");
-  let debug   = {};
+const idleFile = idle;
+const walkingFile = walk;
+const runningFile = run;
+const jumpFile = jump;
+const fallingFile = fall;
+const spawnPoint = props.spawnPoint ? props.spawnPoint.map(Number) : [0, 0, 0];
+const { scene, clock } = useThree();
+const { world, rapier } = useRapier();
+const participantObject = scene.getObjectByName("playerOne");
+let debug   = {};
 
-  useEffect(() => {
-    if (userData.playerVRM.endsWith('.png')) {
-      setAvatarIsSprite(true);
-    }
-  }, []);
+useEffect(() => {
+	if (userData.playerVRM.endsWith('.png')) {
+	setAvatarIsSprite(true);
+	}
+}, []);
 
-  let animationFiles = [idleFile, walkingFile, runningFile, jumpFile];
+let animationFiles = [idleFile, walkingFile, runningFile, jumpFile];
 // Participant VRM.
 const fallbackURL = defaultVRM;
 const defaultAvatarURL = props.defaultPlayerAvatar;
@@ -325,28 +432,28 @@ useEffect(() => {
 	}
 }, []);
 
-  useEffect(() => {
-    if (!currentPlayerAvatarRef.current) {
-      const loader = new GLTFLoader();
-      const ktx2Loader = new KTX2Loader();
-      ktx2Loader.setTranscoderPath(threeObjectPluginRoot + "/inc/utils/basis/");
-      ktx2Loader.detectSupport(gl);
-      loader.setKTX2Loader(ktx2Loader);
-	  const helperRoot = new Group();
-	  helperRoot.renderOrder = 10000;
-	  scene.add(helperRoot);
-	  debug.pnt = new ShapePointsMesh();
-	  debug.ln  = new DynLineMesh();
-	  scene.add(debug.pnt);
-	  scene.add(debug.ln);
+useEffect(() => {
+	if (!currentPlayerAvatarRef.current) {
+	const loader = new GLTFLoader();
+	const ktx2Loader = new KTX2Loader();
+	ktx2Loader.setTranscoderPath(threeObjectPluginRoot + "/inc/utils/basis/");
+	ktx2Loader.detectSupport(gl);
+	loader.setKTX2Loader(ktx2Loader);
+	// const helperRoot = new Group();
+	// helperRoot.renderOrder = 10000;
+	// scene.add(helperRoot);
+	// debug.pnt = new ShapePointsMesh();
+	// debug.ln  = new DynLineMesh();
+	// scene.add(debug.pnt);
+	// scene.add(debug.ln);
 
-	loader.register( parser => new VRMLoaderPlugin( parser, { helperRoot } ) );
-	// loader.register( parser => new VRMLoaderPlugin( parser ) );
+	// loader.register( parser => new VRMLoaderPlugin( parser, { helperRoot } ) );
+	loader.register( parser => new VRMLoaderPlugin( parser ) );
 
-	  loader.load(playerURL, (gltf) => {
+	loader.load(playerURL, (gltf) => {
 		currentPlayerAvatarRef.current = gltf;
 		playerControllerRef.current = gltf.userData.vrm;
-	  
+	
 		// Calculate the avatar's height offset
 		const headBone = gltf.userData.vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Head);
 		headBone.layers.set(HEAD_LAYER);
@@ -359,45 +466,49 @@ useEffect(() => {
 		});
 		const headWorldPosition = new Vector3();
 		headBone.getWorldPosition(headWorldPosition);
-	  
+	
 		const avatarWorldPosition = new Vector3();
 		gltf.scene.getWorldPosition(avatarWorldPosition);
-	  
+	
 		props.avatarHeightOffset.current = headWorldPosition.y - avatarWorldPosition.y;
-	  
+	
 		setIsModelLoaded(true);
-	  }, undefined, error => {
+	}, undefined, error => {
 		console.error('An error happened during the loading of the model:', error);
-	  });
-    }
-  }, [playerURL, gl]);
+	});
+	}
+}, [playerURL, gl]);
 
-  useEffect(() => {
-    if (isModelLoaded && playerControllerRef.current) {
-      const playerController = playerControllerRef.current;
-      const animationsMixer = new AnimationMixer(playerController.scene);
-      playerMixerRef.current = animationsMixer;
-      let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, playerController));
-      playerController.scene.visible = false;
+useEffect(() => {
+	if (isModelLoaded && playerControllerRef.current) {
+	const playerController = playerControllerRef.current;
+	const animationsMixer = new AnimationMixer(playerController.scene);
+	playerMixerRef.current = animationsMixer;
+	let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, playerController));
+	playerController.scene.visible = false;
 
-      Promise.all(animationsPromises)
-        .then(animations => {
-          const idleAction = animationsMixer.clipAction(animations[0]);
-          const walkingAction = animationsMixer.clipAction(animations[1]);
-          const runningAction = animationsMixer.clipAction(animations[2]);
-          const jumpingAction = animationsMixer.clipAction(animations[3]);
-          idleAction.timeScale = 1;
-          walkingAction.timeScale = 0;
-          runningAction.timeScale = 0;
-          jumpingAction.timeScale = 0;
-          animationsRef.current = { idle: idleAction, walking: walkingAction, running: runningAction, jump: jumpingAction };
-          idleAction.play();
-          playerController.scene.visible = true;
-        });
-    }
-  }, [isModelLoaded]);
+	Promise.all(animationsPromises)
+		.then(animations => {
+		const idleAction = animationsMixer.clipAction(animations[0]);
+		const walkingAction = animationsMixer.clipAction(animations[1]);
+		const runningAction = animationsMixer.clipAction(animations[2]);
+		const jumpingAction = animationsMixer.clipAction(animations[3]);
+		idleAction.timeScale = 1;
+		walkingAction.timeScale = 0;
+		runningAction.timeScale = 0;
+		jumpingAction.timeScale = 0;
+		animationsRef.current = { idle: idleAction, walking: walkingAction, running: runningAction, jump: jumpingAction };
+		idleAction.play();
+		playerController.scene.visible = true;
+		});
+	}
+}, [isModelLoaded]);
 
-  useEffect(() => {
+useEffect(() => {
+	addHandRotationControls();
+  }, []);  
+
+useEffect(() => {
 	if( isPresenting ){
 		console.log( 'Presenting' );
 		// kill all animations
@@ -421,410 +532,410 @@ useEffect(() => {
 			}
 		}
 	}
-   }, [isPresenting]);
+}, [isPresenting]);
 
-  let lastUpdateTime = 0;
-  let blinkTimer = 0;
-  let blinkInterval = getRandomBlinkInterval();
+let lastUpdateTime = 0;
+let blinkTimer = 0;
+let blinkInterval = getRandomBlinkInterval();
 
-  function getRandomBlinkInterval() {
-    return 5 + Math.random() * 10;
-  }
+function getRandomBlinkInterval() {
+	return 5 + Math.random() * 10;
+}
 
-  function handleBlinking(delta) {
-    blinkTimer += delta;
-    if (blinkTimer > blinkInterval && playerControllerRef.current) {
-      performBlink(playerControllerRef.current);
-      blinkTimer = 0;
-      blinkInterval = getRandomBlinkInterval();
-    }
-  }
+function handleBlinking(delta) {
+	blinkTimer += delta;
+	if (blinkTimer > blinkInterval && playerControllerRef.current) {
+	performBlink(playerControllerRef.current);
+	blinkTimer = 0;
+	blinkInterval = getRandomBlinkInterval();
+	}
+}
 
-  function performBlink(vrm) {
-    const blinkDuration = 0.05 + Math.random() * 0.1;
-    const steps = Math.round(blinkDuration / 0.01);
+function performBlink(vrm) {
+	const blinkDuration = 0.05 + Math.random() * 0.1;
+	const steps = Math.round(blinkDuration / 0.01);
 
-    for (let i = 0; i <= steps; i++) {
-      const s = i / steps;
-      setTimeout(() => {
-        vrm.expressionManager.setValue('blinkLeft', s);
-        vrm.expressionManager.setValue('blinkRight', s);
-      }, s * blinkDuration * 1000);
-    }
+	for (let i = 0; i <= steps; i++) {
+	const s = i / steps;
+	setTimeout(() => {
+		vrm.expressionManager.setValue('blinkLeft', s);
+		vrm.expressionManager.setValue('blinkRight', s);
+	}, s * blinkDuration * 1000);
+	}
 
-    setTimeout(() => {
-      for (let i = 0; i <= steps; i++) {
-        const s = 1 - i / steps;
-        setTimeout(() => {
-          vrm.expressionManager.setValue('blinkLeft', s);
-          vrm.expressionManager.setValue('blinkRight', s);
-        }, (1 - s) * blinkDuration * 1000);
-      }
-    }, blinkDuration * 1000 + 200);
-  }
+	setTimeout(() => {
+	for (let i = 0; i <= steps; i++) {
+		const s = 1 - i / steps;
+		setTimeout(() => {
+		vrm.expressionManager.setValue('blinkLeft', s);
+		vrm.expressionManager.setValue('blinkRight', s);
+		}, (1 - s) * blinkDuration * 1000);
+	}
+	}, blinkDuration * 1000 + 200);
+}
 
-  const movementTimeoutRef = useRef(null);
-  const updateRate = 1000 / 5;
-  const lastNetworkUpdateTimeRef = useRef(0);
-  let countHangtime = 0;
-  let isMoving;
-  let lastKeyPressTime = 0;
-  let wasJumping = false;
+const movementTimeoutRef = useRef(null);
+const updateRate = 1000 / 5;
+const lastNetworkUpdateTimeRef = useRef(0);
+let countHangtime = 0;
+let isMoving;
+let lastKeyPressTime = 0;
+let wasJumping = false;
 
-  useEffect(() => {
-    isMoving = false;
-  }, []);
-  let isJumping = false;
-  const getJoystickValues = useJoystickControls(
-    (state) => state.getJoystickValues
-  );
-  const playerForward = new Vector3(0, 0, 1);
+useEffect(() => {
+	isMoving = false;
+}, []);
+let isJumping = false;
+const getJoystickValues = useJoystickControls(
+	(state) => state.getJoystickValues
+);
+const playerForward = new Vector3(0, 0, 1);
 
 	useFrame((state, delta) => {
-    const joystickValues = getJoystickValues();
-    let forward = props.movement.current.forward;
-    let backward = props.movement.current.backward;
-    let left = props.movement.current.left;
-    let right = props.movement.current.right;
-    let shift = props.movement.current.shift;
-    let space = props.movement.current.space;
+	const joystickValues = getJoystickValues();
+	let forward = props.movement.current.forward;
+	let backward = props.movement.current.backward;
+	let left = props.movement.current.left;
+	let right = props.movement.current.right;
+	let shift = props.movement.current.shift;
+	let space = props.movement.current.space;
 
-    if (joystickValues) {
-      if (joystickValues.joystickAng > 0) {
-        if (joystickValues.joystickDis > 60) {
-          shift = true;
-        }
-        forward = true;
-      }
-      if (joystickValues.button1Pressed === true) {
-        space = true;
-      }
-    }
+	if (joystickValues) {
+	if (joystickValues.joystickAng > 0) {
+		if (joystickValues.joystickDis > 60) {
+		shift = true;
+		}
+		forward = true;
+	}
+	if (joystickValues.button1Pressed === true) {
+		space = true;
+	}
+	}
 
-    if (playerControllerRef.current) {
-      playerControllerRef.current.update(delta);
-    }
+	if (playerControllerRef.current) {
+	playerControllerRef.current.update(delta);
+	}
 
-    if (playerMixerRef.current) {
-      playerMixerRef.current.update(delta);
-    }
+	if (playerMixerRef.current) {
+	playerMixerRef.current.update(delta);
+	}
 
-    const now = state.clock.elapsedTime * 1000;
+	const now = state.clock.elapsedTime * 1000;
 
-    if (backward || forward || left || right) {
-      if (characterRef.current.userData.canJump) {
-        isMoving = true;
+	if (backward || forward || left || right) {
+	if (characterRef.current.userData.canJump) {
+		isMoving = true;
 
-        if (now - lastKeyPressTime > 100) {
-          if (window.p2pcf) {
-            const participantObject = scene.getObjectByName("playerOne");
-
-            var target = new Vector3();
-            var worldPosition = participantObject.getWorldPosition(target);
-            const position = [
-              worldPosition.x,
-              worldPosition.y,
-              worldPosition.z
-            ];
-
-            const rotation = [
-              participantObject.parent.parent.rotation.x,
-              participantObject.parent.parent.rotation.y,
-              participantObject.parent.parent.rotation.z
-            ];
-
-            const currentAction = !characterRef.current.userData.canJump ? "jumping" : "walking";
-            const messageObject = {
-              [window.p2pcf.clientId]: {
-                position: position,
-                rotation: rotation,
-                profileImage: userData.profileImage,
-                playerVRM: userData.playerVRM,
-                vrm: userData.vrm,
-                inWorldName: window.userData.inWorldName ? window.userData.inWorldName : userData.inWorldName,
-                isMoving: {
-                  action: currentAction,
-                  instance: 'update',
-                  hangtime: countHangtime
-                }
-              }
-            };
-
-            if (shift && characterRef.current.userData.canJump) {
-              messageObject[window.p2pcf.clientId].isMoving.action = "running";
-            }
-
-            const message = JSON.stringify(messageObject);
-            window.p2pcf.broadcast(new TextEncoder().encode(message)), window.p2pcf;
-            lastKeyPressTime = now;
-            lastNetworkUpdateTimeRef.current = now;
-          }
-        }
-
-        if (now - lastNetworkUpdateTimeRef.current > updateRate) {
-          if (window.p2pcf) {
-            const participantObject = scene.getObjectByName("playerOne");
-
-            var target = new Vector3();
-            var worldPosition = participantObject.getWorldPosition(target);
-            const position = [
-              worldPosition.x,
-              worldPosition.y,
-              worldPosition.z
-            ];
-
-            const rotation = [
-              participantObject.parent.parent.rotation.x,
-              participantObject.parent.parent.rotation.y,
-              participantObject.parent.parent.rotation.z
-            ];
-
-            const currentAction = !characterRef.current.userData.canJump ? "jumping" : "walking";
-
-            const messageObject = {
-              [window.p2pcf.clientId]: {
-                position: position,
-                rotation: rotation,
-                profileImage: userData.profileImage,
-                playerVRM: userData.playerVRM,
-                vrm: userData.vrm,
-                inWorldName: window.userData.inWorldName ? window.userData.inWorldName : userData.inWorldName,
-                isMoving: {
-                  action: currentAction,
-                  instance: 'update',
-                  hangtime: countHangtime
-                }
-              }
-            };
-
-            if (shift && characterRef.current.userData.canJump) {
-              messageObject[window.p2pcf.clientId].isMoving.action = "running";
-            }
-
-            const message = JSON.stringify(messageObject);
-            window.p2pcf.broadcast(new TextEncoder().encode(message)), window.p2pcf;
-            lastNetworkUpdateTimeRef.current = now;
-          }
-        }
-
-        clearTimeout(movementTimeoutRef.current);
-        movementTimeoutRef.current = setTimeout(() => {
-          isMoving = false;
-        }, 500);
-      }
-    } else {
-      if (isMoving) {
-        isMoving = false;
-        clearTimeout(movementTimeoutRef.current);
-        if (window.p2pcf?.clientId) {
-          const participantObject = scene.getObjectByName("playerOne");
-          var target = new Vector3();
-          var worldPosition = participantObject.getWorldPosition(target);
-          const position = [
-            worldPosition.x,
-            worldPosition.y,
-            worldPosition.z
-          ];
-
-          const messageStopObject = {
-            [window.p2pcf.clientId]: {
-              isMoving: false,
-              position: position
-            }
-          };
-          const messageStop = JSON.stringify(messageStopObject);
-          window.p2pcf.broadcast(new TextEncoder().encode(messageStop));
-          lastNetworkUpdateTimeRef.current = now;
-        }
-      }
-    }
-
-    if (isPresenting && !presentingState) {
-      const newCamera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-	  const participantObject = scene.getObjectByName("playerOne");
-	// set the rotation to 0
-	participantObject.parent.parent.rotation.set(0, 0, 0);
-	participantObject.rotation.set(0, 0, 0);
-      const xrCamera = gl.xr.getCamera(newCamera);
-      gl.xr.enabled = true;
-      state.camera = xrCamera;
-      setPresentingState(true);
-    } else if (!isPresenting && presentingState) {
-      setPresentingState(false);
-    }
-
-    handleBlinking(delta);
-
-    if (animationsRef.current) {
-      if (playerControllerRef.current && participantObject) {
-        const cameraWorldQuaternion = new Quaternion();
-        camera.getWorldQuaternion(cameraWorldQuaternion);
-        const cameraForward = new Vector3(0, 0, -1).applyQuaternion(cameraWorldQuaternion);
-
-        const characterWorldQuaternion = new Quaternion();
-        participantObject.parent.getWorldQuaternion(characterWorldQuaternion);
-        const characterForward = new Vector3(0, 0, 1).applyQuaternion(characterWorldQuaternion);
-        const neutralRotation = new Euler(0, 0, 0);
-
-        const characterToCamera = new Vector3().subVectors(camera.position, participantObject.getWorldPosition(new Vector3())).normalize();
-
-        const dotProduct = characterForward.dot(cameraForward);
-        const azimuthalAngle = Math.acos(Math.min(Math.max(dotProduct, -1), 1));
-
-        const angleThreshold = Math.PI / 2;
-        if (azimuthalAngle < angleThreshold) {
-          if (avatarIsSprite) {
-            if (isMoving && frameName !== 'WalkForward') {
-              setFrameName('WalkForward');
-            }
-            if (isMoving === false) {
-              if (frameName !== 'ForwardIdle') {
-                setFrameName('ForwardIdle');
-              }
-            }
-          }
-        } else {
-          if (avatarIsSprite && isMoving && frameName !== 'WalkBackward') {
-            setFrameName('WalkBackward');
-          }
-          if (avatarIsSprite && isMoving === false && frameName !== 'BackwardIdle') {
-            setFrameName('BackwardIdle');
-          }
-        }
-      }
-
-      const { idle, walking, running, jump, falling } = animationsRef.current;
-
-      if (props.movement.current.respawn) {
-        characterRef.current.setBodyType(rapier.RigidBodyType.Fixed, 1);
-        characterRef.current.setTranslation(new Vector3(Number(spawnPoint[0]), Number(spawnPoint[1]), Number(spawnPoint[2])), true);
-      } else if (!props.movement.current.respawn && characterRef.current.bodyType() === 1) {
-        characterRef.current.setBodyType(rapier.RigidBodyType.Dynamic, 0);
-      }
-
-      if (isMoving && characterRef.current.userData.canJump) {
-        jump.clampWhenFinished = false;
-        jump.reset();
-        jump.setEffectiveTimeScale(0);
-        jump.setEffectiveWeight(0);
-      } else if (!isMoving && characterRef.current.userData.canJump) {
-        jump.clampWhenFinished = false;
-        jump.reset();
-        jump.setEffectiveTimeScale(0);
-        jump.setEffectiveWeight(0);
-        idle.setEffectiveTimeScale(1);
-        idle.setEffectiveWeight(1);
-      }
-
-      if (!characterRef.current.userData.canJump) {
-        if (window.p2pcf) {
+		if (now - lastKeyPressTime > 100) {
+		if (window.p2pcf) {
 			const participantObject = scene.getObjectByName("playerOne");
 
 			var target = new Vector3();
 			var worldPosition = participantObject.getWorldPosition(target);
 			const position = [
-			  worldPosition.x,
-			  worldPosition.y,
-			  worldPosition.z
+			worldPosition.x,
+			worldPosition.y,
+			worldPosition.z
 			];
-  
+
 			const rotation = [
-			  participantObject.parent.parent.rotation.x,
-			  participantObject.parent.parent.rotation.y,
-			  participantObject.parent.parent.rotation.z
+			participantObject.parent.parent.rotation.x,
+			participantObject.parent.parent.rotation.y,
+			participantObject.parent.parent.rotation.z
+			];
+
+			const currentAction = !characterRef.current.userData.canJump ? "jumping" : "walking";
+			const messageObject = {
+			[window.p2pcf.clientId]: {
+				position: position,
+				rotation: rotation,
+				profileImage: userData.profileImage,
+				playerVRM: userData.playerVRM,
+				vrm: userData.vrm,
+				inWorldName: window.userData.inWorldName ? window.userData.inWorldName : userData.inWorldName,
+				isMoving: {
+				action: currentAction,
+				instance: 'update',
+				hangtime: countHangtime
+				}
+			}
+			};
+
+			if (shift && characterRef.current.userData.canJump) {
+			messageObject[window.p2pcf.clientId].isMoving.action = "running";
+			}
+
+			const message = JSON.stringify(messageObject);
+			window.p2pcf.broadcast(new TextEncoder().encode(message)), window.p2pcf;
+			lastKeyPressTime = now;
+			lastNetworkUpdateTimeRef.current = now;
+		}
+		}
+
+		if (now - lastNetworkUpdateTimeRef.current > updateRate) {
+		if (window.p2pcf) {
+			const participantObject = scene.getObjectByName("playerOne");
+
+			var target = new Vector3();
+			var worldPosition = participantObject.getWorldPosition(target);
+			const position = [
+			worldPosition.x,
+			worldPosition.y,
+			worldPosition.z
+			];
+
+			const rotation = [
+			participantObject.parent.parent.rotation.x,
+			participantObject.parent.parent.rotation.y,
+			participantObject.parent.parent.rotation.z
+			];
+
+			const currentAction = !characterRef.current.userData.canJump ? "jumping" : "walking";
+
+			const messageObject = {
+			[window.p2pcf.clientId]: {
+				position: position,
+				rotation: rotation,
+				profileImage: userData.profileImage,
+				playerVRM: userData.playerVRM,
+				vrm: userData.vrm,
+				inWorldName: window.userData.inWorldName ? window.userData.inWorldName : userData.inWorldName,
+				isMoving: {
+				action: currentAction,
+				instance: 'update',
+				hangtime: countHangtime
+				}
+			}
+			};
+
+			if (shift && characterRef.current.userData.canJump) {
+			messageObject[window.p2pcf.clientId].isMoving.action = "running";
+			}
+
+			const message = JSON.stringify(messageObject);
+			window.p2pcf.broadcast(new TextEncoder().encode(message)), window.p2pcf;
+			lastNetworkUpdateTimeRef.current = now;
+		}
+		}
+
+		clearTimeout(movementTimeoutRef.current);
+		movementTimeoutRef.current = setTimeout(() => {
+		isMoving = false;
+		}, 500);
+	}
+	} else {
+	if (isMoving) {
+		isMoving = false;
+		clearTimeout(movementTimeoutRef.current);
+		if (window.p2pcf?.clientId) {
+		const participantObject = scene.getObjectByName("playerOne");
+		var target = new Vector3();
+		var worldPosition = participantObject.getWorldPosition(target);
+		const position = [
+			worldPosition.x,
+			worldPosition.y,
+			worldPosition.z
+		];
+
+		const messageStopObject = {
+			[window.p2pcf.clientId]: {
+			isMoving: false,
+			position: position
+			}
+		};
+		const messageStop = JSON.stringify(messageStopObject);
+		window.p2pcf.broadcast(new TextEncoder().encode(messageStop));
+		lastNetworkUpdateTimeRef.current = now;
+		}
+	}
+	}
+
+	if (isPresenting && !presentingState) {
+	const newCamera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+	const participantObject = scene.getObjectByName("playerOne");
+	// set the rotation to 0
+	participantObject.parent.parent.rotation.set(0, 0, 0);
+	participantObject.rotation.set(0, 0, 0);
+	const xrCamera = gl.xr.getCamera(newCamera);
+	gl.xr.enabled = true;
+	state.camera = xrCamera;
+	setPresentingState(true);
+	} else if (!isPresenting && presentingState) {
+	setPresentingState(false);
+	}
+
+	handleBlinking(delta);
+
+	if (animationsRef.current) {
+	if (playerControllerRef.current && participantObject) {
+		const cameraWorldQuaternion = new Quaternion();
+		camera.getWorldQuaternion(cameraWorldQuaternion);
+		const cameraForward = new Vector3(0, 0, -1).applyQuaternion(cameraWorldQuaternion);
+
+		const characterWorldQuaternion = new Quaternion();
+		participantObject.parent.getWorldQuaternion(characterWorldQuaternion);
+		const characterForward = new Vector3(0, 0, 1).applyQuaternion(characterWorldQuaternion);
+		const neutralRotation = new Euler(0, 0, 0);
+
+		const characterToCamera = new Vector3().subVectors(camera.position, participantObject.getWorldPosition(new Vector3())).normalize();
+
+		const dotProduct = characterForward.dot(cameraForward);
+		const azimuthalAngle = Math.acos(Math.min(Math.max(dotProduct, -1), 1));
+
+		const angleThreshold = Math.PI / 2;
+		if (azimuthalAngle < angleThreshold) {
+		if (avatarIsSprite) {
+			if (isMoving && frameName !== 'WalkForward') {
+			setFrameName('WalkForward');
+			}
+			if (isMoving === false) {
+			if (frameName !== 'ForwardIdle') {
+				setFrameName('ForwardIdle');
+			}
+			}
+		}
+		} else {
+		if (avatarIsSprite && isMoving && frameName !== 'WalkBackward') {
+			setFrameName('WalkBackward');
+		}
+		if (avatarIsSprite && isMoving === false && frameName !== 'BackwardIdle') {
+			setFrameName('BackwardIdle');
+		}
+		}
+	}
+
+	const { idle, walking, running, jump, falling } = animationsRef.current;
+
+	if (props.movement.current.respawn) {
+		characterRef.current.setBodyType(rapier.RigidBodyType.Fixed, 1);
+		characterRef.current.setTranslation(new Vector3(Number(spawnPoint[0]), Number(spawnPoint[1]), Number(spawnPoint[2])), true);
+	} else if (!props.movement.current.respawn && characterRef.current.bodyType() === 1) {
+		characterRef.current.setBodyType(rapier.RigidBodyType.Dynamic, 0);
+	}
+
+	if (isMoving && characterRef.current.userData.canJump) {
+		jump.clampWhenFinished = false;
+		jump.reset();
+		jump.setEffectiveTimeScale(0);
+		jump.setEffectiveWeight(0);
+	} else if (!isMoving && characterRef.current.userData.canJump) {
+		jump.clampWhenFinished = false;
+		jump.reset();
+		jump.setEffectiveTimeScale(0);
+		jump.setEffectiveWeight(0);
+		idle.setEffectiveTimeScale(1);
+		idle.setEffectiveWeight(1);
+	}
+
+	if (!characterRef.current.userData.canJump) {
+		if (window.p2pcf) {
+			const participantObject = scene.getObjectByName("playerOne");
+
+			var target = new Vector3();
+			var worldPosition = participantObject.getWorldPosition(target);
+			const position = [
+			worldPosition.x,
+			worldPosition.y,
+			worldPosition.z
+			];
+
+			const rotation = [
+			participantObject.parent.parent.rotation.x,
+			participantObject.parent.parent.rotation.y,
+			participantObject.parent.parent.rotation.z
 			];
 			if (!prevPositionRef.current || Math.abs(position[1] - prevPositionRef.current[1]) > 0.01) {
-			  const messageObject = {
+			const messageObject = {
 				[window.p2pcf.clientId]: {
-				  position: position,
-				  rotation: rotation,
-				  profileImage: userData.profileImage,
-				  playerVRM: userData.playerVRM,
-				  vrm: userData.vrm,
-				  inWorldName: window.userData.inWorldName ? window.userData.inWorldName : userData.inWorldName,
-				  isMoving: {
+				position: position,
+				rotation: rotation,
+				profileImage: userData.profileImage,
+				playerVRM: userData.playerVRM,
+				vrm: userData.vrm,
+				inWorldName: window.userData.inWorldName ? window.userData.inWorldName : userData.inWorldName,
+				isMoving: {
 					action: "jumping",
 					instance: 'first',
 					hangtime: countHangtime
-				  }
 				}
-			  };
-			  const message = JSON.stringify(messageObject);
-			  if ((now - lastNetworkUpdateTimeRef.current > updateRate) && (lastNetworkUpdateTimeRef.current !== 0)) {
+				}
+			};
+			const message = JSON.stringify(messageObject);
+			if ((now - lastNetworkUpdateTimeRef.current > updateRate) && (lastNetworkUpdateTimeRef.current !== 0)) {
 				window.p2pcf.broadcast(new TextEncoder().encode(message)), window.p2pcf;
 				lastNetworkUpdateTimeRef.current = now;
-			  }
+			}
 			}
 			prevPositionRef.current = position;
-		  }
-  
-		  countHangtime++;
-  
-		  if (jump.getEffectiveTimeScale() === 0) {
+		}
+
+		countHangtime++;
+
+		if (jump.getEffectiveTimeScale() === 0) {
 			if (countHangtime > 3) {
-			  jump.setEffectiveTimeScale(1);
-			  jump.setEffectiveWeight(1);
-			  jump.clampWhenFinished = true;
-			  jump.time = jump._clip.duration;
-			  jump.play();
-			  running.setEffectiveTimeScale(0);
-			  running.setEffectiveWeight(0);
-			  walking.setEffectiveTimeScale(0);
-			  walking.setEffectiveWeight(0);
+			jump.setEffectiveTimeScale(1);
+			jump.setEffectiveWeight(1);
+			jump.clampWhenFinished = true;
+			jump.time = jump._clip.duration;
+			jump.play();
+			running.setEffectiveTimeScale(0);
+			running.setEffectiveWeight(0);
+			walking.setEffectiveTimeScale(0);
+			walking.setEffectiveWeight(0);
 			}
-		  }
-  
-		  wasJumping = true;
+		}
+
+		wasJumping = true;
 		} else {
-		  if (wasJumping) {
+		if (wasJumping) {
 			if (window.p2pcf) {
-			  const participantObject = scene.getObjectByName("playerOne");
-			  setTimeout(() => {
+			const participantObject = scene.getObjectByName("playerOne");
+			setTimeout(() => {
 				var target = new Vector3();
 				var worldPosition = participantObject.getWorldPosition(target);
 				const position = [
-				  worldPosition.x,
-				  worldPosition.y,
-				  worldPosition.z
+				worldPosition.x,
+				worldPosition.y,
+				worldPosition.z
 				];
-  
+
 				const rotation = [
-				  participantObject.parent.parent.rotation.x,
-				  participantObject.parent.parent.rotation.y,
-				  participantObject.parent.parent.rotation.z
+				participantObject.parent.parent.rotation.x,
+				participantObject.parent.parent.rotation.y,
+				participantObject.parent.parent.rotation.z
 				];
-  
+
 				if ((countHangtime > 0) && lastNetworkUpdateTimeRef.current !== 0) {
-				  const messageStopObject = {
+				const messageStopObject = {
 					[window.p2pcf.clientId]: {
-					  isMoving: {
+					isMoving: {
 						action: "jumpStop",
 						hangtime: countHangtime
-					  },
-					  position: position,
-					  rotation: rotation
+					},
+					position: position,
+					rotation: rotation
 					}
-				  };
-				  const messageStop = JSON.stringify(messageStopObject);
-				  window.p2pcf.broadcast(new TextEncoder().encode(messageStop));
-				  countHangtime = 0;
-				  lastNetworkUpdateTimeRef.current = now;
+				};
+				const messageStop = JSON.stringify(messageStopObject);
+				window.p2pcf.broadcast(new TextEncoder().encode(messageStop));
+				countHangtime = 0;
+				lastNetworkUpdateTimeRef.current = now;
 				}
-			  }, 100);
+			}, 100);
 			}
-  
+
 			wasJumping = false;
-		  }
 		}
-  
+		}
+
 		if (isMoving && characterRef.current.userData.canJump) {
-		  countHangtime = 0;
-  
-		  if (shift) {
+		countHangtime = 0;
+
+		if (shift) {
 			if (walking.isRunning()) {
-			  walking.crossFadeTo(running, 1.1);
+			walking.crossFadeTo(running, 1.1);
 			} else {
-			  idle.crossFadeTo(running, 1.1);
+			idle.crossFadeTo(running, 1.1);
 			}
 			running.enabled = true;
 			running.setEffectiveTimeScale(1);
@@ -836,11 +947,11 @@ useEffect(() => {
 			walking.setEffectiveTimeScale(1);
 			walking.setEffectiveWeight(0);
 			running.play();
-		  } else {
+		} else {
 			if (running.isRunning()) {
-			  running.crossFadeTo(walking, 1);
+			running.crossFadeTo(walking, 1);
 			} else {
-			  idle.crossFadeTo(walking, 1);
+			idle.crossFadeTo(walking, 1);
 			}
 			walking.enabled = true;
 			walking.setEffectiveTimeScale(1);
@@ -852,38 +963,38 @@ useEffect(() => {
 			idle.setEffectiveTimeScale(1);
 			idle.setEffectiveWeight(0);
 			walking.play();
-		  }
+		}
 		} else {
-		  if (characterRef.current.userData.canJump) {
+		if (characterRef.current.userData.canJump) {
 			isJumping = false;
 			if (walking.isRunning()) {
-			  walking.crossFadeTo(idle, 1);
-			  walking.enabled = true;
-			  walking.setEffectiveTimeScale(1);
-			  walking.setEffectiveWeight(0);
-			  running.setEffectiveTimeScale(1);
-			  running.setEffectiveWeight(0);
-			  idle.enabled = true;
-			  idle.setEffectiveTimeScale(1);
-			  idle.setEffectiveWeight(1);
-			  idle.play();
+			walking.crossFadeTo(idle, 1);
+			walking.enabled = true;
+			walking.setEffectiveTimeScale(1);
+			walking.setEffectiveWeight(0);
+			running.setEffectiveTimeScale(1);
+			running.setEffectiveWeight(0);
+			idle.enabled = true;
+			idle.setEffectiveTimeScale(1);
+			idle.setEffectiveWeight(1);
+			idle.play();
 			} else if (running.isRunning()) {
-			  running.crossFadeTo(idle, 1);
-			  running.enabled = true;
-			  running.setEffectiveTimeScale(1);
-			  running.setEffectiveWeight(0);
-			  walking.setEffectiveTimeScale(1);
-			  walking.setEffectiveWeight(0);
-			  idle.enabled = true;
-			  idle.setEffectiveTimeScale(1);
-			  idle.setEffectiveWeight(1);
-			  idle.play();
+			running.crossFadeTo(idle, 1);
+			running.enabled = true;
+			running.setEffectiveTimeScale(1);
+			running.setEffectiveWeight(0);
+			walking.setEffectiveTimeScale(1);
+			walking.setEffectiveWeight(0);
+			idle.enabled = true;
+			idle.setEffectiveTimeScale(1);
+			idle.setEffectiveWeight(1);
+			idle.play();
 			}
-		  }
 		}
-  
+		}
+
 		if (space) {
-		  if (characterRef.current.userData.canJump) {
+		if (characterRef.current.userData.canJump) {
 			isJumping = true;
 			countHangtime = 0;
 			jump.setEffectiveTimeScale(1);
@@ -898,10 +1009,16 @@ useEffect(() => {
 			jump.reset();
 			jump.clampWhenFinished = true;
 			jump.play();
-		  }
+		}
 		}
 		}
 	});
+
+	// Add this function at the top of your component or in a utility file
+	function debugVector3(name, vector) {
+		console.log(`${name}: x: ${vector.x.toFixed(2)}, y: ${vector.y.toFixed(2)}, z: ${vector.z.toFixed(2)}`);
+	}
+  
 
 	function applySimpleIK(spineBone, boneChain, targetPosition, iterations = 10, elbowWeight = 0.8, wristWeight = 0.2, shoulderWeight = 0.2) {
 		const endEffector = boneChain[boneChain.length - 1];
@@ -943,524 +1060,321 @@ useEffect(() => {
 		}
 	}
 
-	// useFrame((state, delta) => {
-	// 	if (isPresenting) {
-	// 		camera.layers.disableAll();
-	// 		camera.layers.enable(0); // Enable the default layer
-	// 		camera.layers.disable(HEAD_LAYER); // Disable the head layer
-	// 		// console.log('Presenting', playerControllerRef.current.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Head));
-	// 	} else {
-	// 		camera.layers.enableAll(); // Enable all layers when not in presenting mode
-	// 	}
-		
-	// 	if (isPresenting && playerControllerRef.current && (rightController || leftController)) {
-	// 	const vrm = playerControllerRef.current;
-	// 	const avatarRootGroup = vrm.scene;
-	
-	// 	// Align the avatar's position relative to the camera
-	// 	const cameraPosition = new Vector3();
-	// 	camera.getWorldPosition(cameraPosition);
-	// 	avatarRootGroup.parent.parent.position.set(
-	// 		cameraPosition.x,
-	// 		cameraPosition.y - (props.avatarHeightOffset.current - 0.6),
-	// 		cameraPosition.z
-	// 	);
-	
-	// 	// Set the avatar's body rotation to match the camera's Y rotation
-	// 	const cameraRotation = new Quaternion();
-	// 	camera.getWorldQuaternion(cameraRotation);
-	// 	const yRotation = new Euler().setFromQuaternion(cameraRotation, 'YXZ').y;
-	// 	avatarRootGroup.parent.parent.rotation.y = yRotation;
-	
-	// 	const applyArmIK = (controllerVisible, controller, shoulderBone, upperArmBone, lowerArmBone, handBone, isRightArm) => {
-	// 		if (controllerVisible) {
-	// 		const handTarget = new Vector3();
-	// 		const handRotation = new Quaternion();
-	// 		controller.controller.getWorldPosition(handTarget);
-	// 		controller.controller.getWorldQuaternion(handRotation);
-		
-	// 		const avatarWorldMatrix = new Matrix4();
-	// 		avatarRootGroup.matrixWorld.copy(avatarWorldMatrix);
-	// 		avatarWorldMatrix.invert();
-	// 		handTarget.applyMatrix4(avatarWorldMatrix);
-		
-	// 		const handDistance = handTarget.distanceTo(cameraPosition);
-		
-	// 		const offsetScale = 0.1;
-	// 		const handOffset = new Vector3(controllerVisible === rightController ? -offsetScale * handDistance : offsetScale * handDistance, 0, 0);
-		
-	// 		handTarget.add(handOffset);
-		
-	// 		const armChain = [shoulderBone, upperArmBone, lowerArmBone];
-	// 		const spineBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Spine);
-		
-	// 		applySimpleIK(spineBone, armChain, handTarget, 10);
-		
-	// 		const spineWorldPosition = new Vector3();
-	// 		spineBone.getWorldPosition(spineWorldPosition);
-	// 		const distanceToBody = handTarget.distanceTo(spineWorldPosition);
-	// 		const elbowBendThreshold = 0.45;
-		
-	// 		if (distanceToBody < elbowBendThreshold) {
-	// 			const minRotationX = 0; // Block rotation around X-axis
-	// 			const maxRotationX = 0; // Block rotation around X-axis
-	// 			const minRotationY = 0; // Block rotation around Y-axis
-	// 			const maxRotationY = 0; // Block rotation around Y-axis
-	// 			const minRotationZ = isRightArm ? 0 : -Math.PI / 2; // Allow rotation around Z-axis based on arm
-	// 			const maxRotationZ = isRightArm ? Math.PI / 2 : 0; // Limit the maximum rotation around Z-axis based on arm
-		
-	// 			const lowerArmWorldQuaternion = new Quaternion();
-	// 			lowerArmBone.getWorldQuaternion(lowerArmWorldQuaternion);
-		
-	// 			const elbowBendAngle = MathUtils.clamp(Math.PI / 8 * (1 - distanceToBody / elbowBendThreshold), minRotationZ, maxRotationZ);
-	// 			const elbowBendAxis = new Vector3(0, 0, 1);
-	// 			const elbowBendQuaternion = new Quaternion().setFromAxisAngle(elbowBendAxis, elbowBendAngle);
-		
-	// 			const targetRotation = lowerArmWorldQuaternion.multiply(elbowBendQuaternion);
-		
-	// 			const lowerArmLocalRotation = new Euler().setFromQuaternion(targetRotation.multiply(lowerArmBone.parent.quaternion.clone().invert()), 'YXZ');
-	// 			lowerArmLocalRotation.x = MathUtils.clamp(lowerArmLocalRotation.x, minRotationX, maxRotationX);
-	// 			lowerArmLocalRotation.y = MathUtils.clamp(lowerArmLocalRotation.y, minRotationY, maxRotationY);
-	// 			lowerArmLocalRotation.z = MathUtils.clamp(lowerArmLocalRotation.z, minRotationZ, maxRotationZ);
-		
-	// 			lowerArmBone.quaternion.setFromEuler(lowerArmLocalRotation);
-	// 		} else {
-	// 			lowerArmBone.quaternion.slerp(new Quaternion(), 0.1); // Smoothly reset the rotation
-	// 		}
-	// 			handBone.quaternion.copy(handRotation);
-	// 		}
-	// 	};
-						
-	// 		// Get the avatar's arm bones
-	// 		const rightShoulderBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightShoulder);
-	// 		const rightUpperArmBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm);
-	// 		const rightLowerArmBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightLowerArm);
-	// 		const rightHandBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightHand);
-	// 		const leftShoulderBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftShoulder);
-	// 		const leftUpperArmBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm);
-	// 		const leftLowerArmBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftLowerArm);
-	// 		const leftHandBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftHand);
-	// 		// Apply IK to the right arm
-	// 		applyArmIK(rightController, rightController, rightShoulderBone, rightUpperArmBone, rightLowerArmBone, rightHandBone, true);
-
-	// 		// Apply IK to the left arm
-	// 		applyArmIK(leftController, leftController, leftShoulderBone, leftUpperArmBone, leftLowerArmBone, leftHandBone, false);
-	
-	// 		// Get the world rotation of the right and left controllers
-	// 		const rightWristRotation = new Quaternion();
-	// 		const leftWristRotation = new Quaternion();
-	// 		if (rightController) {
-	// 			rightController.controller.getWorldQuaternion(rightWristRotation);
-	// 		}
-	// 		if (leftController) {
-	// 			leftController.controller.getWorldQuaternion(leftWristRotation);
-	// 		}
-
-	// 		// add a threshold to influence the y rotation of the lower arm
-	// 		const yRotationThresholdLeft = 0.001;
-	// 		const yRotationThresholdRight = 0.001;
-
-	// 		// determine the current rotation of the hand bone
-	// 		const rightHandBoneWorldQuaternion = new Quaternion();
-	// 		const leftHandBoneWorldQuaternion = new Quaternion();
-	// 		rightHandBone.getWorldQuaternion(rightHandBoneWorldQuaternion);
-	// 		leftHandBone.getWorldQuaternion(leftHandBoneWorldQuaternion);
-
-	// 		// apply the influence of the y rotation to the lower arm bone based on the hands and limit the rotation to only a 10 degree angle
-	// 		const rightHandBoneLocalRotation = new Euler().setFromQuaternion(rightHandBoneWorldQuaternion.multiply(rightLowerArmBone.parent.quaternion.clone().invert()), 'YXZ');
-	// 		const leftHandBoneLocalRotation = new Euler().setFromQuaternion(leftHandBoneWorldQuaternion.multiply(leftLowerArmBone.parent.quaternion.clone().invert()), 'YXZ');
-	// 		rightHandBoneLocalRotation.y = MathUtils.clamp(rightHandBoneLocalRotation.y, -yRotationThresholdRight, yRotationThresholdRight);
-	// 		leftHandBoneLocalRotation.y = MathUtils.clamp(leftHandBoneLocalRotation.y, -yRotationThresholdLeft, yRotationThresholdLeft);
-
-	// 		// dont allow a rotation greater than 10 degrees
-	// 		rightHandBoneLocalRotation.z = MathUtils.clamp(rightHandBoneLocalRotation.z, -0.0005, 0.0005);
-	// 		leftHandBoneLocalRotation.z = MathUtils.clamp(leftHandBoneLocalRotation.z, -0.0005, 0.0005);
-
-	// 		// set the rotation of the lower arm bone based on the hand rotation
-	// 		rightLowerArmBone.quaternion.setFromEuler(rightHandBoneLocalRotation);
-	// 		leftLowerArmBone.quaternion.setFromEuler(leftHandBoneLocalRotation);
-
-	// 		// Configurable rotation offsets for each axis (in degrees)
-	// 		const rightHandRotationOffsetX = 0;
-	// 		const rightHandRotationOffsetY = 0;
-	// 		const rightHandRotationOffsetZ = -90;
-
-	// 		const leftHandRotationOffsetX = 0;
-	// 		const leftHandRotationOffsetY = 0;
-	// 		const leftHandRotationOffsetZ = 90;
-
-	// 		// Configurable rotation axes for each hand
-	// 		const rightHandRotationAxisX = new Vector3(1, 0, 0); // X-axis
-	// 		const rightHandRotationAxisY = new Vector3(0, 1, 0); // Y-axis
-	// 		const rightHandRotationAxisZ = new Vector3(0, 0, 1); // Z-axis
-
-	// 		const leftHandRotationAxisX = new Vector3(1, 0, 0); // X-axis
-	// 		const leftHandRotationAxisY = new Vector3(0, 1, 0); // Y-axis
-	// 		const leftHandRotationAxisZ = new Vector3(0, 0, 1); // Z-axis
-
-	// 		// Convert degrees to radians
-	// 		const rightHandRotationOffsetXRad = rightHandRotationOffsetX * (Math.PI / 180);
-	// 		const rightHandRotationOffsetYRad = rightHandRotationOffsetY * (Math.PI / 180);
-	// 		const rightHandRotationOffsetZRad = rightHandRotationOffsetZ * (Math.PI / 180);
-
-	// 		const leftHandRotationOffsetXRad = leftHandRotationOffsetX * (Math.PI / 180);
-	// 		const leftHandRotationOffsetYRad = leftHandRotationOffsetY * (Math.PI / 180);
-	// 		const leftHandRotationOffsetZRad = leftHandRotationOffsetZ * (Math.PI / 180);
-
-	// 		// Adjust the rotation offset for the right hand
-	// 		const rightHandRotationOffset = new Quaternion()
-	// 		.setFromAxisAngle(rightHandRotationAxisX, rightHandRotationOffsetXRad) // Rotate around the X-axis
-	// 		.multiply(new Quaternion().setFromAxisAngle(rightHandRotationAxisY, rightHandRotationOffsetYRad)) // Rotate around the Y-axis
-	// 		.multiply(new Quaternion().setFromAxisAngle(rightHandRotationAxisZ, rightHandRotationOffsetZRad)); // Rotate around the Z-axis
-
-	// 		// Adjust the rotation offset for the left hand
-	// 		const leftHandRotationOffset = new Quaternion()
-	// 		.setFromAxisAngle(leftHandRotationAxisX, leftHandRotationOffsetXRad) // Rotate around the X-axis
-	// 		.multiply(new Quaternion().setFromAxisAngle(leftHandRotationAxisY, leftHandRotationOffsetYRad)) // Rotate around the Y-axis
-	// 		.multiply(new Quaternion().setFromAxisAngle(leftHandRotationAxisZ, leftHandRotationOffsetZRad)); // Rotate around the Z-axis
-
-	// 		// Get the user's WebXR camera rotation
-	// 		const cameraRot = new Quaternion();
-	// 		camera.getWorldQuaternion(cameraRot);
-
-	// 		// Extract the camera's Y rotation (heading)
-	// 		const cameraHeading = new Euler().setFromQuaternion(cameraRot, 'YXZ').y;
-
-	// 		// Calculate the adjustment factor based on the camera's heading
-	// 		const adjustmentFactor = Math.abs(Math.sin(cameraHeading));
-
-	// 		// Clamp the adjustment factor to a desired range (e.g., 0.5 to 1.0)
-	// 		const clampedAdjustmentFactor = MathUtils.clamp(adjustmentFactor, 0.5, 1.0);
-
-	// 		if (rightController) {
-	// 		const rightHandLocalQuaternion = rightHandBone.quaternion.clone();
-	// 		const adjustedRightHandLocalQuaternion = rightHandLocalQuaternion.slerp(
-	// 			rightHandLocalQuaternion.multiply(rightHandRotationOffset),
-	// 			clampedAdjustmentFactor
-	// 		);
-	// 		rightHandBone.quaternion.copy(adjustedRightHandLocalQuaternion);
-	// 		}
-	// 		if (leftController) {
-	// 		const leftHandLocalQuaternion = leftHandBone.quaternion.clone();
-	// 		const adjustedLeftHandLocalQuaternion = leftHandLocalQuaternion.slerp(
-	// 			leftHandLocalQuaternion.multiply(leftHandRotationOffset),
-	// 			clampedAdjustmentFactor
-	// 		);
-	// 		leftHandBone.quaternion.copy(adjustedLeftHandLocalQuaternion);
-	// 		}
-	// 	}
-	// });
- 
-	useFrame((state, delta) => {
-		if (isPresenting) {
-			camera.layers.disableAll();
-			camera.layers.enable(0); // Enable the default layer
-			camera.layers.disable(HEAD_LAYER); // Disable the head layer
-		} else {
-			camera.layers.enableAll(); // Enable all layers when not in presenting mode
+	let frameCounter = 0;
+	const logFrequency = 60; // Log every 60 frames, adjust this value as needed
+	function conditionalLog(message, ...optionalParams) {
+		frameCounter++;
+		if (frameCounter % logFrequency === 0) {
+		console.log(message, ...optionalParams);
 		}
-		
-		if (isPresenting && playerControllerRef.current && (rightController || leftController)) {
+	}
+	const HAND_VERTICAL_OFFSET = -1.0;
+	const ARM_FORWARD = new Vector3(1, 0, 0);
+	const UP = new Vector3(0, 1, 0);
+
+	const armRef = useRef(null);
+	const rigRef = useRef(null);
+// Add these as component-level variables
+const debugArrows = {
+	leftForward: null,
+	leftUp: null,
+	rightForward: null,
+	rightUp: null
+  };
+	useEffect(() => {
+		if (isModelLoaded && playerControllerRef.current && debugArrows) {
 			const vrm = playerControllerRef.current;
-			const avatarRootGroup = vrm.scene;
-		
-			// Align the avatar's position relative to the camera
-			const cameraPosition = new Vector3();
-			camera.getWorldPosition(cameraPosition);
-			avatarRootGroup.parent.parent.position.set(
+			armRef.current = new Armature();
+			armRef.current.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Hips).name, -1);
+			armRef.current.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Spine).name, 0);
+			armRef.current.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Chest).name, 1);
+			armRef.current.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.UpperChest).name, 2);
+			armRef.current.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Neck).name, 3);
+			armRef.current.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Head).name, 4);
+			armRef.current.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftShoulder).name, 3);
+			armRef.current.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm).name, 6);
+			armRef.current.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftLowerArm).name, 7);
+			armRef.current.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftHand).name, 8);
+			armRef.current.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightShoulder).name, 3);
+			armRef.current.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm).name, 10);
+			armRef.current.addBone('forearm_r', 11);
+			armRef.current.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightHand).name, 12);
+			armRef.current.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperLeg).name, 0);
+			armRef.current.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftLowerLeg).name, 14);
+			armRef.current.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftFoot).name, 15);
+			armRef.current.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftToes).name, 16);
+			armRef.current.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightUpperLeg).name, 0);
+			armRef.current.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightLowerLeg).name, 18);
+			armRef.current.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightFoot).name, 19);
+			armRef.current.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightToes).name, 20);
+			rigRef.current = new BipedRig();
+			rigRef.current.autoRig(armRef.current);
+		}
+	  }, [isModelLoaded]);
+
+	  useFrame((state, delta) => {
+		if (isPresenting && playerControllerRef.current && (rightController || leftController) && armRef.current && rigRef.current) {
+		  const vrm = playerControllerRef.current;
+		  const avatarRootGroup = vrm.scene;
+		  const headPosition = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Head).getWorldPosition(new Vector3());
+		  
+		  // Align the avatar's position relative to the camera
+		  const cameraPosition = new Vector3();
+		  camera.getWorldPosition(cameraPosition);
+		  avatarRootGroup.parent.parent.position.set(
 			cameraPosition.x,
 			cameraPosition.y - (props.avatarHeightOffset.current - 0.6),
 			cameraPosition.z
-			);
-		
-			// Set the avatar's body rotation to match the camera's Y rotation
-			const cameraRotation = new Quaternion();
-			camera.getWorldQuaternion(cameraRotation);
-			const yRotation = new Euler().setFromQuaternion(cameraRotation, 'YXZ').y;
-			avatarRootGroup.parent.parent.rotation.y = yRotation;
-
-			// Create an Ossos armature using the VRM humanoid bones
-			const arm = new Armature();
-			arm.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Hips).name, -1);
-			arm.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Spine).name, 0);
-			arm.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Chest).name, 1);
-			arm.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.UpperChest).name, 2);
-			arm.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Neck).name, 3);
-			arm.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Head).name, 4);
-			arm.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftShoulder).name, 3);
-			arm.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm).name, 6);
-			arm.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftLowerArm).name, 7);
-			arm.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftHand).name, 8);
-			arm.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightShoulder).name, 3);
-			arm.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm).name, 10);
-			arm.addBone('forearm_r', 11);
-			arm.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightHand).name, 12);
-			arm.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperLeg).name, 0);
-			arm.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftLowerLeg).name, 14);
-			arm.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftFoot).name, 15);
-			arm.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftToes).name, 16);
-			arm.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightUpperLeg).name, 0);
-			arm.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightLowerLeg).name, 18);
-			arm.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightFoot).name, 19);
-			arm.addBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightToes).name, 20);
-
-			const pose = arm.newPose();
-
-			// Create a biped rig and auto-rig it
-			const rig = new BipedRig();
-			rig.autoRig(arm);
-			rig.bindPose(pose);
-			rig.useSolversForRetarget( arm );  // Use Default Solvers for known chains, Should Happen After Bind
-
-			// // Set up solvers for the hands
-			// if (rig.handL) {
-			// 	rig.handL.setSolver(new SwingTwistSolver().initData(pose, rig.handL));
-			// }
-		
-			// if (rig.handR) {
-			// 	rig.handR.setSolver(new SwingTwistSolver().initData(pose, rig.handR));
-			// }
-		
-			// Set up the right arm
-			const rightShoulderBone = arm.getBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightShoulder).name);
-			const rightShoulderPose = pose.bones[rightShoulderBone.idx];
-			const rightUpperArmBone = arm.getBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm).name);
-			const rightUpperArmPose = pose.bones[rightUpperArmBone.idx];
-			const rightLowerArmBone = arm.getBone('forearm_r');
-			const rightLowerArmPose = pose.bones[rightLowerArmBone.idx];
-			const rightHandBone = arm.getBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightHand).name);
-			const rightHandPose = pose.bones[rightHandBone.idx];
-
-			// Adjust the rest pose of the right arm
-			const rightArmRestRotation = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI);
-			const rightShoulderRestPoseQuat = new Quaternion(
-			rightShoulderPose.local.rot[0],
-			rightShoulderPose.local.rot[1],
-			rightShoulderPose.local.rot[2],
-			rightShoulderPose.local.rot[3]
-			);
-			// rightShoulderRestPoseQuat.multiply(rightArmRestRotation);
-
-			// Ensure local.rot is a valid Float32Array
-			if (!(rightShoulderPose.local.rot instanceof Float32Array) || rightShoulderPose.local.rot.length !== 4) {
-			rightShoulderPose.local.rot = new Float32Array(4);
+		  );
+		  
+		  // Set the avatar's body rotation to match the camera's Y rotation
+		  const cameraRotation = new Quaternion();
+		  camera.getWorldQuaternion(cameraRotation);
+		  const yRotation = new Euler().setFromQuaternion(cameraRotation, 'YXZ').y;
+		  avatarRootGroup.rotation.y = yRotation;
+	  
+		  // Implement snapping logic based on the user's facing direction
+		  const snapThreshold = Math.PI / 4;
+		  const snapIncrement = Math.PI / 2;
+		  const avatarRotation = avatarRootGroup.rotation.y;
+		  const snappedRotation = Math.round(avatarRotation / snapIncrement) * snapIncrement;
+		  if (Math.abs(avatarRotation - snappedRotation) > snapThreshold) {
+			avatarRootGroup.rotation.y = snappedRotation;
+		  }
+	  
+		  const headRotation = new Quaternion();
+		  camera.getWorldQuaternion(headRotation);
+		  vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Head).quaternion.copy(headRotation);
+	  
+		  const pose = armRef.current.newPose();
+		  rigRef.current.bindPose(pose);
+		  rigRef.current.useSolversForRetarget(armRef.current);
+	  
+		  // Get avatar's world matrix
+		  const avatarWorldMatrix = new Matrix4();
+		  const avatarPosition = new Vector3();
+		  const avatarQuaternion = new Quaternion();
+		  const avatarScale = new Vector3();
+	  
+		  avatarRootGroup.updateWorldMatrix(true, false);
+		  avatarRootGroup.matrixWorld.decompose(avatarPosition, avatarQuaternion, avatarScale);
+		  avatarWorldMatrix.compose(avatarPosition, avatarQuaternion, avatarScale);
+	  
+		  // Create inverse world matrix for local space transformations
+		  const avatarWorldMatrixInverse = avatarWorldMatrix.clone().invert();
+	  
+		  const MIN_HAND_VERTICAL_OFFSET = -8.5;
+		  const MAX_HAND_VERTICAL_OFFSET = 0.5;
+		  const NEUTRAL_OFFSET = -0.5;
+	  
+		  const HAND_HORIZONTAL_OFFSET = -0.5;
+		  const HAND_FORWARD_OFFSET = 0.5;
+	  
+		  const avatarWorldPosition = new Vector3();
+		  avatarRootGroup.getWorldPosition(avatarWorldPosition);
+		  const avatarWorldQuaternion = new Quaternion();
+		  avatarRootGroup.getWorldQuaternion(avatarWorldQuaternion);
+	  
+		  const eyePosition = new Vector3();
+		  camera.getWorldPosition(eyePosition);
+		  
+		  function calculateHandVerticalOffset(handY, eyeY) {
+			const relativeHeight = (handY - eyeY) / (eyeY * 2);
+			let t;
+			if (relativeHeight > 0) {
+			  t = Math.min(1, relativeHeight * 2);
+			  return NEUTRAL_OFFSET + t * (MAX_HAND_VERTICAL_OFFSET - NEUTRAL_OFFSET);
+			} else {
+			  t = Math.max(-1, relativeHeight * 0.5);
+			  return NEUTRAL_OFFSET + t * (NEUTRAL_OFFSET - MIN_HAND_VERTICAL_OFFSET);
 			}
-
-			rightShoulderPose.local.rot[0] = rightShoulderRestPoseQuat.x;
-			rightShoulderPose.local.rot[1] = rightShoulderRestPoseQuat.y;
-			rightShoulderPose.local.rot[2] = rightShoulderRestPoseQuat.z;
-			rightShoulderPose.local.rot[3] = rightShoulderRestPoseQuat.w;
-
-			// Set up the left arm
-			const leftShoulderBone = arm.getBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftShoulder).name);
-			const leftShoulderPose = pose.bones[leftShoulderBone.idx];
-			const leftUpperArmBone = arm.getBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm).name);
-			const leftUpperArmPose = pose.bones[leftUpperArmBone.idx];
-			const leftLowerArmBone = arm.getBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftLowerArm).name);
-			const leftLowerArmPose = pose.bones[leftLowerArmBone.idx];
-			const leftHandBone = arm.getBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftHand).name);
-			const leftHandPose = pose.bones[leftHandBone.idx];
-
-			// Adjust the rest pose of the left arm
-			const leftArmRestRotation = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI);
-			const leftShoulderRestPoseQuat = new Quaternion(
-			leftShoulderPose.local.rot[0],
-			leftShoulderPose.local.rot[1],
-			leftShoulderPose.local.rot[2],
-			leftShoulderPose.local.rot[3]
+		  }
+		  
+		  function processHand(controller, isLeft) {
+			const handTarget = new Vector3();
+			controller.getWorldPosition(handTarget);
+			
+			const HAND_VERTICAL_OFFSET = calculateHandVerticalOffset(handTarget.y, eyePosition.y);
+			
+			const relativeHandPosition = new Vector3().subVectors(handTarget, avatarWorldPosition);
+			const localHandTarget = relativeHandPosition.applyQuaternion(avatarWorldQuaternion.clone().invert());
+			
+			const adjustedTarget = new Vector3(
+			  -localHandTarget.x + (isLeft ? -HAND_HORIZONTAL_OFFSET : HAND_HORIZONTAL_OFFSET),
+			  -(localHandTarget.y + HAND_VERTICAL_OFFSET),
+			  -localHandTarget.z + HAND_FORWARD_OFFSET
 			);
-			// leftShoulderRestPoseQuat.multiply(leftArmRestRotation);
-
-			// Ensure local.rot is a valid Float32Array
-			if (!(leftShoulderPose.local.rot instanceof Float32Array) || leftShoulderPose.local.rot.length !== 4) {
-			leftShoulderPose.local.rot = new Float32Array(4);
+		  
+			const handPrefix = isLeft ? 'left' : 'right';
+			const rotationOffsetX = window.handRotationControls[`${handPrefix}HandRotationOffsetX`] || 0;
+			const rotationOffsetY = window.handRotationControls[`${handPrefix}HandRotationOffsetY`] || 0;
+			const rotationOffsetZ = window.handRotationControls[`${handPrefix}HandRotationOffsetZ`] || (isLeft ? 90 : -90);
+			
+			// Apply flipX by default only for the right hand
+			const flipX = isLeft ? (window.handRotationControls[`flipLeftHandX`] || false) : true;
+			const flipY = isLeft ? (window.handRotationControls[`flipLeftHandY`] || false) : true;
+			
+			const flipZ = window.handRotationControls[`flip${handPrefix.charAt(0).toUpperCase() + handPrefix.slice(1)}HandZ`] || false;
+		  
+			const armPoleX = window.handRotationControls[`${handPrefix}ArmPoleX`] || 0;
+			const armPoleY = window.handRotationControls[`${handPrefix}ArmPoleY`] || 0;
+			const armPoleZ = window.handRotationControls[`${handPrefix}ArmPoleZ`] || 0;
+		  
+			if (isLeft && rigRef.current.armL.solver) {
+			  rigRef.current.armL.solver.setTargetPos([adjustedTarget.x, adjustedTarget.y, adjustedTarget.z]);
+			} else if (rigRef.current.armR.solver) {
+			  rigRef.current.armR.solver.setTargetPos([adjustedTarget.x, adjustedTarget.y, adjustedTarget.z]);
 			}
-
-			leftShoulderPose.local.rot[0] = leftShoulderRestPoseQuat.x;
-			leftShoulderPose.local.rot[1] = leftShoulderRestPoseQuat.y;
-			leftShoulderPose.local.rot[2] = leftShoulderRestPoseQuat.z;
-			leftShoulderPose.local.rot[3] = leftShoulderRestPoseQuat.w;
-
-			// // Set the target pole for the arms
-			// rig.armR.solver.setTargetPole(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm).getWorldDirection(new Vector3()));
-			// rig.armL.solver.setTargetPole(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm).getWorldDirection(new Vector3()));
-
-			  
-
-			// Set up the leg chains and solvers
-			const FWD = [0, 0, 1];
-			const UP = [0, 1, 0];
-			const DN = [0, -1, 0];
-
-
-		if (rightController) {
-			const rightHandTarget = new Vector3();
-			rightController.controller.getWorldPosition(rightHandTarget);
-			rightHandTarget.sub(avatarRootGroup.parent.parent.getWorldPosition(new Vector3()));
-			const rightPole = new Vector3().subVectors(rightHandTarget, 
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightShoulder).getWorldPosition(new Vector3()));
-			// const rightPoleNormalized = rightPole.normalize();
-			// rig.armR.solver.setTargetPole([rightPoleNormalized.x, rightPoleNormalized.y, rightPoleNormalized.z]);
-			rig.armR.solver.setTargetPos([rightHandTarget.x, rightHandTarget.y, rightHandTarget.z]);
-				
-		// Set up the right hand pose
-		const rightHandBone = arm.getBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightHand).name);
-		const rightHandPose = pose.bones[rightHandBone.idx];
-
-		// Adjust the rest pose of the right hand
-		const rightHandRestRotation = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2);
-		const rightHandRestPoseQuat = new Quaternion(
-		rightHandPose.local.rot[0],
-		rightHandPose.local.rot[1],
-		rightHandPose.local.rot[2],
-		rightHandPose.local.rot[3]
-		);
-		rightHandRestPoseQuat.multiply(rightHandRestRotation);
-		rightHandPose.local.rot.set(
-		rightHandRestPoseQuat.x,
-		rightHandRestPoseQuat.y,
-		rightHandRestPoseQuat.z,
-		rightHandRestPoseQuat.w
-		);
-	  }
-	  if (leftController) {  
-		const leftHandTarget = new Vector3();
-		leftController.controller.getWorldPosition(leftHandTarget);
-		leftHandTarget.sub(avatarRootGroup.parent.parent.getWorldPosition(new Vector3()));
-		console.log("leftHandTarget", leftHandTarget);
-		const leftPole = new Vector3().subVectors(leftHandTarget,
-		vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftShoulder).getWorldPosition(new Vector3()));
-		// const leftPoleNormalized = leftPole.normalize();
-		// rig.armL.solver.setTargetPole([leftPole.x, leftPole.y, leftPole.z]);
-		rig.armL.solver.setTargetPos([leftHandTarget.x, leftHandTarget.y, leftHandTarget.z]);
-		
-		// Set up the left hand pose
-		const leftHandBone = arm.getBone(vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftHand).name);
-		const leftHandPose = pose.bones[leftHandBone.idx];
-
-		// Adjust the rest pose of the left hand
-		const leftHandRestRotation = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2);
-		const leftHandRestPoseQuat = new Quaternion(
-		leftHandPose.local.rot[0],
-		leftHandPose.local.rot[1],
-		leftHandPose.local.rot[2],
-		leftHandPose.local.rot[3]
-		);
-		leftHandRestPoseQuat.multiply(leftHandRestRotation);
-		leftHandPose.local.rot.set(
-		leftHandRestPoseQuat.x,
-		leftHandRestPoseQuat.y,
-		leftHandRestPoseQuat.z,
-		leftHandRestPoseQuat.w
-		);
-	  }
-
-	      // Solve the IK and update the pose
-		  pose.updateWorld();
-		  rig.resolveToPose(pose, debug);
+		  
+			const controllerQuaternion = new Quaternion();
+			controller.getWorldQuaternion(controllerQuaternion);
+		  
+			const localControllerQuaternion = controllerQuaternion.premultiply(avatarWorldQuaternion.clone().invert());
+		  
+			// Convert degrees to radians
+			const rotationOffsetXRad = rotationOffsetX * (Math.PI / 180);
+			const rotationOffsetYRad = rotationOffsetY * (Math.PI / 180);
+			const rotationOffsetZRad = rotationOffsetZ * (Math.PI / 180);
+		  
+			// Create a single quaternion for all rotations
+			const combinedRotation = new Quaternion()
+			  .setFromEuler(new Euler(
+				isLeft ? -rotationOffsetXRad : rotationOffsetXRad,
+				isLeft ? -rotationOffsetYRad : rotationOffsetYRad,
+				isLeft ? -rotationOffsetZRad : rotationOffsetZRad,
+				'XYZ'
+			  ));
+		  
+			// Apply flips
+			if (flipX) combinedRotation.multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI));
+			if (flipY) combinedRotation.multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI));
+			if (flipZ) combinedRotation.multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI));
+		  
+			let neutralToVrmHand;
+			if (isLeft) {
+			  neutralToVrmHand = new Quaternion().setFromEuler(new Euler(-Math.PI / 4, -Math.PI / 2, -Math.PI / 2));
+			} else {
+			  neutralToVrmHand = new Quaternion().setFromEuler(new Euler(-Math.PI / 4, Math.PI / 2, Math.PI / 2));
+			}
+		  
+			// Combine rotations: neutralToVrmHand * controllerRotation * UIRotations
+			const finalRotation = new Quaternion()
+			  .multiplyQuaternions(neutralToVrmHand, localControllerQuaternion)
+			  .multiply(combinedRotation);
+		  
+			if (isLeft && rigRef.current.handL.solver) {
+			  rigRef.current.handL.solver.setTargetPole([1/finalRotation.x, 1/finalRotation.y, 0]);
+			  rigRef.current.armL.solver.setTargetPole([1/finalRotation.x, 1/finalRotation.y, armPoleZ]);
+			} else if (rigRef.current.handR.solver) {
+			  rigRef.current.handR.solver.setTargetPole([-1/finalRotation.x, -1/finalRotation.y, 0]);
+			  rigRef.current.armR.solver.setTargetPole([-1/finalRotation.x, -1/finalRotation.y, armPoleZ]);
+			}
+		  
+			const handBone = isLeft 
+			  ? vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftHand)
+			  : vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightHand);
+		  
+			if (handBone) {
+			  handBone.quaternion.copy(finalRotation);
+			  handBone.updateMatrix();
+			}
+		  }		  
+					
+					
+		if (leftController) {
+			processHand(leftController.controller, true);
+		}
+	  
+		  if (rightController) {
+			processHand(rightController.controller, false);
+		  }
+	  
+		  rigRef.current.resolveToPose(pose);
 		  pose.updateWorld();
 	  
-		  // new quaternion from the rot[0], rot[1], rot[2], rot[3] values
-		  const hipsQuaternion = new Quaternion(pose.bones[0].world.rot[0], pose.bones[0].world.rot[1], pose.bones[0].world.rot[2], pose.bones[0].world.rot[3]);
-		  const spineQuaternion = new Quaternion(pose.bones[1].world.rot[0], pose.bones[1].world.rot[1], pose.bones[1].world.rot[2], pose.bones[1].world.rot[3]);
-		  const chestQuaternion = new Quaternion(pose.bones[2].world.rot[0], pose.bones[2].world.rot[1], pose.bones[2].world.rot[2], pose.bones[2].world.rot[3]);
-		  const upperChestQuaternion = new Quaternion(pose.bones[3].world.rot[0], pose.bones[3].world.rot[1], pose.bones[3].world.rot[2], pose.bones[3].world.rot[3]);
-		  const neckQuaternion = new Quaternion(pose.bones[4].world.rot[0], pose.bones[4].world.rot[1], pose.bones[4].world.rot[2], pose.bones[4].world.rot[3]);
-		  const headQuaternion = new Quaternion(pose.bones[5].world.rot[0], pose.bones[5].world.rot[1], pose.bones[5].world.rot[2], pose.bones[5].world.rot[3]);
-		  const leftShoulderQuaternion = new Quaternion(pose.bones[6].world.rot[0], pose.bones[6].world.rot[1], pose.bones[6].world.rot[2], pose.bones[6].world.rot[3]);
-		  const leftUpperArmQuaternion = new Quaternion(pose.bones[7].world.rot[0], pose.bones[7].world.rot[1], pose.bones[7].world.rot[2], pose.bones[7].world.rot[3]);
-		  const leftLowerArmQuaternion = new Quaternion(pose.bones[8].world.rot[0], pose.bones[8].world.rot[1], pose.bones[8].world.rot[2], pose.bones[8].world.rot[3]);
-		  const leftHandQuaternion = new Quaternion(pose.bones[9].world.rot[0], pose.bones[9].world.rot[1], pose.bones[9].world.rot[2], pose.bones[9].world.rot[3]);
-		  const rightShoulderQuaternion = new Quaternion(pose.bones[10].world.rot[0], pose.bones[10].world.rot[1], pose.bones[10].world.rot[2], pose.bones[10].world.rot[3]);
-		  const rightUpperArmQuaternion = new Quaternion(pose.bones[11].world.rot[0], pose.bones[11].world.rot[1], pose.bones[11].world.rot[2], pose.bones[11].world.rot[3]);
-		  const rightLowerArmQuaternion = new Quaternion(pose.bones[12].world.rot[0], pose.bones[12].world.rot[1], pose.bones[12].world.rot[2], pose.bones[12].world.rot[3]);
-		  const rightHandQuaternion = new Quaternion(pose.bones[13].world.rot[0], pose.bones[13].world.rot[1], pose.bones[13].world.rot[2], pose.bones[13].world.rot[3]);
-		  const leftUpperLegQuaternion = new Quaternion(pose.bones[14].world.rot[0], pose.bones[14].world.rot[1], pose.bones[14].world.rot[2], pose.bones[14].world.rot[3]);
-		  const leftLowerLegQuaternion = new Quaternion(pose.bones[15].world.rot[0], pose.bones[15].world.rot[1], pose.bones[15].world.rot[2], pose.bones[15].world.rot[3]);
-		  const leftFootQuaternion = new Quaternion(pose.bones[16].world.rot[0], pose.bones[16].world.rot[1], pose.bones[16].world.rot[2], pose.bones[16].world.rot[3]);
-		  const leftToesQuaternion = new Quaternion(pose.bones[17].world.rot[0], pose.bones[17].world.rot[1], pose.bones[17].world.rot[2], pose.bones[17].world.rot[3]);
-		  const rightUpperLegQuaternion = new Quaternion(pose.bones[18].world.rot[0], pose.bones[18].world.rot[1], pose.bones[18].world.rot[2], pose.bones[18].world.rot[3]);
-		  const rightLowerLegQuaternion = new Quaternion(pose.bones[19].world.rot[0], pose.bones[19].world.rot[1], pose.bones[19].world.rot[2], pose.bones[19].world.rot[3]);
-		  const rightFootQuaternion = new Quaternion(pose.bones[20].world.rot[0], pose.bones[20].world.rot[1], pose.bones[20].world.rot[2], pose.bones[20].world.rot[3]);
-		  const rightToesQuaternion = new Quaternion(pose.bones[21].world.rot[0], pose.bones[21].world.rot[1], pose.bones[21].world.rot[2], pose.bones[21].world.rot[3]);
-
+		  // Apply pose to VRM bones
+		  const boneMap = {
+			[VRMHumanBoneName.Hips]: 0,
+			[VRMHumanBoneName.Spine]: 1,
+			[VRMHumanBoneName.Chest]: 2,
+			[VRMHumanBoneName.UpperChest]: 3,
+			[VRMHumanBoneName.Neck]: 4,
+			[VRMHumanBoneName.Head]: 5,
+			[VRMHumanBoneName.LeftShoulder]: 6,
+			[VRMHumanBoneName.LeftUpperArm]: 7,
+			[VRMHumanBoneName.LeftLowerArm]: 8,
+			[VRMHumanBoneName.LeftHand]: 9,
+			[VRMHumanBoneName.RightShoulder]: 10,
+			[VRMHumanBoneName.RightUpperArm]: 11,
+			[VRMHumanBoneName.RightLowerArm]: 12,
+			[VRMHumanBoneName.RightHand]: 13,
+		  };
+	  
+		  Object.entries(boneMap).forEach(([boneName, index]) => {
+			const bone = vrm.humanoid.getNormalizedBoneNode(boneName);
+			if (bone) {
+			  bone.quaternion.fromArray(pose.bones[index].world.rot);
+			}
+		  });
 		  
-			// Update the VRM bones with the solved pose
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Hips).rotation.setFromQuaternion(hipsQuaternion);
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Spine).rotation.setFromQuaternion(spineQuaternion);
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Chest).rotation.setFromQuaternion(chestQuaternion);
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.UpperChest).rotation.setFromQuaternion(upperChestQuaternion);
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Neck).rotation.setFromQuaternion(neckQuaternion);
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Head).rotation.setFromQuaternion(headQuaternion);
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftShoulder).rotation.setFromQuaternion(leftShoulderQuaternion);
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm).rotation.setFromQuaternion(leftUpperArmQuaternion);
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftLowerArm).rotation.setFromQuaternion(leftLowerArmQuaternion);
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftHand).rotation.setFromQuaternion(leftHandQuaternion);
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightShoulder).rotation.setFromQuaternion(rightShoulderQuaternion);
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm).rotation.setFromQuaternion(rightUpperArmQuaternion);
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightLowerArm).rotation.setFromQuaternion(rightLowerArmQuaternion);
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightHand).rotation.setFromQuaternion(rightHandQuaternion);
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperLeg).rotation.setFromQuaternion(leftUpperLegQuaternion);
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftLowerLeg).rotation.setFromQuaternion(leftLowerLegQuaternion);
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftFoot).rotation.setFromQuaternion(leftFootQuaternion);
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftToes).rotation.setFromQuaternion(leftToesQuaternion);
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightUpperLeg).rotation.setFromQuaternion(rightUpperLegQuaternion);
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightLowerLeg).rotation.setFromQuaternion(rightLowerLegQuaternion);
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightFoot).rotation.setFromQuaternion(rightFootQuaternion);
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightToes).rotation.setFromQuaternion(rightToesQuaternion);
-			
+		  if (isPresenting && playerControllerRef.current) {
+			camera.layers.disableAll();
+			camera.layers.enable(0);
+			camera.layers.disable(HEAD_LAYER);
+			const headBone = playerControllerRef.current.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Head);
+			headBone.scale.setScalar(0);
+			headBone.updateMatrixWorld(true);
+			playerControllerRef.current.scene.traverse((object) => {
+			  if (object.isMesh && object.skeleton) {
+				object.skeleton.update();
+			  }
+			});
+		  } else if(playerControllerRef.current) {
+			camera.layers.enableAll();
+			const headBone = playerControllerRef.current.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Head);
+			headBone.scale.setScalar(1);
+			headBone.updateMatrixWorld(true);
+			playerControllerRef.current.scene.traverse((object) => {
+			  if (object.isMesh && object.skeleton) {
+				object.skeleton.update();
+			  }
+			});
+		  }
+			// Ensure hand rotations are preserved
+			const leftHandBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftHand);
+			const rightHandBone = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightHand);
 
-			// Update the bone positions
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Hips).updateMatrixWorld();
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Spine).updateMatrixWorld();
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Chest).updateMatrixWorld();
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.UpperChest).updateMatrixWorld();
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Neck).updateMatrixWorld();
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Head).updateMatrixWorld();
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftShoulder).updateMatrixWorld();
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm).updateMatrixWorld();
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftLowerArm).updateMatrixWorld();
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftHand).updateMatrixWorld();
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightShoulder).updateMatrixWorld();
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm).updateMatrixWorld();
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightLowerArm).updateMatrixWorld();
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightHand).updateMatrixWorld();
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperLeg).updateMatrixWorld();
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftLowerLeg).updateMatrixWorld();
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftFoot).updateMatrixWorld();
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.LeftToes).updateMatrixWorld();
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightUpperLeg).updateMatrixWorld();
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightLowerLeg).updateMatrixWorld();
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightFoot).updateMatrixWorld();
-			vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.RightToes).updateMatrixWorld();	
-			vrm.scene.updateMatrixWorld(true);
-		
+			if (leftHandBone) leftHandBone.updateMatrix();
+			if (rightHandBone) rightHandBone.updateMatrix();
+
+
+		  vrm.scene.updateMatrixWorld(true);
 		}
-	});
-				 
-	const keyboardMap = [
-	  { name: "forward", keys: ["ArrowUp", "KeyW"] },
-	  { name: "backward", keys: ["ArrowDown", "KeyS"] },
-	  { name: "leftward", keys: ["ArrowLeft", "KeyA"] },
-	  { name: "rightward", keys: ["ArrowRight", "KeyD"] },
-	  { name: "jump", keys: ["Space"] },
-	  { name: "run", keys: ["Shift"] },
-	  // Optional animation key map
-	  { name: "action1", keys: ["1"] },
-	  { name: "action2", keys: ["2"] },
-	  { name: "action3", keys: ["3"] },
-	  { name: "action4", keys: ["KeyF"] },
+	  });
+
+	  const keyboardMap = [
+		{ name: "forward", keys: ["ArrowUp", "KeyW"] },
+		{ name: "backward", keys: ["ArrowDown", "KeyS"] },
+		{ name: "leftward", keys: ["ArrowLeft", "KeyA"] },
+		{ name: "rightward", keys: ["ArrowRight", "KeyD"] },
+		{ name: "jump", keys: ["Space"] },
+		{ name: "run", keys: ["Shift"] },
+		// Optional animation key map
+		{ name: "action1", keys: ["1"] },
+		{ name: "action2", keys: ["2"] },
+		{ name: "action3", keys: ["3"] },
+		{ name: "action4", keys: ["KeyF"] },
 	];
-  
+
 	const canvas = document.querySelector('div.threeov-main-canvas');
-  
+
 	return (
-	  <>
+	<>
 		<KeyboardControls
-		  map={keyboardMap}
-		  domElement={canvas}
+		map={keyboardMap}
+		domElement={canvas}
 		>
-		  <Ecctrl
+		<Ecctrl
 			ref={characterRef}
 			position={[Number(props.spawnPoint[0]), Number(props.spawnPoint[1]), Number(props.spawnPoint[2])]}
 			turnSpeed={20}
@@ -1483,19 +1397,19 @@ useEffect(() => {
 			canSleep={true}
 			ccd={true}
 			additionalSolverIterations={1}
-		  >
+			>
 			{isModelLoaded && playerControllerRef.current && (
-			  <>
+			<>
 				<primitive
-				  userData={{ camExcludeCollision: true }}
-				  visible={true}
-				  name="playerOne"
-				  object={playerControllerRef.current.scene}
-				  position={[0, -0.65, 0]}
-				  rotation={[0, 0, 0]}
+				userData={{ camExcludeCollision: true }}
+				visible={true}
+				name="playerOne"
+				object={playerControllerRef.current.scene}
+				position={[0, -0.65, 0]}
+				rotation={[0, 0, 0]}
 				/>
 				{avatarIsSprite && (
-				  <SpriteAnimator
+				<SpriteAnimator
 					name="playerOneSprite"
 					userData={{ camExcludeCollision: true }}
 					ref={spriteRef}
@@ -1511,12 +1425,12 @@ useEffect(() => {
 					alphaTest={0.1}
 					textureImageURL={userData.playerVRM}
 					textureDataURL={(threeObjectPluginRoot + '/inc/utils/sprite.json')}
-				  />
+				/>
 				)}
-			  </>
+			</>
 			)}
-		  </Ecctrl>
+		</Ecctrl>
 		</KeyboardControls>
-	  </>
+	</>
 	);
-  }
+}

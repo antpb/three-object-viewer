@@ -32,50 +32,50 @@ import {
  *
  * @returns {JSX.Element} - Returns a JSX element containing a Three.js primitive object (Audio/PositionalAudio).
  */
-export function ThreeAudio(threeAudio) {
-  const { camera } = useThree();
-  const [audio, setAudio] = useState(null);
-
-  useEffect(() => {
-    const listener = new AudioListener();
-    camera.add(listener);
-
-    // Create either a PositionalAudio object or a normal Audio object based on the positional attribute
-    const audio = threeAudio.positional === "1" ? new PositionalAudio(listener) : new Audio(listener);
-
-    if (threeAudio.audioUrl) {
-      const audioLoader = new AudioLoader();
-      audioLoader.load(threeAudio.audioUrl, (buffer) => {
-        audio.setBuffer(buffer);
-        audio.setLoop(threeAudio.loop === "1" ? true : false);
-        audio.setVolume(threeAudio.volume);
-        if (threeAudio.autoPlay === "1") audio.play();
-      });
-    }
-
-    if (threeAudio.positional === "1") {
-      audio.refDistance = threeAudio.refDistance;
-      audio.maxDistance = threeAudio.maxDistance;
-      audio.rolloffFactor = threeAudio.rolloffFactor;
-      audio.coneInnerAngle = threeAudio.coneInnerAngle;
-      audio.coneOuterAngle = threeAudio.coneOuterAngle;
-      audio.coneOuterGain = threeAudio.coneOuterGain;
-      audio.distanceModel = threeAudio.distanceModel;
-      audio.position.set(threeAudio.positionX, threeAudio.positionY, threeAudio.positionZ);
-	  audio.rotation.set(threeAudio.rotationX, threeAudio.rotationY, threeAudio.rotationZ);
-	}
-
-    setAudio(audio);
-
-    return () => {
-      audio.stop();
-      camera.remove(listener);
-    }
-  }, []);
-
-  return (
-    <>
-      {audio && <primitive object={audio} />}
-    </>
-  );
-}
+export function ThreeAudio({ threeAudio, onLoad }) {
+	const { camera } = useThree();
+	const [audio, setAudio] = useState(null);
+  
+	useEffect(() => {
+		console.log("ThreeAudio: Setting up audio", threeAudio);
+		const listener = new AudioListener();
+		camera.add(listener);
+	
+		const audio = threeAudio.positional === "1" ? new PositionalAudio(listener) : new Audio(listener);
+	
+		if (threeAudio.audioUrl) {
+		  console.log("ThreeAudio: Loading audio from URL", threeAudio.audioUrl);
+		  const audioLoader = new AudioLoader();
+		  audioLoader.load(threeAudio.audioUrl, (buffer) => {
+			console.log("ThreeAudio: Audio loaded", threeAudio.audioUrl);
+			audio.setBuffer(buffer);
+			audio.setLoop(threeAudio.loop === "1");
+			audio.setVolume(threeAudio.volume);
+			audio.userData = { ...threeAudio }; // Store all props in userData
+			onLoad(audio);
+			setAudio(audio);
+		  });
+		}
+  
+	  if (threeAudio.positional === "1") {
+		audio.refDistance = threeAudio.refDistance;
+		audio.maxDistance = threeAudio.maxDistance;
+		audio.rolloffFactor = threeAudio.rolloffFactor;
+		audio.coneInnerAngle = threeAudio.coneInnerAngle;
+		audio.coneOuterAngle = threeAudio.coneOuterAngle;
+		audio.coneOuterGain = threeAudio.coneOuterGain;
+		audio.distanceModel = threeAudio.distanceModel;
+		audio.position.set(threeAudio.positionX, threeAudio.positionY, threeAudio.positionZ);
+		audio.rotation.set(threeAudio.rotationX, threeAudio.rotationY, threeAudio.rotationZ);
+	  }
+  
+	  return () => {
+		if (audio) audio.stop();
+		camera.remove(listener);
+	  }
+	}, []);
+  
+	return audio ? <primitive object={audio} /> : null;
+  }
+  
+  
