@@ -7,7 +7,7 @@
         },
         "color": {
             "type": "string",
-            "default": "0xffffff"
+            "default": "#ffffff"
         },
         "intensity": {
             "type": "float",
@@ -54,7 +54,7 @@
             "default": 0.1
         }
     },
-    "category": "design",
+    "category": "spatial",
     "parent":  [ "three-object-viewer/environment" ],
     "apiVersion": 2,
     "supports": {

@@ -149,6 +149,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 								label={ __( "GLB File", 'three-object-viewer' ) }
 								allowedTypes={ALLOWED_MEDIA_TYPES}
 								value={attributes.threeObjectUrl}
+								threeov={true}
 								render={({ open }) => (
 									<button onClick={open}>
 										{attributes.threeObjectUrl
@@ -323,6 +324,9 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									onSelect={(imageObject) =>
 										onImageSelect(imageObject)
 									}
+									additionalProps={{
+										three_object_viewer_modal: true,
+									}}									
 									type="image"
 									allowedTypes={ALLOWED_MEDIA_TYPES}
 									value={attributes.threeObjectUrl}
@@ -383,6 +387,7 @@ export default function Edit({ attributes, setAttributes, isSelected, clientId }
 									}
 									type="image"
 									allowedTypes={ALLOWED_MEDIA_TYPES}
+									threeov={true}
 									value={attributes.threeObjectUrl}
 									render={({ open }) => (
 										<button

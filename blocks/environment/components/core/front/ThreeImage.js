@@ -13,6 +13,7 @@ export function ThreeImage(threeImage) {
 	const texture2 = useLoader(TextureLoader, threeImage.url);
 	return (
 		<mesh
+			userData={{ camExcludeCollision: true }}
 			visible
 			position={[
 				threeImage.positionX,

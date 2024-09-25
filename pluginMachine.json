@@ -21,7 +21,8 @@
             "three-light-block",
             "three-portal-block",
             "three-text-block",
-            "spawn-point-block"
+            "spawn-point-block",
+            "three-networking-block"
         ],
         "proBlocks": [
             "three-mirror-block"
@@ -44,6 +45,7 @@
         "blocks/three-portal-block/init.php",
         "blocks/spawn-point-block/init.php",
         "blocks/three-mirror-block/init.php",
+        "blocks/three-networking-block/init.php",
         "admin/three-object-viewer-settings/init.php",
         "pro/admin/three-object-viewer-pro-settings/init.php"
     ]

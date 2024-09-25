@@ -1,701 +1,1207 @@
-import { Mesh, Raycaster, DoubleSide, MeshBasicMaterial, RingGeometry, AudioListener, Group, Quaternion, Matrix4, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, Vector2, BufferGeometry, CircleGeometry, sRGBEncoding, MathUtils } from "three";
+import { Box3,
+	Mesh,
+	Raycaster,
+	PerspectiveCamera,
+	ArrowHelper,
+	Euler, MathUtils, NearestFilter, LoopOnce, DoubleSide, MeshBasicMaterial, RingGeometry, BoxGeometry, AudioListener, Color, Group, Quaternion, Matrix4, VectorKeyframeTrack, QuaternionKeyframeTrack, LoopPingPong, AnimationClip, NumberKeyframeTrack, AnimationMixer, Vector3, Vector2, BufferGeometry, CircleGeometry, sRGBEncoding } from "three";
 import { TextureLoader } from "three/src/loaders/TextureLoader";
 import { useFrame, useLoader, useThree, Interactive } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader';
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
-import { OrbitControls } from '@react-three/drei';
-import { useKeyboardControls } from "./Controls"
+import { OrbitControls, SpriteAnimator, KeyboardControls } from '@react-three/drei';
+import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 import { useRef, useState, useEffect } from "react";
+import { useXR, useController } from '@react-three/xr';
 import { RigidBody, CapsuleCollider, useRapier, vec3, interactionGroups, CuboidCollider } from "@react-three/rapier";
 import defaultVRM from "../../../inc/avatars/3ov_default_avatar.vrm";
-import { VRMUtils, VRMSchema, VRMLoaderPlugin, VRMExpressionPresetName, VRMHumanBoneName } from "@pixiv/three-vrm";
-import { useXR } from "@react-three/xr";
+import blankVRM from "../../../inc/avatars/blank_avatar.vrm";
+import { VRMUtils, VRMHumanBones, VRMSchema, VRMLoaderPlugin, VRMSpringBoneManager, VRMExpressionPresetName, VRMHumanBoneName, VRM } from "@pixiv/three-vrm";
+
 import idle from "../../../inc/avatars/friendly.fbx";
 import walk from "../../../inc/avatars/walking.fbx";
 import run from "../../../inc/avatars/running.fbx";
+import jump from "../../../inc/avatars/Jump.fbx";
+import fall from "../../../inc/avatars/falling.fbx";
+import { getMixamoRig } from "../utils/rigMap";
+import ShapePointsMesh from "../utils/ShapePointsMesh";
+import DynLineMesh from "../utils/DynLineMesh";
+import Ecctrl, { EcctrlAnimation, useGame, useFollowCam, useJoystickControls } from "ecctrl";
+// import avatar from ./avatar/index.js
+import { ExokitAvatar } from "./avatar";
 
-function Reticle() {
-	const { camera } = useThree();
-	var reticle = new Mesh(
-		new RingGeometry( 0.85 * 5, 5, 32),
-		new MeshBasicMaterial( {color: 0xffffff, side: DoubleSide })
-	);
-	reticle.scale.set(1.3, 1.3, 1.3);
-	reticle.position.z = -1000;
-	reticle.name = "reticle";
-	reticle.frustumCulled = false;
-	reticle.renderOrder = 1000;
-	reticle.lookAt(camera.position)
-	reticle.material.depthTest = false;
-	reticle.material.depthWrite = false;
-	reticle.material.opacity = 0.025;
+import { 
+	Armature,
+	Pose,
+	BipedRig,
+	IKChain,
+	HipSolver,
+	SpineSolver,
+	LimbSolver,
+	FootSolver,
+	SwingTwistSolver,
+	SwingTwistEndsSolver,
+	ZSolver
+} from 'ossos';
 
-	return reticle;
+const DamperTimeS = 0.15;
+
+const __rot = new Quaternion();
+const __shoulderWPos = new Vector3();
+const __originWPos = new Vector3();
+const __originWDir = new Vector3();
+const __offset = new Vector3();
+
+const mixamoVRMRigMap = getMixamoRig();
+
+function addHandRotationControls() {
+	const container = document.createElement('div');
+	container.style.position = 'fixed';
+	container.style.top = '10px';
+	container.style.right = '10px';
+	container.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+	container.style.padding = '10px';
+	container.style.borderRadius = '5px';
+	container.style.color = 'white';
+	container.style.fontFamily = 'Arial, sans-serif';
+	container.style.zIndex = '10000';
+	container.style.maxHeight = '80vh';
+	container.style.overflowY = 'auto';
+  
+	const createSlider = (name, min, max, step, defaultValue) => {
+	  const label = document.createElement('label');
+	  label.textContent = `${name}: `;
+	  label.style.display = 'block';
+	  label.style.marginBottom = '5px';
+  
+	  const slider = document.createElement('input');
+	  slider.type = 'range';
+	  slider.min = min;
+	  slider.max = max;
+	  slider.step = step;
+	  slider.value = defaultValue;
+	  slider.style.width = '100%';
+  
+	  const valueDisplay = document.createElement('span');
+	  valueDisplay.textContent = defaultValue;
+	  valueDisplay.style.marginLeft = '5px';
+  
+	  slider.addEventListener('input', () => {
+		valueDisplay.textContent = slider.value;
+		window.handRotationControls[name] = parseFloat(slider.value);
+	  });
+  
+	  label.appendChild(slider);
+	  label.appendChild(valueDisplay);
+	  return label;
+	};
+  
+	const createCheckbox = (name) => {
+	  const label = document.createElement('label');
+	  label.style.display = 'block';
+	  label.style.marginBottom = '5px';
+  
+	  const checkbox = document.createElement('input');
+	  checkbox.type = 'checkbox';
+	  checkbox.style.marginRight = '5px';
+  
+	  checkbox.addEventListener('change', () => {
+		window.handRotationControls[name] = checkbox.checked;
+	  });
+  
+	  label.appendChild(checkbox);
+	  label.appendChild(document.createTextNode(name));
+	  return label;
+	};
+  
+	window.handRotationControls = {
+		rightHandRotationOffsetX: 0,
+		rightHandRotationOffsetY: 0,
+		rightHandRotationOffsetZ: -90,
+		leftHandRotationOffsetX: 0,
+		leftHandRotationOffsetY: 0,
+		leftHandRotationOffsetZ: 90,
+		flipRightHandX: false,
+		flipRightHandY: false,
+		flipRightHandZ: false,
+		flipLeftHandX: false,
+		flipLeftHandY: false,
+		flipLeftHandZ: false,
+		  rightArmPoleX: 0,
+	  rightArmPoleY: 0,
+	  rightArmPoleZ: -1,
+	  leftArmPoleX: 0,
+	  leftArmPoleY: 0,
+	  leftArmPoleZ: -1
+	};
+  
+	container.appendChild(createSlider('rightHandRotationOffsetX', -180, 180, 1, 0));
+	container.appendChild(createSlider('rightHandRotationOffsetY', -180, 180, 1, 0));
+	container.appendChild(createSlider('rightHandRotationOffsetZ', -180, 180, 1, 0));
+	container.appendChild(createSlider('leftHandRotationOffsetX', -180, 180, 1, 0));
+	container.appendChild(createSlider('leftHandRotationOffsetY', -180, 180, 1, 0));
+	container.appendChild(createSlider('leftHandRotationOffsetZ', -180, 180, 1, 0));
+	container.appendChild(createCheckbox('flipRightHandX'));
+	container.appendChild(createCheckbox('flipRightHandY'));
+	container.appendChild(createCheckbox('flipRightHandZ'));
+	container.appendChild(createCheckbox('flipLeftHandX'));
+	container.appendChild(createCheckbox('flipLeftHandY'));
+	container.appendChild(createCheckbox('flipLeftHandZ'));
+  
+	// Add arm pole target sliders
+	container.appendChild(document.createElement('hr'));
+	container.appendChild(document.createTextNode('Arm Pole Targets:'));
+	container.appendChild(createSlider('rightArmPoleX', -1, 1, 0.1, 0));
+	container.appendChild(createSlider('rightArmPoleY', -1, 1, 0.1, 0));
+	container.appendChild(createSlider('rightArmPoleZ', -1, 1, 0.1, -1));
+	container.appendChild(createSlider('leftArmPoleX', -1, 1, 0.1, 0));
+	container.appendChild(createSlider('leftArmPoleY', -1, 1, 0.1, 0));
+	container.appendChild(createSlider('leftArmPoleZ', -1, 1, 0.1, -1));
+  
+	// document.body.appendChild(container);
+  }
+  
+function loadMixamoAnimation(url, vrm) {
+let loader;
+if (url.endsWith('.fbx')) {
+	loader = new FBXLoader();
+} else {
+	loader = new GLTFLoader();
 }
-/**
- * A map from Mixamo rig name to VRM Humanoid bone name
- */
-const mixamoVRMRigMap = {
-	mixamorigHips: 'hips',
-	mixamorigSpine: 'spine',
-	mixamorigSpine1: 'chest',
-	mixamorigSpine2: 'upperChest',
-	mixamorigNeck: 'neck',
-	mixamorigHead: 'head',
-	mixamorigLeftShoulder: 'leftShoulder',
-	mixamorigLeftArm: 'leftUpperArm',
-	mixamorigLeftForeArm: 'leftLowerArm',
-	mixamorigLeftHand: 'leftHand',
-	mixamorigLeftHandThumb1: 'leftThumbMetacarpal',
-	mixamorigLeftHandThumb2: 'leftThumbProximal',
-	mixamorigLeftHandThumb3: 'leftThumbDistal',
-	mixamorigLeftHandIndex1: 'leftIndexProximal',
-	mixamorigLeftHandIndex2: 'leftIndexIntermediate',
-	mixamorigLeftHandIndex3: 'leftIndexDistal',
-	mixamorigLeftHandMiddle1: 'leftMiddleProximal',
-	mixamorigLeftHandMiddle2: 'leftMiddleIntermediate',
-	mixamorigLeftHandMiddle3: 'leftMiddleDistal',
-	mixamorigLeftHandRing1: 'leftRingProximal',
-	mixamorigLeftHandRing2: 'leftRingIntermediate',
-	mixamorigLeftHandRing3: 'leftRingDistal',
-	mixamorigLeftHandPinky1: 'leftLittleProximal',
-	mixamorigLeftHandPinky2: 'leftLittleIntermediate',
-	mixamorigLeftHandPinky3: 'leftLittleDistal',
-	mixamorigRightShoulder: 'rightShoulder',
-	mixamorigRightArm: 'rightUpperArm',
-	mixamorigRightForeArm: 'rightLowerArm',
-	mixamorigRightHand: 'rightHand',
-	mixamorigRightHandPinky1: 'rightLittleProximal',
-	mixamorigRightHandPinky2: 'rightLittleIntermediate',
-	mixamorigRightHandPinky3: 'rightLittleDistal',
-	mixamorigRightHandRing1: 'rightRingProximal',
-	mixamorigRightHandRing2: 'rightRingIntermediate',
-	mixamorigRightHandRing3: 'rightRingDistal',
-	mixamorigRightHandMiddle1: 'rightMiddleProximal',
-	mixamorigRightHandMiddle2: 'rightMiddleIntermediate',
-	mixamorigRightHandMiddle3: 'rightMiddleDistal',
-	mixamorigRightHandIndex1: 'rightIndexProximal',
-	mixamorigRightHandIndex2: 'rightIndexIntermediate',
-	mixamorigRightHandIndex3: 'rightIndexDistal',
-	mixamorigRightHandThumb1: 'rightThumbMetacarpal',
-	mixamorigRightHandThumb2: 'rightThumbProximal',
-	mixamorigRightHandThumb3: 'rightThumbDistal',
-	mixamorigLeftUpLeg: 'leftUpperLeg',
-	mixamorigLeftLeg: 'leftLowerLeg',
-	mixamorigLeftFoot: 'leftFoot',
-	mixamorigLeftToeBase: 'leftToes',
-	mixamorigRightUpLeg: 'rightUpperLeg',
-	mixamorigRightLeg: 'rightLowerLeg',
-	mixamorigRightFoot: 'rightFoot',
-	mixamorigRightToeBase: 'rightToes',
+return loader.loadAsync(url).then((resource) => {
+	const clip = resource.animations[0];
+
+	if (url.endsWith('.glb')) {
+	resource = resource.scene;
+	}
+
+	let tracks = [];
+
+	let restRotationInverse = new Quaternion();
+	let parentRestWorldRotation = new Quaternion();
+	let _quatA = new Quaternion();
+	let _vec3 = new Vector3();
+
+	let mixamoHips = resource.getObjectByName('mixamorigHips');
+	let regularHips = resource.getObjectByName('hips');
+	let mainHip;
+	if (mixamoHips) {
+	mainHip = mixamoHips.position.y;
+	} else if (regularHips) {
+	mainHip = regularHips.position.y;
+	}
+	VRMUtils.rotateVRM0(vrm);
+	VRMUtils.removeUnnecessaryVertices( vrm.scene );
+	VRMUtils.removeUnnecessaryJoints( vrm.scene );
+	const vrmHipsY = vrm.humanoid?.getNormalizedBoneNode('hips').getWorldPosition(_vec3).y;
+	const vrmRootY = vrm.scene.getWorldPosition(_vec3).y;
+	const vrmHipsHeight = Math.abs(vrmHipsY - vrmRootY);
+	const hipsPositionScale = vrmHipsHeight / mainHip;
+
+	clip.tracks.forEach((track) => {
+	let trackSplitted = track.name.split('.');
+	let mixamoRigName = trackSplitted[0];
+	let vrmBoneName = mixamoVRMRigMap[mixamoRigName];
+	let vrmNodeName = vrm.humanoid?.getNormalizedBoneNode(vrmBoneName)?.name;
+	let mixamoRigNode = resource.getObjectByName(mixamoRigName);
+
+	if (vrmNodeName != null) {
+		let propertyName = trackSplitted[1];
+
+		mixamoRigNode.getWorldQuaternion(restRotationInverse).invert();
+		mixamoRigNode.parent.getWorldQuaternion(parentRestWorldRotation);
+
+		if (track instanceof QuaternionKeyframeTrack) {
+		for (let i = 0; i < track.values.length; i += 4) {
+			let flatQuaternion = track.values.slice(i, i + 4);
+
+			_quatA.fromArray(flatQuaternion);
+
+			_quatA
+			.premultiply(parentRestWorldRotation)
+			.multiply(restRotationInverse);
+
+			_quatA.toArray(flatQuaternion);
+
+			flatQuaternion.forEach((v, index) => {
+			track.values[index + i] = v;
+			});
+		}
+
+		tracks.push(
+			new QuaternionKeyframeTrack(
+			`${vrmNodeName}.${propertyName}`,
+			track.times,
+			track.values.map((v, i) => (vrm.meta?.metaVersion === '0' && i % 2 === 0 ? -v : v)),
+			),
+		);
+		} else if (track instanceof VectorKeyframeTrack) {
+		let value = track.values.map((v, i) => (vrm.meta?.metaVersion === '0' && i % 3 !== 1 ? -v : v) * hipsPositionScale);
+		tracks.push(new VectorKeyframeTrack(`${vrmNodeName}.${propertyName}`, track.times, value));
+		}
+	}
+	});
+
+	return new AnimationClip('vrmAnimation', clip.duration, tracks);
+});
+}
+
+function addResetButton(props) {
+const button = document.createElement('button');
+button.innerHTML = 'Respawn';
+button.onclick = () => {
+	props.movement.current.respawn = true;
+	setTimeout(() => {
+	props.movement.current.respawn = false;
+	}, 100);
 };
 
-/**
- * Download Mixamo animation, convert it for usage with three-vrm, and return the converted animation.
- *
- * @param {string} url - The URL of Mixamo animation data
- * @param {VRM} vrm - The target VRM
- * @returns {Promise<AnimationClip>} - The adapted AnimationClip
- */
-function loadMixamoAnimation(url, vrm) {
-	let loader;
-	if (url.endsWith('.fbx')) {
-		loader = new FBXLoader(); // Use an FBX loader
-	} else {
-		loader = new GLTFLoader(); // Use a GLTF loader
-	}
-	return loader.loadAsync(url).then((resource) => {
-		const clip = resource.animations[0]; // Extract the AnimationClip
-
-		// if resource is GLB, get the scene
-		if (url.endsWith('.glb')) {
-			resource = resource.scene;
-		}
-
-		let tracks = []; // KeyframeTracks compatible with VRM to be stored here
-
-		let restRotationInverse = new Quaternion();
-		let parentRestWorldRotation = new Quaternion();
-		let _quatA = new Quaternion();
-		let _vec3 = new Vector3();
-
-		// Adjust according to the height of the hips.
-		let mixamoHips = resource.getObjectByName('mixamorigHips');
-		let regularHips = resource.getObjectByName('hips');
-		let mainHip;
-		if (mixamoHips) {
-			mainHip = mixamoHips.position.y;
-		} else if (regularHips) {
-			mainHip = regularHips.position.y;
-		}
-		const vrmHipsY = vrm.humanoid?.getNormalizedBoneNode('hips').getWorldPosition(_vec3).y;
-		const vrmRootY = vrm.scene.getWorldPosition(_vec3).y;
-		const vrmHipsHeight = Math.abs(vrmHipsY - vrmRootY);
-		const hipsPositionScale = vrmHipsHeight / mainHip;
-
-		clip.tracks.forEach((track) => {
-			// Convert each track for VRM usage, and push to `tracks`
-			let trackSplitted = track.name.split('.');
-			let mixamoRigName = trackSplitted[0];
-			let vrmBoneName = mixamoVRMRigMap[mixamoRigName];
-			let vrmNodeName = vrm.humanoid?.getNormalizedBoneNode(vrmBoneName)?.name;
-			let mixamoRigNode = resource.getObjectByName(mixamoRigName);
-
-			if (vrmNodeName != null) {
-
-				let propertyName = trackSplitted[1];
-
-				// Store rotations of rest-pose.
-				mixamoRigNode.getWorldQuaternion(restRotationInverse).invert();
-				mixamoRigNode.parent.getWorldQuaternion(parentRestWorldRotation);
-
-				if (track instanceof QuaternionKeyframeTrack) {
-
-					// Retarget rotation of mixamoRig to NormalizedBone.
-					for (let i = 0; i < track.values.length; i += 4) {
-
-						let flatQuaternion = track.values.slice(i, i + 4);
-
-						_quatA.fromArray(flatQuaternion);
-
-						_quatA
-							.premultiply(parentRestWorldRotation)
-							.multiply(restRotationInverse);
-
-						_quatA.toArray(flatQuaternion);
-
-						flatQuaternion.forEach((v, index) => {
-
-							track.values[index + i] = v;
-
-						});
-
-					}
-
-					tracks.push(
-						new QuaternionKeyframeTrack(
-							`${vrmNodeName}.${propertyName}`,
-							track.times,
-							track.values.map((v, i) => (vrm.meta?.metaVersion === '0' && i % 2 === 0 ? - v : v)),
-						),
-					);
-
-				} else if (track instanceof VectorKeyframeTrack) {
-					let value = track.values.map((v, i) => (vrm.meta?.metaVersion === '0' && i % 3 !== 1 ? - v : v) * hipsPositionScale);
-					tracks.push(new VectorKeyframeTrack(`${vrmNodeName}.${propertyName}`, track.times, value));
-				}
-
-			}
-
-		});
-
-		return new AnimationClip('vrmAnimation', clip.duration, tracks);
-
-	});
+button.style.position = 'fixed';
+button.style.bottom = '190px';
+button.style.left = '10px';
+button.style.zIndex = '1000';
+button.style.padding = '10px';
+button.style.border = 'none';
+button.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+button.style.color = 'white';
+button.style.cursor = 'pointer';
+button.style.borderRadius = '5px';
+button.style.fontFamily = 'Arial';
+button.style.fontSize = '16px';
+button.style.fontWeight = 'bold';
+document.body.appendChild(button);
 }
 
+class XrHead {
+constructor(context) {
+	this.context = context;
+	this.position = new Vector3();
+	this.quaternion = new Quaternion();
+	this.worldUp = new Vector3();
+	this.forward = new Vector3();
+	this.up = new Vector3();
+	this.right = new Vector3();
+}
+
+update() {
+	this.context.camera.getWorldPosition(this.position);
+	this.context.camera.getWorldQuaternion(this.quaternion);
+	this.worldUp.set(0, 1, 0);
+	this.up.set(0, 1, 0).applyQuaternion(this.quaternion);
+	this.forward.set(0, 0, -1).applyQuaternion(this.quaternion);
+	this.right.set(1, 0, 0).applyQuaternion(this.quaternion);
+}
+}
+
+class Vector3Damper {
+constructor(period) {
+	this.period = period || 0.15;
+	this._samples = [];
+	this._total = new Vector3();
+	this._average = new Vector3();
+}
+
+add(time, sample) {
+	const removeSamplesBefore = time - this.period;
+	while (this._samples.length && this._samples[0].time < removeSamplesBefore) {
+	const s = this._samples.shift();
+	this._total.x -= s.x;
+	this._total.y -= s.y;
+	this._total.z -= s.z;
+	}
+	this._total.x += sample.x;
+	this._total.y += sample.y;
+	this._total.z += sample.z;
+	this._samples.push({ time: time, x: sample.x, y: sample.y, z: sample.z });
+	const count = this._samples.length;
+	this._average.set(this._total.x / count, this._total.y / count, this._total.z / count);
+	return this._average;
+}
+
+get average() {
+	return this._average;
+}
+
+clear() {
+	this._samples = [];
+	this._total.setScalar(0);
+	this._average.setScalar(0);
+}
+}  
+
 export default function Player(props) {
-	const canMoveRef = useRef(true);
-	const falling = useRef(true);
-	const animationsRef = useRef();
-	const orbitRef = useRef();
-	const rigidRef = useRef();
-	const castRef = useRef();
+const [isModelLoaded, setIsModelLoaded] = useState(false);
+const currentPlayerAvatarRef = useRef(null);
+const playerControllerRef = useRef(null);
+const playerMixerRef = useRef(null);
+const { camera, gl } = useThree();
+const { isPresenting } = useXR();
+const [presentingState, setPresentingState] = useState(false);
+const prevPositionRef = useRef(null);
+const { controllers } = useXR();
+const rightController = useController('right');
+const leftController = useController('left');
+const head = useRef(new XrHead(useThree()));
+const pointerOriginDamper = useRef(new Vector3Damper(DamperTimeS));
+const pointerDirectionDamper = useRef(new Vector3Damper(DamperTimeS));
 
-	const idleFile = threeObjectPlugin + idle;
-	const walkingFile	= threeObjectPlugin + walk;
-	const runningFile	= threeObjectPlugin + run;
-	// const [walkFile, setWalkFile] = useState(model.threeObjectPlugin + walk);
-	const spawnPoint = props.spawnPoint? props.spawnPoint.map(Number) : [0,0,0];  // convert spawnPoint to numbers
-	const { controllers } = useXR();
-	const { camera, scene, clock } = useThree();
-	const { world, rapier } = useRapier();
-	const participantObject = scene.getObjectByName("playerOne");
-	const mouse = new Vector2();
-		
-	// if (!scene.getObjectByName("reticle")){
-	// 	camera.add(Reticle());
-	// }
+const characterRef = useRef(null);
 
-	if ( controllers.length > 0 ) {
-		scene.remove(scene.getObjectByName("reticle"));
+const [frameName, setFrameName] = useState();
+
+const canMoveRef = useRef(true);
+const spriteRef = useRef();
+const animationsRef = useRef();
+const playerModelRef = useRef();
+
+const orbitRef = useRef();
+const rigidRef = useRef();
+const castRef = useRef();
+const [loaderIsGone, setLoaderIsGone] = useState(false);
+const [avatarIsSprite, setAvatarIsSprite] = useState(false);
+
+const curAnimation = useGame((state) => state.curAnimation);
+const initializeAnimationSet = useGame(
+	(state) => state.initializeAnimationSet
+);
+const idleAnimation = useGame((state) => state.idle);
+const walkAnimation = useGame((state) => state.walk);
+const runAnimation = useGame((state) => state.run);
+const action1Animation = useGame((state) => state.action1);
+const action2Animation = useGame((state) => state.action2);
+const action3Animation = useGame((state) => state.action3);
+const action4Animation = useGame((state) => state.action4);
+const resetAnimation = useGame((state) => state.reset);
+const [open, setOpen] = useState(false);
+const HEAD_LAYER = 1;
+
+
+const animationSet = {
+	idle: "idle",
+	walk: "walking",
+	run: "running",
+	jump: "jump",
+};
+
+useEffect(() => {
+	initializeAnimationSet(animationSet);
+}, []);
+
+useEffect(() => {
+	const handleReady = () => {
+	setLoaderIsGone(true);
+	removeEventListener('loaderIsGone', handleReady);
+	};
+	window.addEventListener('loaderIsGone', handleReady);
+	addResetButton(props);
+}, []);
+
+const idleFile = idle;
+const walkingFile = walk;
+const runningFile = run;
+const jumpFile = jump;
+const fallingFile = fall;
+const spawnPoint = props.spawnPoint ? props.spawnPoint.map(Number) : [0, 0, 0];
+const { scene, clock } = useThree();
+const { world, rapier } = useRapier();
+const participantObject = scene.getObjectByName("playerOne");
+let debug   = {};
+
+useEffect(() => {
+	if (userData.playerVRM.endsWith('.png')) {
+	setAvatarIsSprite(true);
 	}
+}, []);
 
+let animationFiles = [idleFile, walkingFile, runningFile, jumpFile];
+// Participant VRM.
+const fallbackURL = defaultVRM;
+const defaultAvatarURL = props.defaultPlayerAvatar;
+let playerURL;
+if(defaultAvatarURL){
+	playerURL = defaultAvatarURL;
+}
+playerURL = userData.playerVRM ? userData.playerVRM : fallbackURL;
+if( playerURL.endsWith( '.png' ) ){
+	playerURL = blankVRM;
+}
 
-	// useFrame(() => {
-	// 	if (participantObject) {
-	// 		const posY = participantObject.parent.position.y;
-	// 		camera.position.setY(posY + 0.23);
-	// 	}
-	// });
-
-	// Participant VRM.
-	const fallbackURL = threeObjectPlugin + defaultVRM;
-	const defaultAvatarURL = props.defaultAvatar;
-	let playerURL = userData.vrm ? userData.vrm : fallbackURL;
-	if(defaultAvatarURL){
-		playerURL = defaultAvatarURL;
+// if the playerURL ends in .png
+useEffect(() => {
+	if( userData.playerVRM.endsWith( '.png' ) ){
+		setAvatarIsSprite(true);
 	}
-	const someSceneState = useLoader(GLTFLoader, playerURL, (loader) => {
-		loader.register((parser) => {
-			return new VRMLoaderPlugin(parser);
+}, []);
+
+useEffect(() => {
+	if (!currentPlayerAvatarRef.current) {
+	const loader = new GLTFLoader();
+	const ktx2Loader = new KTX2Loader();
+	ktx2Loader.setTranscoderPath(threeObjectPluginRoot + "/inc/utils/basis/");
+	ktx2Loader.detectSupport(gl);
+	loader.setKTX2Loader(ktx2Loader);
+	// const helperRoot = new Group();
+	// helperRoot.renderOrder = 10000;
+	// scene.add(helperRoot);
+	// debug.pnt = new ShapePointsMesh();
+	// debug.ln  = new DynLineMesh();
+	// scene.add(debug.pnt);
+	// scene.add(debug.ln);
+
+	// loader.register( parser => new VRMLoaderPlugin( parser, { helperRoot } ) );
+	loader.register( parser => new VRMLoaderPlugin( parser ) );
+
+	loader.load(playerURL, (gltf) => {
+		currentPlayerAvatarRef.current = gltf;
+		playerControllerRef.current = gltf.userData.vrm;
+	
+		// Calculate the avatar's height offset
+		const headBone = gltf.userData.vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Head);
+		headBone.layers.set(HEAD_LAYER);
+		headBone.visible = false;
+		// traverse the head bone to hide the mesh
+		headBone.traverse((child) => {
+			if(child.isMesh){
+				child.visible = false;
+			}
 		});
+		const headWorldPosition = new Vector3();
+		headBone.getWorldPosition(headWorldPosition);
+	
+		const avatarWorldPosition = new Vector3();
+		gltf.scene.getWorldPosition(avatarWorldPosition);
+	
+		props.avatarHeightOffset.current = headWorldPosition.y - avatarWorldPosition.y;
+	
+		setIsModelLoaded(true);
+	}, undefined, error => {
+		console.error('An error happened during the loading of the model:', error);
 	});
+	}
+}, [playerURL, gl]);
 
-	if (someSceneState?.userData?.gltfExtensions?.VRM) {
-		const playerController = someSceneState.userData.vrm;
-		// Check if the avatar is reachable with a 200 response code.
-		// Check if the avatar is reachable with a 200 response code.
-		const fetchProfile = async () => {
-			try {
-			const response = await fetch(userData.profileImage);
-			if (response.status === 200) {
-				const loadedProfile = useLoader(TextureLoader, userData.profileImage);
-		
-				playerController.scene.traverse((obj) => {
-				obj.frustumCulled = false;
-		
-				if (obj.name === "profile") {
-					const newMat = obj.material.clone();
-					newMat.map = loadedProfile;
-					obj.material = newMat;
-					obj.material.map.needsUpdate = true;
-				}
-				});
-			}
-			return response;
-			} catch (err) {
-			// Handle the error properly or rethrow it to be caught elsewhere.
-			// console.error("Error fetching profile:", err);
-			// throw err;
-			}
-		};
-		setTimeout(() => {
-			fetchProfile()
-			  .then((response) => {
-				// handle the response here if needed
-			  })
-			  .catch((err) => {
-				// Handle the error here if needed
-			  });
-		}, 1000);
-		// VRMUtils.rotateVRM0(playerController);
-		const currentVrm = playerController;
-		const currentMixer = new AnimationMixer(currentVrm.scene);
+useEffect(() => {
+	if (isModelLoaded && playerControllerRef.current) {
 
-	
-		// need to dynamically do this on scroll
-		// playerController.firstPerson.humanoid.humanBones.head.node.scale.set([
-		// 	0, 0, 0
-		// ]);
+		const avatarOptions = {
+			fingers: true,
+			hair: true,
+			decapitate: false,
+			visemes: true,
+			microphoneMediaStream: null,
+			muted: true,
+			debug: false,
+		  };
+	  
+		const playerController = playerControllerRef.current;
+		playerControllerRef.current.avatar = new ExokitAvatar(playerControllerRef.current, avatarOptions);
+		const animationsMixer = new AnimationMixer(playerController.scene);
+		playerMixerRef.current = animationsMixer;
+		let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, playerController));
+		playerController.scene.visible = false;
 
-		// const movement = useKeyboardControls();
-		const velocity = useRef(spawnPoint);  // Use a ref instead of state for velocity
-		let lastUpdateTime = 0;
-		let blinkTimer = 0;  // Initialize the blinkTimer outside the useFrame loop.
-		let blinkInterval = 5 + Math.random() * 10;  // Blink roughly every 2 to 6 seconds
-
-		// frame loop
-		useFrame((state, delta) => {
-			let isMoving = false;
-			const currentTime = state.clock.elapsedTime;
-			const timeSinceLastUpdate = currentTime - lastUpdateTime;
-			let rigidBodyPosition = [0, 0, 0]
-			if(rigidRef.current?.translation()){
-				rigidBodyPosition = rigidRef.current.translation();
-			}
-			const forward = new Vector3();
-			camera.getWorldDirection(forward);
-			forward.negate(); // In Three.js camera looks towards negative Z, so we negate the vector
-			forward.normalize();
-			const right = new Vector3();
-			right.crossVectors(camera.up, forward);
-			right.normalize();
-			// initialize the moving state to false
-			const raycaster = state.raycaster;		
-			if (timeSinceLastUpdate >= 0.1) {
-				lastUpdateTime = currentTime;
-			}
-			if (currentVrm) {
-				currentVrm.update(delta);
-			}
-			if (currentMixer) {
-				currentMixer.update(delta);
-			}
-			blinkTimer += delta;  // Increment timer
-		
-			//blink
-			if (blinkTimer > blinkInterval) {
-				if (currentVrm) {
-					// Randomize the duration of the blink between 0.05 and 0.15 seconds
-					const blinkDuration = 0.05 + Math.random() * 0.1;
-					const steps = Math.round(blinkDuration / 0.01);  // We want each step to be roughly 0.01 seconds
-			
-					// Close both eyes over the course of the blink duration
-					for(let i = 0; i <= steps; i++) {
-						const s = i / steps;
-						setTimeout(() => {
-							currentVrm.expressionManager.setValue('blinkLeft', s);
-							currentVrm.expressionManager.setValue('blinkRight', s);
-						}, s * blinkDuration * 1000);
-					}
-			
-					// Open both eyes over the course of the blink duration, after a small delay
-					setTimeout(() => {
-						for(let i = 0; i <= steps; i++) {
-							const s = 1 - i / steps;
-							setTimeout(() => {
-								currentVrm.expressionManager.setValue('blinkLeft', s);
-								currentVrm.expressionManager.setValue('blinkRight', s);
-							}, (1 - s) * blinkDuration * 1000);
-						}
-					}, blinkDuration * 1000 + 200);  // Add a small delay before opening the eyes
-			
-					blinkTimer = 0;  // Reset the timer
-					blinkInterval = 5 + Math.random() * 10;  // Blink roughly every 10 to 25 seconds
-				}
-			}
-			let speedPerSecondFB = 3.6;  // This is equivalent to 0.06 per frame at 60 FPS
-			let speedPerSecondLR = 1.8;  // This is equivalent to 0.03 per frame at 60 FPS
-			
-			if (props.movement.current.shift) {
-				speedPerSecondFB = 7.2;  // This is equivalent to 0.12 per frame at 60 FPS
-				speedPerSecondLR = 4.2;  // This is equivalent to 0.07 per frame at 60 FPS
-			}
-
-			let newVelocity = [...velocity.current];
-			let newPosition = null;
-
-			if (props.movement.current.backward && canMoveRef.current) {
-				let speed = speedPerSecondFB * delta;
-				newVelocity[0] += speed * forward.x;
-				newVelocity[2] += speed * forward.z;
-				isMoving = true;
-			} else if (props.movement.current.forward && canMoveRef.current) {
-				let speed = speedPerSecondFB * delta;
-				newVelocity[0] -= speed * forward.x;
-				newVelocity[2] -= speed * forward.z;
-				isMoving = true;
-			} else if (props.movement.current.left && canMoveRef.current) {
-				let speed = speedPerSecondLR * delta;
-				newVelocity[0] -= speed * right.x;
-				newVelocity[2] -= speed * right.z;
-				isMoving = true;
-			} else if (props.movement.current.right && canMoveRef.current) {
-				let speed = speedPerSecondLR * delta;
-				newVelocity[0] += speed * right.x;
-				newVelocity[2] += speed * right.z;
-				isMoving = true;
-			}
-			if(props.movement.current.respawn === true){
-				newPosition = spawnPoint;
-				newVelocity = spawnPoint;
-				velocity.current = spawnPoint;
-			}
-		
-			// if shift is pressed, run by setting speed to 0.1
-			if(canMoveRef.current){
-				velocity.current = newVelocity;				
-			}
-
-			const rotationSpeed = 0.5;
-			if (props.movement.current.backward) {
-				orbitRef.current.minPolarAngle = Math.PI / 1.8;
-				orbitRef.current.maxPolarAngle = Math.PI / 1.25;
-				orbitRef.current.maxDistance = 2;
-				orbitRef.current.minDistance = 2;
-			} else {
-				// Reset properties to default values
-				if(isMoving){
-					orbitRef.current.minPolarAngle = Math.PI / 1.5;
-				} else {
-					orbitRef.current.minPolarAngle = Math.PI / 1.8;
-				}
-				orbitRef.current.maxPolarAngle = Math.PI / 1.2;
-				orbitRef.current.maxDistance = 2;
-				orbitRef.current.minDistance = 1.3;
-			}
-
-			// send a raycast from the orbit camera and check if there is an obstacle in the way
-			
-			// We compute the direction from the camera to the player
-			let direction = camera.getWorldDirection(new Vector3());
-			// normalize the direction to not be looking up or downward
-			direction.normalize();
-			direction.y = 0;
-			
-			// Adjust the direction based on the movement direction
-			if(props.movement.current.backward) {
-				direction.negate();  // for backward movement, we want to reverse the direction
-			} else if (props.movement.current.right && !props.movement.current.left && !props.movement.current.forward && !props.movement.current.backward) {
-				direction.applyAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2);  // for right movement, rotate the direction 90 degrees counterclockwise
-			} else if (props.movement.current.left && !props.movement.current.right && !props.movement.current.forward && !props.movement.current.backward) {
-				direction.applyAxisAngle(new Vector3(0, 1, 0), Math.PI / 2);  // for left movement, rotate the direction 90 degrees clockwise
-			}
-
-			// Define the desired rotation matrix
-			let matrix = new Matrix4();
-			matrix.lookAt(new Vector3(0,0,0), direction, new Vector3(0,1,0));
-		
-			// Create a quaternion from the rotation matrix
-			let desiredQuaternion = new Quaternion();
-			desiredQuaternion.setFromRotationMatrix(matrix);
-
-			if ( props.movement.current.forward === true ||
-				props.movement.current.backward === true ||
-				props.movement.current.left === true ||
-				props.movement.current.right === true
-			) {
-				// Apply slerp to the player's current quaternion, gradually aligning it with the desired quaternion
-				playerController.scene.quaternion.slerp(desiredQuaternion, rotationSpeed);
-			}
-			if(castRef.current){
-				castRef.current.setRotation(desiredQuaternion);
-			}
-
-			if (isMoving && canMoveRef.current) {
-				newPosition = [
-					velocity.current[0],
-					rigidBodyPosition.y,
-					velocity.current[2]
-				];
-				participantObject.parent.position.set(...newPosition);
-				castRef.current.setTranslation({x: newPosition[0], y: newPosition[1], z: newPosition[2]});
-			}
-			// animation logic
-			if (animationsRef.current) {
-				const { idle, walking, running } = animationsRef.current;
-
-				if (isMoving) {
-					// If moving, but idle animation is playing, stop it and play walking animation
-					// if (idle.isRunning()) {
-						// blend from idle to walking
-						if(props.movement.current.shift) {
-							if (walking.isRunning()) {
-								walking.crossFadeTo(running, 1);
-							} else {
-							idle.crossFadeTo(running, 1);
-							}
-							running.enabled = true;
-							running.setEffectiveTimeScale(1);
-							running.setEffectiveWeight(1);
-							idle.enabled = true;
-							idle.setEffectiveTimeScale(1);
-							idle.setEffectiveWeight(0);
-							walking.enabled = true;
-							walking.setEffectiveTimeScale(1);
-							walking.setEffectiveWeight(0);
-							running.play();
-						} else {
-							if (running.isRunning()) {
-								running.crossFadeTo(walking, 1);
-							} else {
-								idle.crossFadeTo(walking, 1);
-							}
-							walking.enabled = true;
-							walking.setEffectiveTimeScale(1);
-							walking.setEffectiveWeight(1);
-							running.enabled = true;
-							running.setEffectiveTimeScale(1);
-							running.setEffectiveWeight(0);
-							idle.enabled = true;
-							idle.setEffectiveTimeScale(1);
-							idle.setEffectiveWeight(0);
-							walking.play();
-						}
-					// }
-				} else {
-					// If not moving, but walking animation is playing, stop it and play idle animation
-					if (walking.isRunning()) {
-						// blend from walking to idle
-						walking.crossFadeTo(idle, 1);
-						// set the walking animation to lower weight so it blends into the idle animation
-						walking.enabled = true;
-						walking.setEffectiveTimeScale(1);
-						walking.setEffectiveWeight(0);
-						running.setEffectiveTimeScale(1);
-						running.setEffectiveWeight(0);
-						idle.enabled = true;
-						idle.setEffectiveTimeScale(1);
-						idle.setEffectiveWeight(1);
-						idle.play();
-					} else if (running.isRunning()) {
-						// blend from running to idle
-						running.crossFadeTo(idle, 1);
-						// set the running animation to lower weight so it blends into the idle animation
-						running.enabled = true;
-						running.setEffectiveTimeScale(1);
-						running.setEffectiveWeight(0);
-						walking.setEffectiveTimeScale(1);
-						walking.setEffectiveWeight(0);
-						idle.enabled = true;
-						idle.setEffectiveTimeScale(1);
-						idle.setEffectiveWeight(1);
-						idle.play();
-					}
-				}
-			}
-
-			if (participantObject) {
-				camera.lookAt(
-					participantObject.parent.position.x,
-					playerController.firstPerson.humanoid.humanBones.head.node.getWorldPosition(new Vector3()).y,
-					participantObject.parent.position.z
-				);
-				
-				if (orbitRef.current){
-					let newTarget = new Vector3(
-						participantObject.parent.position.x,
-						playerController.firstPerson.humanoid.humanBones.head.node.getWorldPosition(new Vector3()).y + 1.5,
-						participantObject.parent.position.z
-					);
-					// lerpVectors() orbitRef from current position target to newTarget
-					orbitRef.current.target.lerpVectors(orbitRef.current.target, newTarget, 0.5);
-				}
-			}
-		
-			// update rigidBody's position
-			if (rigidRef.current && participantObject?.parent?.position?.x) {
-				// // match the rigidBody's position to the participantObject's position.
-				// set the rigidbody type to one that can be moved by setTranslation
-				if(props.movement.current.backward || props.movement.current.forward || props.movement.current.left || props.movement.current.right || falling.current === true) {
-					rigidRef.current.setBodyType(rapier.RigidBodyType.Dynamic, 1);
-					// rigidRef.current.setFriction(1); // Set the friction to 1 so the player doesn't slide
-				} else {
-					rigidRef.current.setBodyType(rapier.RigidBodyType.Fixed, 1);
-				}
-
-				// set a const of the rigidBody's current position
-				rigidRef.current.setTranslation({ x: participantObject.parent.position.x, y: rigidBodyPosition.y, z: participantObject.parent.position.z});
-			}
-			if(props.movement.current.respawn === true){
-
-				const x = Number(props.spawnPoint[0]);
-				const y = Number(props.spawnPoint[1]);
-				const z = Number(props.spawnPoint[2]);
-				if (props.spawnPointsToAdd) {
-					let finalPoints = [];
-					props.spawnPointsToAdd.forEach((point) => {
-					finalPoints.push([Number(point.position.x), Number(point.position.y), Number(point.position.z)]);
-					});
-					finalPoints.push([x, y, z]);
-					//pick a random point
-					let randomPoint = finalPoints[Math.floor(Math.random() * finalPoints.length)];
-					if([x, y, z] !== [camera.position.x, camera.position.y, camera.position.z]){
-						// Check if the converted values are valid and finite
-						// Set the camera's position
-						// orbitRef.position.set(randomPoint[0], randomPoint[1], randomPoint[2]);
-						castRef.current.setTranslation({
-						x: randomPoint[0],
-						y: randomPoint[1],
-						z: randomPoint[2]
-						});
-						participantObject.parent.position.set(randomPoint[0], randomPoint[1], randomPoint[2]);
-						// move the rigidRef to the new position
-						rigidRef.current.setTranslation({
-							x: randomPoint[0],
-							y: randomPoint[1],
-							z: randomPoint[2]
-						});
-					}
-		
-				} else {
-					// Check if the converted values are valid and finite
-					// Set the camera's position
-					camera.position.set(x, y, z);
-		
-					castRef.current.setTranslation({
-					x: x,
-					y: y,
-					z: z
-					});
-				}
-			}
-		});
-
-
-		let animationFiles = [idleFile, walkingFile, runningFile];
-		let animationsPromises = animationFiles.map(file => loadMixamoAnimation(file, currentVrm));
-	
 		Promise.all(animationsPromises)
 			.then(animations => {
-			const idleAction = currentMixer.clipAction(animations[0]);
-			const walkingAction = currentMixer.clipAction(animations[1]);
-			const runningAction = currentMixer.clipAction(animations[2]);
-			idleAction.timeScale = 1;
-			walkingAction.timeScale = 1;
-			runningAction.timeScale = 1;
-	
-			animationsRef.current = { idle: idleAction, walking: walkingAction, running: runningAction };
-			idleAction.play();
-		});
-		
-		return (
-			<>
-			  {playerController && (
-				<>
-				<OrbitControls
-					minDistance={1.3}
-					maxDistance={2}
-					maxZoom={2.2}
-					minZoom={2.2}
-					enableDamping={true}
-					maxPolarAngle={Math.PI / 1.2}
-					minPolarAngle={Math.PI / 1.8}
-					ref={orbitRef}
-					makeDefault
-					enableZoom={false}
-				/>
-				{/* <CameraControls
-					ref={orbitRef}
-				/> */}
-				<RigidBody
-					position={spawnPoint}  // use spawnPoint as initial position
-					collisionGroups={interactionGroups(0, [0, 1, 2])} 
-					colliders={false}
-					ref={rigidRef}
-					lockRotations={true}
-					mass={1}
-					friction={1}
-					linearDamping={0.5}
-					type={"kinematicPositionBased"}
-					angularVelocity={[0, 0, 0]}
-					linearVelocity={[0, 0, 0]}
-				>
-					<CapsuleCollider position={[0, 1, 0]} args={[0.45, 0.3]} />
-					<primitive visible={true} name="playerOne" object={playerController.scene} position={[0, .3, 0]}/>
-				</RigidBody>
-				<RigidBody
-					position={spawnPoint}  // use spawnPoint as initial position
-					collisionGroups={interactionGroups(1, [0, 1])} 
-					colliders={false}
-					ref={castRef}
-					type={"dynamic"}
-					lockRotations={true}
-					lockTranslations={true}
-					mass={1}
-					friction={1}
-					linearDamping={0.5}
-					sensor
-					//type={"Fixed"}
-					onIntersectionEnter={({ manifold, target }) => {
-						canMoveRef.current = false;
-					}}
-					onIntersectionExit={({ manifold, target }) => {
-						canMoveRef.current = true;
-					}}
-					angularVelocity={[0, 0, 0]}
-					linearVelocity={[0, 0, 0]}
-				>
-					<CuboidCollider
-						// onIntersectionEnter={() => console.log("enter")}
-						position={[0, 1.4, -0.5]}
-						args={[0.03, 0.03, 0.03]}
-					/>
-				</RigidBody>
-				</>
-			  )}
-			</>
-		  );
+				const idleAction = animationsMixer.clipAction(animations[0]);
+				const walkingAction = animationsMixer.clipAction(animations[1]);
+				const runningAction = animationsMixer.clipAction(animations[2]);
+				const jumpingAction = animationsMixer.clipAction(animations[3]);
+				idleAction.timeScale = 1;
+				walkingAction.timeScale = 0;
+				runningAction.timeScale = 0;
+				jumpingAction.timeScale = 0;
+				animationsRef.current = { idle: idleAction, walking: walkingAction, running: runningAction, jump: jumpingAction };
+				idleAction.play();
+				playerController.scene.visible = true;
+			});
 	}
+}, [isModelLoaded]);
+
+useEffect(() => {
+	addHandRotationControls();
+  }, []);  
+
+useEffect(() => {
+	if( isPresenting ){
+		console.log( 'Presenting' );
+		// kill all animations
+		// if (playerMixerRef.current) {
+		// 	playerMixerRef.current.stopAllAction();
+		// } 
+		// stop idle
+
+		if (animationsRef.current) {
+			const { idle, walking, running, jump, falling } = animationsRef.current;
+			if(idle){
+				idle.stop();
+			}
+			if(walking){
+				walking.stop();
+			}
+			if(running){
+				running.stop();
+			}
+			if(jump){
+				jump.stop();
+			}
+		}
+	}
+}, [isPresenting]);
+
+let lastUpdateTime = 0;
+let blinkTimer = 0;
+let blinkInterval = getRandomBlinkInterval();
+
+function getRandomBlinkInterval() {
+	return 5 + Math.random() * 10;
+}
+
+function handleBlinking(delta) {
+	blinkTimer += delta;
+	if (blinkTimer > blinkInterval && playerControllerRef.current) {
+	performBlink(playerControllerRef.current);
+	blinkTimer = 0;
+	blinkInterval = getRandomBlinkInterval();
+	}
+}
+
+function performBlink(vrm) {
+	const blinkDuration = 0.05 + Math.random() * 0.1;
+	const steps = Math.round(blinkDuration / 0.01);
+
+	for (let i = 0; i <= steps; i++) {
+	const s = i / steps;
+	setTimeout(() => {
+		vrm.expressionManager.setValue('blinkLeft', s);
+		vrm.expressionManager.setValue('blinkRight', s);
+	}, s * blinkDuration * 1000);
+	}
+
+	setTimeout(() => {
+	for (let i = 0; i <= steps; i++) {
+		const s = 1 - i / steps;
+		setTimeout(() => {
+		vrm.expressionManager.setValue('blinkLeft', s);
+		vrm.expressionManager.setValue('blinkRight', s);
+		}, (1 - s) * blinkDuration * 1000);
+	}
+	}, blinkDuration * 1000 + 200);
+}
+
+const movementTimeoutRef = useRef(null);
+const updateRate = 1000 / 5;
+const lastNetworkUpdateTimeRef = useRef(0);
+let countHangtime = 0;
+let isMoving;
+let lastKeyPressTime = 0;
+let wasJumping = false;
+
+useEffect(() => {
+	isMoving = false;
+}, []);
+let isJumping = false;
+const getJoystickValues = useJoystickControls(
+	(state) => state.getJoystickValues
+);
+const playerForward = new Vector3(0, 0, 1);
+
+	useFrame((state, delta) => {
+	const joystickValues = getJoystickValues();
+	let forward = props.movement.current.forward;
+	let backward = props.movement.current.backward;
+	let left = props.movement.current.left;
+	let right = props.movement.current.right;
+	let shift = props.movement.current.shift;
+	let space = props.movement.current.space;
+
+	if (joystickValues) {
+		if (joystickValues.joystickAng > 0) {
+			if (joystickValues.joystickDis > 60) {
+			shift = true;
+			}
+			forward = true;
+		}
+		if (joystickValues.button1Pressed === true) {
+			space = true;
+		}
+	}
+
+	if (playerControllerRef.current) {
+		playerControllerRef.current.update(delta);
+	}
+
+	if (playerMixerRef.current) {
+		playerMixerRef.current.update(delta);
+	}
+
+	const now = state.clock.elapsedTime * 1000;
+
+	if (backward || forward || left || right) {
+	if (characterRef.current.userData.canJump) {
+		isMoving = true;
+
+		if (now - lastKeyPressTime > 100) {
+		if (window.p2pcf) {
+			const participantObject = scene.getObjectByName("playerOne");
+
+			var target = new Vector3();
+			var worldPosition = participantObject.getWorldPosition(target);
+			const position = [
+			worldPosition.x,
+			worldPosition.y,
+			worldPosition.z
+			];
+
+			const rotation = [
+			participantObject.parent.parent.rotation.x,
+			participantObject.parent.parent.rotation.y,
+			participantObject.parent.parent.rotation.z
+			];
+
+			const currentAction = !characterRef.current.userData.canJump ? "jumping" : "walking";
+			const messageObject = {
+			[window.p2pcf.clientId]: {
+				position: position,
+				rotation: rotation,
+				profileImage: userData.profileImage,
+				playerVRM: userData.playerVRM,
+				vrm: userData.vrm,
+				inWorldName: window.userData.inWorldName ? window.userData.inWorldName : userData.inWorldName,
+				isMoving: {
+				action: currentAction,
+				instance: 'update',
+				hangtime: countHangtime
+				}
+			}
+			};
+
+			if (shift && characterRef.current.userData.canJump) {
+			messageObject[window.p2pcf.clientId].isMoving.action = "running";
+			}
+
+			const message = JSON.stringify(messageObject);
+			window.p2pcf.broadcast(new TextEncoder().encode(message)), window.p2pcf;
+			lastKeyPressTime = now;
+			lastNetworkUpdateTimeRef.current = now;
+		}
+		}
+
+		if (now - lastNetworkUpdateTimeRef.current > updateRate) {
+		if (window.p2pcf) {
+			const participantObject = scene.getObjectByName("playerOne");
+
+			var target = new Vector3();
+			var worldPosition = participantObject.getWorldPosition(target);
+			const position = [
+			worldPosition.x,
+			worldPosition.y,
+			worldPosition.z
+			];
+
+			const rotation = [
+			participantObject.parent.parent.rotation.x,
+			participantObject.parent.parent.rotation.y,
+			participantObject.parent.parent.rotation.z
+			];
+
+			const currentAction = !characterRef.current.userData.canJump ? "jumping" : "walking";
+
+			const messageObject = {
+			[window.p2pcf.clientId]: {
+				position: position,
+				rotation: rotation,
+				profileImage: userData.profileImage,
+				playerVRM: userData.playerVRM,
+				vrm: userData.vrm,
+				inWorldName: window.userData.inWorldName ? window.userData.inWorldName : userData.inWorldName,
+				isMoving: {
+				action: currentAction,
+				instance: 'update',
+				hangtime: countHangtime
+				}
+			}
+			};
+
+			if (shift && characterRef.current.userData.canJump) {
+			messageObject[window.p2pcf.clientId].isMoving.action = "running";
+			}
+
+			const message = JSON.stringify(messageObject);
+			window.p2pcf.broadcast(new TextEncoder().encode(message)), window.p2pcf;
+			lastNetworkUpdateTimeRef.current = now;
+		}
+		}
+
+		clearTimeout(movementTimeoutRef.current);
+		movementTimeoutRef.current = setTimeout(() => {
+		isMoving = false;
+		}, 500);
+	}
+	} else {
+	if (isMoving) {
+		isMoving = false;
+		clearTimeout(movementTimeoutRef.current);
+		if (window.p2pcf?.clientId) {
+		const participantObject = scene.getObjectByName("playerOne");
+		var target = new Vector3();
+		var worldPosition = participantObject.getWorldPosition(target);
+		const position = [
+			worldPosition.x,
+			worldPosition.y,
+			worldPosition.z
+		];
+
+		const messageStopObject = {
+			[window.p2pcf.clientId]: {
+			isMoving: false,
+			position: position
+			}
+		};
+		const messageStop = JSON.stringify(messageStopObject);
+		window.p2pcf.broadcast(new TextEncoder().encode(messageStop));
+		lastNetworkUpdateTimeRef.current = now;
+		}
+	}
+	}
+
+	if (isPresenting && !presentingState) {
+		const newCamera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+		const participantObject = scene.getObjectByName("playerOne");
+		// set the rotation to 0
+		participantObject.parent.parent.rotation.set(0, 0, 0);
+		participantObject.rotation.set(0, 0, 0);
+		const xrCamera = gl.xr.getCamera(newCamera);
+		gl.xr.enabled = true;
+		state.camera = xrCamera;
+		setPresentingState(true);
+	} else if (!isPresenting && presentingState) {
+		setPresentingState(false);
+	}
+
+	handleBlinking(delta);
+
+	if (animationsRef.current) {
+	if (playerControllerRef.current && participantObject) {
+		const cameraWorldQuaternion = new Quaternion();
+		camera.getWorldQuaternion(cameraWorldQuaternion);
+		const cameraForward = new Vector3(0, 0, -1).applyQuaternion(cameraWorldQuaternion);
+
+		const characterWorldQuaternion = new Quaternion();
+		participantObject.parent.getWorldQuaternion(characterWorldQuaternion);
+		const characterForward = new Vector3(0, 0, 1).applyQuaternion(characterWorldQuaternion);
+		const neutralRotation = new Euler(0, 0, 0);
+
+		const characterToCamera = new Vector3().subVectors(camera.position, participantObject.getWorldPosition(new Vector3())).normalize();
+
+		const dotProduct = characterForward.dot(cameraForward);
+		const azimuthalAngle = Math.acos(Math.min(Math.max(dotProduct, -1), 1));
+
+		const angleThreshold = Math.PI / 2;
+		if (azimuthalAngle < angleThreshold) {
+		if (avatarIsSprite) {
+			if (isMoving && frameName !== 'WalkForward') {
+			setFrameName('WalkForward');
+			}
+			if (isMoving === false) {
+			if (frameName !== 'ForwardIdle') {
+				setFrameName('ForwardIdle');
+			}
+			}
+		}
+		} else {
+		if (avatarIsSprite && isMoving && frameName !== 'WalkBackward') {
+			setFrameName('WalkBackward');
+		}
+		if (avatarIsSprite && isMoving === false && frameName !== 'BackwardIdle') {
+			setFrameName('BackwardIdle');
+		}
+		}
+	}
+
+	const { idle, walking, running, jump, falling } = animationsRef.current;
+
+	if (props.movement.current.respawn) {
+		characterRef.current.setBodyType(rapier.RigidBodyType.Fixed, 1);
+		characterRef.current.setTranslation(new Vector3(Number(spawnPoint[0]), Number(spawnPoint[1]), Number(spawnPoint[2])), true);
+	} else if (!props.movement.current.respawn && characterRef.current.bodyType() === 1) {
+		characterRef.current.setBodyType(rapier.RigidBodyType.Dynamic, 0);
+	}
+
+	if (isMoving && characterRef.current.userData.canJump) {
+		jump.clampWhenFinished = false;
+		jump.reset();
+		jump.setEffectiveTimeScale(0);
+		jump.setEffectiveWeight(0);
+	} else if (!isMoving && characterRef.current.userData.canJump) {
+		jump.clampWhenFinished = false;
+		jump.reset();
+		jump.setEffectiveTimeScale(0);
+		jump.setEffectiveWeight(0);
+		idle.setEffectiveTimeScale(1);
+		idle.setEffectiveWeight(1);
+	}
+
+	if (!characterRef.current.userData.canJump) {
+		if (window.p2pcf) {
+			const participantObject = scene.getObjectByName("playerOne");
+
+			var target = new Vector3();
+			var worldPosition = participantObject.getWorldPosition(target);
+			const position = [
+			worldPosition.x,
+			worldPosition.y,
+			worldPosition.z
+			];
+
+			const rotation = [
+			participantObject.parent.parent.rotation.x,
+			participantObject.parent.parent.rotation.y,
+			participantObject.parent.parent.rotation.z
+			];
+			if (!prevPositionRef.current || Math.abs(position[1] - prevPositionRef.current[1]) > 0.01) {
+			const messageObject = {
+				[window.p2pcf.clientId]: {
+				position: position,
+				rotation: rotation,
+				profileImage: userData.profileImage,
+				playerVRM: userData.playerVRM,
+				vrm: userData.vrm,
+				inWorldName: window.userData.inWorldName ? window.userData.inWorldName : userData.inWorldName,
+				isMoving: {
+					action: "jumping",
+					instance: 'first',
+					hangtime: countHangtime
+				}
+				}
+			};
+			const message = JSON.stringify(messageObject);
+			if ((now - lastNetworkUpdateTimeRef.current > updateRate) && (lastNetworkUpdateTimeRef.current !== 0)) {
+				window.p2pcf.broadcast(new TextEncoder().encode(message)), window.p2pcf;
+				lastNetworkUpdateTimeRef.current = now;
+			}
+			}
+			prevPositionRef.current = position;
+		}
+
+		countHangtime++;
+
+		if (jump.getEffectiveTimeScale() === 0) {
+			if (countHangtime > 3) {
+			jump.setEffectiveTimeScale(1);
+			jump.setEffectiveWeight(1);
+			jump.clampWhenFinished = true;
+			jump.time = jump._clip.duration;
+			jump.play();
+			running.setEffectiveTimeScale(0);
+			running.setEffectiveWeight(0);
+			walking.setEffectiveTimeScale(0);
+			walking.setEffectiveWeight(0);
+			}
+		}
+
+		wasJumping = true;
+		} else {
+		if (wasJumping) {
+			if (window.p2pcf) {
+			const participantObject = scene.getObjectByName("playerOne");
+			setTimeout(() => {
+				var target = new Vector3();
+				var worldPosition = participantObject.getWorldPosition(target);
+				const position = [
+				worldPosition.x,
+				worldPosition.y,
+				worldPosition.z
+				];
+
+				const rotation = [
+				participantObject.parent.parent.rotation.x,
+				participantObject.parent.parent.rotation.y,
+				participantObject.parent.parent.rotation.z
+				];
+
+				if ((countHangtime > 0) && lastNetworkUpdateTimeRef.current !== 0) {
+				const messageStopObject = {
+					[window.p2pcf.clientId]: {
+					isMoving: {
+						action: "jumpStop",
+						hangtime: countHangtime
+					},
+					position: position,
+					rotation: rotation
+					}
+				};
+				const messageStop = JSON.stringify(messageStopObject);
+				window.p2pcf.broadcast(new TextEncoder().encode(messageStop));
+				countHangtime = 0;
+				lastNetworkUpdateTimeRef.current = now;
+				}
+			}, 100);
+			}
+
+			wasJumping = false;
+		}
+		}
+
+		if (isMoving && characterRef.current.userData.canJump) {
+		countHangtime = 0;
+
+		if (shift) {
+			if (walking.isRunning()) {
+			walking.crossFadeTo(running, 1.1);
+			} else {
+			idle.crossFadeTo(running, 1.1);
+			}
+			running.enabled = true;
+			running.setEffectiveTimeScale(1);
+			running.setEffectiveWeight(1);
+			idle.enabled = true;
+			idle.setEffectiveTimeScale(1);
+			idle.setEffectiveWeight(0);
+			walking.enabled = true;
+			walking.setEffectiveTimeScale(1);
+			walking.setEffectiveWeight(0);
+			running.play();
+		} else {
+			if (running.isRunning()) {
+			running.crossFadeTo(walking, 1);
+			} else {
+			idle.crossFadeTo(walking, 1);
+			}
+			walking.enabled = true;
+			walking.setEffectiveTimeScale(1);
+			walking.setEffectiveWeight(1);
+			running.enabled = true;
+			running.setEffectiveTimeScale(1);
+			running.setEffectiveWeight(0);
+			idle.enabled = true;
+			idle.setEffectiveTimeScale(1);
+			idle.setEffectiveWeight(0);
+			walking.play();
+		}
+		} else {
+		if (characterRef.current.userData.canJump) {
+			isJumping = false;
+			if (walking.isRunning()) {
+			walking.crossFadeTo(idle, 1);
+			walking.enabled = true;
+			walking.setEffectiveTimeScale(1);
+			walking.setEffectiveWeight(0);
+			running.setEffectiveTimeScale(1);
+			running.setEffectiveWeight(0);
+			idle.enabled = true;
+			idle.setEffectiveTimeScale(1);
+			idle.setEffectiveWeight(1);
+			idle.play();
+			} else if (running.isRunning()) {
+			running.crossFadeTo(idle, 1);
+			running.enabled = true;
+			running.setEffectiveTimeScale(1);
+			running.setEffectiveWeight(0);
+			walking.setEffectiveTimeScale(1);
+			walking.setEffectiveWeight(0);
+			idle.enabled = true;
+			idle.setEffectiveTimeScale(1);
+			idle.setEffectiveWeight(1);
+			idle.play();
+			}
+		}
+		}
+
+		if (space) {
+		if (characterRef.current.userData.canJump) {
+			isJumping = true;
+			countHangtime = 0;
+			jump.setEffectiveTimeScale(1);
+			jump.setEffectiveWeight(1);
+			idle.setEffectiveTimeScale(0);
+			walking.setEffectiveTimeScale(0);
+			running.setEffectiveTimeScale(0);
+			idle.setEffectiveWeight(0);
+			walking.setEffectiveWeight(0);
+			running.setEffectiveWeight(0);
+			jump.setLoop(LoopOnce, 1);
+			jump.reset();
+			jump.clampWhenFinished = true;
+			jump.play();
+		}
+		}
+		}
+	});
+
+	// Add this function at the top of your component or in a utility file
+	function debugVector3(name, vector) {
+		console.log(`${name}: x: ${vector.x.toFixed(2)}, y: ${vector.y.toFixed(2)}, z: ${vector.z.toFixed(2)}`);
+	}
+  
+
+	function applySimpleIK(spineBone, boneChain, targetPosition, iterations = 10, elbowWeight = 0.8, wristWeight = 0.2, shoulderWeight = 0.2) {
+		const endEffector = boneChain[boneChain.length - 1];
+	
+		for (let i = 0; i < iterations; i++) {
+		for (let j = boneChain.length - 2; j >= 0; j--) {
+			const bone = boneChain[j];
+			const nextBone = boneChain[j + 1];
+			
+			const toTarget = targetPosition.clone().sub(bone.getWorldPosition(new Vector3()));
+			const toNextBone = nextBone.getWorldPosition(new Vector3()).sub(bone.getWorldPosition(new Vector3()));
+			
+			const quaternion = new Quaternion().setFromUnitVectors(toNextBone.normalize(), toTarget.normalize());
+			
+			let weight;
+			if (j === 0) {
+			weight = shoulderWeight;
+			} else if (j === 1) {
+			const spineWorldPosition = new Vector3();
+			spineBone.getWorldPosition(spineWorldPosition);
+			const distanceToBody = targetPosition.distanceTo(spineWorldPosition);
+			const elbowBendThreshold = 0.3;
+		
+			if (distanceToBody < elbowBendThreshold) {
+				const elbowBendAngle = Math.PI / 16;
+				const elbowBendAxis = new Vector3(0, 0, 1);
+				const elbowBendQuaternion = new Quaternion().setFromAxisAngle(elbowBendAxis, elbowBendAngle);
+				quaternion.multiply(elbowBendQuaternion);
+			}
+			weight = elbowWeight;
+			} else {
+			weight = wristWeight;
+			}
+			// limit weight to reasonable values
+			weight = MathUtils.clamp(weight, 0, 1);
+
+			bone.quaternion.slerp(quaternion, weight);
+		}
+		}
+	}
+
+	let frameCounter = 0;
+	const logFrequency = 60; // Log every 60 frames, adjust this value as needed
+	function conditionalLog(message, ...optionalParams) {
+		frameCounter++;
+		if (frameCounter % logFrequency === 0) {
+		console.log(message, ...optionalParams);
+		}
+	}
+	const HAND_VERTICAL_OFFSET = -1.0;
+	const ARM_FORWARD = new Vector3(1, 0, 0);
+	const UP = new Vector3(0, 1, 0);
+
+	const armRef = useRef(null);
+	const rigRef = useRef(null);
+// Add these as component-level variables
+const debugArrows = {
+	leftForward: null,
+	leftUp: null,
+	rightForward: null,
+	rightUp: null
+  };
+
+  useFrame((state, delta) => {
+	if (isPresenting && playerControllerRef.current && playerControllerRef.current.avatar) {
+	  const avatar = playerControllerRef.current.avatar;
+	  const avatarParent = avatar.model.parent.parent;
+  
+	  // Update avatar inputs
+	  avatar.inputs.hmd.position.copy(camera.position);
+  
+	  // Update left and right hand positions and rotations
+	  const leftHandPosition = leftController.controller.position.clone();
+	  const leftHandQuaternion = leftController.controller.quaternion.clone();
+	  avatarParent.worldToLocal(leftHandPosition);
+	  avatar.inputs.leftGamepad.position.copy(leftHandPosition);
+	  avatar.inputs.leftGamepad.quaternion.copy(leftHandQuaternion);
+  
+	  const rightHandPosition = rightController.controller.position.clone();
+	  const rightHandQuaternion = rightController.controller.quaternion.clone();
+	  avatarParent.worldToLocal(rightHandPosition);
+	  avatar.inputs.rightGamepad.position.copy(rightHandPosition);
+	  avatar.inputs.rightGamepad.quaternion.copy(rightHandQuaternion);
+  
+	  avatar.setFloorHeight(0);
+	  avatar.update(delta);
+	}
+  });
+
+	  const keyboardMap = [
+		{ name: "forward", keys: ["ArrowUp", "KeyW"] },
+		{ name: "backward", keys: ["ArrowDown", "KeyS"] },
+		{ name: "leftward", keys: ["ArrowLeft", "KeyA"] },
+		{ name: "rightward", keys: ["ArrowRight", "KeyD"] },
+		{ name: "jump", keys: ["Space"] },
+		{ name: "run", keys: ["Shift"] },
+		// Optional animation key map
+		{ name: "action1", keys: ["1"] },
+		{ name: "action2", keys: ["2"] },
+		{ name: "action3", keys: ["3"] },
+		{ name: "action4", keys: ["KeyF"] },
+	];
+
+	const canvas = document.querySelector('div.threeov-main-canvas');
+
+	return (
+	<>
+		<KeyboardControls
+		map={keyboardMap}
+		domElement={canvas}
+		>
+		<Ecctrl
+			ref={characterRef}
+			position={[Number(props.spawnPoint[0]), Number(props.spawnPoint[1]), Number(props.spawnPoint[2])]}
+			turnSpeed={20}
+			maxVelLimit={5}
+			jumpVel={7}
+			camInitDis={-3}
+			camMaxDis={-6}
+			camMinDis={-0.5}
+			animated
+			restitution={0.0}
+			springK={0}
+			camMoveSpeed={1.5}
+			camZoomSpeed={1.5}
+			autoBalance={true}
+			airDragMultiplier={0.05}
+			fallingGravityScale={3.5}
+			wakeUpDelay={5000}
+			camCollision={props.camCollisions === "1" ? true : false}
+			disableFollowCam={isPresenting ? true : false}
+			canSleep={true}
+			ccd={true}
+			additionalSolverIterations={1}
+			>
+			{isModelLoaded && playerControllerRef.current && (
+			<>
+				<primitive
+				userData={{ camExcludeCollision: true }}
+				visible={true}
+				name="playerOne"
+				object={playerControllerRef.current.scene}
+				position={[0, -0.65, 0]}
+				rotation={[0, 0, 0]}
+				/>
+				{avatarIsSprite && (
+				<SpriteAnimator
+					name="playerOneSprite"
+					userData={{ camExcludeCollision: true }}
+					ref={spriteRef}
+					position={[0, 0, 0]}
+					frameName={frameName}
+					startFrame={0}
+					scale={[2, 2, 2]}
+					fps={10}
+					animationNames={['WalkForward', 'WalkBackward', 'ForwardIdle', 'BackwardIdle', 'WalkLeft', 'WalkRight']}
+					autoPlay={true}
+					asSprite={false}
+					loop={true}
+					alphaTest={0.1}
+					textureImageURL={userData.playerVRM}
+					textureDataURL={(threeObjectPluginRoot + '/inc/utils/sprite.json')}
+				/>
+				)}
+			</>
+			)}
+		</Ecctrl>
+		</KeyboardControls>
+	</>
+	);
 }

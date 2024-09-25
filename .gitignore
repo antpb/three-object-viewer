@@ -23,6 +23,7 @@ vendor
 wordpress
 build
 pro/
+plugin-build/free/*.zip
 .phpunit.result.cache
 plugin-build/pro/three-object-viewer/*
 !plugin-build/pro/three-object-viewer/.gitkeep

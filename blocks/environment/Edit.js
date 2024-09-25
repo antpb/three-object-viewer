@@ -8,6 +8,9 @@ import {
 	MediaUpload,
 	InnerBlocks
 } from "@wordpress/block-editor";
+import { useDispatch } from '@wordpress/data';
+import { createBlock } from '@wordpress/blocks';
+
 import {
 	Panel,
 	PanelBody,
@@ -24,11 +27,11 @@ import defaultEnvironment from "../../inc/assets/default_grid.glb";
 import ThreeObjectEdit from "./components/ThreeObjectEdit";
 import { EditorPluginProvider, useEditorPlugins, EditorPluginContext } from './components/EditorPluginProvider';  // Import the PluginProvider
 
-export default function Edit({ attributes, setAttributes, isSelected }) {
+export default function Edit({ attributes, setAttributes, isSelected, clientId }) {
 	const ALLOWED_BLOCKS = allowed_blocks;
 	const [focusPosition, setFocusPosition] = useState(new THREE.Vector3());
 	const [focusPoint, setFocus] = useState(new THREE.Vector3());
-	const [mainModel, setMainModel] = useState(attributes.threeObjectUrl ? attributes.threeObjectUrl : (threeObjectPlugin + defaultEnvironment));
+	const [mainModel, setMainModel] = useState(attributes.threeObjectUrl ? attributes.threeObjectUrl : (defaultEnvironment));
 	const changeFocusPoint = (newValue) => {
 		setFocusPosition(newValue);
 	}
@@ -36,7 +39,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 	// useEffect to initialize the value of the threeObjectUrl attribute if it is not set
 	useEffect(() => {
 		if (!attributes.threeObjectUrl) {
-			setAttributes({ threeObjectUrl: (threeObjectPlugin + defaultEnvironment) });
+			setAttributes({ threeObjectUrl: (defaultEnvironment) });
 		}
 	}, []);
 	const removeHDR = (imageObject) => {
@@ -80,6 +83,11 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 		setAttributes({ deviceTarget: target });
 	};
 
+	const setCamCollisions = (collisions) => {
+		setAttributes({ camCollisions: collisions });
+	};
+		
+
 	const [enteredURL, setEnteredURL] = useState("");
 
 	const { mediaUpload } = wp.editor;
@@ -116,6 +124,83 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 			</div>
 		);
 	};
+    // "name": "three-object-viewer/model-block",
+    // "attributes": {
+    //     "scaleX": {
+    //         "type": "int",
+    //         "default":1
+    //     },
+    //     "name": {
+    //         "type": "string"
+    //     },
+    //     "scaleY": {
+    //         "type": "int",
+    //         "default":1
+    //     },
+    //     "scaleZ": {
+    //         "type": "int",
+    //         "default":1
+    //     },
+    //     "positionX": {
+    //         "type": "int",
+    //         "default":0
+    //     },
+    //     "positionY": {
+    //         "type": "int",
+    //         "default":0
+    //     },
+    //     "positionZ": {
+    //         "type": "int",
+    //         "default":0
+    //     },
+    //     "rotationX": {
+    //         "type": "int",
+    //         "default":0
+    //     },
+    //     "rotationY": {
+    //         "type": "int",
+    //         "default":0
+    //     },
+    //     "rotationZ": {
+    //         "type": "int",
+    //         "default":0
+    //     },
+    //     "threeObjectUrl": {
+    //         "type": "string",
+    //         "default": null
+    //     },
+    //     "animations": {
+    //         "type": "string",
+    //         "default": ""
+    //     },
+    //     "alt": {
+    //         "type": "string",
+    //         "default": ""
+    //     },
+    //     "collidable": {
+    //         "type": "boolean",
+    //         "default": false
+    //     }
+    // },
+    // "category": "spatial",
+    // "parent":  [ "three-object-viewer/environment" ],
+	const { insertBlock } = useDispatch('core/block-editor');
+
+	const handleDrop = (e) => {
+		e.dataTransfer.dropEffect = 'copy';
+		const fileUrl = e.dataTransfer.getData('text');
+		console.log('event', fileUrl);
+		e.preventDefault();
+		e.stopPropagation();
+	
+		// Create a new block based on the dropped URL
+		const newBlock = createBlock('three-object-viewer/model-block', {
+			threeObjectUrl: fileUrl,
+		});
+	
+		// Insert the new block as an inner block
+		insertBlock(newBlock, undefined, clientId);
+	  };
 
 	return (
 		<div {...useBlockProps()}>
@@ -153,24 +238,31 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 							/>
 						</PanelRow>
 						<PanelRow>
+							<button onClick={() => setAttributes({ threeObjectUrl: null })}>
+								{ __( 'Remove Environment', 'three-object-viewer' ) }
+							</button>
+						</PanelRow>
+						<PanelRow>
 							<span>
 								{__( "Select an image to be used as the preview image:", "three-object-viewer" )}
 							</span>
 						</PanelRow>
 						<PanelRow>
-							<span>
-								<img
-									alt="Preview"
-									src={
-										attributes.threePreviewImage
-											? attributes.threePreviewImage
-											: ""
-									}
-									style={{
-										maxHeight: "150px"
-									}}
-								/>
-							</span>
+							{attributes.threePreviewImage && (
+								<span>
+									<img
+										alt="Preview"
+										src={
+											attributes.threePreviewImage
+												? attributes.threePreviewImage
+												: ""
+										}
+										style={{
+											maxHeight: "150px"
+										}}
+									/>
+								</span>
+							)}
 						</PanelRow>
 						<PanelRow>
 							<MediaUpload
@@ -194,6 +286,11 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 							{attributes.hdr && (<span>
 								{ attributes.hdr }
 							</span>)}
+						</PanelRow>
+						<PanelRow>
+							<span>
+								{__( "Use an .hdr to give your scene a HDR image to use as the environment. This influences lighting and reflections.", "three-object-viewer" )}
+							</span>
 						</PanelRow>
 						<PanelRow>
 							<MediaUpload
@@ -227,7 +324,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 						initialOpen={true}
 					>
 						<PanelRow>
-							<span>{ __( "Object Display Type:", "three-object-viewer" ) }</span>
+							<span>{ __( "Device Target Type:", "three-object-viewer" ) }</span>
 						</PanelRow>
 						<PanelRow>
 							<SelectControl
@@ -235,6 +332,23 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 								value={attributes.deviceTarget}
 								options={[{ label: "VR", value: "vr" }]}
 								onChange={(target) => setDeviceTarget(target)}
+							/>
+						</PanelRow>
+						<PanelRow>
+						<span>{ __( "Camera Collisions:", "three-object-viewer" ) }</span>
+						</PanelRow>
+						<PanelRow>
+							<ToggleControl
+									label={ __( "Camera Collisions will avoid the camera from going out of view of the player. Disable this setting if you are noticing frame rate dips.", 'three-object-viewer' ) }
+									help={
+										attributes.camCollisions
+											? __( "Camera is currently collidable. May impact performance.", 'three-object-viewer' )
+											: __( "Camera is not collidable.", 'three-object-viewer' )
+									}
+									checked={attributes.camCollisions}
+									onChange={(e) => {
+										setCamCollisions(e);
+									}}
 							/>
 						</PanelRow>
 						<PanelRow>
@@ -279,18 +393,22 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 			</InspectorControls>
 				<>
 				<div
-				style={{
-					height: "90vh",
-					maxWidth: "220px",
-					width: "220px",
-					overflowY: "scroll",
-					position: "absolute",
-					top: "0px",
-					left: "0px",
-					zIndex: "1",
-					backgroundColor: "#2a2a2a"
-				}}
+					className="threeov-block-list-container"
+					style={{
+						height: "100%",
+						maxWidth: "220px",
+						width: "220px",
+						overflowY: "scroll",
+						position: "absolute",
+						top: "0px",
+						left: "0px",
+						zIndex: "1",
+						// background: "linear-gradient(180deg, #23192adb 0%, #23192a3b 100%)",
+						borderRight: "3px solid #ffffff1f",
+					}}
 				>
+					<DropZone onDrop={handleDrop} />
+
 					<InnerBlocks
 						renderAppender={ InnerBlocks.ButtonBlockAppender }
 						allowedBlocks={ALLOWED_BLOCKS}
@@ -312,6 +430,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 									positionX={attributes.positionX}
 									positionY={attributes.positionY}
 									animations={attributes.animations}
+									camCollisions={attributes.camCollisions ? attributes.camCollisions : true}
 									rotationY={attributes.rotationY}
 									setFocusPosition={setFocusPosition}
 									setFocus={setFocus}

@@ -1,0 +1,36 @@
+.asset-item.selected {
+	outline: 4px solid #0073aa;
+	/* box-shadow: 0 0 5px rgba(0, 115, 170, 0.8); */
+	overflow: hidden;
+	height: 150px;
+  }
+
+.asset-item img {
+	width: auto;
+	height: 150px;
+  }
+
+  .asset-item div {
+	height: 150px;
+  }
+
+  .search-container {
+	margin-bottom: 10px;
+}
+
+.search-input {
+	width: 200px;
+	margin-right: 10px;
+}
+
+.category-filters {
+	margin-bottom: 10px;
+}
+
+.category-filter {
+	margin-right: 5px;
+}
+
+.category-filter.selected {
+	font-weight: bold;
+}
