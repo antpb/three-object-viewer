@@ -67,7 +67,7 @@ export default function App({ getSettings, updateSettings }) {
       <form onSubmit={onSave}>
         <table className="form-table" role="presentation">
           <tbody>
-            <tr>
+            {/* <tr>
               <th scope="row">
                 <label htmlFor="threeovApiKey">{__("3OV Pro API Key", "three-object-viewer")}</label>
               </th>
@@ -87,7 +87,7 @@ export default function App({ getSettings, updateSettings }) {
                   }
                 </p>
               </td>
-            </tr>
+            </tr> */}
 
             <tr>
               <th scope="row">
@@ -169,143 +169,144 @@ export default function App({ getSettings, updateSettings }) {
                 )}
               </td>
             </tr>
+			{settings.multiplayerWorker && (
+				<>
+					<tr>
+						<th scope="row">
+							<label htmlFor="multiplayerWorker">{__("Networking Endpoint URL", "three-object-viewer")}</label>
+						</th>
+						<td>
+							<input
+							type="text"
+							id="multiplayerWorker"
+							value={settings.multiplayerWorker || ""}
+							onChange={(event) => setSettings({ ...settings, multiplayerWorker: event.target.value })}
+							className="regular-text"
+							/>
+							<p className="description">
+							{__(
+								"Use https://p2pcf.sxp.digital/ or host your own CloudFlare Worker using ",
+								"three-object-viewer"
+							)}
+							<ExternalLink href="https://github.com/gfodor/p2pcf">
+								p2pcf
+							</ExternalLink>
+							{__(
+								". A tutorial for setting up your own worker can be found ",
+								"three-object-viewer"
+							)}
+							<ExternalLink href="https://github.com/gfodor/p2pcf/blob/master/INSTALL.md">
+								{__("here", "three-object-viewer")}
+							</ExternalLink>.
+							</p>
+						</td>
+						</tr>
+					<tr>
+					<th scope="row">{__("TURN Settings", "three-object-viewer")}</th>
+					<td>
+						<p className="description">
+						{__(
+							"These settings are used to configure the TURN server for WebRTC connections. You can use the public TURN server or host your own. The public TURN server is hosted at ",
+							"three-object-viewer"
+						)}
+						<code>turn.sxp.digital</code>
+						{__(" but is limited.", "three-object-viewer")}
+						</p>
+						<p className="description">
+						{__(
+							"A TURN server is used to relay WebRTC connections when a direct connection cannot be established. This is common when two peers are behind different NATs or firewalls.",
+							"three-object-viewer"
+						)}
+						</p>
+					</td>
+					</tr>
 
-            <tr>
-              <th scope="row">
-                <label htmlFor="multiplayerWorker">{__("Networking Endpoint URL", "three-object-viewer")}</label>
-              </th>
-              <td>
-                <input
-                  type="text"
-                  id="multiplayerWorker"
-                  value={settings.multiplayerWorker || ""}
-                  onChange={(event) => setSettings({ ...settings, multiplayerWorker: event.target.value })}
-                  className="regular-text"
-                />
-                <p className="description">
-                  {__(
-                    "Use https://p2pcf.sxp.digital/ or host your own CloudFlare Worker using ",
-                    "three-object-viewer"
-                  )}
-                  <ExternalLink href="https://github.com/gfodor/p2pcf">
-                    p2pcf
-                  </ExternalLink>
-                  {__(
-                    ". A tutorial for setting up your own worker can be found ",
-                    "three-object-viewer"
-                  )}
-                  <ExternalLink href="https://github.com/gfodor/p2pcf/blob/master/INSTALL.md">
-                    {__("here", "three-object-viewer")}
-                  </ExternalLink>.
-                </p>
-              </td>
-            </tr>
+					<tr>
+					<th scope="row">
+						<label htmlFor="turnCredentialRelay">{__("TURN Credential Relay", "three-object-viewer")}</label>
+					</th>
+					<td>
+						<input
+						type="text"
+						id="turnCredentialRelay"
+						value={settings.turnCredentialRelay || ""}
+						onChange={(event) => setSettings({ ...settings, turnCredentialRelay: event.target.value })}
+						className="regular-text"
+						/>
+						<p className="description">
+						{__(
+							"A CloudFlare Worker is used to relay TURN credentials. You can use the public worker at ",
+							"three-object-viewer"
+						)}
+						<code>https://turn.sxp.digital/</code>
+						{__(
+							" or host your own. The public worker is resource limited and should only be used for testing. You can bypass these limits using your API key below or by hosting your own CloudFlare Worker to run the exact same credential handling. A tutorial for setting up your own worker can be found ",
+							"three-object-viewer"
+						)}
+						<ExternalLink href="https://github.com/gfodor/p2pcf/blob/master/INSTALL.md">
+							{__("here", "three-object-viewer")}
+						</ExternalLink>.
+						</p>
+					</td>
+					</tr>
 
-            <tr>
-              <th scope="row">{__("TURN Settings", "three-object-viewer")}</th>
-              <td>
-                <p className="description">
-                  {__(
-                    "These settings are used to configure the TURN server for WebRTC connections. You can use the public TURN server or host your own. The public TURN server is hosted at ",
-                    "three-object-viewer"
-                  )}
-                  <code>turn.sxp.digital</code>
-                  {__(" but is limited.", "three-object-viewer")}
-                </p>
-                <p className="description">
-                  {__(
-                    "A TURN server is used to relay WebRTC connections when a direct connection cannot be established. This is common when two peers are behind different NATs or firewalls.",
-                    "three-object-viewer"
-                  )}
-                </p>
-              </td>
-            </tr>
+					<tr>
+					<th scope="row">
+						<label htmlFor="turnServerKey">{__("TURN API Key", "three-object-viewer")}</label>
+					</th>
+					<td>
+						<input
+						type={isOpenApiKeyVisible ? "text" : "password"}
+						id="turnServerKey"
+						value={settings.turnServerKey || ""}
+						onChange={(event) => setSettings({ ...settings, turnServerKey: event.target.value })}
+						className="regular-text"
+						/>
+						<Button
+						isSecondary
+						onClick={() => setIsOpenApiKeyVisible(!isOpenApiKeyVisible)}
+						>
+						{isOpenApiKeyVisible
+							? __("Hide Key", "three-object-viewer")
+							: __("Show Key", "three-object-viewer")
+						}
+						</Button>
+						<p className="description">
+						{__(
+							"This secret key will bypass limitations of the 3OV public TURN worker. You can use ",
+							"three-object-viewer"
+						)}
+						<ExternalLink href="https://www.metered.ca/">
+							metered.ca
+						</ExternalLink>
+						{__(
+							" to establish a secret key. More info can be found ",
+							"three-object-viewer"
+						)}
+						<ExternalLink href="https://www.metered.ca/docs/turnserver-guides/expiring-turn-credentials/#step-1-obtain-your-metered-domain-and-secret-key">
+							{__("here", "three-object-viewer")}
+						</ExternalLink>.
+						</p>
+					</td>
+					</tr>
 
-            <tr>
-              <th scope="row">
-                <label htmlFor="turnCredentialRelay">{__("TURN Credential Relay", "three-object-viewer")}</label>
-              </th>
-              <td>
-                <input
-                  type="text"
-                  id="turnCredentialRelay"
-                  value={settings.turnCredentialRelay || ""}
-                  onChange={(event) => setSettings({ ...settings, turnCredentialRelay: event.target.value })}
-                  className="regular-text"
-                />
-                <p className="description">
-                  {__(
-                    "A CloudFlare Worker is used to relay TURN credentials. You can use the public worker at ",
-                    "three-object-viewer"
-                  )}
-                  <code>https://turn.sxp.digital/</code>
-                  {__(
-                    " or host your own. The public worker is resource limited and should only be used for testing. You can bypass these limits using your API key below or by hosting your own CloudFlare Worker to run the exact same credential handling. A tutorial for setting up your own worker can be found ",
-                    "three-object-viewer"
-                  )}
-                  <ExternalLink href="https://github.com/gfodor/p2pcf/blob/master/INSTALL.md">
-                    {__("here", "three-object-viewer")}
-                  </ExternalLink>.
-                </p>
-              </td>
-            </tr>
-
-            <tr>
-              <th scope="row">
-                <label htmlFor="turnServerKey">{__("TURN API Key", "three-object-viewer")}</label>
-              </th>
-              <td>
-                <input
-                  type={isOpenApiKeyVisible ? "text" : "password"}
-                  id="turnServerKey"
-                  value={settings.turnServerKey || ""}
-                  onChange={(event) => setSettings({ ...settings, turnServerKey: event.target.value })}
-                  className="regular-text"
-                />
-                <Button
-                  isSecondary
-                  onClick={() => setIsOpenApiKeyVisible(!isOpenApiKeyVisible)}
-                >
-                  {isOpenApiKeyVisible
-                    ? __("Hide Key", "three-object-viewer")
-                    : __("Show Key", "three-object-viewer")
-                  }
-                </Button>
-                <p className="description">
-                  {__(
-                    "This secret key will bypass limitations of the 3OV public TURN worker. You can use ",
-                    "three-object-viewer"
-                  )}
-                  <ExternalLink href="https://www.metered.ca/">
-                    metered.ca
-                  </ExternalLink>
-                  {__(
-                    " to establish a secret key. More info can be found ",
-                    "three-object-viewer"
-                  )}
-                  <ExternalLink href="https://www.metered.ca/docs/turnserver-guides/expiring-turn-credentials/#step-1-obtain-your-metered-domain-and-secret-key">
-                    {__("here", "three-object-viewer")}
-                  </ExternalLink>.
-                </p>
-              </td>
-            </tr>
-
-            <tr>
-              <th scope="row">
-                <label htmlFor="multiplayerAccess">{__("Multiplayer Access", "three-object-viewer")}</label>
-              </th>
-              <td>
-                <select
-                  id="multiplayerAccess"
-                  value={settings.multiplayerAccess || "loggedIn"}
-                  onChange={(event) => setSettings({ ...settings, multiplayerAccess: event.target.value })}
-                >
-                  <option value="loggedIn">{__("TURN for Logged In Only", "three-object-viewer")}</option>
-                  <option value="public">{__("TURN Allowed for Public", "three-object-viewer")}</option>
-                </select>
-              </td>
-            </tr>
-
+					<tr>
+					<th scope="row">
+						<label htmlFor="multiplayerAccess">{__("Multiplayer Access", "three-object-viewer")}</label>
+					</th>
+					<td>
+						<select
+						id="multiplayerAccess"
+						value={settings.multiplayerAccess || "loggedIn"}
+						onChange={(event) => setSettings({ ...settings, multiplayerAccess: event.target.value })}
+						>
+						<option value="loggedIn">{__("TURN for Logged In Only", "three-object-viewer")}</option>
+						<option value="public">{__("TURN Allowed for Public", "three-object-viewer")}</option>
+						</select>
+					</td>
+					</tr>
+				</>
+			)}
             <tr>
               <th scope="row">{__("NPC Settings", "three-object-viewer")}</th>
               <td>

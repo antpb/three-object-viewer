@@ -396,6 +396,7 @@ class Plugin
 	}
 
 	public function allow_threeov_web_components($tags, $context) {
+		// check others! @todo
 		if ($context === 'post') {
 			$tags['three-environment-block'] = array(
 				'class' => true,
@@ -653,7 +654,7 @@ class Plugin
 		}
 	
 		// Verify the nonce before saving
-		if (!isset($_POST['user_vrm_nonce_field']) || !wp_verify_nonce($_POST['user_vrm_nonce_field'], 'update_user_vrm_nonce')) {
+		if (!isset($_POST['user_vrm_nonce_field']) || !wp_verify_nonce(wp_unslash($_POST['user_vrm_nonce_field']), 'update_user_vrm_nonce')) {
 			return false;
 		}
 	
@@ -727,17 +728,17 @@ class Plugin
 	* Adds glb vrm and usdz types to allowed uploads.
 	*/
 	function threeobjectviewer_add_file_types_to_uploads($file_types){
-	  $new_filetypes = array();
-	  // Potentially need to restore as model/gltf-binary in the future.  
-	  // $new_filetypes['glb'] = 'model/gltf-binary';
-	  $new_filetypes['glb'] = 'application/octet-stream';
-	  $new_filetypes['vrm'] = 'application/octet-stream';
-	  $new_filetypes['hdr'] = 'image/vnd.radiance';
-	  $new_filetypes['usdz'] = 'model/vnd.usdz+zip';
-	  $new_filetypes['fbx'] = 'application/octet-stream';
-	  $file_types = array_merge($file_types, $new_filetypes );
-	
-	  return $file_types;
+		$new_filetypes = array();
+		// Potentially need to restore as model/gltf-binary in the future.  
+		// $new_filetypes['glb'] = 'model/gltf-binary';
+		$new_filetypes['glb'] = 'application/octet-stream';
+		$new_filetypes['vrm'] = 'application/octet-stream';
+		$new_filetypes['hdr'] = 'image/vnd.radiance';
+		$new_filetypes['usdz'] = 'model/vnd.usdz+zip';
+		$new_filetypes['fbx'] = 'application/octet-stream';
+		$file_types = array_merge($file_types, $new_filetypes );
+		
+		return $file_types;
 	}
 	
 	function three_object_viewer_check_for_usdz( $types, $file, $filename, $mimes ) {
@@ -851,7 +852,7 @@ class Plugin
 		}
 		$three_object_plugin = plugins_url() . '/three-object-viewer/build/';
 		$three_object_plugin_root = plugins_url() . '/three-object-viewer/';
-	
+
 		// new variable named default_animation that checks if the wp_option for '3ov_defaultVRM' is available.
 		// if it is, it will use that value, if not, it will use the default value of 'default.vrm'
 		$default_animation = get_option('3ov_defaultVRM');
@@ -864,6 +865,7 @@ class Plugin
 		//     'userName' => 'someone',
 		//     'vrm' => 'somefile.vrm',
 		//  );
+
 		global $post;
 		$post_slug = $post->post_name;
 		$openbrush_enabled = false;
@@ -1106,17 +1108,17 @@ class Plugin
 
 	
 		$DEFAULT_BLOCKS = [
-							'three-object-viewer/three-portal-block',
-							'three-object-viewer/three-text-block',
-							'three-object-viewer/model-block',
-							'three-object-viewer/audio-block',
-							'three-object-viewer/light-block',
-							'three-object-viewer/npc-block',
-							'three-object-viewer/sky-block',
-							'three-object-viewer/npc-block',
-							'three-object-viewer/three-image-block',
-							'three-object-viewer/three-video-block',
-							'three-object-viewer/spawn-point-block',
+			'three-object-viewer/three-portal-block',
+			'three-object-viewer/three-text-block',
+			'three-object-viewer/model-block',
+			'three-object-viewer/audio-block',
+			'three-object-viewer/light-block',
+			'three-object-viewer/npc-block',
+			'three-object-viewer/sky-block',
+			'three-object-viewer/npc-block',
+			'three-object-viewer/three-image-block',
+			'three-object-viewer/three-video-block',
+			'three-object-viewer/spawn-point-block',
 		];
 
 		// if option for multiplayerNetworking is not a value then add the network block to allowed blocks
